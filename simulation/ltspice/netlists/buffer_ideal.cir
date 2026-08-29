@@ -1,0 +1,8 @@
+* SPICE_IDEAL: unity controlled-source buffer; not an MCP6004 model
+Vin in 0 0
+Ebuf out 0 in 0 1
+.dc Vin 0 3.3 0.1
+.meas dc vout_at_1v FIND V(out) WHEN V(in)=1
+.meas dc vout_at_3v FIND V(out) WHEN V(in)=3
+.end
+

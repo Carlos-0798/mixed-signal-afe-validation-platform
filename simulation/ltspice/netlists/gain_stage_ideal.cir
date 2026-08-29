@@ -1,0 +1,9 @@
+* SPICE_IDEAL: ideal high-gain VCVS with x2 non-inverting feedback network
+Vin in 0 0
+Eop out 0 in nminus 1e6
+Rg nminus 0 10k
+Rf out nminus 10k
+.dc Vin 0 1.5 0.05
+.meas dc vout_at_1v FIND V(out) WHEN V(in)=1
+.end
+

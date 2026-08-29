@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+.venv-*/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# LTspice generated artifacts; curated logs may be copied to expected-results.
+simulation/ltspice/netlists/*.raw
+simulation/ltspice/netlists/*.log
+simulation/ltspice/netlists/*.net
+simulation/ltspice/netlists/*.db
+simulation/ltspice/netlists/*.op.raw
+
+# Generated test and report output.
+test-data/generated/
+reports/generated/

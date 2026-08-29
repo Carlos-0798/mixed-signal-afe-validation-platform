@@ -1,0 +1,9 @@
+* SPICE_IDEAL: first-order 16k/100nF passive low-pass
+Vin in 0 AC 1
+R1 in out 16k
+C1 out 0 100n
+.ac dec 200 1 100k
+.meas ac fc WHEN mag(V(out))=0.707106781 FALL=1
+.meas ac gain_at_100hz FIND mag(V(out)) AT=100
+.end
+

@@ -1,0 +1,7 @@
+* SPICE_IDEAL: behavioral Schmitt check with nominal 1.8V rising and 1.5V falling trips
+Vin in 0 PWL(0 0 4m 3.3 8m 0)
+A1 in 0 0 0 0 out 0 0 SCHMITT Vt=1.65 Vh=0.15 Vhigh=3.3 Vlow=0 Td=1u Trise=1n Tfall=1n
+.tran 0 8m 0 1u
+.meas tran input_rising_trip FIND V(in) WHEN V(out)=1.65 FALL=1
+.meas tran input_falling_trip FIND V(in) WHEN V(out)=1.65 RISE=1
+.end
