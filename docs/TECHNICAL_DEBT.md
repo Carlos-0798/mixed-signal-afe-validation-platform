@@ -32,8 +32,8 @@
 | TD-023 | CLOSED | `phase2_public_api.json` 冻结公开 imports/schema/enum/signature/error/replay hash，`phase2_workflow_v1.json` 冻结 Simulator/CSV/UNSUPPORTED 端到端含义；隔离构建和仓库外 wheel 验证纳入阶段出口 | Phase 2 兼容性变化不再能静默发生；未来破坏性变更必须升级版本并记录迁移 | 证据见 `docs/phase2-public-api.md` 和 `reports/software-phase2-step8.md` |
 | TD-024 | CLOSED | `phase3_public_api.json` 冻结公开 imports/schema/enum/signature/error/constants 与三份结果文件哈希；exact `SYNTHETIC` DC/迟滞结果冻结拟合、饱和排除、阈值、迟滞宽度及来源语义 | Phase 3 调用和结果兼容性变化不再能静默发生；这些基准不构成实物性能声明 | 证据见 `docs/phase3-public-api.md` 和 `reports/software-phase3-step8.md` |
 | TD-025 | P1 | 尚无 OS serial backend、port discovery、timeout、有限重连和 bounded raw-frame log | profile-neutral stream 已可处理 chunks，但还不能形成真实 SerialAdapter | Software Phase 4 Steps 3/6 |
-| TD-026 | P1 | 当前 `protocol/framing.py` 名称描述为通用 framing，但 envelope 仍硬编码 `AFE` namespace | MSP430 无 namespace 的消息不能安全复用该入口 | Software Phase 4 Step 2 拆出通用 token/CRC envelope，同时保持 AFE API/golden compatibility |
-| TD-027 | P1 | AFE wire mapper 使用 `afe.chN.input_mv/output_mv`，Simulator/workflow 冻结接口使用 `afe.chN.input/output` | 串口、模拟和回放通道配置无法直接互换 | Software Phase 4 Step 2 冻结显式 mapping；禁止静默重命名历史记录 |
+| TD-026 | CLOSED | `protocol.envelope` 已提供不要求 namespace 的严格 token/CRC record；`framing.py` 仅保留 AFE shape wrapper | AFE 与 MSP430 形状可复用同一 envelope，旧 AFE API/bytes/errors 不变 | 证据见 `reports/software-phase4-step2.md`、三条 neutral golden records 和旧 20 valid/9 invalid 回归 |
+| TD-027 | CLOSED | `afe-channel-map.v1` 已冻结 canonical `input/output/gain/threshold` 与 legacy telemetry v1 `input_mv/output_mv/gain/threshold`，转换必须显式声明 source/target | 未来串口 profile 可对齐 Simulator/workflow，同时历史 Measurement 不被静默重命名 | 证据见 `docs/afe-channel-mapping.md` 和 `tests/unit/test_afe_channel_mapping.py` |
 | TD-028 | P1 | 尚无独立 MSP430 Equipment Health v1 profile 和本仓库 golden fixtures | 当前只能人工探测其协议，不能通过正式 adapter/workflow 声称兼容 | Software Phase 4 Step 5；保持只读、32-bit sequence、sentinel/fault 语义和独立证据 |
 
 关闭技术债时必须记录对应代码、测试、文档和验证报告，不能只从表格删除。

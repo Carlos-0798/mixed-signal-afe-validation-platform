@@ -808,4 +808,4 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/adr/`；
 - `docs/TECHNICAL_DEBT.md`。
 
-Software Phase 1、2、3 均已完成各自 8/8。Software Phase 4 已完成 Step 1/8：profile-neutral bounded LF stream、超长恢复和 16/32-bit modular sequence tracking 已实现，并通过 32 项集中测试、1,079 项完整回归和 5,752/5,752 正式 package 覆盖。下一步是拆出 profile-neutral token/CRC envelope、保持 AFE v1 黄金兼容，并冻结 channel mapping。当前仍不采购、不接线，也不把 HOST_TEST PASS 或另一个项目的 HIL 证据描述为 AFE 实物验证。
+Software Phase 1、2、3 均已完成各自 8/8。Software Phase 4 已完成 Steps 1–2/8：profile-neutral bounded LF stream、超长恢复、16/32-bit modular sequence tracking、namespace-neutral token/CRC envelope、AFE compatibility wrapper 和 `afe-channel-map.v1` 均已实现，并通过 51 项 Step 2 新测试、1,130 项完整回归和 5,846/5,846 正式 package 覆盖。下一步是以内存 backend 为第一验收路径定义 serial lifecycle 与 bounded raw events。当前仍不采购、不接线、不访问 COM，也不把 HOST_TEST PASS 或另一个项目的 HIL 证据描述为 AFE 实物验证。

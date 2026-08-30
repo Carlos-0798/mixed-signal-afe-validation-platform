@@ -1,7 +1,7 @@
 # 开发环境
 
 **验证日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 4 进行中（1/8）<br>
+**当前阶段：** Software Phase 4 进行中（2/8）<br>
 **硬件要求：** 无
 
 ## 已验证环境
@@ -42,7 +42,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m build
 ```
 
-pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式记录追溯、质量 policy、DC sweep 与方向性迟滞数学、版本化 criteria/TestRun 映射、安全门控 runners、不可变线性校准、离线幅值频响分析，以及严格 `result-export.v1` JSON/CSV。Phase 4 Step 1 已增加 profile-neutral bounded stream 和 modular sequence tracker；当前完整门禁为 1,079 tests、5,752/5,752 正式 package statements、全仓库 Ruff、104-file mypy、依赖检查、sdist/wheel 和仓库外 transport smoke。它们仍是 HOST_TEST 证据。旧 `dashboard/reporting/csv_export.py` 仅为指向正式 package 的 legacy placeholder。
+pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式记录追溯、质量 policy、DC sweep 与方向性迟滞数学、版本化 criteria/TestRun 映射、安全门控 runners、不可变线性校准、离线幅值频响分析，以及严格 `result-export.v1` JSON/CSV。Phase 4 Steps 1–2 已增加 profile-neutral bounded stream、modular sequence tracker、token/CRC envelope、AFE compatibility wrapper 和显式 channel mapping；当前完整门禁为 1,130 tests、5,846/5,846 正式 package statements、全仓库 Ruff、110-file mypy、依赖检查、sdist/wheel 和仓库外 transport/envelope smoke。它们仍是 HOST_TEST 证据。旧 `dashboard/reporting/csv_export.py` 仅为指向正式 package 的 legacy placeholder。
 
 ## 当前边界
 

@@ -4,6 +4,8 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Host-only software reports:
 
+- `software-phase4-step2.md` — namespace-neutral CRC envelope, frozen AFE wrapper compatibility, explicit channel mapping, composite stream path, build/install verification, and hardware limits.
+- `software-phase4-step1.md` — profile-neutral bounded byte stream, modular sequence tracking, package verification, and serial/hardware evidence limits.
 - `software-phase3-step8.md` — Software Phase 3 closure: public API and exact result golden freeze, full regression, external install, exit criteria, and remaining boundaries.
 - `software-phase3-step7.md` — versioned result bundle, deterministic JSON/CSV, safe file publication, typed builders, and executed Step 7 verification.
 - `software-phase3-step6.md` — immutable linear calibration, derived-record lineage, offline frequency response, cutoff semantics, packaging verification, and evidence limits.

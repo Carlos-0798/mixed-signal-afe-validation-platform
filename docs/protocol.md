@@ -2,7 +2,7 @@
 
 This is the current public protocol summary. The only supported AFE business profile is versioned `AFE,1,...`; the Phase 0 unversioned façade was retired at the end of Software Phase 1.
 
-Detailed field and capability semantics are defined in [AFE v1 Profile](afe-v1-profile.md). CRC and envelope behavior are defined in [CRC and Framing Core](framing-and-crc.md).
+Detailed field and capability semantics are defined in [AFE v1 Profile](afe-v1-profile.md). CRC and envelope behavior are defined in [CRC and Framing Core](framing-and-crc.md), and legacy/canonical channel names are defined in [AFE Channel Naming Mapping v1](afe-channel-mapping.md).
 
 ## Transport target
 
@@ -10,7 +10,7 @@ Detailed field and capability semantics are defined in [AFE v1 Profile](afe-v1-p
 - encoding: printable 7-bit ASCII;
 - record terminator: LF; CRLF is accepted on input;
 - maximum serialized record: 128 bytes including the terminator;
-- namespace: every payload begins with `AFE`;
+- AFE namespace: every AFE business payload begins with `AFE`;
 - restricted CSV: no quoting, embedded commas, or embedded whitespace on the wire.
 
 These are software protocol definitions. No physical UART link or baud-rate tolerance has been verified.
@@ -55,7 +55,7 @@ The synthetic stream is labeled `SYNTHETIC`; its derived Measurements are explic
 
 A complete record is rejected for non-ASCII data, excessive length, invalid namespace/version/type, missing or extra fields, invalid tokens, malformed CRC/fault fields, CRC mismatch, unknown enum/command/capability bits, or out-of-range values.
 
-Software Phase 4 Step 1 now provides a profile-neutral bounded byte-stream state machine for fragmentation, coalescing, overlong-record recovery, and modular sequence classification. Real serial streaming still requires the later OS backend, timeout/reconnect lifecycle, profile integration, and raw-event logging; none of those are implied by the single-record parser or Step 1 host tests.
+Software Phase 4 Steps 1–2 now provide a profile-neutral bounded byte-stream state machine plus a namespace-neutral ASCII token/CRC envelope. The existing AFE framing API is a compatibility wrapper over that envelope, and all 20 valid plus 9 invalid AFE golden cases remain unchanged. Neutral-envelope acceptance of MSP430-shaped fixtures does not interpret their fields or prove device interoperability. Real serial streaming still requires the later OS backend, timeout/reconnect lifecycle, profile integration, and raw-event logging.
 
 ## Independence boundary
 

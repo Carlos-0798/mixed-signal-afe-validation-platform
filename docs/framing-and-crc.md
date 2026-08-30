@@ -1,6 +1,6 @@
 # CRC 与 Framing 核心
 
-**当前实现：** Software Phase 4 Step 1 complete<br>
+**当前实现：** Software Phase 4 Step 2 complete<br>
 **证据等级：** HOST_TEST  
 **硬件验证：** 无
 
@@ -36,13 +36,11 @@ CRC 只能发现“收到的 bytes 和发送时不一样”，不能证明数据
 
 固定向量保存在 `test-data/golden/crc16_ccitt_false.json`。黄金向量是“输入和正确输出已经冻结的样本”，可以在重构后快速发现算法参数或位运算是否被意外改变。
 
-## 3. AFE 单记录 framing 负责的规则
+## 3. Profile-neutral CRC envelope
 
-现有兼容实现位于 `src/analog_validation/protocol/framing.py`，当前仍是 AFE
-wrapper，负责：
+Software Phase 4 Step 2 把设备无关规则放入
+`src/analog_validation/protocol/envelope.py`。它负责：
 
-- `AFE` namespace；
-- 至少包含 namespace、消息类型和序号；
 - 受限 CSV，不支持引号或转义；
 - 字段只能包含 `0x21–0x7E` 范围的可打印 ASCII，不能含空白或逗号；
 - 发送统一使用 LF；接收允许 LF 或 CRLF；
@@ -52,12 +50,25 @@ wrapper，负责：
 - 整条序列化记录最多 128 bytes，包含 terminator；
 - CRC 覆盖最后一个数据字段之前的所有 ASCII payload bytes，不覆盖 CRC 前逗号、CRC 字符和行结束。
 
-它不解释 `TEL`、`CMD`、电压、增益或 capability 的业务意义。这些内容由
-`protocol/afe_v1.py` 中的 AFE v1 profile 定义。由于该 wrapper 仍硬编码
-`AFE` namespace，profile-neutral token/CRC envelope 将在 Software Phase 4
-Step 2 拆出，同时保持旧 API 和黄金 bytes 不变。
+`encode_crc_envelope()` 和 `decode_crc_envelope()` 不要求 `AFE` namespace，
+也不解释 `TEL`、`STS`、电压、温度、状态或 capability。黄金 MSP430 形状
+fixture 证明无 namespace 的 payload 可以通过同一 token/CRC 层，但不构成
+MSP430 business parser、串口或硬件互操作证据。
 
-## 4. Profile-neutral 字节流负责的规则
+## 4. AFE 兼容 wrapper
+
+`src/analog_validation/protocol/framing.py` 现在是通用 envelope 上方的薄
+AFE wrapper。它继续额外要求：
+
+- `AFE` namespace；
+- 至少包含 namespace、消息类型和序号；
+- 保持原 `Frame`、`MAX_RECORD_BYTES`、`encode_frame()`、`decode_frame()`
+  名称、签名、错误和 bytes 不变。
+
+业务字段仍由 `protocol/afe_v1.py` 解释。旧 20 条合法和 9 条非法黄金记录
+全部通过原入口，Phase 1–3 顶层及 `protocol.__all__` 没有增加或删除符号。
+
+## 5. Profile-neutral 字节流负责的规则
 
 正式实现位于 `src/analog_validation/transport/stream.py`。它接收任意大小的
 bytes chunks，只识别 LF 和最大记录长度：
@@ -74,7 +85,7 @@ bytes chunks，只识别 LF 和最大记录长度：
 32-bit sequence，记录首次、连续、缺帧、重复、乱序和 modular wrap。字节流与
 sequence 层都不打开串口，也不包含设备字段、单位、capability 或业务逻辑。
 
-## 5. 精确错误分类
+## 6. 精确错误分类
 
 | 异常 | 含义 | 典型处理 |
 |---|---|---|
@@ -84,25 +95,28 @@ sequence 层都不打开串口，也不包含设备字段、单位、capability 
 
 三者都属于公开 `ProtocolError` 家族，因此上层既可以统一捕获协议错误，也可以针对特定错误采取不同恢复方式。
 
-## 6. 为什么长度限制必须在解析前检查
+## 7. 为什么长度限制必须在解析前检查
 
 真实 UART 可能持续收到没有换行的损坏数据。如果软件无限等待并扩大缓冲区，会造成内存和可用性问题。当前单记录 decoder 对输入 bytes 先检查 128-byte 上限，再进行 ASCII 和 CSV 解析。
 
-Software Phase 4 Step 1 已实现分段、粘包和“超长后丢弃到下一个 LF”的
-profile-neutral 流式状态机。它仍是 HOST_TEST 组件；真实串口 lifecycle、timeout
-和 reconnect 属于后续检查点。
+Software Phase 4 Steps 1–2 已用一个复合集成测试把不规则 chunks 依次经过
+bounded stream 和 neutral envelope，并保持混合 AFE/MSP 形状记录的 bytes、
+顺序和 fields。它们仍是 HOST_TEST 组件；真实串口 lifecycle、timeout 和
+reconnect 属于后续检查点。
 
-## 7. 黄金兼容数据
+## 8. 黄金兼容数据
 
 Step 8 冻结了三类互补数据：
 
 - `crc16_ccitt_false.json`：算法参数和检查值；
 - `afe_v1_valid.csv` + `expected_frames.json`：wire record 与领域含义的双向兼容；
 - `afe_v1_invalid.csv`：坏 CRC、坏版本、坏字段、非 ASCII 和超长记录对应的稳定错误类型。
+- `profile_neutral_envelope_v1.json`：一个 AFE 形状和两个 MSP430 形状记录的
+  profile-neutral CRC bytes/fields；只冻结 envelope 兼容。
 
 合法记录必须能够解析为预期模型并重新编码为完全相同的 bytes。旧的无版本 AFE façade 不再是受支持入口。
 
-## 8. 证据边界
+## 9. 证据边界
 
 当前验证的是 Python bytes、字符串处理和 host sequence 状态，不是 UART
 电气链路。没有验证波特率误差、电平、接地、线缆、EMI、控制器固件、真实

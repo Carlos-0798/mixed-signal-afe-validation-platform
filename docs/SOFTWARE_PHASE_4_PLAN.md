@@ -1,7 +1,7 @@
 # Software Phase 4 文件级实施计划
 
 **阶段名称：** 串口传输、对等控制器 profiles 与真实链路边界<br>
-**规划状态：** 进行中，进度 1/8<br>
+**规划状态：** 进行中，进度 2/8<br>
 **预计时间：** 5–8 个初学者开发日<br>
 **前置：** Software Phase 3 的分析、runner 与结构化结果兼容基线完成<br>
 **硬件要求：** Steps 1–6 无；Step 7 可选使用已连接的 MSP430 LaunchPad<br>
@@ -10,7 +10,7 @@
 ## 当前进度
 
 - [x] Step 1：profile-neutral 有界字节流与序列连续性；
-- [ ] Step 2：profile-neutral CRC envelope 与 AFE v1 兼容迁移；
+- [x] Step 2：profile-neutral CRC envelope 与 AFE v1 兼容迁移；
 - [ ] Step 3：串口发现、连接、超时、重连与原始帧日志；
 - [ ] Step 4：AFE v1 serial profile；
 - [ ] Step 5：MSP430 Equipment Health v1 只读 profile；
@@ -18,7 +18,9 @@
 - [ ] Step 7：可选的 MSP430 只读串口 HIL；
 - [ ] Step 8：黄金兼容、构建、文档和阶段收口。
 
-Step 1 已增加 `analog_validation.transport`，使用设备无关的有界 LF 字节流状态机处理分段、粘包、超长记录和重新同步，并使用 profile 指定的位宽跟踪首次、连续、缺帧、重复、乱序和回绕序列。32 项集中测试和 1,079 项完整回归通过，正式 package 5,752/5,752 statements 覆盖。它尚未打开串口、实现设备 profile 或验证物理链路。
+Step 1 已增加 `analog_validation.transport`，使用设备无关的有界 LF 字节流状态机处理分段、粘包、超长记录和重新同步，并使用 profile 指定的位宽跟踪首次、连续、缺帧、重复、乱序和回绕序列。
+
+Step 2 已把 ASCII token、terminator、长度和 CRC 规则拆到 `protocol.envelope`，原 `framing.py` 成为完全兼容的 AFE wrapper；新增三个 profile-neutral 黄金形状、Step 1→2 分段复合链和 `afe-channel-map.v1` 显式 legacy/canonical mapping。51 项新增测试、1,130 项完整回归和 5,846/5,846 正式 package statements 通过。它仍未打开串口、解释 MSP430 业务字段、实现设备 profile 或验证物理链路。
 
 ## 1. 本阶段解决什么
 
@@ -131,6 +133,8 @@ MSP430 项目的两小时 soak 证明其自身固件/Dashboard 链路，不证�
 
 验收：旧 20 valid + 9 invalid AFE records byte-for-byte 不变；通用 envelope 能解析无 `AFE` namespace 的 MSP fixture，但不解释其业务字段。
 
+**状态：已完成。** 通用 envelope 与 AFE wrapper 分层完成；三条黄金 envelope records 可 exact decode/re-encode，其中两个为无 `AFE` namespace 的 MSP430 协议形状。旧 AFE API、20 valid、9 invalid、Phase 2/3 public manifests 和 synthetic stream 均未漂移。`afe-channel-map.v1` 要求显式声明 source/target naming，旧 telemetry mapper 不静默改名。51 项新增测试和 1,130 项完整回归通过；正式 package 5,846/5,846 statements 覆盖。没有 serial I/O 或硬件。
+
 ### Step 3：串口 lifecycle 与原始帧日志
 
 定义可替换的 serial backend port，实现发现、打开、bounded read、timeout、disconnect、有限重连和 deterministic close。正式 package 可以把 pyserial 放在可选 extra，核心导入仍不得要求 serial driver。
@@ -195,4 +199,4 @@ MSP430 项目的两小时 soak 证明其自身固件/Dashboard 链路，不证�
 
 ## 9. 下一检查点
 
-Step 2 将只重构 profile-neutral token/CRC envelope、保留 AFE v1 byte compatibility，并冻结 channel naming mapping。它不会打开串口、实现 MSP430 业务 profile或运行物理 HIL。
+Step 3 将定义可替换的 serial backend port、发现/打开/读取/timeout/有限重连/确定性关闭，以及有界 raw-frame event model。实现和验收优先使用内存 backend，不打开当前 MSP430 端口；任何真实 COM 或板卡访问仍留到 owner-approved Step 7。

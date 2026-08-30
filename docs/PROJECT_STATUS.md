@@ -1,20 +1,22 @@
 # Project Status
 
 **Last updated:** 2026-08-30<br>
-**Current milestone:** Software Phase 4 in progress — 1 of 8 checkpoints<br>
-**Release maturity:** pre-MVP / profile-neutral stream and sequence foundation added<br>
+**Current milestone:** Software Phase 4 in progress — 2 of 8 checkpoints<br>
+**Release maturity:** pre-MVP / profile-neutral stream, sequence, and CRC envelope added<br>
 **Highest evidence level:** HOST_TEST  
 **Verified hardware claims:** 0
 
 ## Current product baseline
 
-The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC/AFE-envelope implementation, the versioned AFE v1 profile, strict non-executable JSON configuration, frozen protocol and replay compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, a configurable deterministic read-only SimulatorAdapter, a strict immutable CSV Replay v1 parser, a read-only CsvReplayAdapter, a shared adapter-neutral read workflow, and a profile-neutral bounded byte-stream/sequence transport foundation.
+The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC implementation, a profile-neutral CRC envelope with a backward-compatible AFE wrapper, the versioned AFE v1 profile, explicit AFE channel-name mapping, strict non-executable JSON configuration, frozen protocol and replay compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, a configurable deterministic read-only SimulatorAdapter, a strict immutable CSV Replay v1 parser, a read-only CsvReplayAdapter, a shared adapter-neutral read workflow, and a profile-neutral bounded byte-stream/sequence transport foundation.
 
 The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow remains a frozen read-only acquisition API. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, and versioned structured result exports are implemented; product CLI, dashboard, human-readable reports, serial transport, and a validated physical AFE are not yet implemented.
 
 Software Phase 3 is complete. Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. Step 8 freezes the 84-symbol Phase 2 top level, 68 analysis exports, 10 runner exports, 28 export symbols, 12 Phase 3 schemas, public enums/signatures/errors, and exact representative DC/hysteresis results. The golden values remain HOST_TEST/SYNTHETIC software evidence.
 
 Software Phase 4 Step 1 adds `analog_validation.transport`: a device/profile-neutral bounded LF stream state machine and modular sequence tracker. It handles fragmented/coalesced chunks, bounded overlong discard/recovery, disconnect reset, first/in-order/gap/duplicate/out-of-order classification, and AFE 16-bit/MSP430 32-bit wrap under HOST_TEST. No serial backend, COM access, controller profile, SerialAdapter, or HIL claim was added.
+
+Software Phase 4 Step 2 adds `analog_validation.protocol.envelope`, keeping the original AFE `Frame`/encode/decode API as a thin compatibility wrapper. A three-record golden fixture proves exact AFE-shaped and non-namespaced MSP430-shaped token/CRC round trips without interpreting MSP430 business fields. `afe-channel-map.v1` freezes explicit legacy-to-canonical channel conversion while leaving historical telemetry Measurements unchanged. A mixed-profile fragmented stream now passes through the Step 1 framer and Step 2 envelope in one integration test. No OS serial backend, COM access, device profile, or physical I/O was added.
 
 ## Software Phase 1 checkpoints
 
@@ -46,9 +48,10 @@ Software Phase 4 Step 1 adds `analog_validation.transport`: a device/profile-neu
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 1,079 passed |
-| Formal package statement coverage | 100% of 5,752 statements |
+| Full pytest suite | 1,130 passed |
+| Formal package statement coverage | 100% of 5,846 statements |
 | Phase 4 stream/sequence foundation | 32 focused tests; 158/158 statements covered |
+| Phase 4 neutral envelope/channel mapping | 51 new tests; envelope/mapping/framing 176/176 statements covered |
 | Phase 3 common analysis semantics | 56 focused tests; 244/244 statements covered |
 | Phase 3 DC sweep analysis | 81 focused tests; 325/325 statements covered |
 | Phase 3 DC criteria and TestRun mapping | 67 focused tests; 201/201 statements covered |
@@ -68,8 +71,8 @@ Software Phase 4 Step 1 adds `analog_validation.transport`: a device/profile-neu
 | Synthetic integration | 100 frames / 400 explicit `SYNTHETIC` Measurements passed |
 | Core dependency boundary | Passed; standard library and own package only |
 | Ruff | Passed on the full repository |
-| mypy | Passed on `src`, `dashboard`, `tools`, and `tests` — 104 source/test files |
-| Package build and external install | Passed; sdist/wheel include `analog_validation.transport`, a clean repository-external install passes bounded-feed and 32-bit-wrap smoke, and frozen Phase 1–3 compatibility remains intact |
+| mypy | Passed on `src`, `dashboard`, `tools`, and `tests` — 110 source/test files |
+| Package build and external install | Passed; sdist/wheel include transport, neutral envelope, and channel mapping modules; a clean repository-external install passes mixed-profile envelope, bounded-feed, and 32-bit-wrap smoke; frozen Phase 1–3 compatibility remains intact |
 | Hardware bench validation | Not performed |
 
 ## Software Phase 3 checkpoints
@@ -92,7 +95,7 @@ Software Phase 4 Step 1 adds `analog_validation.transport`: a device/profile-neu
 |---:|---|---|---|
 | Plan | Serial/profile architecture, peer-project boundary, safety and exit gates | Complete | HOST_TEST planning record |
 | 1 | Profile-neutral bounded byte stream and modular sequence tracking | Complete | HOST_TEST |
-| 2 | Profile-neutral CRC envelope and AFE compatibility migration | Planned | None |
+| 2 | Profile-neutral CRC envelope, AFE compatibility wrapper, and channel mapping | Complete | HOST_TEST |
 | 3 | Serial discovery, lifecycle, timeout, reconnect and raw logs | Planned | None |
 | 4 | AFE v1 serial profile | Planned | None |
 | 5 | Independent read-only MSP430 Equipment Health v1 profile | Planned | None |
@@ -130,6 +133,8 @@ Safe to claim now:
 - froze Phase 3 public namespaces, 12 schemas, stable constants, 8 enum sets, key signatures, export error families, golden hashes, and exact synthetic DC/hysteresis result meaning.
 - implemented a profile-neutral bounded LF byte-stream state machine with raw-byte preservation, bounded overlong discard/recovery, disconnect reset, and structured issues.
 - implemented profile-configurable modular sequence tracking with explicit continuity results and tested 16/32-bit wrap behavior.
+- implemented a namespace-neutral token/CRC envelope while preserving the frozen AFE wrapper, bytes, errors, and public contracts.
+- froze explicit `afe-channel-map.v1` legacy/canonical conversion and verified the Step 1 byte-stream to Step 2 envelope composite path.
 
 Not safe to claim now:
 
@@ -141,7 +146,7 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 4 Step 1 is complete. Step 2 will extract a profile-neutral token/CRC envelope while preserving the frozen AFE v1 APIs/bytes/errors and will freeze an explicit channel-name mapping. It will not open a COM port, implement a physical adapter, purchase hardware, change wiring, or perform BENCH validation.
+Software Phase 4 Steps 1–2 are complete. Step 3 will define a replaceable serial backend port, discovery/open/read/timeout/limited-reconnect/close lifecycle, and bounded raw-frame events. Its first acceptance path will use an in-memory backend and will not access the connected MSP430, send commands, flash firmware, purchase hardware, change wiring, or perform BENCH validation.
 
 ## GitHub and LinkedIn presentation policy
 

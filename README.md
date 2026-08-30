@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 4 in progress — 1/8 checkpoints |
-| Release maturity | Pre-MVP; profile-neutral stream/sequence foundation added |
+| Development stage | Software Phase 4 in progress — 2/8 checkpoints |
+| Release maturity | Pre-MVP; profile-neutral stream, sequence, and CRC envelope added |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 1,079 passed |
-| Formal package coverage | 100% of 5,752 statements |
+| Automated host tests | 1,130 passed |
+| Formal package coverage | 100% of 5,846 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Current progress report](reports/PROJECT_PROGRESS_REPORT_2026-08-30.md) · [Phase 4 plan](docs/SOFTWARE_PHASE_4_PLAN.md) · [Step 1 report](reports/software-phase4-step1.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Current progress report](reports/PROJECT_PROGRESS_REPORT_2026-08-30.md) · [Phase 4 plan](docs/SOFTWARE_PHASE_4_PLAN.md) · [Step 2 report](reports/software-phase4-step2.md)
 
 ## Product vision
 
@@ -35,7 +35,9 @@ The separate MSP430 Equipment Health Controller is a peer product, not a subordi
 - Immutable Measurement, TestRun, safe-range, and DeviceCapabilities models.
 - Explicit evidence sources and quality flags; synthetic data cannot silently become bench evidence.
 - Single CRC-16/CCITT-FALSE implementation with fixed golden vectors.
-- Strict printable-ASCII CSV framing with CRC and a 128-byte record limit.
+- Profile-neutral printable-ASCII token/CRC envelope with configurable bounded record size.
+- Backward-compatible AFE framing wrapper preserving the frozen `Frame`, encode/decode, error, and byte contracts.
+- Explicit `afe-channel-map.v1` conversion between historical telemetry names and canonical Simulator/workflow names without silently rewriting old records.
 - Versioned `AFE,1,...` profile for telemetry, commands, and multi-record capability exchange.
 - AFE v1 mapping into controller-neutral Measurement and DeviceCapabilities models.
 - Host-side command checks that distinguish unsupported capability from unsafe configuration.
@@ -87,6 +89,7 @@ The separate MSP430 Equipment Health Controller is a peer product, not a subordi
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 - Profile-neutral bounded LF byte-stream recovery for fragmented, coalesced, exact-limit, overlong, damaged, and disconnect-reset input.
 - Profile-configurable 2–64-bit sequence tracking with explicit first/in-order/gap/duplicate/out-of-order results and tested 16/32-bit wrap behavior.
+- Mixed-profile fragmented-stream integration from the bounded byte framer into the neutral CRC envelope, with frozen AFE-shaped and MSP430-shaped host fixtures.
 
 Not yet implemented: OS serial backend/lifecycle, AFE/MSP430 serial profiles, SerialAdapter, calibration/frequency TestRun export mappings, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, or validated physical AFE hardware.
 
@@ -128,9 +131,10 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 1,079 passed |
-| Formal package statement coverage | 100% of 5,752 statements |
+| Full pytest suite | 1,130 passed |
+| Formal package statement coverage | 100% of 5,846 statements |
 | Phase 4 bounded stream and sequence foundation | 32 focused tests; 158/158 statements covered |
+| Phase 4 neutral envelope and channel mapping | 51 new tests; envelope/mapping/framing 176/176 statements covered |
 | Phase 3 common analysis semantics | 56 focused tests; 244/244 statements covered |
 | Phase 3 DC sweep analysis | 81 focused tests; 325/325 statements covered |
 | Phase 3 DC criteria and TestRun mapping | 67 focused tests; 201/201 statements covered |
@@ -150,8 +154,8 @@ The current results are host-software evidence only:
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 104 source/test files |
-| Latest sdist/wheel build and repository-external transport smoke | Passed |
+| mypy | Passed on 110 source/test files |
+| Latest sdist/wheel build and repository-external transport/envelope smoke | Passed |
 | Hardware bench tests | Not run |
 
 Every completed software checkpoint has a report under [`reports/`](reports/). Test counts and claims are updated only after the corresponding command has actually run.
@@ -225,12 +229,12 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Complete — 8/8 checkpoints |
-| Software Phase 4 | Serial transport and independent controller profiles | In progress — 1/8 checkpoints |
+| Software Phase 4 | Serial transport and independent controller profiles | In progress — 2/8 checkpoints |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-Software Phase 3 is complete: analysis, safety-gated runners, calibration, offline frequency response, and `result-export.v1` passed all eight checkpoints. Public namespaces and exact representative DC/hysteresis results are protected by golden compatibility tests. Software Phase 4 Step 1 now provides the host-tested bounded stream/sequence foundation; OS serial lifecycle and independent AFE/MSP430 profiles remain later checkpoints. Real AFE hardware remains later work.
+Software Phase 3 is complete: analysis, safety-gated runners, calibration, offline frequency response, and `result-export.v1` passed all eight checkpoints. Public namespaces and exact representative DC/hysteresis results are protected by golden compatibility tests. Software Phase 4 Steps 1–2 now provide the host-tested bounded stream/sequence foundation, profile-neutral CRC envelope, backward-compatible AFE wrapper, and explicit channel mapping; OS serial lifecycle and independent AFE/MSP430 business profiles remain later checkpoints. Real AFE hardware remains later work.
 
 ## Repository guide
 
@@ -271,6 +275,7 @@ See [assumptions requiring confirmation](ASSUMPTIONS.md), [test and evidence pol
 - [Product plan and staged acceptance gates](docs/PRODUCT_PLAN.md)
 - [Product architecture](docs/PRODUCT_ARCHITECTURE.md)
 - [AFE v1 profile](docs/afe-v1-profile.md)
+- [AFE channel naming mapping v1](docs/afe-channel-mapping.md)
 - [CSV Replay v1 format](docs/csv-replay-v1.md)
 - [Shared read workflow](docs/read-workflow.md)
 - [DC sweep analysis](docs/dc-sweep-analysis.md)
