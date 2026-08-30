@@ -56,7 +56,7 @@ class TestExampleAdapterContract(ReadOnlyAdapterContract):
 
 Pytest then inherits the same eight checks for initial state/provenance, read-only connection, explicit and cached capabilities, premature-read rejection, typed measurement output, unknown-channel classification, idempotent shutdown, and disconnect/reconnect behavior.
 
-The Step 2 `ContractReferenceAdapter` is only a HOST_TEST fixture proving that the suite is collectible and reusable. It is not a SimulatorAdapter, physical device, or product data source. Step 3 now runs the same suite against the real SimulatorAdapter; Step 6 must do the same for CSV Replay.
+The Step 2 `ContractReferenceAdapter` is only a HOST_TEST fixture proving that the suite is collectible and reusable. It is not a SimulatorAdapter, physical device, or product data source. Step 3 runs the suite against the real SimulatorAdapter, and Step 6 runs the same eight checks against CsvReplayAdapter.
 
 ## Configurable deterministic SimulatorAdapter
 
@@ -83,11 +83,26 @@ The AFE formula previously owned by `tools/telemetry_simulator.py` now lives in 
 
 The simulator does not provide a DAC/PWM stimulus output, analog circuit solver, electrical timing model, or hardware emulation. The configured formula and faults are test fixtures rather than physical measurements.
 
-## CSV Replay v1 parser boundary
+## CsvReplayAdapter
 
-Step 5 defines the immutable dataset consumed by the future `CsvReplayAdapter`. The strict parser validates version, fixed columns, dataset/record identity, UTC time, values, units, status, declared source, quality flags, ordering, limits, and a matching END count. File loading is bounded and read-only.
+Step 5 defines the immutable dataset and strict parser; Step 6 adds the read-only `CsvReplayAdapter` that consumes only an already validated `CsvReplayDataset`. Configuration is immutable and versioned as `csv-replay-adapter-config.v1`.
 
-This parser is not itself an adapter: it has no lifecycle, playback clock, pause/resume state, speed multiplier, or EOF operation. Step 6 will add those behaviors and run the same shared read-only adapter contract. Replayed Measurements must use current source `CSV_REPLAY`; a source string preserved from a file is untrusted declared metadata rather than evidence elevation. See [CSV Replay v1](csv-replay-v1.md).
+Every channel must be declared explicitly as analog or digital with an exact unit. Analog channels additionally require an explicit `SafeRange`. These ranges describe what the replay fixture is allowed to present through the software capability interface; they are not measured electrical limits or hardware proof. The adapter never guesses a channel role, unit, or range from numeric file content.
+
+Playback behavior is deliberately deterministic:
+
+- each channel has an independent cursor, so reading one channel does not consume another;
+- `IMMEDIATE` returns the next record without waiting;
+- `SCALED` delays between consecutive records of the same channel by `timestamp delta / speed_multiplier`;
+- the first record on a channel has no preceding delay;
+- `pause()` blocks reads without consuming a record, and `resume()` continues from the same cursor;
+- `set_speed_multiplier()` changes future scaled delays and accepts only finite values greater than zero;
+- `channel_at_end()` reports one channel's state, `at_end` reports whether all configured channels are exhausted, and a read beyond the end raises `ReplayEndOfData`;
+- disconnect/reconnect resets all cursors, pause state, and runtime speed to the immutable configuration.
+
+Replayed Measurements preserve the source row's timestamp, value, unit, status, quality flags, and original record reference. Their new ID is namespaced by replay dataset, and current source is always `CSV_REPLAY`. A file row that declares `BENCH_DMM` remains visible through the immutable `adapter.dataset` audit object but cannot elevate the replayed Measurement into bench evidence.
+
+Timing uses an injectable sleeper. Host tests therefore verify exact requested delays without waiting in real time. This verifies software scheduling arithmetic, not Windows real-time performance or hardware timing. See [CSV Replay v1](csv-replay-v1.md).
 
 ## What this does not prove
 

@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 2 in progress — 5/8 checkpoints |
-| Release maturity | Pre-MVP; verified simulator and replay parser |
+| Development stage | Software Phase 2 in progress — 6/8 checkpoints |
+| Release maturity | Pre-MVP; verified simulator and CSV replay adapter |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 545 passed |
-| Formal package coverage | 100% of 1,841 statements |
+| Automated host tests | 600 passed |
+| Formal package coverage | 100% of 2,028 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase2-step5.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase2-step6.md)
 
 ## Product vision
 
@@ -43,16 +43,18 @@ The software-first plan allows the complete software product to mature without r
 - Executable architecture check that keeps serial, GUI, board SDKs, `dashboard`, and tools outside the formal core.
 - Controller-neutral `DeviceAdapter` contract with explicit disconnected, read-only, capability-confirmed, armed, running, and safe-shutdown states.
 - Host-side adapter gates that reject premature I/O, unsafe output, capability mismatches, wrong units, and evidence-source mismatches.
-- Reusable eight-check read-only adapter contract that future Simulator and CSV Replay implementations must both inherit.
+- Reusable eight-check read-only adapter contract passed by the reference fixture, Simulator, and CSV Replay implementations.
 - Deterministic read-only `SimulatorAdapter` with versioned gain, offset, noise, saturation, hysteresis, and controlled-fault configuration.
 - Independent analog-input, analog-output, and threshold-state streams with stable timestamps and explicit `SYNTHETIC` provenance.
 - Saturation and missing-data quality flags plus stable communication and CRC fault exceptions.
 - Immutable `csv-replay.v1` dataset/record models with strict version, UTC time, unit, status, declared-source, quality, identity, ordering, and END-count validation.
 - Bounded read-only CSV parsing with stable replay format/version/limit errors and frozen valid/invalid compatibility data.
+- Versioned read-only `CsvReplayAdapter` with explicit channel roles/ranges, independent per-channel cursors, immediate or scaled timing, runtime speed control, pause/resume, and typed EOF.
+- Replayed Measurements preserve timestamps, values, units, status, quality, and original record references while forcing current provenance to `CSV_REPLAY`.
 - One formal AFE telemetry generator shared by the Simulator foundation, legacy CLI wrapper, and frozen 100-frame regression.
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 
-Not yet implemented: `CsvReplayAdapter` playback controls, test runners, serial transport, product CLI, dashboard, end-user report generation, firmware, or validated physical hardware.
+Not yet implemented: shared multi-adapter test workflows, test runners, serial transport, product CLI, dashboard, end-user report generation, firmware, or validated physical hardware.
 
 ## Architecture
 
@@ -92,17 +94,18 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 545 passed |
-| Formal package statement coverage | 100% of 1,841 statements |
+| Full pytest suite | 600 passed |
+| Formal package statement coverage | 100% of 2,028 statements |
 | DeviceAdapter lifecycle and safety tests | 36 passed |
-| Reusable concrete-adapter contract | 8 checks passed by both reference and Simulator adapters |
+| Reusable concrete-adapter contract | 8 shared checks passed by reference, Simulator, and CSV Replay adapters |
 | Simulator-specific unit tests | 69 passed |
 | CSV Replay parser tests | 84 unit + 9 golden cases passed |
+| CSV Replay adapter tests | 45 focused unit + 8 shared-contract checks passed |
 | AFE v1 profile tests | 40 passed |
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 58 source files |
+| mypy | Passed on 61 source files |
 | Latest isolated build, sdist, and external wheel public-API smoke checks | Passed |
 | Hardware bench tests | Not run |
 
@@ -175,14 +178,14 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 |---|---|---|
 | Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
-| Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | In progress — 5/8 checkpoints |
+| Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | In progress — 6/8 checkpoints |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Planned |
 | Software Phase 4 | Serial transport and independent controller profiles | Planned |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-The next checkpoint is Software Phase 2 Step 6: implement `CsvReplayAdapter` sequential playback, speed control, pause/resume, explicit EOF, `CSV_REPLAY` provenance, and the same shared read-only adapter contract used by Simulator. See the [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md).
+The next checkpoint is Software Phase 2 Step 7: drive Simulator and CSV Replay through one upper-layer workflow and return an explicit `UNSUPPORTED` result when a requested capability is absent. See the [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md).
 
 ## Repository guide
 

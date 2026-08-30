@@ -1,6 +1,6 @@
 # CSV Replay v1 Format
 
-CSV Replay v1 is the immutable local-file interchange format used by the future `CsvReplayAdapter`. Step 5 defines and validates complete datasets; it does not yet play, pause, time-scale, or convert rows into live adapter Measurements.
+CSV Replay v1 is the immutable local-file interchange format consumed by `CsvReplayAdapter`. Step 5 defines and validates complete datasets; Step 6 adds a separate playback layer without changing the source format or source file.
 
 ## Why the format is strict
 
@@ -79,7 +79,7 @@ Input must be strict UTF-8 without a BOM or NUL byte. LF and CRLF line endings a
 
 `source` is called `declared_source` in the Python record model because the parser can validate spelling but cannot authenticate how a file was produced. A row containing `BENCH_DMM` does not by itself prove that a multimeter was used.
 
-Step 6 will emit replayed Measurements with current source `CSV_REPLAY` while retaining the original record reference and declared metadata. Only separately documented raw artifacts, instruments, wiring, conditions, timestamps, and review can support future bench claims.
+CsvReplayAdapter emits Measurements with current source `CSV_REPLAY`, retains the original record ID as `raw_record_id`, and keeps the immutable parsed dataset available for audit lookup. Only separately documented raw artifacts, instruments, wiring, conditions, timestamps, and review can support future bench claims.
 
 ## Public API
 
@@ -98,7 +98,50 @@ assert same_dataset == dataset
 
 Expected failures use `ReplayFormatError`, `ReplayLimitError`, or `UnsupportedReplayVersion`, all under `ReplayError`.
 
-## Step 5 boundary
+## Playback API
+
+The adapter requires an explicit, versioned channel map rather than guessing roles or ranges from values:
+
+```python
+from analog_validation import (
+    CsvReplayAdapter,
+    CsvReplayAdapterConfig,
+    MeasurementUnit,
+    ReplayChannelConfig,
+    ReplayChannelKind,
+    ReplayEndOfData,
+    SafeRange,
+    load_csv_replay,
+)
+
+dataset = load_csv_replay("measurements.csv")
+config = CsvReplayAdapterConfig(
+    channels=(
+        ReplayChannelConfig(
+            "afe.ch0.input",
+            ReplayChannelKind.ANALOG,
+            MeasurementUnit.MILLIVOLT,
+            SafeRange(0, 3300, MeasurementUnit.MILLIVOLT),
+        ),
+    )
+)
+adapter = CsvReplayAdapter(dataset, config)
+adapter.connect()
+adapter.get_capabilities()
+
+try:
+    while True:
+        measurement = adapter.read_measurement("afe.ch0.input")
+        assert measurement.source.value == "CSV_REPLAY"
+except ReplayEndOfData:
+    pass
+finally:
+    adapter.disconnect()
+```
+
+`ReplayTimingMode.IMMEDIATE` is the default. `SCALED` timing, runtime speed changes, pause/resume, channel-specific EOF, and reconnect reset behavior are documented in [Device Adapter Contract](adapters.md).
+
+## Step 5 and Step 6 boundary
 
 Implemented now:
 
@@ -107,10 +150,18 @@ Implemented now:
 - stable replay error families;
 - valid and invalid golden compatibility cases.
 
-Deferred to Step 6:
+Implemented in Step 6:
 
-- `CsvReplayAdapter` lifecycle and capabilities;
-- sequential reads and explicit EOF state;
-- playback speed, pause, and resume;
-- conversion to current `CSV_REPLAY` Measurements;
-- shared adapter-contract verification.
+- versioned `CsvReplayAdapterConfig` with explicit channel roles, units, and analog ranges;
+- read-only adapter lifecycle and capabilities;
+- independent sequential channel reads and explicit typed EOF;
+- immediate/scaled playback, speed control, pause, and resume;
+- conversion to current `CSV_REPLAY` Measurements while preserving source references;
+- the same eight-check read-only adapter contract used by Simulator.
+
+Deferred to Step 7 and later phases:
+
+- a shared upper-layer Simulator/CSV workflow with explicit `UNSUPPORTED` results;
+- product CLI and Dashboard playback controls;
+- streaming very large datasets beyond the current bounded in-memory model;
+- any claim about real-time scheduling or physical measurements.

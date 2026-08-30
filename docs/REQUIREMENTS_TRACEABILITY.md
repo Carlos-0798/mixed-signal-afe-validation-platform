@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 2 Step 5 完成
+**当前阶段：** Software Phase 2 Step 6 完成
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -23,9 +23,9 @@
 | SW-FR-015 | IMPLEMENTED | 多记录 CAP_REQ/CAP DEVICE/CHANNEL/END 已定义并可与 `DeviceCapabilities` 往返；未知 bit、序号和数量不一致被拒绝 | Phase 2/4 adapter 实际协商 |
 | SW-FR-016 | ACCEPTED | `serial_worker.py` 占位 | Phase 4 实现有限重试和错误恢复 |
 | SW-FR-017 | ACCEPTED | 无原始帧日志模型 | Phase 1 定义，Phase 4 实现 |
-| SW-FR-020 | IMPLEMENTED | 正式 `DeviceAdapter` 已定义统一接口；Simulator 已继承全部 8 项只读契约 | Step 6 让 CSV Replay 通过同一契约后再提升验收状态 |
+| SW-FR-020 | VERIFIED_HOST | 正式 `DeviceAdapter` 已定义统一接口；reference、Simulator 和 CSV Replay 均继承并通过同一套 8 项只读契约 | Step 7 用同一上层工作流实际调用两个正式适配器 |
 | SW-FR-021 | VERIFIED_HOST | 版本化只读 SimulatorAdapter 已验证增益、偏置、确定性噪声、上下限饱和、Schmitt 迟滞、缺失样本、通信错误和 CRC 错误；所有记录保持 `SYNTHETIC` | Phase 3 runner 使用该适配器执行完整工作流 |
-| SW-FR-022 | IMPLEMENTED | `csv-replay.v1` 已提供不可变 dataset/record、严格 UTF-8/13 列/META-DATA-END parser、限制和黄金错误族；原文件只读 | Step 6 实现速度、暂停、恢复、EOF 和正式 `CsvReplayAdapter` 后完成验收 |
+| SW-FR-022 | VERIFIED_HOST | `csv-replay.v1` 提供不可变 dataset/record 与严格 parser；正式 `CsvReplayAdapter` 已验证顺序读取、独立通道游标、速度、暂停/恢复、明确 EOF、原引用保留和强制 `CSV_REPLAY` 来源 | Step 7 通过共享工作流消费回放；后续 UI 增加用户控制 |
 | SW-FR-023 | ACCEPTED | 串口占位文件 | Phase 4 实现且隔离分析层 |
 | SW-FR-024 | ACCEPTED | 无 MSP430 profile | Phase 4 独立实现，保留原始字段 |
 | SW-FR-025 | IMPLEMENTED | `UNSUPPORTED` 结果语义已建立；AFE v1 与版本化配置校验区分缺能力和不安全配置 | Phase 2 adapter/runner 实际生成降级结果 |
@@ -45,7 +45,7 @@
 | SW-FR-043 | ACCEPTED | `csv_export.py` 占位 | Phase 3 实现结构化导出 |
 | SW-FR-044 | ACCEPTED | 无 JSON 摘要 | Phase 3 实现 |
 | SW-FR-045 | ACCEPTED | `summary.py` 占位 | Phase 5 实现证据和限制说明 |
-| SW-FR-046 | IMPLEMENTED | 正式包公开稳定领域/协议/配置/adapter/replay 错误；黄金坏消息冻结 CRC、长度、framing、协议版本、业务协议和 replay 格式/版本错误家族 | Phase 5 增加面向用户的操作指导 |
+| SW-FR-046 | IMPLEMENTED | 正式包公开稳定领域/协议/配置/adapter/replay 错误；黄金坏消息冻结 CRC、长度、framing、协议版本、业务协议和 replay 格式/版本错误家族；回放 EOF 使用独立 `ReplayEndOfData` | Phase 5 增加面向用户的操作指导 |
 
 ## 软件非功能需求
 
@@ -53,8 +53,8 @@
 |---|---|---|---|
 | SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建、仓库外 wheel 安装和 import 均通过 | Phase 5 增加最终用户运行入口，Phase 6 再做发布候选安装测试 |
 | SW-NFR-002 | IMPLEMENTED | 当前核心使用标准 Python | Phase 4/6 验证 Windows，避免核心平台绑定 |
-| SW-NFR-003 | IMPLEMENTED | framing/profile/config/replay parser 拒绝坏输入；adapter 状态机拒绝越级 I/O，断开会先尝试安全关闭并清理逻辑状态 | replay 播放恢复、真实断线、用户中止和串口恢复仍未实现 |
-| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、100 帧集成和可复用 adapter 契约均无需硬件；正式 Simulator 已通过相同契约 | Step 6 再由 CSV Replay 通过同一契约 |
+| SW-NFR-003 | IMPLEMENTED | framing/profile/config/replay parser 拒绝坏输入；adapter 状态机拒绝越级 I/O；CSV 回放暂停不消耗记录、EOF 类型明确、重连重置游标 | 真实断线、用户中止和串口恢复仍未实现 |
+| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、100 帧集成和可复用 adapter 契约均无需硬件；正式 Simulator 与 CSV Replay 已通过相同 8 项契约 | Step 7 增加两种来源的同工作流集成测试 |
 | SW-NFR-005 | ACCEPTED | 仅有架构文档 | Phase 1/2 建立可执行边界 |
 | SW-NFR-006 | VERIFIED_HOST | 正式领域、协议与配置模块责任分离，公开 API 有类型、文档与完整 host tests | Phase 2 继续保持 adapter 依赖方向 |
 | SW-NFR-007 | ACCEPTED | 无性能基准 | Phase 5/6 建立实际数据规模基准 |
@@ -85,11 +85,11 @@
 
 | 状态 | 数量 |
 |---|---:|
-| VERIFIED_HOST | 17 |
-| IMPLEMENTED | 15 |
+| VERIFIED_HOST | 19 |
+| IMPLEMENTED | 13 |
 | ACCEPTED | 16 |
 | DEFERRED | 12 |
 | VERIFIED_BENCH | 0 |
 | 总计 | 60 |
 
-Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 Step 1–5 已实现公共 adapter 契约、完整可配置模拟器以及严格、不可变的 CSV Replay v1 parser；下一步实现 CsvReplayAdapter 播放生命周期和统一来源。
+Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 Step 1–6 已实现公共 adapter 契约、完整可配置模拟器、严格 CSV Replay v1 parser 和正式 CsvReplayAdapter；下一步建立 Simulator/CSV 共用工作流与明确的能力降级结果。

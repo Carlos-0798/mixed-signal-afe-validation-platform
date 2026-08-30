@@ -12,6 +12,7 @@ from analog_validation import (
     FrameTooLong,
     FramingError,
     ProtocolError,
+    ReplayEndOfData,
     ReplayError,
     ReplayFormatError,
     ReplayLimitError,
@@ -33,6 +34,7 @@ from analog_validation import (
         CapabilityError,
         ConfigurationError,
         ReplayError,
+        ReplayEndOfData,
         ReplayFormatError,
         ReplayLimitError,
         UnsupportedReplayVersion,
@@ -65,7 +67,7 @@ def test_non_protocol_families_remain_distinct() -> None:
 
 @pytest.mark.parametrize(
     "error_type",
-    [ReplayFormatError, ReplayLimitError, UnsupportedReplayVersion],
+    [ReplayEndOfData, ReplayFormatError, ReplayLimitError, UnsupportedReplayVersion],
 )
 def test_replay_specializations_are_caught_as_replay_errors(
     error_type: type[ReplayError],

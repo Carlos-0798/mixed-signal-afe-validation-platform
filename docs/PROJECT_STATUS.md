@@ -1,16 +1,16 @@
 # Project Status
 
 **Last updated:** 2026-08-30<br>
-**Current milestone:** Software Phase 2 in progress — 5 of 8 checkpoints<br>
-**Release maturity:** pre-MVP / verified simulator and replay parser<br>
+**Current milestone:** Software Phase 2 in progress — 6 of 8 checkpoints<br>
+**Release maturity:** pre-MVP / verified simulator and CSV replay adapter<br>
 **Highest evidence level:** HOST_TEST  
 **Verified hardware claims:** 0
 
 ## Current product baseline
 
-The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC/framing implementation, the versioned AFE v1 profile, strict non-executable JSON configuration, frozen protocol and replay compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, a configurable deterministic read-only SimulatorAdapter, and a strict immutable CSV Replay v1 parser.
+The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC/framing implementation, the versioned AFE v1 profile, strict non-executable JSON configuration, frozen protocol and replay compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, a configurable deterministic read-only SimulatorAdapter, a strict immutable CSV Replay v1 parser, and a read-only CsvReplayAdapter.
 
-The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CSV Replay v1 can now validate complete local datasets without modifying them, but `CsvReplayAdapter` playback, test runners, product CLI, dashboard, serial transport, and a validated physical AFE are not yet implemented.
+The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. Shared workflows, test runners, product CLI, dashboard, serial transport, and a validated physical AFE are not yet implemented.
 
 ## Software Phase 1 checkpoints
 
@@ -34,7 +34,7 @@ The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmi
 | 3 | Deterministic SimulatorAdapter data flow | Complete | HOST_TEST / SYNTHETIC |
 | 4 | Simulator non-idealities and controlled faults | Complete | HOST_TEST / SYNTHETIC |
 | 5 | Versioned immutable CSV replay schema/parser | Complete | HOST_TEST |
-| 6 | CsvReplayAdapter speed, pause, resume, and EOF | Planned | — |
+| 6 | CsvReplayAdapter speed, pause, resume, and EOF | Complete | HOST_TEST / CSV_REPLAY |
 | 7 | Shared workflow and `UNSUPPORTED` capability degradation | Planned | — |
 | 8 | Phase 2 integration, packaging, and closure | Planned | — |
 
@@ -42,12 +42,13 @@ The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmi
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 545 passed |
-| Formal package statement coverage | 100% of 1,841 statements |
+| Full pytest suite | 600 passed |
+| Formal package statement coverage | 100% of 2,028 statements |
 | DeviceAdapter lifecycle and safety | 36 tests passed |
-| Reusable concrete-adapter contract | 8 shared checks passed against both reference and Simulator adapters |
+| Reusable concrete-adapter contract | 8 shared checks passed against reference, Simulator, and CSV Replay adapters |
 | Simulator-specific unit tests | 69 passed; config, generator, channel independence, non-idealities, hysteresis, fault, clock, capability, and reconnect behavior |
 | CSV Replay parser | 84 unit + 9 golden cases passed; 233/233 module statements covered |
+| CSV Replay adapter | 45 focused unit + 8 shared-contract checks passed; 185/185 module statements covered |
 | AFE golden compatibility | 20 valid + 9 invalid cases passed |
 | Synthetic integration | 100 frames / 400 explicit `SYNTHETIC` Measurements passed |
 | Core dependency boundary | Passed; standard library and own package only |
@@ -72,6 +73,7 @@ Safe to claim now:
 - implemented a deterministic read-only SimulatorAdapter that returns only explicit `SYNTHETIC` Measurements and shares the frozen AFE generation formula.
 - implemented configurable gain, offset, deterministic noise, upper/lower saturation, Schmitt hysteresis, missing samples, communication errors, and CRC errors in the simulator.
 - implemented immutable CSV Replay v1 records/datasets, bounded read-only parsing, explicit completion counts, and stable replay error families.
+- implemented read-only CsvReplayAdapter playback with explicit channel capabilities, preserved source references, forced `CSV_REPLAY` provenance, independent cursors, scaled timing, pause/resume, speed control, and typed EOF.
 
 Not safe to claim now:
 
@@ -83,7 +85,7 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 2 Step 6 will implement `CsvReplayAdapter` sequential playback, speed scaling, pause/resume, explicit EOF, and current `CSV_REPLAY` provenance. It must preserve original timestamps/references and pass the same shared read-only adapter contract as Simulator.
+Software Phase 2 Step 7 will use one upper-layer workflow for Simulator and CSV Replay. A requested operation that the selected adapter cannot provide must produce an explicit `UNSUPPORTED` result instead of crashing, pretending to execute, or weakening the rest of the platform.
 
 ## GitHub and LinkedIn presentation policy
 

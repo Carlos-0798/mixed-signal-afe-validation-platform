@@ -74,6 +74,10 @@ class UnsupportedReplayVersion(ReplayFormatError):
     """Replay content declares an unsupported schema version."""
 
 
+class ReplayEndOfData(ReplayError):
+    """A replay channel has no remaining records."""
+
+
 __all__ = [
     "AdapterConnectionError",
     "AdapterDataError",
@@ -86,6 +90,7 @@ __all__ = [
     "FrameTooLong",
     "FramingError",
     "ProtocolError",
+    "ReplayEndOfData",
     "ReplayError",
     "ReplayFormatError",
     "ReplayLimitError",
