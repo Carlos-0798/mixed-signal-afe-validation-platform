@@ -1,7 +1,7 @@
 # Software Phase 3 文件级实施计划
 
 **阶段名称：** 测试执行、质量感知分析与结构化结果<br>
-**规划状态：** 实施中，进度 3/8<br>
+**规划状态：** 实施中，进度 4/8<br>
 **预计时间：** 7–10 个初学者开发日<br>
 **前置：** Software Phase 2 的 adapter、Replay、共用读取工作流和兼容基线完成<br>
 **硬件要求：** 无<br>
@@ -12,13 +12,13 @@
 - [x] Step 1：分析公共语义与质量 policy；
 - [x] Step 2：正式 DC sweep 分析；
 - [x] Step 3：DC sweep criteria 与结论映射；
-- [ ] Step 4：控制器无关 DC sweep runner；
+- [x] Step 4：控制器无关 DC sweep runner；
 - [ ] Step 5：正式迟滞分析与 runner；
 - [ ] Step 6：校准与离线频率响应；
 - [ ] Step 7：版本化 CSV/JSON 结果导出；
 - [ ] Step 8：黄金兼容、构建和阶段收口。
 
-Step 3 已通过 67 项专门测试、848 项完整回归、100% 正式 package 覆盖、静态检查、隔离构建和仓库外 wheel smoke。证据见 `reports/software-phase3-step3.md`。这不表示 Step 4–8、输出控制或任何硬件功能已经完成。
+Step 4 已通过 58 项专门测试、906 项完整回归和 100% 正式 package 覆盖。runner 使用 HOST_TEST reference adapter 验证主机安全门和生命周期，并确认只读 Simulator/CSV 只能得到零采集的 `UNSUPPORTED`。证据见 `reports/software-phase3-step4.md`。这不表示真实输出控制、Step 5–8 或任何硬件功能已经完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -221,6 +221,8 @@ Step 1 将冻结：
 建立 `DCSweepPlan` 与 runner。支持 setpoint 序列、重复次数、可注入 settle/wait 函数、显式通道/单位和 TestRun metadata。先做全量能力/安全预检，再执行输出和读取；任一路径都安全关闭。
 
 验收：测试专用 reference adapter 验证正常、能力不足、越界 setpoint、中止、读取失败和 shutdown 失败。只读 Simulator/CSV 请求返回 `UNSUPPORTED` 且不产生输出。
+
+**状态：已完成。** `dc-sweep-runner.v1` 已实现版本化 plan/acquisition/result、全量写前预检、setpoint/repetition/settle/abort、部分证据保留、所有权明确的 disconnect/safe-shutdown，以及清理成功后才执行的 analysis/criteria 映射。测试专用输出 adapter 只存在于 tests；正式 Simulator/CSV 保持只读。
 
 ### Step 5：正式迟滞分析与 runner
 

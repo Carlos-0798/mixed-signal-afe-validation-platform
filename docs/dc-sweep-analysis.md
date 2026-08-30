@@ -9,7 +9,7 @@
 
 `analog_validation.analysis.dc_sweep` turns an already acquired input/output sweep into a traceable linear analysis. It is controller-neutral: the function does not know whether records came from a simulator, a replay file, or a future device adapter.
 
-The module answers “what line best describes the eligible points?” It does **not** answer “did the device pass?” Step 3 now provides a separate versioned criteria evaluator, while Step 4 will add a safety-gated runner.
+The module answers “what line best describes the eligible points?” It does **not** answer “did the device pass?” Step 3 provides the separate versioned criteria evaluator, and Step 4 now provides a safety-gated runner that calls both only after complete acquisition and successful cleanup.
 
 ## Beginner mental model
 

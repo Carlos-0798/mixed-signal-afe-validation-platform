@@ -4,6 +4,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Host-only software reports:
 
+- `software-phase3-step4.md` — safety-gated DC plan/runner, reference output lifecycle, partial evidence, read-only adapter degradation, packaging verification, and hardware limits.
 - `software-phase3-step3.md` — versioned DC criteria, per-rule results, PASS/FAIL/INCOMPLETE mapping, evidence consistency, build/install verification, and hardware limits.
 - `software-phase3-step2.md` — formal DC sweep pairing, point-level quality/saturation decisions, linear metrics, incomplete-analysis semantics, build/install verification, and evidence limits.
 - `software-phase3-step1.md` — common analysis schema, record lineage, quality policy, voltage normalization, focused/full tests, build/install verification, and evidence limits.
