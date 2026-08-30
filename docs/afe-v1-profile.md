@@ -135,9 +135,9 @@ AFE v1 将 numeric index 映射为：
 - 没有 ACK/NACK message；
 - 没有冻结 fault-bit assignment；
 - 没有固件实现或 controller contract test；
-- Phase 0 无版本 façade 暂时保留，Step 8 再迁移现有工具；
+- 合成工具已经迁移到正式 AFE v1 API，但完整 SimulatorAdapter 属于 Phase 2；
 - 所有范围都来自测试 fixture，不是硬件安全证据。
 
 ## 8. 证据边界
 
-224 项主机测试验证 Python model、编码、解析、映射和错误分类。它们不能证明 UART 电气、固件 parser、ADC/DAC、AFE 电压范围、safe shutdown 时序或任何实物性能。
+AFE v1 单元测试、20 条合法黄金消息、9 类非法黄金消息和 100 帧确定性集成流水线验证 Python model、编码、解析、映射和错误分类。它们不能证明 UART 电气、固件 parser、ADC/DAC、AFE 电压范围、safe shutdown 时序或任何实物性能。

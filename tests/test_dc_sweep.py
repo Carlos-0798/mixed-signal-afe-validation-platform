@@ -1,11 +1,11 @@
 import pytest
 
 from dashboard.measurements.dc_sweep import (
+    SweepPoint,
     analyze_dc_sweep,
     exclude_saturated,
     linear_fit,
 )
-from dashboard.models import SweepPoint
 
 
 def test_exact_linear_fit() -> None:

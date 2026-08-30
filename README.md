@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 1, Step 7 of 8 complete |
-| Release maturity | Pre-MVP; core architecture and protocol foundation |
+| Development stage | Software Phase 1 complete — 8/8 checkpoints |
+| Release maturity | Pre-MVP; verified host core foundation |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 304 passed |
+| Automated host tests | 324 passed |
 | Formal package coverage | 100% of 1,211 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Product plan](docs/PRODUCT_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase1-step7.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Product plan](docs/PRODUCT_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase1-step8.md)
 
 ## Product vision
 
@@ -38,6 +38,9 @@ The software-first plan allows the complete software product to mature without r
 - AFE v1 mapping into controller-neutral Measurement and DeviceCapabilities models.
 - Host-side command checks that distinguish unsupported capability from unsafe configuration.
 - Strict `validation-config.v1` JSON with profile, channel, unit, timeout, provenance, and layered output-safety validation.
+- Frozen AFE v1 compatibility contract: 20 valid wire/model records and 9 rejected error cases.
+- Deterministic 100-frame synthetic telemetry pipeline producing 400 explicitly `SYNTHETIC` Measurements.
+- Executable architecture check that keeps serial, GUI, board SDKs, `dashboard`, and tools outside the formal core.
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 
 Not yet implemented: production adapters, complete Simulator/CSV replay, test runners, serial transport, CLI, dashboard, end-user report generation, firmware, or validated physical hardware.
@@ -78,12 +81,14 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 304 passed |
+| Full pytest suite | 324 passed |
 | Formal package statement coverage | 100% of 1,211 statements |
 | AFE v1 profile tests | 40 passed |
-| Ruff | Passed |
-| mypy | Passed |
-| Step 7 external wheel install and configuration round trip | Passed |
+| AFE golden compatibility | 20 valid + 9 invalid records passed |
+| Deterministic synthetic integration | 100 frames / 400 Measurements passed |
+| Ruff | Passed on the full repository |
+| mypy | Passed on 44 source files |
+| Step 8 isolated build, sdist contents, and external wheel smoke checks | Passed |
 | Hardware bench tests | Not run |
 
 Every completed software checkpoint has a report under [`reports/`](reports/). Test counts and claims are updated only after the corresponding command has actually run.
@@ -135,7 +140,7 @@ assert config.allow_output is False
 | Stage | Purpose | Status |
 |---|---|---|
 | Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
-| Software Phase 1 | Domain, protocol, configuration, and golden core | In progress — 7/8 steps |
+| Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Planned |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Planned |
 | Software Phase 4 | Serial transport and independent controller profiles | Planned |
@@ -143,15 +148,15 @@ assert config.allow_output is False
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-The next checkpoint is Software Phase 1 Step 8: frozen AFE business-message vectors, legacy migration, and Phase 1 closure. See the [file-level Phase 1 plan](docs/SOFTWARE_PHASE_1_PLAN.md).
+The next milestone is Software Phase 2: `DeviceAdapter`, complete SimulatorAdapter, CSV Replay, and capability workflow. See the [product plan](docs/PRODUCT_PLAN.md).
 
 ## Repository guide
 
 ```text
 src/analog_validation/    installable controller-neutral product core
-dashboard/                Phase 0 compatibility code being migrated
-tools/                    synthetic data and developer utilities
-tests/                    regression and formal-package tests
+dashboard/                legacy analysis/UI placeholders awaiting later phases
+tools/                    repository-local synthetic data and developer utilities
+tests/                    unit, golden, integration, architecture, and legacy-analysis regression tests
 test-data/golden/         frozen compatibility vectors
 docs/                     product, architecture, protocol, safety, and status
 reports/                  executed validation records and evidence limits

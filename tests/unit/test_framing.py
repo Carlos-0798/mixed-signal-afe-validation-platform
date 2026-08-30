@@ -10,14 +10,11 @@ import pytest
 from analog_validation import (
     MAX_RECORD_BYTES,
     CrcMismatch,
-    Frame,
     FrameTooLong,
     FramingError,
-    crc16_ccitt_false,
     decode_frame,
     encode_frame,
 )
-from dashboard import protocol as legacy_protocol
 
 
 def test_encode_decode_round_trip_for_text_and_bytes() -> None:
@@ -49,14 +46,6 @@ def test_frame_result_is_immutable() -> None:
 
     with pytest.raises(FrozenInstanceError):
         frame.fields = ("changed",)  # type: ignore[misc]
-
-
-def test_crc_and_framing_are_reexported_by_legacy_facade() -> None:
-    assert legacy_protocol.crc16_ccitt_false is crc16_ccitt_false
-    assert legacy_protocol.encode_frame is encode_frame
-    assert legacy_protocol.decode_frame is decode_frame
-    assert legacy_protocol.Frame is Frame
-    assert legacy_protocol.MAX_RECORD_BYTES == MAX_RECORD_BYTES
 
 
 def test_exact_length_limit_is_accepted_and_next_byte_is_rejected() -> None:

@@ -1,6 +1,6 @@
 # CRC 与 Framing 核心
 
-**当前实现：** Software Phase 1 Step 5  
+**当前实现：** Software Phase 1 complete<br>
 **证据等级：** HOST_TEST  
 **硬件验证：** 无
 
@@ -18,7 +18,7 @@ CRC 只能发现“收到的 bytes 和发送时不一样”，不能证明数据
 
 ## 2. 唯一 CRC 实现
 
-正式实现位于 `src/analog_validation/protocol/crc.py`。项目中不再维护第二份 CRC 算法；旧 `dashboard.protocol` 只是重新导出同一个函数。
+正式实现位于 `src/analog_validation/protocol/crc.py`。项目中不再维护第二份 CRC 算法，旧 `dashboard.protocol` 已在 Step 8 完成调用迁移后删除。
 
 参数固定为 CRC-16/CCITT-FALSE：
 
@@ -50,7 +50,7 @@ CRC 只能发现“收到的 bytes 和发送时不一样”，不能证明数据
 - 整条序列化记录最多 128 bytes，包含 terminator；
 - CRC 覆盖最后一个数据字段之前的所有 ASCII payload bytes，不覆盖 CRC 前逗号、CRC 字符和行结束。
 
-Framing 不解释 `TEL`、`CMD`、电压、增益或 capability 的业务意义。它们将在 Step 6 的 AFE v1 profile 中定义。
+Framing 不解释 `TEL`、`CMD`、电压、增益或 capability 的业务意义。这些内容由 `protocol/afe_v1.py` 中的 AFE v1 profile 定义。
 
 ## 4. 精确错误分类
 
@@ -68,11 +68,15 @@ Framing 不解释 `TEL`、`CMD`、电压、增益或 capability 的业务意义�
 
 真正处理串口分段、粘包和“超长后丢弃到下一个 LF”的流式状态机属于 Software Phase 4；Step 5 没有假装单记录函数已经解决真实串口接收问题。
 
-## 6. 当前兼容层
+## 6. 黄金兼容数据
 
-Phase 0 的 `dashboard.protocol` 暂时保留 telemetry/command 业务函数，但其 `crc16_ccitt_false`、`encode_frame` 和 `decode_frame` 都直接引用正式包。这样现有工具继续工作，同时 CRC 和 framing 已经只有一个实现来源。
+Step 8 冻结了三类互补数据：
 
-Step 6 会把 AFE 业务消息移入 `analog_validation.protocol.afe_v1`；Step 8 再清理不再需要的旧入口。
+- `crc16_ccitt_false.json`：算法参数和检查值；
+- `afe_v1_valid.csv` + `expected_frames.json`：wire record 与领域含义的双向兼容；
+- `afe_v1_invalid.csv`：坏 CRC、坏版本、坏字段、非 ASCII 和超长记录对应的稳定错误类型。
+
+合法记录必须能够解析为预期模型并重新编码为完全相同的 bytes。旧的无版本 AFE façade 不再是受支持入口。
 
 ## 7. 证据边界
 

@@ -58,6 +58,6 @@ This preserves a readable product message and the original diagnostic cause.
 
 ## Migration boundary
 
-The legacy `dashboard.protocol` exceptions remain unchanged until Software Phase 1 Step 5 migrates CRC and framing into the formal package. Maintaining this explicit boundary prevents two partially migrated protocol implementations from being treated as one verified API.
+Software Phase 1 completed the one-time migration to `analog_validation.errors`. The retired `dashboard.protocol` and `dashboard.models` files no longer provide a second error or model surface. New adapters, profiles, runners, CLI commands, and the future Dashboard must use the formal exception hierarchy.
 
 These error types describe software behavior only. They do not certify hardware ranges, wiring safety, communication reliability, or physical measurements.

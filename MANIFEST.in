@@ -1,3 +1,5 @@
-recursive-include test-data *.json *.md
+recursive-include test-data *.csv *.json *.md
 recursive-include tests *.py
 recursive-include examples *.json
+recursive-include dashboard *.py
+recursive-include tools *.py
