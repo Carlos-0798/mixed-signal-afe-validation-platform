@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-08-30<br>
-**Current milestone:** Software Phase 3 in progress — 7 of 8 checkpoints complete<br>
-**Release maturity:** pre-MVP / runners, offline analysis, and structured exports implemented<br>
+**Current milestone:** Software Phase 3 complete — 8 of 8 checkpoints<br>
+**Release maturity:** pre-MVP / analysis, runners, and structured-result compatibility frozen<br>
 **Highest evidence level:** HOST_TEST  
 **Verified hardware claims:** 0
 
@@ -12,7 +12,7 @@ The repository currently provides an installable, controller-neutral Python core
 
 The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow remains a frozen read-only acquisition API. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, and versioned structured result exports are implemented; product CLI, dashboard, human-readable reports, serial transport, and a validated physical AFE are not yet implemented.
 
-Software Phase 3 Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. The export layer represents one immutable bundle as deterministic JSON or row-oriented CSV, preserves evidence/criteria/point decisions/limitations, and defaults to atomic no-overwrite local writes. It does not recalculate conclusions or promote evidence.
+Software Phase 3 is complete. Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. Step 8 freezes the 84-symbol Phase 2 top level, 68 analysis exports, 10 runner exports, 28 export symbols, 12 Phase 3 schemas, public enums/signatures/errors, and exact representative DC/hysteresis results. The golden values remain HOST_TEST/SYNTHETIC software evidence.
 
 ## Software Phase 1 checkpoints
 
@@ -44,7 +44,7 @@ Software Phase 3 Steps 1–7 add the versioned analysis foundation, formal DC an
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 1,035 passed |
+| Full pytest suite | 1,047 passed |
 | Formal package statement coverage | 100% of 5,594 statements |
 | Phase 3 common analysis semantics | 56 focused tests; 244/244 statements covered |
 | Phase 3 DC sweep analysis | 81 focused tests; 325/325 statements covered |
@@ -53,6 +53,7 @@ Software Phase 3 Steps 1–7 add the versioned analysis foundation, formal DC an
 | Phase 3 hysteresis analysis, criteria, and runner | 38 focused tests; 892/892 new module statements covered |
 | Phase 3 calibration and offline frequency response | 48 focused tests; 705/705 new module statements covered |
 | Phase 3 versioned result export | 43 focused tests; 640/640 export statements covered |
+| Phase 3 golden compatibility | 8 public API + 4 exact-result checks passed |
 | DeviceAdapter lifecycle and safety | 36 tests passed |
 | Reusable concrete-adapter contract | 8 shared checks passed against reference, Simulator, and CSV Replay adapters |
 | Simulator-specific unit tests | 69 passed; config, generator, channel independence, non-idealities, hysteresis, fault, clock, capability, and reconnect behavior |
@@ -64,8 +65,8 @@ Software Phase 3 Steps 1–7 add the versioned analysis foundation, formal DC an
 | Synthetic integration | 100 frames / 400 explicit `SYNTHETIC` Measurements passed |
 | Core dependency boundary | Passed; standard library and own package only |
 | Ruff | Passed on the full repository |
-| mypy | Passed on `src`, `dashboard`, `tools`, and `tests` — 97 source/test files |
-| Package build and external install | Passed; sdist contains Step 7 sources/tests, and an external wheel install preserved the frozen 84-symbol top level while exposing 68 analysis, 10 runner, and 28 export symbols plus JSON/CSV round trips |
+| mypy | Passed on `src`, `dashboard`, `tools`, and `tests` — 99 source/test files |
+| Package build and external install | Passed; sdist contains Phase 3 golden data/tests, and an external wheel install preserved 84 top-level, 68 analysis, 10 runner, and 28 export symbols plus result parsing and public runner smoke |
 | Hardware bench validation | Not performed |
 
 ## Software Phase 3 checkpoints
@@ -80,7 +81,7 @@ Software Phase 3 Steps 1–7 add the versioned analysis foundation, formal DC an
 | 5 | Directional hysteresis analysis and runner | Complete | HOST_TEST / SYNTHETIC / CSV_REPLAY |
 | 6 | Calibration and offline frequency response | Complete | HOST_TEST / SYNTHETIC |
 | 7 | Versioned CSV/JSON result export | Complete | HOST_TEST |
-| 8 | Golden compatibility, packaging, and closure | Planned | — |
+| 8 | Golden compatibility, packaging, and closure | Complete | HOST_TEST / SYNTHETIC |
 
 ## Public claim boundary
 
@@ -109,6 +110,7 @@ Safe to claim now:
 - implemented versioned directional hysteresis point/transition/cycle models, adjacent-interval midpoint estimates, repeated-cycle statistics, and criteria-gated conclusions.
 - implemented a safety-gated rising/falling hysteresis runner and verified that missing points/transitions stay incomplete while direction conflicts, chatter, non-binary states, and inverted thresholds are rejected.
 - implemented immutable `result-export.v1` bundles, typed DC/hysteresis builders, deterministic strict JSON/CSV round trips, source/record/criteria/point consistency checks, and atomic no-overwrite file publication.
+- froze Phase 3 public namespaces, 12 schemas, stable constants, 8 enum sets, key signatures, export error families, golden hashes, and exact synthetic DC/hysteresis result meaning.
 
 Not safe to claim now:
 
@@ -120,7 +122,7 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 3 Step 7 is complete. Step 8 will freeze representative Phase 3 results and public schema/API meaning, rerun compatibility and packaging gates, and close the phase. Real hardware remains later work.
+Software Phase 3 is complete. The next milestone is a separately reviewed Software Phase 4 plan for serial transport and independent controller profiles. No Phase 4 implementation, hardware purchase, wiring, or BENCH validation has started.
 
 ## GitHub and LinkedIn presentation policy
 

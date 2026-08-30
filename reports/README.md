@@ -4,6 +4,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Host-only software reports:
 
+- `software-phase3-step8.md` — Software Phase 3 closure: public API and exact result golden freeze, full regression, external install, exit criteria, and remaining boundaries.
 - `software-phase3-step7.md` — versioned result bundle, deterministic JSON/CSV, safe file publication, typed builders, and executed Step 7 verification.
 - `software-phase3-step6.md` — immutable linear calibration, derived-record lineage, offline frequency response, cutoff semantics, packaging verification, and evidence limits.
 - `software-phase3-step5.md` — directional hysteresis analysis/criteria/runner, transition lineage, cycle statistics, safety gates, and incomplete-evidence behavior.

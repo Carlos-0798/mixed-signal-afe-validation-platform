@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 3 in progress — 7/8 checkpoints complete |
-| Release maturity | Pre-MVP; core runners, offline analysis, and structured exports implemented |
+| Development stage | Software Phase 3 complete — 8/8 checkpoints |
+| Release maturity | Pre-MVP; analysis, runners, and structured-result compatibility frozen |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 1,035 passed |
+| Automated host tests | 1,047 passed |
 | Formal package coverage | 100% of 5,594 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 3 plan](docs/SOFTWARE_PHASE_3_PLAN.md) · [Result exports](docs/result-exports.md) · [Step 7 report](reports/software-phase3-step7.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Frozen Phase 3 API/results](docs/phase3-public-api.md) · [Phase 3 closure report](reports/software-phase3-step8.md)
 
 ## Product vision
 
@@ -79,10 +79,12 @@ The software-first plan allows the complete software product to mature without r
 - Typed DC sweep and hysteresis export builders that copy finalized results without recomputing metrics, thresholds, or PASS/FAIL.
 - Deterministic strict JSON plus four-column row-oriented CSV with exact round trips, finite-number enforcement, version/size/row bounds, and typed errors.
 - Atomic UTF-8 result-file publication with existing destinations protected by default and replacement allowed only through explicit `overwrite=True`.
+- Frozen Phase 3 compatibility manifest covering public exports, 12 schemas, stable constants, 8 enum sets, key call signatures, result-export error bases, and golden-file hashes.
+- Exact synthetic DC and hysteresis golden results that protect numerical meaning, point lineage, saturation exclusion, criteria, provenance, and deterministic JSON output.
 - One formal AFE telemetry generator shared by the Simulator foundation, legacy CLI wrapper, and frozen 100-frame regression.
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 
-Not yet implemented: Phase 3 golden result freeze, serial transport, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, or validated physical hardware.
+Not yet implemented: serial transport, controller profiles, calibration/frequency TestRun export mappings, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, or validated physical hardware.
 
 ## Architecture
 
@@ -122,7 +124,7 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 1,035 passed |
+| Full pytest suite | 1,047 passed |
 | Formal package statement coverage | 100% of 5,594 statements |
 | Phase 3 common analysis semantics | 56 focused tests; 244/244 statements covered |
 | Phase 3 DC sweep analysis | 81 focused tests; 325/325 statements covered |
@@ -131,6 +133,7 @@ The current results are host-software evidence only:
 | Phase 3 hysteresis analysis, criteria, and runner | 38 focused tests; 892/892 new module statements covered |
 | Phase 3 calibration and offline frequency response | 48 focused tests; 705/705 new module statements covered |
 | Phase 3 versioned JSON/CSV result exports | 43 focused tests; 640/640 export statements covered |
+| Phase 3 public API and exact-result golden compatibility | 12 checks passed |
 | DeviceAdapter lifecycle and safety tests | 36 passed |
 | Reusable concrete-adapter contract | 8 shared checks passed by reference, Simulator, and CSV Replay adapters |
 | Simulator-specific unit tests | 69 passed |
@@ -142,7 +145,7 @@ The current results are host-software evidence only:
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 97 source/test files |
+| mypy | Passed on 99 source/test files |
 | Latest isolated build, sdist, and external wheel public-API smoke checks | Passed |
 | Hardware bench tests | Not run |
 
@@ -216,13 +219,13 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
-| Software Phase 3 | Test runners, analysis, calibration, structured results | In progress — 7/8 checkpoints |
+| Software Phase 3 | Test runners, analysis, calibration, structured results | Complete — 8/8 checkpoints |
 | Software Phase 4 | Serial transport and independent controller profiles | Planned |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-Software Phase 3 Step 7 is complete: finalized TestRun results can now be frozen as `result-export.v1` and represented deterministically in strict JSON or row-oriented CSV. Source, record lineage, criteria, point decisions, metrics, and limitations survive exact round trips; files are published atomically and are not overwritten by default. Step 8 will freeze Phase 3 compatibility and close the phase. Real hardware remains later work.
+Software Phase 3 is complete: analysis, safety-gated runners, calibration, offline frequency response, and `result-export.v1` passed all eight checkpoints. Public namespaces and exact representative DC/hysteresis results are now protected by golden compatibility tests. Software Phase 4 serial transport/controller-profile planning has not started. Real hardware remains later work.
 
 ## Repository guide
 
@@ -270,6 +273,7 @@ See [assumptions requiring confirmation](ASSUMPTIONS.md), [test and evidence pol
 - [Safety-gated DC sweep runner](docs/dc-sweep-runner.md)
 - [Calibration and offline frequency response](docs/calibration-and-frequency-response.md)
 - [Versioned JSON/CSV result exports](docs/result-exports.md)
+- [Frozen Phase 3 public API and golden results](docs/phase3-public-api.md)
 - [Frozen Phase 2 public API](docs/phase2-public-api.md)
 - [Versioned safe configuration](docs/configuration.md)
 - [Capability and TestRun semantics](docs/capabilities-and-test-runs.md)

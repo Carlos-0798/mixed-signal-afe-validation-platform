@@ -1,7 +1,7 @@
 # Software Phase 3 文件级实施计划
 
 **阶段名称：** 测试执行、质量感知分析与结构化结果<br>
-**规划状态：** 实施中，进度 7/8<br>
+**规划状态：** 已完成，进度 8/8<br>
 **预计时间：** 7–10 个初学者开发日<br>
 **前置：** Software Phase 2 的 adapter、Replay、共用读取工作流和兼容基线完成<br>
 **硬件要求：** 无<br>
@@ -16,9 +16,9 @@
 - [x] Step 5：正式迟滞分析与 runner；
 - [x] Step 6：校准与离线频率响应；
 - [x] Step 7：版本化 CSV/JSON 结果导出；
-- [ ] Step 8：黄金兼容、构建和阶段收口。
+- [x] Step 8：黄金兼容、构建和阶段收口。
 
-Step 7 已通过 43 项专门测试、1,035 项完整回归和 100% 正式 package 覆盖。`result-export.v1` 将已有 TestRun、criteria、metrics、逐点证据/决定和限制说明冻结为同一不可变结果包；严格 JSON 与四列行式 CSV 可精确往返，文件默认原子写入且不覆盖。证据见 `reports/software-phase3-step7.md`。这不表示结果来自实物、Step 8 已完成或任何硬件功能已经验证。
+Step 8 已通过 12 项黄金兼容检查、1,047 项完整回归和 100% 正式 package 覆盖。Phase 3 公开 namespaces、12 个 schema、稳定常量、8 组 enum、关键调用参数、导出错误继承关系及标准 DC/迟滞 exact results 已冻结。证据见 `docs/phase3-public-api.md` 和 `reports/software-phase3-step8.md`。这表示 Phase 3 软件范围完成，不表示 Phase 4–6、校准/频响专用导出或任何硬件功能已经完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -259,6 +259,8 @@ Step 1 将冻结：
 
 验收：所有阶段出口通过后才将 Phase 3 标记为完成。
 
+**状态：已完成。** `phase3-public-api-golden.v1` 冻结顶层/analysis/runners/exports 的 exact exports、Phase 3 schema/constants/enums/signatures/export errors 和三份黄金输入/结果哈希；标准 SYNTHETIC DC fixture 精确保护 gain/offset/饱和排除/criteria/export，标准 SYNTHETIC 迟滞 fixture 精确保护上下阈值、宽度、逐点引用和 export。全量回归、覆盖率、静态检查、依赖、隔离构建、sdist 内容、仓库外 wheel 解析和公开 runner `UNSUPPORTED` smoke 均通过，Phase 3 因此收口为 8/8。
+
 ## 8. 阶段出口条件
 
 - 正式分析代码完全离开 `dashboard/measurements`；
@@ -286,4 +288,4 @@ Step 1 将冻结：
 
 ## 10. 规划批准门
 
-本文件完成的是“准备如何实现”的工程设计，不是 Phase 3 功能本身。实施从 Step 1 开始，并保持一次只推进一个可验证检查点。每一步都必须提交代码、测试、文档、真实命令结果和证据限制，用户继续下一步后再进入后续检查点。
+本计划最初用于批准 Phase 3 的实现顺序。Steps 1–8 现已分别提交代码、测试、文档、真实命令结果和证据限制，并于 Step 8 完成兼容冻结与阶段收口。未来 Phase 3 契约变更必须按 `docs/phase3-public-api.md` 的升级/迁移流程处理；Phase 4 需要另立计划，不由本文件自动授权实施。
