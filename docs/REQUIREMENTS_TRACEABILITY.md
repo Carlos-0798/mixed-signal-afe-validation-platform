@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-29  
-**当前阶段：** Software Phase 1 Step 6 完成
+**当前阶段：** Software Phase 1 Step 7 完成
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -14,7 +14,7 @@
 | SW-FR-002 | VERIFIED_HOST | `TestRunMetadata` 保存测试、配置、UTC 时间、软件、设备/profile 和来源；`TestRunResult` 保存结论与证据 | Phase 3 runner 生成实际运行记录 |
 | SW-FR-003 | IMPLEMENTED | 9 类受控 `EvidenceSource` 已验证且每个正式 Measurement 必填；AFE v1 mapping 也要求显式来源 | Step 8 迁移生成器；Phase 3/5 写入导出和报告 |
 | SW-FR-004 | IMPLEMENTED | Measurement 冻结且强制 `record_id`/`raw_record_id`，可区分原始与派生 | Phase 3 分析结果保存实际引用链 |
-| SW-FR-005 | VERIFIED_HOST | 12 类受控单位；未知单位和含义不明值被拒绝 | 后续 profile 映射保持显式单位 |
+| SW-FR-005 | VERIFIED_HOST | 12 类受控单位；Measurement、profile 和配置通道均拒绝未知或含义不明单位 | 后续 adapter 和分析保持显式单位 |
 | SW-FR-010 | VERIFIED_HOST | CRC 只有 `protocol/crc.py` 一个实现；固定参数、5 个黄金向量和 bytes-like 边界测试通过 | 后续 profile/adapter 复用，不再复制算法 |
 | SW-FR-011 | VERIFIED_HOST | 正式 framing 实现 128-byte 上限、严格可打印 ASCII token、LF/CRLF、CRC envelope 和精确错误；边界测试通过 | Phase 4 增加流式分帧和超长恢复状态机 |
 | SW-FR-012 | VERIFIED_HOST | AFE v1 严格拒绝坏版本、字段数、类型、范围、枚举、capability bit 和业务形状；边界测试通过 | Step 8 增加业务黄金文件 |
@@ -28,7 +28,7 @@
 | SW-FR-022 | ACCEPTED | 无 CSV replay | Phase 2 实现 |
 | SW-FR-023 | ACCEPTED | 串口占位文件 | Phase 4 实现且隔离分析层 |
 | SW-FR-024 | ACCEPTED | 无 MSP430 profile | Phase 4 独立实现，保留原始字段 |
-| SW-FR-025 | IMPLEMENTED | `UNSUPPORTED` 结果语义已建立；AFE v1 command validation 区分缺能力和不安全配置 | Phase 2 adapter/runner 实际生成降级结果 |
+| SW-FR-025 | IMPLEMENTED | `UNSUPPORTED` 结果语义已建立；AFE v1 与版本化配置校验区分缺能力和不安全配置 | Phase 2 adapter/runner 实际生成降级结果 |
 | SW-FR-026 | IMPLEMENTED | AFE v1 定义 SAFE_SHUTDOWN command；自动输出验证强制声明该能力 | Phase 2 adapter 实现；输出型硬件接入时做 fault/bench 验证 |
 | SW-FR-030 | IMPLEMENTED | 合成 sweep generator | Phase 3 建立 runner、等待、重复和运行记录 |
 | SW-FR-031 | VERIFIED_HOST | `linear_fit` 与 2 项核心拟合测试 | Phase 3 增加残差、有限值和质量信息 |
@@ -53,16 +53,16 @@
 |---|---|---|---|
 | SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建、仓库外 wheel 安装和 import 均通过 | Phase 5 增加最终用户运行入口，Phase 6 再做发布候选安装测试 |
 | SW-NFR-002 | IMPLEMENTED | 当前核心使用标准 Python | Phase 4/6 验证 Windows，避免核心平台绑定 |
-| SW-NFR-003 | ACCEPTED | parser 可拒绝部分坏输入 | 设备、文件、中止和安全状态仍未实现 |
+| SW-NFR-003 | IMPLEMENTED | framing/profile/config parser 可拒绝坏输入、重复/未知字段、非有限值和超大配置 | 设备断开、CSV、用户中止和 adapter 安全状态仍未实现 |
 | SW-NFR-004 | VERIFIED_HOST | 协议和分析可无硬件单测 | Phase 1 保持依赖反转并扩展契约测试 |
 | SW-NFR-005 | ACCEPTED | 仅有架构文档 | Phase 1/2 建立可执行边界 |
-| SW-NFR-006 | IMPLEMENTED | `src` 正式包、版本和公开错误 API 均有类型、文档与测试 | 领域、协议和配置模块仍待迁移 |
+| SW-NFR-006 | VERIFIED_HOST | 正式领域、协议与配置模块责任分离，公开 API 有类型、文档与完整 host tests | Phase 2 继续保持 adapter 依赖方向 |
 | SW-NFR-007 | ACCEPTED | 无性能基准 | Phase 5/6 建立实际数据规模基准 |
-| SW-NFR-008 | IMPLEMENTED | 帧长度、ASCII 和数值有验证 | 配置、路径、文件和命令尚未覆盖 |
+| SW-NFR-008 | VERIFIED_HOST | 严格 JSON 只作为数据解析；拒绝重复/未知字段、非标准数值、非 JSON 后缀和超大文件；无 `eval`/`exec` | Phase 2/5 扩展到 CSV、CLI 路径和命令入口 |
 | SW-NFR-009 | IMPLEMENTED | 当前无网络代码，文件均本地 | Phase 5 文档化并保持默认离线 |
 | SW-NFR-010 | ACCEPTED | 报告未实现 | Phase 1 定义版本字段，Phase 3/5 写入结果 |
 | SW-NFR-011 | ACCEPTED | 无 UI | Phase 5 验证文本与颜色双重表达 |
-| SW-NFR-012 | IMPLEMENTED | Measurement schema 固定为 `measurement.v1`，未知版本拒绝 | Step 5/6 增加协议/profile 版本与黄金测试 |
+| SW-NFR-012 | IMPLEMENTED | Measurement、capability、TestRun、AFE profile 和配置均有显式版本并拒绝未知 schema/profile 版本 | Step 8 冻结更多黄金兼容向量；未来格式变化附迁移说明 |
 
 ## 未来硬件需求
 
@@ -85,9 +85,9 @@
 
 | 状态 | 数量 |
 |---|---:|
-| VERIFIED_HOST | 6 |
-| IMPLEMENTED | 13 |
-| ACCEPTED | 29 |
+| VERIFIED_HOST | 13 |
+| IMPLEMENTED | 17 |
+| ACCEPTED | 18 |
 | DEFERRED | 12 |
 | VERIFIED_BENCH | 0 |
 | 总计 | 60 |

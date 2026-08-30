@@ -4,6 +4,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Host-only software reports:
 
+- `software-phase1-step7.md` — strict versioned JSON configuration, layered output gates, device-capability matching, hostile-input tests, package verification, and evidence limits.
 - `software-phase1-step6.md` — versioned AFE v1 telemetry/commands/capability exchange, domain mappings, safety distinctions, package verification, and GitHub presentation update.
 - `software-phase1-step5.md` — single CRC implementation, bounded strict framing, golden vectors, compatibility regression, package verification, and UART evidence limits.
 - `software-phase1-step4.md` — explicit device capabilities, safe ranges, test-run conclusion semantics, package verification, and hardware evidence limits.

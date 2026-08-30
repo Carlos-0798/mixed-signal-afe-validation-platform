@@ -13,10 +13,10 @@
 - [x] Step 4：Capability 与 TestRun；
 - [x] Step 5：CRC 与 framing 迁移；
 - [x] Step 6：AFE v1 profile；
-- [ ] Step 7：配置模型；
+- [x] Step 7：配置模型；
 - [ ] Step 8：测试、文档和阶段报告收口。
 
-Step 1–6 的真实执行证据见 `reports/software-phase1-step1.md` 至 `reports/software-phase1-step6.md`。
+Step 1–7 的真实执行证据见 `reports/software-phase1-step1.md` 至 `reports/software-phase1-step7.md`。
 
 ## 1. 阶段目标
 

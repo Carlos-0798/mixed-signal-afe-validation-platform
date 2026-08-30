@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 1, Step 6 of 8 complete |
+| Development stage | Software Phase 1, Step 7 of 8 complete |
 | Release maturity | Pre-MVP; core architecture and protocol foundation |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 224 passed |
-| Formal package coverage | 100% of 899 statements |
+| Automated host tests | 304 passed |
+| Formal package coverage | 100% of 1,211 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Product plan](docs/PRODUCT_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase1-step6.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Product plan](docs/PRODUCT_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase1-step7.md)
 
 ## Product vision
 
@@ -37,6 +37,7 @@ The software-first plan allows the complete software product to mature without r
 - Versioned `AFE,1,...` profile for telemetry, commands, and multi-record capability exchange.
 - AFE v1 mapping into controller-neutral Measurement and DeviceCapabilities models.
 - Host-side command checks that distinguish unsupported capability from unsafe configuration.
+- Strict `validation-config.v1` JSON with profile, channel, unit, timeout, provenance, and layered output-safety validation.
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 
 Not yet implemented: production adapters, complete Simulator/CSV replay, test runners, serial transport, CLI, dashboard, end-user report generation, firmware, or validated physical hardware.
@@ -69,7 +70,7 @@ AFE,1,CAP_REQ,77,00F6
 
 Capability responses use a DEVICE record, one CHANNEL record per advertised channel, and an END record. This avoids exceeding the 128-byte framing limit as devices grow.
 
-See [AFE v1 profile](docs/afe-v1-profile.md), [CRC and framing](docs/framing-and-crc.md), and [protocol reference](docs/protocol.md).
+See [AFE v1 profile](docs/afe-v1-profile.md), [CRC and framing](docs/framing-and-crc.md), [safe configuration](docs/configuration.md), and [protocol reference](docs/protocol.md).
 
 ## Verification snapshot
 
@@ -77,12 +78,12 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 224 passed |
-| Formal package statement coverage | 100% of 899 statements |
+| Full pytest suite | 304 passed |
+| Formal package statement coverage | 100% of 1,211 statements |
 | AFE v1 profile tests | 40 passed |
 | Ruff | Passed |
 | mypy | Passed |
-| Step 6 external wheel install and AFE v1 round trip | Passed |
+| Step 7 external wheel install and configuration round trip | Passed |
 | Hardware bench tests | Not run |
 
 Every completed software checkpoint has a report under [`reports/`](reports/). Test counts and claims are updated only after the corresponding command has actually run.
@@ -118,12 +119,23 @@ record = encode_afe_message(message)
 assert parse_afe_message(record) == message
 ```
 
+Load the safe read-only configuration example:
+
+```python
+from analog_validation import load_validation_config
+
+config = load_validation_config(
+    "examples/config/afe-synthetic-readonly.v1.json"
+)
+assert config.allow_output is False
+```
+
 ## Roadmap
 
 | Stage | Purpose | Status |
 |---|---|---|
 | Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
-| Software Phase 1 | Domain, protocol, configuration, and golden core | In progress — 6/8 steps |
+| Software Phase 1 | Domain, protocol, configuration, and golden core | In progress — 7/8 steps |
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Planned |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Planned |
 | Software Phase 4 | Serial transport and independent controller profiles | Planned |
@@ -131,7 +143,7 @@ assert parse_afe_message(record) == message
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-The next checkpoint is Software Phase 1 Step 7: safe, versioned configuration models. See the [file-level Phase 1 plan](docs/SOFTWARE_PHASE_1_PLAN.md).
+The next checkpoint is Software Phase 1 Step 8: frozen AFE business-message vectors, legacy migration, and Phase 1 closure. See the [file-level Phase 1 plan](docs/SOFTWARE_PHASE_1_PLAN.md).
 
 ## Repository guide
 
@@ -172,6 +184,7 @@ See [assumptions requiring confirmation](ASSUMPTIONS.md), [test and evidence pol
 - [Product plan and staged acceptance gates](docs/PRODUCT_PLAN.md)
 - [Product architecture](docs/PRODUCT_ARCHITECTURE.md)
 - [AFE v1 profile](docs/afe-v1-profile.md)
+- [Versioned safe configuration](docs/configuration.md)
 - [Capability and TestRun semantics](docs/capabilities-and-test-runs.md)
 - [Theory calculations](docs/theory.md)
 - [Development environment](docs/DEVELOPMENT_ENVIRONMENT.md)

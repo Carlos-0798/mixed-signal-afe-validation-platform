@@ -1,0 +1,25 @@
+{
+  "schema_version": "validation-config.v1",
+  "config_id": "afe-synthetic-readonly",
+  "config_version": "1.0",
+  "profile": {
+    "name": "afe",
+    "version": "1"
+  },
+  "evidence_source": "SYNTHETIC",
+  "allow_output": false,
+  "timeouts_s": {
+    "connect": 5.0,
+    "command": 2.0,
+    "settle": 0.1,
+    "test": 60.0
+  },
+  "channels": [
+    {
+      "name": "afe.ch0.input",
+      "role": "ANALOG_INPUT",
+      "unit": "mV",
+      "enabled": true
+    }
+  ]
+}

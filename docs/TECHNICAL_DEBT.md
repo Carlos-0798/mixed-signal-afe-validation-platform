@@ -10,7 +10,7 @@
 | TD-001 | CLOSED | Git 身份和首个 Phase 0 基线于 2026-08-29 建立 | 已具有可恢复基线和历史差异 | 后续阶段保持小步提交 |
 | TD-002 | P1 | 核心代码位于 `dashboard/` 包 | UI、领域和协议边界含义混乱 | Phase 1 迁移到 `src/analog_validation/` |
 | TD-003 | CLOSED | 正式 Measurement 强制来源、状态、质量、单位、UTC 时间和原始引用 | 合成、仿真、回放与 BENCH 标签不再依赖文件名 | 证据见 `reports/software-phase1-step3.md` |
-| TD-004 | P1 | Measurement、CRC、framing 和 AFE v1 profile 已版本化，但 AFE 业务黄金消息尚未冻结 | 版本会被拒绝，但字段意外漂移仍缺文件级保护 | Step 8 建立 AFE v1 黄金消息 |
+| TD-004 | P1 | Measurement、CRC、framing、AFE v1 profile 和 validation config 已版本化，但 AFE 业务黄金消息尚未冻结 | 版本会被拒绝，但字段意外漂移仍缺文件级保护 | Step 8 建立 AFE v1 黄金消息 |
 | TD-005 | CLOSED | `DeviceCapabilities` 已要求显式通道、安全范围、命令和 safe-shutdown 一致性 | 软件领域层不再需要根据板名猜测功能；线上协商仍属后续实现 | 证据见 `reports/software-phase1-step4.md` |
 | TD-006 | P2 | 无流式分帧和序列追踪 | 真实串口分段、粘包和丢帧无法处理 | Phase 4 |
 | TD-007 | P1 | Measurement 已强制显式处理 NaN/Inf/缺失；旧 DC/迟滞分析尚未应用质量和方向规则 | 旧分析仍可能对异常裸数据产生无意义结果 | Phase 3 迁移分析并保存逐点质量 |
@@ -25,5 +25,6 @@
 | TD-016 | CLOSED | 正式包已建立 Validation、Protocol、Framing、CRC、版本、Capability 和 Configuration 错误层级 | UI/CLI 已有稳定捕获边界；具体协议迁移仍在 Step 5 | 证据见 `reports/software-phase1-step2.md` |
 | TD-017 | P3 | 采购和控制器选择文档仍包含软件转向前候选 | 可能误读为立即采购指令 | 保留历史；采购前由新规划重新冻结 |
 | TD-018 | P0 | 所有硬件性能仍未验证 | 错误成果声明会损害可信度和安全 | 持续保持 `VERIFIED_BENCH=0`，直到真实台架阶段 |
+| TD-019 | CLOSED | `validation-config.v1` 已使用不可执行的严格 JSON，限制文件大小，并对 profile、通道、单位、超时、来源和输出边界执行分层验证 | 配置不再依赖任意 Python 代码；adapter I/O 仍属后续阶段 | 证据见 `reports/software-phase1-step7.md` |
 
 关闭技术债时必须记录对应代码、测试、文档和验证报告，不能只从表格删除。
