@@ -107,8 +107,8 @@ capabilities.require_automated_output(
 
 ## 5. 当前边界与后续步骤
 
-- Step 4 没有实现 capability 的串口请求/响应；AFE v1 profile 在 Step 6 定义。
-- Step 4 没有执行真实测试；Simulator/CSV/Serial adapter 在后续阶段接入。
-- Step 4 没有完成判定引擎；当前只保证结果对象不能把缺失数据伪装为 PASS。
+- AFE v1 已定义 capability 记录，但真实串口请求/响应仍属于 Software Phase 4。
+- Software Phase 2 Step 7 的共用读取工作流已在读取前检查命令、通道和单位，并实际返回 `UNSUPPORTED`；它不连接真实硬件。
+- 工作流的 `COMPLETED` 只表示采集齐全，不等同于 `TestRunOutcome.PASS`。Phase 3 判定引擎仍需根据版本化规则和证据生成正式 TestRunResult。
 - Step 4 没有证明任何物理电压、精度、接线或安全关闭行为。
 - `BENCH_*` 仍只是受控来源标签；真正 BENCH 证据必须来自实物执行记录。

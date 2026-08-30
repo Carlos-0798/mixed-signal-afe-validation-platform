@@ -104,6 +104,14 @@ Replayed Measurements preserve the source row's timestamp, value, unit, status, 
 
 Timing uses an injectable sleeper. Host tests therefore verify exact requested delays without waiting in real time. This verifies software scheduling arithmetic, not Windows real-time performance or hardware timing. See [CSV Replay v1](csv-replay-v1.md).
 
+## Shared read workflow
+
+Step 7 adds `run_read_workflow` above the adapter boundary. An immutable request lists each analog/digital channel, expected unit, and sample count. The same function then owns a disconnected adapter for one call: connect, confirm capabilities, preflight every requirement, read, and disconnect.
+
+Preflight is atomic. If any command, channel, or analog unit is missing, the function returns `UNSUPPORTED` with machine-readable missing-requirement tokens before consuming any data. A CSV replay that advertises the capability but reaches EOF early returns `INCOMPLETE` with partial Measurements and exact remaining sample counts. Unexpected adapter or protocol errors remain exceptions; they are not mislabeled as unsupported. Every return/error path disconnects the workflow-owned adapter.
+
+`COMPLETED` means acquisition returned every requested Measurement. It is not a gain, accuracy, safety, or hardware PASS. See [Shared Read Workflow](read-workflow.md).
+
 ## What this does not prove
 
 The state machine and tests prove host-software behavior only. `SAFE_SHUTDOWN` means the adapter software path completed; it does not prove that a physical relay, DAC, PWM pin, power rail, or external circuit actually reached a safe voltage. That requires later firmware and bench evidence.

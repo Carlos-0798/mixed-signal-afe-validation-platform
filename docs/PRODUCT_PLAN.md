@@ -806,4 +806,4 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/adr/`；
 - `docs/TECHNICAL_DEBT.md`。
 
-Software Phase 1 已于 2026-08-29 完成，真实证据见 `reports/software-phase1-step8.md`。Software Phase 2 Step 1–6 已建立 `DeviceAdapter`、生命周期、安全门、可复用契约测试、可配置确定性 SimulatorAdapter、严格不可变的 CSV Replay v1 schema/parser，以及支持独立游标、时间缩放、暂停/恢复、明确 EOF 和强制回放来源的 CsvReplayAdapter，证据见 `reports/software-phase2-step1.md` 至 `reports/software-phase2-step6.md`。下一步建立 Simulator/CSV 共用工作流和明确 `UNSUPPORTED` 能力降级。该阶段仍不采购、不接线，也不把合成或回放结果描述为实物验证。
+Software Phase 1 已于 2026-08-29 完成，真实证据见 `reports/software-phase1-step8.md`。Software Phase 2 Step 1–7 已建立 `DeviceAdapter`、生命周期、安全门、可复用契约测试、可配置确定性 SimulatorAdapter、严格不可变的 CSV Replay v1 schema/parser、完整 CsvReplayAdapter，以及同一 Simulator/CSV 读取工作流和原子 `UNSUPPORTED`/`INCOMPLETE` 降级，证据见 `reports/software-phase2-step1.md` 至 `reports/software-phase2-step7.md`。下一步完成 Phase 2 API 冻结、综合回归、打包安装和阶段收口。该阶段仍不采购、不接线，也不把合成或回放结果描述为实物验证。

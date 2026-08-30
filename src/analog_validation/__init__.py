@@ -93,6 +93,15 @@ from .replay import (
     parse_csv_replay,
 )
 from .version import __version__
+from .workflows import (
+    READ_WORKFLOW_SCHEMA_VERSION,
+    ChannelReadRequest,
+    ReadOperation,
+    ReadWorkflowRequest,
+    ReadWorkflowResult,
+    ReadWorkflowStatus,
+    run_read_workflow,
+)
 
 __all__ = [
     "CAPABILITY_SCHEMA_VERSION",
@@ -109,6 +118,7 @@ __all__ = [
     "MAX_REPLAY_FIELD_CHARS",
     "MAX_REPLAY_RECORDS",
     "MEASUREMENT_SCHEMA_VERSION",
+    "READ_WORKFLOW_SCHEMA_VERSION",
     "SIMULATOR_CONFIG_SCHEMA_VERSION",
     "TEST_RUN_SCHEMA_VERSION",
     "VALIDATION_CONFIG_SCHEMA_VERSION",
@@ -121,6 +131,7 @@ __all__ = [
     "CapabilityError",
     "ChannelConfig",
     "ChannelRange",
+    "ChannelReadRequest",
     "ChannelRole",
     "ConfigurationError",
     "CrcMismatch",
@@ -141,6 +152,10 @@ __all__ = [
     "ProfileConfig",
     "ProtocolError",
     "QualityFlag",
+    "ReadOperation",
+    "ReadWorkflowRequest",
+    "ReadWorkflowResult",
+    "ReadWorkflowStatus",
     "ReplayChannelConfig",
     "ReplayChannelKind",
     "ReplayEndOfData",
@@ -170,6 +185,7 @@ __all__ = [
     "load_validation_config",
     "parse_csv_replay",
     "parse_validation_config_json",
+    "run_read_workflow",
     "validate_config_capabilities",
     "validation_config_to_dict",
 ]

@@ -159,9 +159,15 @@ Implemented in Step 6:
 - conversion to current `CSV_REPLAY` Measurements while preserving source references;
 - the same eight-check read-only adapter contract used by Simulator.
 
-Deferred to Step 7 and later phases:
+Implemented in Step 7:
 
-- a shared upper-layer Simulator/CSV workflow with explicit `UNSUPPORTED` results;
+- one shared Simulator/CSV read workflow with atomic `UNSUPPORTED` capability preflight;
+- explicit `INCOMPLETE` results and remaining sample counts when replay reaches EOF;
+- adapter cleanup after complete, unsupported, incomplete, or exceptional execution.
+
+Deferred to Step 8 and later phases:
+
+- Phase 2 API/compatibility freeze and consolidated closure report;
 - product CLI and Dashboard playback controls;
 - streaming very large datasets beyond the current bounded in-memory model;
 - any claim about real-time scheduling or physical measurements.

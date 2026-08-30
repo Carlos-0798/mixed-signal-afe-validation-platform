@@ -28,5 +28,6 @@
 | TD-019 | CLOSED | `validation-config.v1` 已使用不可执行的严格 JSON，限制文件大小，并对 profile、通道、单位、超时、来源和输出边界执行分层验证；DeviceAdapter 在 I/O 前复用这些安全门 | 配置不依赖任意 Python 代码；具体 Simulator/CSV/Serial I/O 仍按阶段实现 | 证据见 `reports/software-phase1-step7.md` 和 `reports/software-phase2-step1.md` |
 | TD-020 | CLOSED | `csv-replay.v1` 已冻结 13 列、META/DATA/END、UTC、单位、状态、声明来源、质量、记录引用和限制；loader 只读且合法/非法黄金样本冻结错误族 | 历史数据不再依赖猜测列、单位或文件是否完整；播放生命周期仍由 Step 6 跟踪 | 证据见 `docs/csv-replay-v1.md` 和 `reports/software-phase2-step5.md` |
 | TD-021 | CLOSED | 正式 `CsvReplayAdapter` 已提供显式只读能力、独立通道游标、立即/缩放时间、运行时速度、暂停/恢复、明确 EOF、引用保留和强制 `CSV_REPLAY` 来源，并通过共用 adapter 契约 | 历史文件可通过正式设备端口消费，不会把文件声明的 `BENCH_*` 提升为当前实物证据 | 证据见 `docs/adapters.md` 和 `reports/software-phase2-step6.md` |
+| TD-022 | CLOSED | `read-workflow.v1` 已用不可变请求/结果和同一函数驱动 Simulator/CSV；全量能力预检发生在读取前，明确区分 `COMPLETED`、`UNSUPPORTED` 与 `INCOMPLETE`，所有路径释放 workflow 自己拥有的 adapter | 上层采集不再根据来源写分支，也不会把缺能力、数据耗尽或执行错误混成一种状态 | 证据见 `docs/read-workflow.md` 和 `reports/software-phase2-step7.md` |
 
 关闭技术债时必须记录对应代码、测试、文档和验证报告，不能只从表格删除。
