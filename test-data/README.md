@@ -8,6 +8,9 @@ Golden compatibility data:
 - `golden/afe_v1_valid.csv` freezes 20 valid AFE v1 wire records;
 - `golden/afe_v1_invalid.csv` stores Base64-encoded rejected records and their expected error families;
 - `golden/expected_frames.json` freezes the model meaning of every valid wire record.
+- `golden/profile_neutral_envelope_v1.json` freezes AFE-shaped and MSP430-shaped
+  token/CRC records at the envelope layer only. It does not claim MSP430 business
+  parsing, serial I/O, or hardware validation.
 - `golden/csv_replay_v1_valid.csv` freezes five complete Replay v1 records and an explicit END count;
 - `golden/csv_replay_v1_invalid.json` freezes rejected schema/semantic mutations and their stable error families.
 - `golden/phase2_public_api.json` freezes Phase 2 imports, schemas, enums, signature shapes, error bases, and replay hashes;
