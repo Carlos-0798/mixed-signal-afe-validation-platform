@@ -1,7 +1,7 @@
 # Software Phase 3 文件级实施计划
 
 **阶段名称：** 测试执行、质量感知分析与结构化结果<br>
-**规划状态：** 实施中，进度 6/8<br>
+**规划状态：** 实施中，进度 7/8<br>
 **预计时间：** 7–10 个初学者开发日<br>
 **前置：** Software Phase 2 的 adapter、Replay、共用读取工作流和兼容基线完成<br>
 **硬件要求：** 无<br>
@@ -15,10 +15,10 @@
 - [x] Step 4：控制器无关 DC sweep runner；
 - [x] Step 5：正式迟滞分析与 runner；
 - [x] Step 6：校准与离线频率响应；
-- [ ] Step 7：版本化 CSV/JSON 结果导出；
+- [x] Step 7：版本化 CSV/JSON 结果导出；
 - [ ] Step 8：黄金兼容、构建和阶段收口。
 
-Step 6 已通过 48 项专门测试、992 项完整回归和 100% 正式 package 覆盖。正式校准路径保存两个来源、系数版本、拟合输入引用和校准前后误差，并只创建派生 Measurement；离线频响路径计算 ratio/dB，并只对唯一交点做对数频率插值。证据见 `reports/software-phase3-step6.md`。这不表示系数来自标准器、真实 AFE 带宽已测量、Step 7–8 或任何硬件功能已经完成。
+Step 7 已通过 43 项专门测试、1,035 项完整回归和 100% 正式 package 覆盖。`result-export.v1` 将已有 TestRun、criteria、metrics、逐点证据/决定和限制说明冻结为同一不可变结果包；严格 JSON 与四列行式 CSV 可精确往返，文件默认原子写入且不覆盖。证据见 `reports/software-phase3-step7.md`。这不表示结果来自实物、Step 8 已完成或任何硬件功能已经验证。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -112,8 +112,12 @@ src/analog_validation/
 │   └── hysteresis.py
 └── exports/
     ├── __init__.py
+    ├── _files.py
+    ├── builders.py
     ├── csv_v1.py
-    └── json_v1.py
+    ├── errors.py
+    ├── json_v1.py
+    └── models.py
 
 tests/
 ├── unit/
@@ -124,6 +128,7 @@ tests/
 │   ├── test_frequency_response.py
 │   ├── test_dc_sweep_runner.py
 │   ├── test_hysteresis_runner.py
+│   ├── test_result_export_builders.py
 │   └── test_result_exports.py
 ├── integration/
 │   └── test_phase3_analysis_workflow.py
@@ -245,6 +250,8 @@ Step 1 将冻结：
 导出 TestRun metadata、criteria、metrics、逐点状态、证据 ID、来源和限制说明。默认不覆盖现有文件，字段顺序稳定，JSON 拒绝 NaN/Inf，CSV/JSON 往返由测试验证。
 
 验收：名义、失败、不完整、unsupported 和排除点结果均可导出；来源不会被提升为 `BENCH_*`；坏路径和已存在目标安全失败。
+
+**状态：已完成。** `result-export.v1` 已冻结 TestRun、criteria、source schemas、metrics、逐点 references/values/quality/reasons 和 limitations。DC/迟滞 typed builders 只复制已有 evaluation，不重新计算；JSON/CSV 使用同一 bundle 且精确往返。解析器拒绝坏版本、重复/额外/缺失字段、NaN/Inf、坏 Unicode、超限和证据不一致；写入使用同目录临时文件，默认拒绝覆盖并处理发布竞争。当前只有结构化机器格式，不等于 Phase 5 的人类报告。
 
 ### Step 8：黄金兼容、构建和阶段收口
 

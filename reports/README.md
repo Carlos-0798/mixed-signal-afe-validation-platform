@@ -4,6 +4,9 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Host-only software reports:
 
+- `software-phase3-step7.md` — versioned result bundle, deterministic JSON/CSV, safe file publication, typed builders, and executed Step 7 verification.
+- `software-phase3-step6.md` — immutable linear calibration, derived-record lineage, offline frequency response, cutoff semantics, packaging verification, and evidence limits.
+- `software-phase3-step5.md` — directional hysteresis analysis/criteria/runner, transition lineage, cycle statistics, safety gates, and incomplete-evidence behavior.
 - `software-phase3-step4.md` — safety-gated DC plan/runner, reference output lifecycle, partial evidence, read-only adapter degradation, packaging verification, and hardware limits.
 - `software-phase3-step3.md` — versioned DC criteria, per-rule results, PASS/FAIL/INCOMPLETE mapping, evidence consistency, build/install verification, and hardware limits.
 - `software-phase3-step2.md` — formal DC sweep pairing, point-level quality/saturation decisions, linear metrics, incomplete-analysis semantics, build/install verification, and evidence limits.
