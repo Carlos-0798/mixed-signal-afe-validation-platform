@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-29  
-**当前阶段：** Software Phase 0 审计完成  
+**当前阶段：** Software Phase 1 Step 2 完成
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -45,7 +45,7 @@
 | SW-FR-043 | ACCEPTED | `csv_export.py` 占位 | Phase 3 实现结构化导出 |
 | SW-FR-044 | ACCEPTED | 无 JSON 摘要 | Phase 3 实现 |
 | SW-FR-045 | ACCEPTED | `summary.py` 占位 | Phase 5 实现证据和限制说明 |
-| SW-FR-046 | IMPLEMENTED | ProtocolError 有可读消息 | Phase 1 错误分类，Phase 5 用户指导 |
+| SW-FR-046 | IMPLEMENTED | 正式包公开 9 类稳定错误；继承、消息和异常链测试通过 | Step 5 迁移协议错误；Phase 5 增加用户操作指导 |
 
 ## 软件非功能需求
 
@@ -56,7 +56,7 @@
 | SW-NFR-003 | ACCEPTED | parser 可拒绝部分坏输入 | 设备、文件、中止和安全状态仍未实现 |
 | SW-NFR-004 | VERIFIED_HOST | 协议和分析可无硬件单测 | Phase 1 保持依赖反转并扩展契约测试 |
 | SW-NFR-005 | ACCEPTED | 仅有架构文档 | Phase 1/2 建立可执行边界 |
-| SW-NFR-006 | IMPLEMENTED | dataclass、类型提示和小模块 | 缺公共 API 版本、完整文档和 src 分层 |
+| SW-NFR-006 | IMPLEMENTED | `src` 正式包、版本和公开错误 API 均有类型、文档与测试 | 领域、协议和配置模块仍待迁移 |
 | SW-NFR-007 | ACCEPTED | 无性能基准 | Phase 5/6 建立实际数据规模基准 |
 | SW-NFR-008 | IMPLEMENTED | 帧长度、ASCII 和数值有验证 | 配置、路径、文件和命令尚未覆盖 |
 | SW-NFR-009 | IMPLEMENTED | 当前无网络代码，文件均本地 | Phase 5 文档化并保持默认离线 |

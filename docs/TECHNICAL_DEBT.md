@@ -22,7 +22,7 @@
 | TD-013 | P2 | 本地 mypy、Ruff 和 coverage 已可运行，但尚无冻结规则和 CI | 自动质量门仍不能在每次变更时执行 | Phase 1 冻结核心规则；Phase 6 建立 CI |
 | TD-014 | P2 | 无统一 CLI，`app.py` 仅打印状态 | 用户无法运行产品流程 | Phase 5 |
 | TD-015 | P2 | 无黄金文件和版本迁移样本 | 协议/schema 漂移难发现 | Phase 1 |
-| TD-016 | P2 | ProtocolError 分类较粗 | UI 无法给出稳定的故障指导 | Phase 1 建立错误层级 |
+| TD-016 | CLOSED | 正式包已建立 Validation、Protocol、Framing、CRC、版本、Capability 和 Configuration 错误层级 | UI/CLI 已有稳定捕获边界；具体协议迁移仍在 Step 5 | 证据见 `reports/software-phase1-step2.md` |
 | TD-017 | P3 | 采购和控制器选择文档仍包含软件转向前候选 | 可能误读为立即采购指令 | 保留历史；采购前由新规划重新冻结 |
 | TD-018 | P0 | 所有硬件性能仍未验证 | 错误成果声明会损害可信度和安全 | 持续保持 `VERIFIED_BENCH=0`，直到真实台架阶段 |
 
