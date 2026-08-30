@@ -1,6 +1,10 @@
 import pytest
 
-from dashboard.measurements.dc_sweep import analyze_dc_sweep, exclude_saturated, linear_fit
+from dashboard.measurements.dc_sweep import (
+    analyze_dc_sweep,
+    exclude_saturated,
+    linear_fit,
+)
 from dashboard.models import SweepPoint
 
 
@@ -46,4 +50,3 @@ def test_insufficient_linear_points_raise() -> None:
 def test_constant_input_is_not_fittable() -> None:
     with pytest.raises(ValueError, match="must not all be equal"):
         linear_fit([SweepPoint(1, 2), SweepPoint(1, 3)])
-

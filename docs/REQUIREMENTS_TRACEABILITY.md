@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-29  
-**当前阶段：** Software Phase 1 Step 3 完成
+**当前阶段：** Software Phase 1 Step 4 完成
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -10,8 +10,8 @@
 
 | ID | 状态 | 当前实现/证据 | 主要缺口或下一阶段 |
 |---|---|---|---|
-| SW-FR-001 | VERIFIED_HOST | `Measurement` 包含 UTC 时间、通道、值、单位、状态、来源、质量和 schema；边界测试通过 | Step 4/8 接入 TestRun 和黄金数据 |
-| SW-FR-002 | ACCEPTED | 无 TestRun 模型 | Phase 1 建立版本化运行元数据 |
+| SW-FR-001 | VERIFIED_HOST | `Measurement` 包含 UTC 时间、通道、值、单位、状态、来源、质量和 schema；边界测试通过 | Step 8 接入黄金数据 |
+| SW-FR-002 | VERIFIED_HOST | `TestRunMetadata` 保存测试、配置、UTC 时间、软件、设备/profile 和来源；`TestRunResult` 保存结论与证据 | Phase 3 runner 生成实际运行记录 |
 | SW-FR-003 | IMPLEMENTED | 9 类受控 `EvidenceSource` 已验证且每个正式 Measurement 必填 | Step 8 迁移生成器；Phase 3/5 写入导出和报告 |
 | SW-FR-004 | IMPLEMENTED | Measurement 冻结且强制 `record_id`/`raw_record_id`，可区分原始与派生 | Phase 3 分析结果保存实际引用链 |
 | SW-FR-005 | VERIFIED_HOST | 12 类受控单位；未知单位和含义不明值被拒绝 | 后续 profile 映射保持显式单位 |
@@ -20,7 +20,7 @@
 | SW-FR-012 | VERIFIED_HOST | 严格 telemetry/command parser 和错误测试 | Phase 1 扩展版本化消息和黄金文件 |
 | SW-FR-013 | ACCEPTED | 无序列追踪 | Phase 1 定义语义，Phase 4 实现 transport tracker |
 | SW-FR-014 | ACCEPTED | 无协议版本 | Phase 1 定义 AFE v1 envelope/profile |
-| SW-FR-015 | ACCEPTED | 无能力协商 | Phase 1 定义 Capability，Phase 2/4 实现 |
+| SW-FR-015 | IMPLEMENTED | `DeviceCapabilities` 已定义 ADC/DAC/PWM/数字输入、安全范围、命令和 schema，并通过主机边界测试 | Step 6 定义线上形状；Phase 2/4 实现协商 |
 | SW-FR-016 | ACCEPTED | `serial_worker.py` 占位 | Phase 4 实现有限重试和错误恢复 |
 | SW-FR-017 | ACCEPTED | 无原始帧日志模型 | Phase 1 定义，Phase 4 实现 |
 | SW-FR-020 | ACCEPTED | 无 DeviceAdapter | Phase 2 实现契约和契约测试 |
@@ -28,7 +28,7 @@
 | SW-FR-022 | ACCEPTED | 无 CSV replay | Phase 2 实现 |
 | SW-FR-023 | ACCEPTED | 串口占位文件 | Phase 4 实现且隔离分析层 |
 | SW-FR-024 | ACCEPTED | 无 MSP430 profile | Phase 4 独立实现，保留原始字段 |
-| SW-FR-025 | ACCEPTED | 无 capability 降级逻辑 | Phase 2 实现 `UNSUPPORTED` |
+| SW-FR-025 | IMPLEMENTED | `UNSUPPORTED` 结果语义已建立且必须列出缺失能力 | Phase 2 adapter/runner 实际生成降级结果 |
 | SW-FR-026 | ACCEPTED | 无安全关闭 | Phase 2 定义，输出型硬件接入时验证 |
 | SW-FR-030 | IMPLEMENTED | 合成 sweep generator | Phase 3 建立 runner、等待、重复和运行记录 |
 | SW-FR-031 | VERIFIED_HOST | `linear_fit` 与 2 项核心拟合测试 | Phase 3 增加残差、有限值和质量信息 |
@@ -37,7 +37,7 @@
 | SW-FR-034 | ACCEPTED | `calibration.py` 占位 | Phase 3 实现版本化系数和前后结果 |
 | SW-FR-035 | ACCEPTED | `frequency_response.py` 占位 | Phase 3 先实现离线分析 |
 | SW-FR-036 | IMPLEMENTED | 缺失、非有限、饱和、超范围、时间和通信质量标志已建立；一致性测试通过 | Phase 3 将规则用于分析和判定 |
-| SW-FR-037 | ACCEPTED | 无判定引擎 | Phase 3 实现，缺数据不得 PASS |
+| SW-FR-037 | IMPLEMENTED | 领域模型强制 PASS/FAIL 具备证据且无缺失项；INCOMPLETE/UNSUPPORTED 不能成为 PASS | Phase 3 实现版本化判定引擎 |
 | SW-FR-038 | IMPLEMENTED | 当前纯函数和固定 seed 可重复 | Phase 2/3 加端到端确定性测试 |
 | SW-FR-040 | IMPLEMENTED | 两个工具有 argparse | Phase 5 建立统一产品 CLI |
 | SW-FR-041 | ACCEPTED | `app.py` 仅占位 | Phase 5 实现 Dashboard |

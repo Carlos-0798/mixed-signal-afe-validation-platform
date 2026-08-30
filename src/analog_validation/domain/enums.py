@@ -61,9 +61,37 @@ class MeasurementUnit(str, Enum):
     UNITLESS = "unitless"
 
 
+class DeviceCommand(str, Enum):
+    """Controller-neutral operations a device may explicitly advertise."""
+
+    READ_MEASUREMENT = "READ_MEASUREMENT"
+    READ_DIGITAL_STATE = "READ_DIGITAL_STATE"
+    SET_ANALOG_STIMULUS = "SET_ANALOG_STIMULUS"
+    SET_PWM_STIMULUS = "SET_PWM_STIMULUS"
+    RUN_DEVICE_COMMAND = "RUN_DEVICE_COMMAND"
+    SAFE_SHUTDOWN = "SAFE_SHUTDOWN"
+
+
+class TestRunOutcome(str, Enum):
+    """Final outcome of a test attempt.
+
+    PASS and FAIL are complete engineering conclusions. The remaining values
+    deliberately do not imply that the test criteria were evaluated.
+    """
+
+    PASS = "PASS"
+    FAIL = "FAIL"
+    INCOMPLETE = "INCOMPLETE"
+    UNSUPPORTED = "UNSUPPORTED"
+    ABORTED = "ABORTED"
+    ERROR = "ERROR"
+
+
 __all__ = [
+    "DeviceCommand",
     "EvidenceSource",
     "MeasurementStatus",
     "MeasurementUnit",
     "QualityFlag",
+    "TestRunOutcome",
 ]
