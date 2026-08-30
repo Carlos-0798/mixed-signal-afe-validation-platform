@@ -1,11 +1,24 @@
 # Software Phase 3 文件级实施计划
 
 **阶段名称：** 测试执行、质量感知分析与结构化结果<br>
-**规划状态：** 规划检查点已冻结，实施进度 0/8<br>
+**规划状态：** 实施中，进度 1/8<br>
 **预计时间：** 7–10 个初学者开发日<br>
 **前置：** Software Phase 2 的 adapter、Replay、共用读取工作流和兼容基线完成<br>
 **硬件要求：** 无<br>
 **硬件验证：** 0
+
+## 当前进度
+
+- [x] Step 1：分析公共语义与质量 policy；
+- [ ] Step 2：正式 DC sweep 分析；
+- [ ] Step 3：DC sweep criteria 与结论映射；
+- [ ] Step 4：控制器无关 DC sweep runner；
+- [ ] Step 5：正式迟滞分析与 runner；
+- [ ] Step 6：校准与离线频率响应；
+- [ ] Step 7：版本化 CSV/JSON 结果导出；
+- [ ] Step 8：黄金兼容、构建和阶段收口。
+
+Step 1 已通过 56 项专门测试、700 项完整回归、100% 正式 package 覆盖、静态检查、隔离构建和仓库外 wheel smoke。证据见 `reports/software-phase3-step1.md`。这不表示 Step 2–8 或任何硬件功能已经完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -184,6 +197,8 @@ Step 1 将冻结：
 创建 `analysis/common.py`，冻结逐点状态、排除原因、记录引用、单位规范化和质量 policy。扩展架构测试，保证正式分析层只依赖标准库和正式 domain/errors。
 
 验收：非法类型、NaN/Inf、错误单位、重复 ID、来源冲突和质量组合都有稳定测试；旧算法尚不迁移。
+
+**状态：已完成。** `analysis-common.v1` 已实现 record lineage、单来源 batch、逐记录 disposition/reason、显式 suspect allowlist 和有限 V/mV 规范化；冻结的 Phase 2 顶层 API 未改变。
 
 ### Step 2：正式 DC sweep 分析
 

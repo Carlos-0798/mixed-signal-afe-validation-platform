@@ -32,7 +32,7 @@ Simulator / CSV Replay / future Serial / Instrument
             +----> future CLI / Dashboard / reports
 ```
 
-`src/analog_validation/` is the only formal product core. An executable architecture test rejects third-party, serial, GUI, board-SDK, `dashboard`, or `tools` imports from that package. The remaining `dashboard/measurements/` files are explicitly legacy Phase 0 analysis algorithms awaiting Software Phase 3 migration; they are not dependencies of the formal core.
+`src/analog_validation/` is the only formal product core. An executable architecture test rejects third-party, serial, GUI, board-SDK, `dashboard`, or `tools` imports from that package. Software Phase 3 Step 1 adds `analog_validation.analysis.common` for lineage, quality policy, disposition/reasons, one-source batches, and explicit voltage normalization. The remaining `dashboard/measurements/` files are legacy Phase 0 algorithms awaiting later Phase 3 migration; they are not dependencies of the formal core.
 
 `DeviceAdapter` uses template methods: public methods own lifecycle, capability, configuration, unit, provenance, and output-safety checks; concrete adapters implement protected source-specific hooks. `connect()` reaches only `CONNECTED_READ_ONLY`. Output remains impossible until capabilities are confirmed and a matching `allow_output=true` configuration passes both configured and device safe ranges. See `adapters.md`.
 

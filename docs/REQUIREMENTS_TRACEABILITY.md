@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 3 规划完成，实施 0/8
+**当前阶段：** Software Phase 3 实施中（1/8）
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -13,8 +13,8 @@
 | SW-FR-001 | VERIFIED_HOST | `Measurement` 包含 UTC 时间、通道、值、单位、状态、来源、质量和 schema；100 帧流水线生成 400 条显式来源测量 | Phase 3 runner 使用正式模型 |
 | SW-FR-002 | VERIFIED_HOST | `TestRunMetadata` 保存测试、配置、UTC 时间、软件、设备/profile 和来源；`TestRunResult` 保存结论与证据 | Phase 3 runner 生成实际运行记录 |
 | SW-FR-003 | VERIFIED_HOST | 9 类受控 `EvidenceSource` 已验证且每个正式 Measurement 必填；100 帧集成测试确认 400 条记录均为 `SYNTHETIC` 且非 BENCH | Phase 3/5 写入导出和报告 |
-| SW-FR-004 | IMPLEMENTED | Measurement 冻结且强制 `record_id`/`raw_record_id`，可区分原始与派生 | Phase 3 分析结果保存实际引用链 |
-| SW-FR-005 | VERIFIED_HOST | 12 类受控单位；Measurement、profile 和配置通道均拒绝未知或含义不明单位 | 后续 adapter 和分析保持显式单位 |
+| SW-FR-004 | IMPLEMENTED | Measurement 强制 `record_id`/`raw_record_id`；Step 1 `AnalysisRecordReference`、`MeasurementBatch` 和 `MeasurementDecision` 保留引用、顺序、UTC、通道与来源且不修改原记录 | Step 2 点结果保存输入/输出双引用；Step 6 验证校准派生链 |
+| SW-FR-005 | VERIFIED_HOST | 12 类受控单位；Step 1 只允许有限 V/mV 显式换算并拒绝安培、count、未知单位和 NaN/Inf | 后续分析继续使用同一规范化入口 |
 | SW-FR-010 | VERIFIED_HOST | CRC 只有 `protocol/crc.py` 一个实现；固定参数、5 个黄金向量和 bytes-like 边界测试通过 | 后续 profile/adapter 复用，不再复制算法 |
 | SW-FR-011 | VERIFIED_HOST | 正式 framing 实现 128-byte 上限、严格可打印 ASCII token、LF/CRLF、CRC envelope 和精确错误；边界测试通过 | Phase 4 增加流式分帧和超长恢复状态机 |
 | SW-FR-012 | VERIFIED_HOST | AFE v1 严格解析和错误分类通过单元测试，并由 20 条合法、9 类非法黄金消息冻结 | Phase 4 流式 parser 复用相同业务 parser |
@@ -31,12 +31,12 @@
 | SW-FR-025 | VERIFIED_HOST | 共享工作流在任何读取前原子检查命令、通道和单位；缺失能力返回无部分数据且列明缺口的 `UNSUPPORTED`；Replay 提前 EOF 单独返回 `INCOMPLETE` | Phase 3 runner 将采集状态映射到正式 TestRunResult |
 | SW-FR-026 | IMPLEMENTED | AFE v1 定义 SAFE_SHUTDOWN command；自动输出验证强制声明该能力 | Phase 2 adapter 实现；输出型硬件接入时做 fault/bench 验证 |
 | SW-FR-030 | IMPLEMENTED | 合成 sweep generator | Phase 3 Step 4 建立安全预检、等待、重复和运行记录 |
-| SW-FR-031 | VERIFIED_HOST | `linear_fit` 与 2 项核心拟合测试 | Phase 3 Steps 1–3 增加残差、有限值、质量、标准和结论映射 |
+| SW-FR-031 | VERIFIED_HOST | 旧 `linear_fit` 有 2 项核心拟合测试；Step 1 已建立有限值、单位、来源和质量入口 | Phase 3 Step 2 迁移正式拟合、残差和指标；Step 3 增加标准/结论 |
 | SW-FR-032 | IMPLEMENTED | `exclude_saturated` 和测试 | Phase 3 Step 2 保存逐点排除原因并配置化 |
 | SW-FR-033 | VERIFIED_HOST | `calculate_hysteresis` 和 3 项测试 | Phase 3 Step 5 增加方向、状态、记录引用和重复统计 |
 | SW-FR-034 | ACCEPTED | `calibration.py` 占位 | Phase 3 Step 6 实现版本化系数、派生引用和前后结果 |
 | SW-FR-035 | ACCEPTED | `frequency_response.py` 占位 | Phase 3 Step 6 实现离线幅值点分析 |
-| SW-FR-036 | IMPLEMENTED | 缺失、非有限、饱和、超范围、时间和通信质量标志已建立；Simulator 实际生成 `SATURATED` 及缺失/通信组合并通过一致性测试 | Phase 3 将规则用于分析和判定 |
+| SW-FR-036 | VERIFIED_HOST | Step 1 将缺失、非有限、饱和、超范围、时间、通信和设备故障逐项映射为稳定排除原因；默认拒绝所有 suspect，显式 policy 只能允许有限值标志；56 项测试验证组合一致性 | Step 2/5 在正式分析结果中使用这些决定 |
 | SW-FR-037 | IMPLEMENTED | 领域模型强制 PASS/FAIL 具备证据且无缺失项；INCOMPLETE/UNSUPPORTED 不能成为 PASS | Phase 3 实现版本化判定引擎 |
 | SW-FR-038 | VERIFIED_HOST | 固定 seed 的 100 帧 AFE 流水线保持冻结 SHA-256；同配置/clock 的输入、带噪输出、迟滞和故障序列可重复，且各通道读取顺序互不干扰 | Phase 3 扩展到 runner 端到端测试 |
 | SW-FR-040 | IMPLEMENTED | 两个工具有 argparse | Phase 5 建立统一产品 CLI |
@@ -55,14 +55,14 @@
 | SW-NFR-002 | IMPLEMENTED | 当前核心使用标准 Python | Phase 4/6 验证 Windows，避免核心平台绑定 |
 | SW-NFR-003 | IMPLEMENTED | framing/profile/config/replay parser 拒绝坏输入；adapter 状态机拒绝越级 I/O；CSV 回放暂停不消耗记录、EOF 类型明确；共享工作流在 success/unsupported/incomplete/error 后均断开自己拥有的 adapter | 真实断线、用户中止和串口恢复仍未实现 |
 | SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、100 帧、adapter 契约和共用 workflow 测试均无需硬件；同一 workflow 已分别运行 Simulator 与 CSV Replay | Phase 3 runner 继续使用依赖注入 |
-| SW-NFR-005 | VERIFIED_HOST | `tests/architecture/test_core_dependencies.py` 可执行地禁止正式核心导入第三方、串口、GUI、板级 SDK、dashboard 或 tools；Phase 2 workflow 保持 adapter 依赖方向 | Phase 3 runner 继续受同一边界保护 |
+| SW-NFR-005 | VERIFIED_HOST | 架构测试禁止正式核心导入第三方、串口、GUI、板级 SDK、dashboard 或 tools；新增 `analysis.common` 仅依赖标准库与正式 domain/errors，旧 dashboard 算法未被正式核心导入 | Phase 3 后续分析/runner 继续受同一边界保护 |
 | SW-NFR-006 | VERIFIED_HOST | 正式领域、协议与配置模块责任分离，公开 API 有类型、文档与完整 host tests | Phase 2 继续保持 adapter 依赖方向 |
 | SW-NFR-007 | ACCEPTED | 无性能基准 | Phase 5/6 建立实际数据规模基准 |
 | SW-NFR-008 | VERIFIED_HOST | 严格 JSON 与 CSV 只作为数据解析；CSV 拒绝坏 UTF-8/BOM/NUL/控制字符/非规范值/超限/不完整 END，loader 测试确认不修改源文件；无 `eval`/`exec` | Phase 5 扩展到 CLI 路径和命令入口 |
 | SW-NFR-009 | IMPLEMENTED | 当前无网络代码，文件均本地 | Phase 5 文档化并保持默认离线 |
 | SW-NFR-010 | ACCEPTED | 报告未实现 | Phase 1 定义版本字段，Phase 3/5 写入结果 |
 | SW-NFR-011 | ACCEPTED | 无 UI | Phase 5 验证文本与颜色双重表达 |
-| SW-NFR-012 | VERIFIED_HOST | Measurement、capability、TestRun、AFE profile 和配置均显式版本化；AFE v1 wire/model 意义由黄金文件冻结 | 未来格式变化必须增加版本和迁移说明 |
+| SW-NFR-012 | VERIFIED_HOST | Measurement、capability、TestRun、AFE、配置和新增 `analysis-common.v1` 均显式版本化；AFE/Phase 2 意义由黄金文件冻结 | Phase 3 Step 8 冻结分析 API/结果；未来变化增加版本和迁移说明 |
 
 ## 未来硬件需求
 
@@ -85,11 +85,11 @@
 
 | 状态 | 数量 |
 |---|---:|
-| VERIFIED_HOST | 21 |
-| IMPLEMENTED | 12 |
+| VERIFIED_HOST | 22 |
+| IMPLEMENTED | 11 |
 | ACCEPTED | 15 |
 | DEFERRED | 12 |
 | VERIFIED_BENCH | 0 |
 | 总计 | 60 |
 
-Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 已完成 8/8：公共 adapter 契约、可配置模拟器、严格 CSV Replay、正式 CsvReplayAdapter、共用读取工作流、明确能力降级，以及 API/端到端黄金兼容冻结均通过主机验证。Software Phase 3 文件级计划已经冻结，需求状态尚未升级；下一步实施 Step 1 公共分析语义与质量 policy。硬件仍为 DEFERRED，VERIFIED_BENCH 仍为 0。
+Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 已完成 8/8。Software Phase 3 Step 1 已通过 56 项专门测试、700 项完整回归、100% 正式 package 覆盖、隔离构建和仓库外安装；公共分析语义、记录追溯、质量 policy 和 V/mV 规范化已进入正式 package。下一步是 Step 2 正式 DC sweep 分析。硬件仍为 DEFERRED，VERIFIED_BENCH 仍为 0。

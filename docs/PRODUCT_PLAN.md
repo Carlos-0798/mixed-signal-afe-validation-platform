@@ -806,4 +806,4 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/adr/`；
 - `docs/TECHNICAL_DEBT.md`。
 
-Software Phase 1 已于 2026-08-29 完成，真实证据见 `reports/software-phase1-step8.md`。Software Phase 2 已完成 8/8：`DeviceAdapter`、生命周期/安全门、可复用契约、完整 SimulatorAdapter、严格 CSV Replay v1、CsvReplayAdapter、共用读取工作流、原子 `UNSUPPORTED`/`INCOMPLETE` 降级，以及 API/端到端黄金兼容冻结均已通过，证据见 `reports/software-phase2-step1.md` 至 `reports/software-phase2-step8.md`。Software Phase 3 文件级计划和八个验收检查点已冻结，实施仍为 0/8；下一步是 Step 1 公共分析语义与质量 policy。当前仍不采购、不接线，也不把合成或回放结果描述为实物验证。
+Software Phase 1 已于 2026-08-29 完成，真实证据见 `reports/software-phase1-step8.md`。Software Phase 2 已完成 8/8：`DeviceAdapter`、生命周期/安全门、可复用契约、完整 SimulatorAdapter、严格 CSV Replay v1、CsvReplayAdapter、共用读取工作流、原子 `UNSUPPORTED`/`INCOMPLETE` 降级，以及 API/端到端黄金兼容冻结均已通过。Software Phase 3 Step 1 已完成公共分析语义、记录追溯、质量 policy 和有限 V/mV 规范化，证据见 `reports/software-phase3-step1.md`；当前进度 1/8，下一步是 Step 2 正式 DC sweep 分析。当前仍不采购、不接线，也不把合成或回放结果描述为实物验证。
