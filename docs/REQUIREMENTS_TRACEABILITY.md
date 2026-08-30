@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 3 已完成（8/8）
+**当前阶段：** Software Phase 4 进行中（1/8）
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -16,9 +16,9 @@
 | SW-FR-004 | VERIFIED_HOST | Measurement 强制 `record_id`/`raw_record_id`；DC/迟滞分析和 Step 7 builders 保留逐点 record/raw 引用，bundle 强制其与 TestRun 完全一致 | 校准派生链的专用 TestRun/export mapping 后续补充 |
 | SW-FR-005 | VERIFIED_HOST | 12 类受控单位；Step 1 只允许有限 V/mV 显式换算并拒绝安培、count、未知单位和 NaN/Inf | 后续分析继续使用同一规范化入口 |
 | SW-FR-010 | VERIFIED_HOST | CRC 只有 `protocol/crc.py` 一个实现；固定参数、5 个黄金向量和 bytes-like 边界测试通过 | 后续 profile/adapter 复用，不再复制算法 |
-| SW-FR-011 | VERIFIED_HOST | 正式 framing 实现 128-byte 上限、严格可打印 ASCII token、LF/CRLF、CRC envelope 和精确错误；边界测试通过 | Phase 4 增加流式分帧和超长恢复状态机 |
+| SW-FR-011 | VERIFIED_HOST | AFE framing 实现 128-byte 上限、严格可打印 ASCII token、LF/CRLF、CRC envelope 和精确错误；Phase 4 Step 1 新增 profile-neutral bounded LF stream，覆盖分段、粘包、exact limit、跨 chunk 超长、同 chunk 恢复和 reset | Step 2 拆出通用 token/CRC envelope，同时保持旧 AFE API/golden bytes |
 | SW-FR-012 | VERIFIED_HOST | AFE v1 严格解析和错误分类通过单元测试，并由 20 条合法、9 类非法黄金消息冻结 | Phase 4 流式 parser 复用相同业务 parser |
-| SW-FR-013 | ACCEPTED | 无序列追踪 | Phase 1 定义语义，Phase 4 实现 transport tracker |
+| SW-FR-013 | VERIFIED_HOST | `transport.SequenceTracker` 由 profile 指定 2–64-bit 位宽，明确记录 FIRST/IN_ORDER/GAP/DUPLICATE/OUT_OF_ORDER、missing count 和 high-water mark；16/32-bit wrap 与 half-range 已测试 | Step 4/5 由 AFE/MSP profiles 提供字段位宽，Step 6 写入 raw event log |
 | SW-FR-014 | VERIFIED_HOST | AFE profile name=`afe`、wire version=`1`；黄金坏版本记录稳定抛出 `UnsupportedProtocolVersion` | Phase 4 在连接握手中应用 |
 | SW-FR-015 | IMPLEMENTED | 多记录 CAP_REQ/CAP DEVICE/CHANNEL/END 已定义并可与 `DeviceCapabilities` 往返；未知 bit、序号和数量不一致被拒绝 | Phase 2/4 adapter 实际协商 |
 | SW-FR-016 | ACCEPTED | `serial_worker.py` 占位 | Phase 4 实现有限重试和错误恢复 |
@@ -54,7 +54,7 @@
 | SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建、仓库外 wheel 安装和 import 均通过 | Phase 5 增加最终用户运行入口，Phase 6 再做发布候选安装测试 |
 | SW-NFR-002 | IMPLEMENTED | 当前核心使用标准 Python | Phase 4/6 验证 Windows，避免核心平台绑定 |
 | SW-NFR-003 | IMPLEMENTED | adapter/read workflow 具备错误边界；DC/迟滞 runners 已验证中止、KeyboardInterrupt、EOF、读取、等待、shutdown 和 disconnect 故障均释放所有权且不误报 PASS | 真实断线、串口重试和进程级退出仍未实现 |
-| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析和导出全部无需硬件；1,047 项完整回归及仓库外 wheel 解析/runner smoke 均离线通过 | Phase 4 保持硬件可选测试路径 |
+| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析、导出和 Step 1 transport 全部无需硬件；1,079 项完整回归及仓库外 wheel 解析/runner smoke 均离线通过 | Phase 4 保持硬件可选测试路径 |
 | SW-NFR-005 | VERIFIED_HOST | 架构测试禁止正式核心导入第三方/串口/GUI/SDK；新增 runner 只依赖标准库和正式 adapter/config/domain/analysis 层 | 后续 runner 保持同一依赖方向 |
 | SW-NFR-006 | VERIFIED_HOST | 正式领域、协议与配置模块责任分离，公开 API 有类型、文档与完整 host tests | Phase 2 继续保持 adapter 依赖方向 |
 | SW-NFR-007 | ACCEPTED | 无性能基准 | Phase 5/6 建立实际数据规模基准 |
@@ -85,11 +85,11 @@
 
 | 状态 | 数量 |
 |---|---:|
-| VERIFIED_HOST | 31 |
+| VERIFIED_HOST | 32 |
 | IMPLEMENTED | 6 |
-| ACCEPTED | 11 |
+| ACCEPTED | 10 |
 | DEFERRED | 12 |
 | VERIFIED_BENCH | 0 |
 | 总计 | 60 |
 
-Software Phase 1、2、3 均已完成各自 8/8。Phase 3 closure 通过 12 项黄金兼容检查、1,047 项完整回归、5,594/5,594 正式 package 语句覆盖、隔离构建及仓库外 wheel 解析/runner smoke。下一里程碑是单独规划 Software Phase 4；硬件仍为 DEFERRED，VERIFIED_BENCH 仍为 0。
+Software Phase 1、2、3 均已完成各自 8/8。Software Phase 4 已完成 Step 1/8：32 项集中 transport 测试、1,079 项完整回归和 5,752/5,752 正式 package 语句覆盖通过。下一里程碑是 profile-neutral CRC envelope 与 AFE compatibility mapping；硬件仍为 DEFERRED，VERIFIED_BENCH 仍为 0。

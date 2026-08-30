@@ -51,11 +51,15 @@ The byte-stream state machine recognizes only LF and a length limit. It delibera
 | Step 1 module coverage | PASS — 158/158 statements, 100% |
 | Full regression | PASS — 1,079 |
 | Formal package coverage | PASS — 5,752/5,752 statements, 100% |
-| Focused Ruff | PASS |
-| Focused mypy | PASS — 5 source/test files |
+| Full-repository Ruff | PASS |
+| mypy on `src`, `dashboard`, `tools`, and `tests` | PASS — 104 source/test files |
+| sdist and wheel build | PASS — transport package included |
+| Repository-external wheel install/smoke | PASS — bounded feed and 32-bit wrap |
 | Hardware or serial test | NOT RUN |
 
 The first baseline invocation reached 1,040 passes and seven setup errors because the requested `work/` pytest parent directory did not exist. No product assertion failed. After creating that generated, ignored parent directory, the authoritative unchanged baseline completed 1,047/1,047. The final post-implementation run completed 1,079/1,079 with full formal-package coverage.
+
+The first external-install location was nested too deeply under the repository and pip failed while writing temporary metadata because Windows long-path support was unavailable. The build itself had succeeded and included all three transport files, but that install was not accepted. A new clean virtual environment under the shorter system temporary path installed the wheel successfully and passed bounded-record plus 32-bit wrap smoke tests. One initial smoke expression also used an incorrectly escaped newline literal; its diagnostic output was retained and the corrected byte construction passed in the same clean installed environment.
 
 ## Evidence boundary
 

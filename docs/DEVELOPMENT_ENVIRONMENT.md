@@ -1,7 +1,7 @@
 # 开发环境
 
 **验证日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 3 已完成（8/8）；Software Phase 4 尚未开始<br>
+**当前阶段：** Software Phase 4 进行中（1/8）<br>
 **硬件要求：** 无
 
 ## 已验证环境
@@ -10,7 +10,7 @@
 - Python 3.12.10 64-bit，来自 python.org 独立安装；
 - Git for Windows 2.55.0；
 - Visual Studio Code 1.135.0；
-- LTspice 26.0.1（未来仿真使用，当前 Software Phase 2 不依赖）；
+- LTspice 26.0.1（未来模拟电路仿真使用，当前 Software Phase 4 不依赖）；
 - 项目虚拟环境：`.venv`；
 - pytest 8.4.2；
 - Ruff 0.16.5；
@@ -42,11 +42,11 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m build
 ```
 
-pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、隔离构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式记录追溯、质量 policy、DC sweep 与方向性迟滞数学、版本化 criteria/TestRun 映射、安全门控 runners、不可变线性校准、离线幅值频响分析，以及严格 `result-export.v1` JSON/CSV。Step 8 再用公开 API manifest、固定结果文件和 SHA-256 冻结兼容边界；这些都是离线 `SYNTHETIC` 主机证据。旧 `dashboard/reporting/csv_export.py` 仅为指向正式 package 的 legacy placeholder。
+pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式记录追溯、质量 policy、DC sweep 与方向性迟滞数学、版本化 criteria/TestRun 映射、安全门控 runners、不可变线性校准、离线幅值频响分析，以及严格 `result-export.v1` JSON/CSV。Phase 4 Step 1 已增加 profile-neutral bounded stream 和 modular sequence tracker；当前完整门禁为 1,079 tests、5,752/5,752 正式 package statements、全仓库 Ruff、104-file mypy、依赖检查、sdist/wheel 和仓库外 transport smoke。它们仍是 HOST_TEST 证据。旧 `dashboard/reporting/csv_export.py` 仅为指向正式 package 的 legacy placeholder。
 
 ## 当前边界
 
-- 不安装 `pyserial`，串口适配器后置到 Software Phase 4；
+- 当前 Step 1 不安装 `pyserial`；可选 serial dependency 与 OS backend 后置到 Software Phase 4 Step 3；
 - 不需要 CCS、MSP430 GCC、KiCad 或实验室仪器；
 - 软件测试结果不代表任何模拟电路、控制器、接线或仪器已经验证；
 - Git 提交身份已配置为 GitHub 账号 `Carlos-0798` 及其 noreply 邮箱。

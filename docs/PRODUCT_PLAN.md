@@ -95,7 +95,7 @@ Analog Validation Studio 是一个本地运行、硬件无关、可扩展的测�
 
 ### 3.3 与其他项目的关系
 
-**MSP430 Equipment Health Controller：** 独立产品。通过公开、版本化协议和独立适配器兼容，不共享隐藏状态、板级引脚或业务逻辑。
+**MSP430 Equipment Health Controller：** 对等、独立产品，不是本产品的附属设备、下级项目或未来合并目标。两个产品分别可用、分别版本化、分别测试和发布，只通过公开、版本化协议与独立适配器兼容；不共享隐藏状态、板级引脚、业务逻辑或验收证据。
 
 **OSU Lab Bench Monitor Capstone：** 完全独立。不复制仓库、代码、数据、照片、团队叙述或受限成果。
 
@@ -411,7 +411,7 @@ DISCONNECTED
 
 ### Software Phase 3：测试执行与测量分析
 
-**预计：** 5–8 天  
+**预计：** 5–8 天<br>
 **目标：** 把独立算法组织成可配置、可追溯的测试流程。
 
 交付物：
@@ -433,7 +433,7 @@ DISCONNECTED
 
 ### Software Phase 4：串口层与兼容 profiles
 
-**预计：** 4–7 天  
+**预计：** 5–8 天<br>
 **目标：** 完成可在无硬件条件下测试的真实通信边界。
 
 交付物：
@@ -443,14 +443,16 @@ DISCONNECTED
 - MSP430 Equipment Health Controller profile；
 - 序列检查和原始帧日志；
 - 内存流/串口替身集成测试；
-- 硬件实测待办清单。
+- 硬件实测待办清单；
+- 当前板卡可用时，由本仓库产生可选的只读 MSP430 HIL 报告。
 
 出口条件：
 
 - 串口模块不包含测量分析；
 - profile 不共享项目业务逻辑；
 - 分段、粘连、坏帧和断线测试通过；
-- 真实 MSP430 未连接时明确标记兼容性未实测。
+- 真实 MSP430 未连接时明确标记兼容性未实测；
+- 即使只读 MSP430 HIL 通过，也不把它扩展为 AFE、外部传感器、风扇或完整硬件验证。
 
 ### Software Phase 5：CLI、Dashboard 与报告
 
@@ -806,4 +808,4 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/adr/`；
 - `docs/TECHNICAL_DEBT.md`。
 
-Software Phase 1 已于 2026-08-29 完成，真实证据见 `reports/software-phase1-step8.md`。Software Phase 2 已完成 8/8：`DeviceAdapter`、生命周期/安全门、可复用契约、Simulator、CSV Replay、共用读取工作流及黄金兼容均已通过。Software Phase 3 也已完成 8/8：公共分析语义、正式 DC sweep、方向性迟滞、多 cycle 统计、版本化 criteria/TestRun 映射、安全门控 runners、不可变线性校准、离线频响和 `result-export.v1` 均已实现，并由公开 API manifest、固定 `SYNTHETIC` DC/迟滞结果和完整回归冻结。下一步是先单独规划 Software Phase 4 的串口与 profile 边界，不在本检查点提前实现。当前仍不采购、不接线，也不把 HOST_TEST PASS 描述为实物验证。
+Software Phase 1、2、3 均已完成各自 8/8。Software Phase 4 已完成 Step 1/8：profile-neutral bounded LF stream、超长恢复和 16/32-bit modular sequence tracking 已实现，并通过 32 项集中测试、1,079 项完整回归和 5,752/5,752 正式 package 覆盖。下一步是拆出 profile-neutral token/CRC envelope、保持 AFE v1 黄金兼容，并冻结 channel mapping。当前仍不采购、不接线，也不把 HOST_TEST PASS 或另一个项目的 HIL 证据描述为 AFE 实物验证。

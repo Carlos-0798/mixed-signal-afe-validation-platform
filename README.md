@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 3 complete — 8/8 checkpoints |
-| Release maturity | Pre-MVP; analysis, runners, and structured-result compatibility frozen |
+| Development stage | Software Phase 4 in progress — 1/8 checkpoints |
+| Release maturity | Pre-MVP; profile-neutral stream/sequence foundation added |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 1,047 passed |
-| Formal package coverage | 100% of 5,594 statements |
+| Automated host tests | 1,079 passed |
+| Formal package coverage | 100% of 5,752 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Frozen Phase 3 API/results](docs/phase3-public-api.md) · [Phase 3 closure report](reports/software-phase3-step8.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Current progress report](reports/PROJECT_PROGRESS_REPORT_2026-08-30.md) · [Phase 4 plan](docs/SOFTWARE_PHASE_4_PLAN.md) · [Step 1 report](reports/software-phase4-step1.md)
 
 ## Product vision
 
@@ -25,6 +25,8 @@ The project is being developed as an independent, reusable product rather than a
 - provenance-aware data and reports that distinguish synthetic, simulated, and physical evidence.
 
 The software-first plan allows the complete software product to mature without requiring school laboratory equipment. Physical hardware becomes a later adapter and device-under-test path rather than a dependency of the software architecture.
+
+The separate MSP430 Equipment Health Controller is a peer product, not a subordinate component and not a future merge target. Each product remains independently usable, versioned, tested, documented, and presented. Compatibility is implemented only through public, versioned profiles and adapters.
 
 ## What is implemented today
 
@@ -83,8 +85,10 @@ The software-first plan allows the complete software product to mature without r
 - Exact synthetic DC and hysteresis golden results that protect numerical meaning, point lineage, saturation exclusion, criteria, provenance, and deterministic JSON output.
 - One formal AFE telemetry generator shared by the Simulator foundation, legacy CLI wrapper, and frozen 100-frame regression.
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
+- Profile-neutral bounded LF byte-stream recovery for fragmented, coalesced, exact-limit, overlong, damaged, and disconnect-reset input.
+- Profile-configurable 2–64-bit sequence tracking with explicit first/in-order/gap/duplicate/out-of-order results and tested 16/32-bit wrap behavior.
 
-Not yet implemented: serial transport, controller profiles, calibration/frequency TestRun export mappings, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, or validated physical hardware.
+Not yet implemented: OS serial backend/lifecycle, AFE/MSP430 serial profiles, SerialAdapter, calibration/frequency TestRun export mappings, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, or validated physical AFE hardware.
 
 ## Architecture
 
@@ -124,8 +128,9 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 1,047 passed |
-| Formal package statement coverage | 100% of 5,594 statements |
+| Full pytest suite | 1,079 passed |
+| Formal package statement coverage | 100% of 5,752 statements |
+| Phase 4 bounded stream and sequence foundation | 32 focused tests; 158/158 statements covered |
 | Phase 3 common analysis semantics | 56 focused tests; 244/244 statements covered |
 | Phase 3 DC sweep analysis | 81 focused tests; 325/325 statements covered |
 | Phase 3 DC criteria and TestRun mapping | 67 focused tests; 201/201 statements covered |
@@ -145,8 +150,8 @@ The current results are host-software evidence only:
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 99 source/test files |
-| Latest isolated build, sdist, and external wheel public-API smoke checks | Passed |
+| mypy | Passed on 104 source/test files |
+| Latest sdist/wheel build and repository-external transport smoke | Passed |
 | Hardware bench tests | Not run |
 
 Every completed software checkpoint has a report under [`reports/`](reports/). Test counts and claims are updated only after the corresponding command has actually run.
@@ -220,12 +225,12 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Complete — 8/8 checkpoints |
-| Software Phase 4 | Serial transport and independent controller profiles | Planned |
+| Software Phase 4 | Serial transport and independent controller profiles | In progress — 1/8 checkpoints |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-Software Phase 3 is complete: analysis, safety-gated runners, calibration, offline frequency response, and `result-export.v1` passed all eight checkpoints. Public namespaces and exact representative DC/hysteresis results are now protected by golden compatibility tests. Software Phase 4 serial transport/controller-profile planning has not started. Real hardware remains later work.
+Software Phase 3 is complete: analysis, safety-gated runners, calibration, offline frequency response, and `result-export.v1` passed all eight checkpoints. Public namespaces and exact representative DC/hysteresis results are protected by golden compatibility tests. Software Phase 4 Step 1 now provides the host-tested bounded stream/sequence foundation; OS serial lifecycle and independent AFE/MSP430 profiles remain later checkpoints. Real AFE hardware remains later work.
 
 ## Repository guide
 

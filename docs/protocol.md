@@ -55,7 +55,7 @@ The synthetic stream is labeled `SYNTHETIC`; its derived Measurements are explic
 
 A complete record is rejected for non-ASCII data, excessive length, invalid namespace/version/type, missing or extra fields, invalid tokens, malformed CRC/fault fields, CRC mismatch, unknown enum/command/capability bits, or out-of-range values.
 
-Real serial streaming still requires a bounded state machine for fragmentation, coalescing, timeouts, sequence loss, and recovery after an overlong frame. That work belongs to Software Phase 4 and is not implied by the single-record parser.
+Software Phase 4 Step 1 now provides a profile-neutral bounded byte-stream state machine for fragmentation, coalescing, overlong-record recovery, and modular sequence classification. Real serial streaming still requires the later OS backend, timeout/reconnect lifecycle, profile integration, and raw-event logging; none of those are implied by the single-record parser or Step 1 host tests.
 
 ## Independence boundary
 
