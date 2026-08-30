@@ -51,7 +51,7 @@
 
 | ID | 状态 | 当前实现/证据 | 主要缺口或下一阶段 |
 |---|---|---|---|
-| SW-NFR-001 | IMPLEMENTED | 有 `pyproject.toml` 和本地 `.venv` | Phase 1 使用 src 布局并做干净安装测试 |
+| SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建、仓库外 wheel 安装和 import 均通过 | Phase 5 增加最终用户运行入口，Phase 6 再做发布候选安装测试 |
 | SW-NFR-002 | IMPLEMENTED | 当前核心使用标准 Python | Phase 4/6 验证 Windows，避免核心平台绑定 |
 | SW-NFR-003 | ACCEPTED | parser 可拒绝部分坏输入 | 设备、文件、中止和安全状态仍未实现 |
 | SW-NFR-004 | VERIFIED_HOST | 协议和分析可无硬件单测 | Phase 1 保持依赖反转并扩展契约测试 |

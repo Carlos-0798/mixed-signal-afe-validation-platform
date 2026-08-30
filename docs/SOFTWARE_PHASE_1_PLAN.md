@@ -5,6 +5,19 @@
 **前置：** Software Phase 0 审计和需求追踪矩阵完成  
 **硬件要求：** 无
 
+## 当前进度
+
+- [x] Step 1：正式 `src/analog_validation/` 包、单一版本来源、editable install、独立 wheel 构建和仓库外导入；
+- [ ] Step 2：错误分类；
+- [ ] Step 3：来源、质量与通用测量模型；
+- [ ] Step 4：Capability 与 TestRun；
+- [ ] Step 5：CRC 与 framing 迁移；
+- [ ] Step 6：AFE v1 profile；
+- [ ] Step 7：配置模型；
+- [ ] Step 8：测试、文档和阶段报告收口。
+
+Step 1 的真实执行证据见 `reports/software-phase1-step1.md`。
+
 ## 1. 阶段目标
 
 把当前 Phase 0 原型迁移为正式、版本化、无硬件依赖的产品核心。此阶段不追求串口、Dashboard 或自动控制，而是建立后续所有功能共同依赖的可靠地基。
@@ -184,4 +197,3 @@ AnalogValidationError
 - 无串口、GUI、板级 SDK 或硬件依赖进入领域核心；
 - 文档、需求追踪、技术债和实际测试报告同步更新；
 - 硬件相关状态仍为 `DEFERRED`/未验证。
-

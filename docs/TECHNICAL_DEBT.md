@@ -16,7 +16,7 @@
 | TD-007 | P1 | DC/迟滞分析未验证 NaN、Inf、非法状态和方向 | 异常数据可能产生无意义结果 | Phase 3；Phase 1 先建立质量类型 |
 | TD-008 | P2 | 饱和排除只保存数量，不保存逐点原因 | 报告不可解释 | Phase 3 |
 | TD-009 | P1 | 校准、频响、判定和报告均为占位 | 不能形成成熟测试产品 | Phase 3/5 |
-| TD-010 | P1 | Phase 0 包已能构建并从 wheel 干净安装，但正式 `src/analog_validation/` 包尚未建立 | 当前发布物名称与模块边界仍是原型 | Phase 1 迁移正式包、版本和入口 |
+| TD-010 | CLOSED | 正式 `src/analog_validation/` 包、单一版本来源、隔离构建和仓库外 wheel 导入已于 2026-08-29 验证 | 包装基础问题已解除；CLI 仍由 TD-014 跟踪 | 证据见 `reports/software-phase1-step1.md` |
 | TD-011 | CLOSED | 独立 Python `.venv`、setuptools 和隔离 wheel 安装已于 2026-08-29 验证 | 原环境依赖 Codex 运行时的问题已解除 | 证据见 `reports/environment-setup-2026-08-29.md` |
 | TD-012 | P1 | 100帧流水线和合成 CLI 检查不在 pytest | 回归时可能丢失 | Phase 1/2 转为自动集成测试 |
 | TD-013 | P2 | 本地 mypy、Ruff 和 coverage 已可运行，但尚无冻结规则和 CI | 自动质量门仍不能在每次变更时执行 | Phase 1 冻结核心规则；Phase 6 建立 CI |
