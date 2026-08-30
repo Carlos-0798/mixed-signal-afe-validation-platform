@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-29  
-**当前阶段：** Software Phase 1 Step 5 完成
+**当前阶段：** Software Phase 1 Step 6 完成
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -12,15 +12,15 @@
 |---|---|---|---|
 | SW-FR-001 | VERIFIED_HOST | `Measurement` 包含 UTC 时间、通道、值、单位、状态、来源、质量和 schema；边界测试通过 | Step 8 接入黄金数据 |
 | SW-FR-002 | VERIFIED_HOST | `TestRunMetadata` 保存测试、配置、UTC 时间、软件、设备/profile 和来源；`TestRunResult` 保存结论与证据 | Phase 3 runner 生成实际运行记录 |
-| SW-FR-003 | IMPLEMENTED | 9 类受控 `EvidenceSource` 已验证且每个正式 Measurement 必填 | Step 8 迁移生成器；Phase 3/5 写入导出和报告 |
+| SW-FR-003 | IMPLEMENTED | 9 类受控 `EvidenceSource` 已验证且每个正式 Measurement 必填；AFE v1 mapping 也要求显式来源 | Step 8 迁移生成器；Phase 3/5 写入导出和报告 |
 | SW-FR-004 | IMPLEMENTED | Measurement 冻结且强制 `record_id`/`raw_record_id`，可区分原始与派生 | Phase 3 分析结果保存实际引用链 |
 | SW-FR-005 | VERIFIED_HOST | 12 类受控单位；未知单位和含义不明值被拒绝 | 后续 profile 映射保持显式单位 |
 | SW-FR-010 | VERIFIED_HOST | CRC 只有 `protocol/crc.py` 一个实现；固定参数、5 个黄金向量和 bytes-like 边界测试通过 | 后续 profile/adapter 复用，不再复制算法 |
 | SW-FR-011 | VERIFIED_HOST | 正式 framing 实现 128-byte 上限、严格可打印 ASCII token、LF/CRLF、CRC envelope 和精确错误；边界测试通过 | Phase 4 增加流式分帧和超长恢复状态机 |
-| SW-FR-012 | VERIFIED_HOST | 严格 telemetry/command parser 和错误测试 | Phase 1 扩展版本化消息和黄金文件 |
+| SW-FR-012 | VERIFIED_HOST | AFE v1 严格拒绝坏版本、字段数、类型、范围、枚举、capability bit 和业务形状；边界测试通过 | Step 8 增加业务黄金文件 |
 | SW-FR-013 | ACCEPTED | 无序列追踪 | Phase 1 定义语义，Phase 4 实现 transport tracker |
-| SW-FR-014 | ACCEPTED | 无协议版本 | Phase 1 定义 AFE v1 envelope/profile |
-| SW-FR-015 | IMPLEMENTED | `DeviceCapabilities` 已定义 ADC/DAC/PWM/数字输入、安全范围、命令和 schema，并通过主机边界测试 | Step 6 定义线上形状；Phase 2/4 实现协商 |
+| SW-FR-014 | VERIFIED_HOST | AFE profile name=`afe`、wire version=`1`；非 1 版本安全抛出 `UnsupportedProtocolVersion` | Phase 4 在连接握手中应用 |
+| SW-FR-015 | IMPLEMENTED | 多记录 CAP_REQ/CAP DEVICE/CHANNEL/END 已定义并可与 `DeviceCapabilities` 往返；未知 bit、序号和数量不一致被拒绝 | Phase 2/4 adapter 实际协商 |
 | SW-FR-016 | ACCEPTED | `serial_worker.py` 占位 | Phase 4 实现有限重试和错误恢复 |
 | SW-FR-017 | ACCEPTED | 无原始帧日志模型 | Phase 1 定义，Phase 4 实现 |
 | SW-FR-020 | ACCEPTED | 无 DeviceAdapter | Phase 2 实现契约和契约测试 |
@@ -28,8 +28,8 @@
 | SW-FR-022 | ACCEPTED | 无 CSV replay | Phase 2 实现 |
 | SW-FR-023 | ACCEPTED | 串口占位文件 | Phase 4 实现且隔离分析层 |
 | SW-FR-024 | ACCEPTED | 无 MSP430 profile | Phase 4 独立实现，保留原始字段 |
-| SW-FR-025 | IMPLEMENTED | `UNSUPPORTED` 结果语义已建立且必须列出缺失能力 | Phase 2 adapter/runner 实际生成降级结果 |
-| SW-FR-026 | ACCEPTED | 无安全关闭 | Phase 2 定义，输出型硬件接入时验证 |
+| SW-FR-025 | IMPLEMENTED | `UNSUPPORTED` 结果语义已建立；AFE v1 command validation 区分缺能力和不安全配置 | Phase 2 adapter/runner 实际生成降级结果 |
+| SW-FR-026 | IMPLEMENTED | AFE v1 定义 SAFE_SHUTDOWN command；自动输出验证强制声明该能力 | Phase 2 adapter 实现；输出型硬件接入时做 fault/bench 验证 |
 | SW-FR-030 | IMPLEMENTED | 合成 sweep generator | Phase 3 建立 runner、等待、重复和运行记录 |
 | SW-FR-031 | VERIFIED_HOST | `linear_fit` 与 2 项核心拟合测试 | Phase 3 增加残差、有限值和质量信息 |
 | SW-FR-032 | IMPLEMENTED | `exclude_saturated` 和测试 | Phase 3 保存逐点排除原因并配置化 |

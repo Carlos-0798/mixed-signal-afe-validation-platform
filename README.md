@@ -1,54 +1,181 @@
 # Configurable Analog Front-End & Validation Platform
 
-Independent, reusable product project for a low-voltage configurable analog front end and controller-neutral validation tooling.
+> **Analog Validation Studio** — a controller-neutral software and future low-voltage hardware platform for repeatable analog front-end characterization, automated test execution, and evidence-aware reporting.
 
-## Current status
+| Project status | Current value |
+|---|---|
+| Development stage | Software Phase 1, Step 6 of 8 complete |
+| Release maturity | Pre-MVP; core architecture and protocol foundation |
+| Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
+| Automated host tests | 224 passed |
+| Formal package coverage | 100% of 899 statements |
+| Highest evidence level | `HOST_TEST` |
+| Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-**Software Phase 1 is in progress. Steps 1–5 established the installable `analog_validation` package, version `0.1.0.dev0`, stable public errors, provenance-aware measurements, explicit device capabilities/safe ranges, evidence-gated test-run results, and a single tested CRC/bounded-framing core.** Phase 0 design, idealized LTspice checks, synthetic telemetry, and host-side algorithms remain available during migration. No breadboard, PCB, MSP430 firmware, instrument measurement, electrical limit, accuracy target, or hardware behavior has been verified.
+[Detailed project status](docs/PROJECT_STATUS.md) · [Product plan](docs/PRODUCT_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase1-step6.md)
 
-The current execution baseline is software-first: mature the controller-neutral validation software before freezing or purchasing the new AFE hardware. The governing scope, requirements, safety rules, staged acceptance gates, and future hardware plan are defined in `docs/PRODUCT_PLAN.md`. The original development specification remains preserved as a requirements source.
+## Product vision
 
-Software Phase 0 has now established the current host baseline and implementation roadmap. See `reports/software-phase0-baseline.md`, `docs/audits/SOFTWARE_PHASE_0_AUDIT.md`, `docs/REQUIREMENTS_TRACEABILITY.md`, and `docs/SOFTWARE_PHASE_1_PLAN.md`. This milestone does not add or validate hardware capability.
+The project is being developed as an independent, reusable product rather than an accessory for one microcontroller board. Its long-term goal is to combine:
 
-Software Phase 1 Step 1 passed editable installation, 25 pytest tests, Ruff and mypy checks for the new package, isolated package builds, and a clean wheel import outside the repository. See `reports/software-phase1-step1.md`.
+- a configurable low-voltage analog front end;
+- controller-neutral Python test automation;
+- replaceable simulator, file-replay, serial-controller, and instrument adapters;
+- DC sweep, gain, offset, saturation, hysteresis, calibration, and frequency-response workflows;
+- provenance-aware data and reports that distinguish synthetic, simulated, and physical evidence.
 
-Software Phase 1 Step 2 added typed error families for validation, protocol framing, CRC, protocol version, capability, and configuration failures. See `docs/errors.md` and `reports/software-phase1-step2.md`.
+The software-first plan allows the complete software product to mature without requiring school laboratory equipment. Physical hardware becomes a later adapter and device-under-test path rather than a dependency of the software architecture.
 
-Software Phase 1 Step 3 added controlled evidence sources, measurement units, status and quality flags, UTC timestamps, raw-record traceability, and explicit missing/non-finite handling. See `docs/measurements.md` and `reports/software-phase1-step3.md`.
+## What is implemented today
 
-Software Phase 1 Step 4 added controller-neutral device capabilities, per-channel safe ranges, supported commands, safe-shutdown gating, reproducible test-run metadata, and explicit `INCOMPLETE`/`UNSUPPORTED` outcomes that cannot become PASS. See `docs/capabilities-and-test-runs.md` and `reports/software-phase1-step4.md`.
+- Installable `src/analog_validation` Python package with a single version source.
+- Stable validation, framing, CRC, capability, configuration, and protocol error families.
+- Immutable Measurement, TestRun, safe-range, and DeviceCapabilities models.
+- Explicit evidence sources and quality flags; synthetic data cannot silently become bench evidence.
+- Single CRC-16/CCITT-FALSE implementation with fixed golden vectors.
+- Strict printable-ASCII CSV framing with CRC and a 128-byte record limit.
+- Versioned `AFE,1,...` profile for telemetry, commands, and multi-record capability exchange.
+- AFE v1 mapping into controller-neutral Measurement and DeviceCapabilities models.
+- Host-side command checks that distinguish unsupported capability from unsafe configuration.
+- Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 
-Software Phase 1 Step 5 moved CRC-16/CCITT-FALSE and strict 128-byte ASCII CSV framing into the formal package, added golden CRC vectors and precise framing/length/CRC errors, and retained a temporary compatible Phase 0 façade. See `docs/framing-and-crc.md` and `reports/software-phase1-step5.md`.
+Not yet implemented: production adapters, complete Simulator/CSV replay, test runners, serial transport, CLI, dashboard, end-user report generation, firmware, or validated physical hardware.
 
-The independently installed and verified Windows development setup is documented in `docs/DEVELOPMENT_ENVIRONMENT.md`; its verification record is `reports/environment-setup-2026-08-29.md`.
+## Architecture
 
-The AFE platform is the product, not an accessory of another controller project. Its analog base unit must operate without an MCU; optional validation controllers and external 3.3 V MCUs connect through documented UART/I2C/SPI/GPIO/analog interfaces. The MSP430 Equipment Health Controller is one compatibility example only. This repository is also independent from the OSU Lab Bench Monitor Capstone.
+```mermaid
+flowchart LR
+    Sources[Simulator / CSV / Serial / Instruments] --> Adapters[DeviceAdapter ports]
+    Adapters --> Profiles[Versioned device profiles]
+    Profiles --> Core[Measurements / Capabilities / TestRun]
+    Core --> Runners[Test runners and analysis]
+    Runners --> Products[CLI / Dashboard / CSV / JSON reports]
 
-## Software development quick start
+    AFE[Future configurable AFE hardware] -. public electrical and protocol interfaces .-> Sources
+    MSP[Optional MSP430 compatibility profile] -. separate adapter .-> Profiles
+```
 
-Python 3.10+ and pytest are required for host tests:
+The analysis and reporting layers must not depend on COM port names, board registers, SDK calls, or board-specific pin maps. A new controller should require a profile/adapter, not a rewrite of the core product.
+
+## AFE v1 example
+
+AFE v1 records use the common bounded framing and an explicit profile version:
 
 ```text
+AFE,1,TEL,120,45120,0,500,2487,4974,1,0000,D312
+AFE,1,CMD,5,SET,STIMULUS_MV,0,1650,AD30
+AFE,1,CAP_REQ,77,00F6
+```
+
+Capability responses use a DEVICE record, one CHANNEL record per advertised channel, and an END record. This avoids exceeding the 128-byte framing limit as devices grow.
+
+See [AFE v1 profile](docs/afe-v1-profile.md), [CRC and framing](docs/framing-and-crc.md), and [protocol reference](docs/protocol.md).
+
+## Verification snapshot
+
+The current results are host-software evidence only:
+
+| Verification gate | Result |
+|---|---|
+| Full pytest suite | 224 passed |
+| Formal package statement coverage | 100% of 899 statements |
+| AFE v1 profile tests | 40 passed |
+| Ruff | Passed |
+| mypy | Passed |
+| Step 6 external wheel install and AFE v1 round trip | Passed |
+| Hardware bench tests | Not run |
+
+Every completed software checkpoint has a report under [`reports/`](reports/). Test counts and claims are updated only after the corresponding command has actually run.
+
+## Quick start
+
+Requirements: Python 3.10 or later. The current verified development environment uses Python 3.12.
+
+```powershell
+python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe -c "import analog_validation; print(analog_validation.__version__)"
-.\.venv\Scripts\python.exe tools/telemetry_simulator.py --count 5
-.\.venv\Scripts\python.exe tools/synthetic_sweep_generator.py --points 21
 ```
 
-See `ASSUMPTIONS.md` before selecting parts or wiring hardware. Protocol details are in `docs/protocol.md`; theory is in `docs/theory.md`; the verification split is in `docs/test-plan.md`.
+Minimal AFE v1 round trip:
 
-For a beginner-oriented explanation of the complete roadmap, software setup, safety process, and our checkpoint cadence, see `docs/BEGINNER_PROJECT_GUIDE.md`. The current controller-independent purchase plan is `hardware/bom/INDEPENDENT_PRODUCT_PROCUREMENT.md`; `hardware/bom/independent-product-purchase.xlsx` is its linked, formula-driven order checklist. The earlier CSV and screenshot-cart analysis remain for traceability only.
+```python
+from analog_validation.protocol import AfeTelemetry, encode_afe_message, parse_afe_message
 
-The confirmed USD 200 budget, selected Klein MM420, and software-heavy fallback if OSU instruments are unavailable are recorded in `docs/BUDGET_AND_FALLBACK_DECISION.md`.
+message = AfeTelemetry(
+    seq=1,
+    time_ms=100,
+    channel=0,
+    input_mv=500,
+    output_mv=1000,
+    gain_milli=2000,
+    threshold=0,
+    fault_flags=0,
+)
 
-The proposed second-board architecture and comparison of NUCLEO-G474RE, LP-MSPM0G3507, Metro RP2040, Pico H, and a duplicate MSP430 board are in `docs/CONTROLLER_BOARD_SELECTION.md`.
+record = encode_afe_message(message)
+assert parse_afe_message(record) == message
+```
 
-The product boundary, replaceable controller layer, standalone modes, public interfaces, and independence acceptance criteria are in `docs/PRODUCT_ARCHITECTURE.md`.
+## Roadmap
 
-## Safety and evidence boundary
+| Stage | Purpose | Status |
+|---|---|---|
+| Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
+| Software Phase 1 | Domain, protocol, configuration, and golden core | In progress — 6/8 steps |
+| Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Planned |
+| Software Phase 3 | Test runners, analysis, calibration, structured results | Planned |
+| Software Phase 4 | Serial transport and independent controller profiles | Planned |
+| Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
+| Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
+| Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-- Only 0-3.3 V low-voltage work is in scope; no mains experiments.
-- Synthetic data is labeled synthetic and is not measurement evidence.
-- Idealized SPICE runs are not component-model validation or hardware measurements.
-- Software Phase 1 does not require hardware. Physical hardware phases cannot start safely until the parts, instrument access, electrical limits, and wiring questions in `ASSUMPTIONS.md` are answered.
+The next checkpoint is Software Phase 1 Step 7: safe, versioned configuration models. See the [file-level Phase 1 plan](docs/SOFTWARE_PHASE_1_PLAN.md).
+
+## Repository guide
+
+```text
+src/analog_validation/    installable controller-neutral product core
+dashboard/                Phase 0 compatibility code being migrated
+tools/                    synthetic data and developer utilities
+tests/                    regression and formal-package tests
+test-data/golden/         frozen compatibility vectors
+docs/                     product, architecture, protocol, safety, and status
+reports/                  executed validation records and evidence limits
+simulation/               LTspice tasks and ideal-model evidence
+hardware/                 deferred design and procurement planning
+```
+
+## Independence and integration boundary
+
+This is an **independent personal engineering project**.
+
+- The configurable AFE and Analog Validation Studio are the product.
+- MSP430FR6989 support is a future compatibility profile, not the product identity or required controller.
+- Other controllers can integrate through documented 3.3 V electrical interfaces and versioned public protocols.
+- This repository is separate from the **OSU Lab Bench Monitor Senior Capstone** and does not contain or claim team capstone output.
+
+## Safety and evidence policy
+
+- Only low-voltage 0–3.3 V work is planned; mains experimentation is out of scope.
+- Numeric ranges in software fixtures are examples, not validated hardware limits.
+- `SYNTHETIC`, `SPICE_*`, and `HOST_TEST` evidence cannot support physical performance claims.
+- Only documented `BENCH_*` records may support future hardware claims.
+- No external output may be enabled until device capability, safe range, common ground, wiring, and shutdown behavior are confirmed.
+
+See [assumptions requiring confirmation](ASSUMPTIONS.md), [test and evidence policy](docs/test-plan.md), and [risk register](docs/risk-register.md).
+
+## Documentation
+
+- [Beginner project guide](docs/BEGINNER_PROJECT_GUIDE.md)
+- [Product plan and staged acceptance gates](docs/PRODUCT_PLAN.md)
+- [Product architecture](docs/PRODUCT_ARCHITECTURE.md)
+- [AFE v1 profile](docs/afe-v1-profile.md)
+- [Capability and TestRun semantics](docs/capabilities-and-test-runs.md)
+- [Theory calculations](docs/theory.md)
+- [Development environment](docs/DEVELOPMENT_ENVIRONMENT.md)
+
+## License
+
+No open-source license has been selected. All rights are currently reserved by the project owner.

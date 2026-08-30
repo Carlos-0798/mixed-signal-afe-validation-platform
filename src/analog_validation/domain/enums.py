@@ -34,6 +34,7 @@ class QualityFlag(str, Enum):
     OUT_OF_RANGE = "OUT_OF_RANGE"
     TIME_ANOMALY = "TIME_ANOMALY"
     COMMUNICATION_ERROR = "COMMUNICATION_ERROR"
+    DEVICE_FAULT = "DEVICE_FAULT"
 
 
 class MeasurementStatus(str, Enum):

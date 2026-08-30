@@ -1,6 +1,6 @@
 # AFE UART CSV protocol
 
-Software Phase 1 Step 5 已将共享 CRC 和有界 ASCII framing 迁移到正式 `analog_validation.protocol` 包。实现边界、错误分类和初学者说明见 `docs/framing-and-crc.md`。本文后续的 telemetry/command 字段仍是 Phase 0 业务形状；它们将在 Step 6 进入版本化 AFE v1 profile。
+Software Phase 1 Step 5 已将共享 CRC 和有界 ASCII framing 迁移到正式 `analog_validation.protocol` 包。实现边界、错误分类和初学者说明见 `docs/framing-and-crc.md`。Software Phase 1 Step 6 已定义 `AFE,1,...` 版本化 profile，详见 `docs/afe-v1-profile.md`。本文后续的无版本 telemetry/command 字段仅作为 Phase 0 compatibility façade 记录，计划在 Step 8 完成调用迁移。
 
 ## Transport
 
