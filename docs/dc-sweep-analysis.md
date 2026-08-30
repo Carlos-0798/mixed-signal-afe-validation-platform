@@ -1,8 +1,8 @@
 # DC sweep analysis v1
 
-**Schema:** `dc-sweep-analysis.v1`  
-**Introduced:** Software Phase 3 Step 2  
-**Evidence produced by current tests:** `HOST_TEST` over `SYNTHETIC` or `CSV_REPLAY` records  
+**Schema:** `dc-sweep-analysis.v1`<br>
+**Introduced:** Software Phase 3 Step 2<br>
+**Evidence produced by current tests:** `HOST_TEST` over `SYNTHETIC` or `CSV_REPLAY` records<br>
 **Hardware validation:** none
 
 ## Purpose
@@ -136,4 +136,3 @@ The numeric limits above are an example software configuration, not verified har
 - no deletion or relabeling of original evidence.
 
 See the [common analysis semantics](analysis-common.md), [Phase 3 plan](SOFTWARE_PHASE_3_PLAN.md), and [Step 2 verification report](../reports/software-phase3-step2.md).
-

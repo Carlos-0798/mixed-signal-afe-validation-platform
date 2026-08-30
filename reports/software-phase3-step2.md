@@ -1,8 +1,8 @@
 # Software Phase 3 Step 2 Report
 
-**Date:** 2026-08-30  
-**Milestone:** provenance-aware DC sweep analysis  
-**Evidence class:** HOST_TEST / SYNTHETIC  
+**Date:** 2026-08-30<br>
+**Milestone:** provenance-aware DC sweep analysis<br>
+**Evidence class:** HOST_TEST / SYNTHETIC<br>
 **Hardware used:** none
 
 ## Outcome
