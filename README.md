@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 3 in progress — 2/8 checkpoints complete |
-| Release maturity | Pre-MVP; device/acquisition layer complete, DC analysis implemented |
+| Development stage | Software Phase 3 in progress — 3/8 checkpoints complete |
+| Release maturity | Pre-MVP; DC analysis and evidence-safe criteria mapping implemented |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 781 passed |
-| Formal package coverage | 100% of 2,800 statements |
+| Automated host tests | 848 passed |
+| Formal package coverage | 100% of 3,002 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 3 plan](docs/SOFTWARE_PHASE_3_PLAN.md) · [DC sweep analysis](docs/dc-sweep-analysis.md) · [Step 2 report](reports/software-phase3-step2.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 3 plan](docs/SOFTWARE_PHASE_3_PLAN.md) · [DC criteria](docs/dc-sweep-criteria.md) · [Step 3 report](reports/software-phase3-step3.md)
 
 ## Product vision
 
@@ -62,10 +62,12 @@ The software-first plan allows the complete software product to mature without r
 - Strict finite V/mV normalization that does not guess units and never changes evidence provenance.
 - Versioned provenance-aware DC sweep analysis with traceable input/output pairing, configurable inclusive saturation exclusion, exact incomplete-data gaps, and retained per-point decisions.
 - Ordinary least-squares gain/offset, R², RMSE, maximum absolute residual, plus prediction/residual values for every included point in a complete fit.
+- Immutable versioned DC acceptance criteria for gain, absolute offset, R², RMSE, and included-point count, with one explicit result record per rule.
+- Evidence-safe TestRun mapping: complete evaluations become PASS/FAIL; missing criteria, incomplete analysis, or insufficient evidence points remain INCOMPLETE.
 - One formal AFE telemetry generator shared by the Simulator foundation, legacy CLI wrapper, and frozen 100-frame regression.
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 
-Not yet implemented: formal hysteresis/calibration/frequency analysis, analysis runners, PASS/FAIL criteria, structured result exports, serial transport, product CLI, dashboard, end-user reports, firmware, or validated physical hardware.
+Not yet implemented: formal hysteresis/calibration/frequency analysis, automated analysis runners, structured result exports, serial transport, product CLI, dashboard, end-user reports, firmware, or validated physical hardware.
 
 ## Architecture
 
@@ -105,10 +107,11 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 781 passed |
-| Formal package statement coverage | 100% of 2,800 statements |
+| Full pytest suite | 848 passed |
+| Formal package statement coverage | 100% of 3,002 statements |
 | Phase 3 common analysis semantics | 56 focused tests; 244/244 statements covered |
 | Phase 3 DC sweep analysis | 81 focused tests; 325/325 statements covered |
+| Phase 3 DC criteria and TestRun mapping | 67 focused tests; 201/201 statements covered |
 | DeviceAdapter lifecycle and safety tests | 36 passed |
 | Reusable concrete-adapter contract | 8 shared checks passed by reference, Simulator, and CSV Replay adapters |
 | Simulator-specific unit tests | 69 passed |
@@ -120,7 +123,7 @@ The current results are host-software evidence only:
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 72 source files |
+| mypy | Passed on 74 source files |
 | Latest isolated build, sdist, and external wheel public-API smoke checks | Passed |
 | Hardware bench tests | Not run |
 
@@ -194,13 +197,13 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
-| Software Phase 3 | Test runners, analysis, calibration, structured results | In progress — 2/8 checkpoints |
+| Software Phase 3 | Test runners, analysis, calibration, structured results | In progress — 3/8 checkpoints |
 | Software Phase 4 | Serial transport and independent controller profiles | Planned |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-Software Phase 3 Step 2 is complete: the formal package now performs traceable DC point pairing, quality-aware inclusive saturation exclusion, insufficient-data reporting, and ordinary least-squares gain/offset, R², RMSE, maximum residual, predictions, and residuals. The next checkpoint is Step 3, which will define versioned acceptance criteria and TestRun conclusion mapping. Automatic output and hardware remain later work.
+Software Phase 3 Step 3 is complete: immutable versioned DC criteria now evaluate gain, absolute offset, R², RMSE, and evidence-point count, then produce evidence-backed PASS/FAIL only for complete evaluations. Missing criteria or evidence remains INCOMPLETE. Step 4 will add a controller-neutral, safety-gated DC sweep runner using a host-test reference adapter only; real hardware remains later work.
 
 ## Repository guide
 
@@ -243,6 +246,8 @@ See [assumptions requiring confirmation](ASSUMPTIONS.md), [test and evidence pol
 - [AFE v1 profile](docs/afe-v1-profile.md)
 - [CSV Replay v1 format](docs/csv-replay-v1.md)
 - [Shared read workflow](docs/read-workflow.md)
+- [DC sweep analysis](docs/dc-sweep-analysis.md)
+- [DC criteria and TestRun mapping](docs/dc-sweep-criteria.md)
 - [Frozen Phase 2 public API](docs/phase2-public-api.md)
 - [Versioned safe configuration](docs/configuration.md)
 - [Capability and TestRun semantics](docs/capabilities-and-test-runs.md)

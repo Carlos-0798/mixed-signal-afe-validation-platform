@@ -9,7 +9,7 @@
 
 `analog_validation.analysis.dc_sweep` turns an already acquired input/output sweep into a traceable linear analysis. It is controller-neutral: the function does not know whether records came from a simulator, a replay file, or a future device adapter.
 
-The module answers “what line best describes the eligible points?” It does **not** answer “did the device pass?” Step 3 will add versioned acceptance criteria, and Step 4 will add a safety-gated runner.
+The module answers “what line best describes the eligible points?” It does **not** answer “did the device pass?” Step 3 now provides a separate versioned criteria evaluator, while Step 4 will add a safety-gated runner.
 
 ## Beginner mental model
 
@@ -136,3 +136,5 @@ The numeric limits above are an example software configuration, not verified har
 - no deletion or relabeling of original evidence.
 
 See the [common analysis semantics](analysis-common.md), [Phase 3 plan](SOFTWARE_PHASE_3_PLAN.md), and [Step 2 verification report](../reports/software-phase3-step2.md).
+
+Software Phase 3 Step 3 now supplies the separate [versioned criteria and TestRun mapping](dc-sweep-criteria.md). The analysis object itself remains criteria-free and does not change meaning.

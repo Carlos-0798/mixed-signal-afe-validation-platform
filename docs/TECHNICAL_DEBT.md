@@ -15,7 +15,7 @@
 | TD-006 | P2 | 无流式分帧和序列追踪 | 真实串口分段、粘包和丢帧无法处理 | Phase 4 |
 | TD-007 | P1 | 正式 DC 算法已迁入 `analysis.dc_sweep` 并具备有限值/单位/来源/质量/可追溯约束；旧 dashboard DC 仅保留回归对照，正式迟滞算法仍未迁移 | 正式 DC 入口已安全，但旧裸值入口和迟滞路径仍可能产生不可追溯结果 | Phase 3 Step 5 完成迟滞迁移并处理旧兼容入口后关闭；DC 证据见 `reports/software-phase3-step2.md` |
 | TD-008 | CLOSED | `dc-sweep-analysis.v1` 保留所有点、输入/输出双引用、组件质量决定、逐点 `LOW/HIGH_SATURATION` 和 DC 排除原因 | 正式 DC 结果可解释具体使用或排除的每个点；旧函数不属于正式核心 | 证据见 `docs/dc-sweep-analysis.md` 和 `reports/software-phase3-step2.md` |
-| TD-009 | P1 | 校准、频响、判定和报告均为占位 | 不能形成成熟测试产品 | Phase 3 Steps 3、6、7 和 Phase 5 |
+| TD-009 | P1 | Step 3 已实现正式 DC criteria、逐项结果和 TestRun 映射；校准、频响、结构化导出和人类报告仍为占位 | 单个 DC analysis 可判定，但尚不能形成完整自动运行、跨分析类型和最终用户报告产品 | Phase 3 Steps 4、6、7 和 Phase 5；DC criteria 证据见 `reports/software-phase3-step3.md` |
 | TD-010 | CLOSED | 正式 `src/analog_validation/` 包、单一版本来源、隔离构建和仓库外 wheel 导入已于 2026-08-29 验证 | 包装基础问题已解除；CLI 仍由 TD-014 跟踪 | 证据见 `reports/software-phase1-step1.md` |
 | TD-011 | CLOSED | 独立 Python `.venv`、setuptools 和隔离 wheel 安装已于 2026-08-29 验证 | 原环境依赖 Codex 运行时的问题已解除 | 证据见 `reports/environment-setup-2026-08-29.md` |
 | TD-012 | CLOSED | 冻结的 100 帧生成器已迁入正式 package，并由 CLI、集成测试和确定性 SimulatorAdapter 共同复用；stream SHA-256 保持不变；非理想和受控故障已在 Step 4 配置化 | 合成基础流水线不再存在第二份公式，增益/噪声/饱和/迟滞/故障均有确定性回归 | 证据见 `reports/software-phase2-step3.md` 和 `reports/software-phase2-step4.md` |

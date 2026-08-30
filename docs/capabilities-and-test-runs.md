@@ -109,6 +109,6 @@ capabilities.require_automated_output(
 
 - AFE v1 已定义 capability 记录，但真实串口请求/响应仍属于 Software Phase 4。
 - Software Phase 2 Step 7 的共用读取工作流已在读取前检查命令、通道和单位，并实际返回 `UNSUPPORTED`；它不连接真实硬件。
-- 工作流的 `COMPLETED` 只表示采集齐全，不等同于 `TestRunOutcome.PASS`。Phase 3 判定引擎仍需根据版本化规则和证据生成正式 TestRunResult。
+- 工作流的 `COMPLETED` 只表示采集齐全，不等同于 `TestRunOutcome.PASS`。Software Phase 3 Step 3 已为 DC analysis 实现版本化 criteria 和正式 TestRunResult 映射；Step 4 runner 仍需把采集生命周期安全地接入这套判定。
 - Step 4 没有证明任何物理电压、精度、接线或安全关闭行为。
 - `BENCH_*` 仍只是受控来源标签；真正 BENCH 证据必须来自实物执行记录。

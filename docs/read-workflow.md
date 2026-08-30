@@ -51,7 +51,7 @@ This prevents a workflow from consuming some source data before discovering that
 
 `INCOMPLETE` retains any Measurements collected before EOF and lists exact remaining counts, for example `samples:ANALOG:afe.ch0.input:1`. Unexpected communication, CRC, adapter, or programming failures remain typed exceptions and are never relabeled as a capability problem.
 
-These are acquisition states, not `TestRunOutcome.PASS`/`FAIL`. Phase 3 analysis runners must evaluate Measurements against explicit criteria before producing an engineering conclusion.
+These are acquisition states, not `TestRunOutcome.PASS`/`FAIL`. Software Phase 3 Step 3 can map an already completed DC analysis and explicit criteria to a TestRun conclusion; Step 4 must still connect acquisition to that evaluator without weakening capability or output-safety gates.
 
 ## Lifecycle ownership
 

@@ -1,7 +1,7 @@
 # Software Phase 3 文件级实施计划
 
 **阶段名称：** 测试执行、质量感知分析与结构化结果<br>
-**规划状态：** 实施中，进度 2/8<br>
+**规划状态：** 实施中，进度 3/8<br>
 **预计时间：** 7–10 个初学者开发日<br>
 **前置：** Software Phase 2 的 adapter、Replay、共用读取工作流和兼容基线完成<br>
 **硬件要求：** 无<br>
@@ -11,14 +11,14 @@
 
 - [x] Step 1：分析公共语义与质量 policy；
 - [x] Step 2：正式 DC sweep 分析；
-- [ ] Step 3：DC sweep criteria 与结论映射；
+- [x] Step 3：DC sweep criteria 与结论映射；
 - [ ] Step 4：控制器无关 DC sweep runner；
 - [ ] Step 5：正式迟滞分析与 runner；
 - [ ] Step 6：校准与离线频率响应；
 - [ ] Step 7：版本化 CSV/JSON 结果导出；
 - [ ] Step 8：黄金兼容、构建和阶段收口。
 
-Step 2 已通过 81 项专门测试、781 项完整回归、100% 正式 package 覆盖、静态检查、隔离构建和仓库外 wheel smoke。证据见 `reports/software-phase3-step2.md`。这不表示 Step 3–8、输出控制或任何硬件功能已经完成。
+Step 3 已通过 67 项专门测试、848 项完整回归、100% 正式 package 覆盖、静态检查、隔离构建和仓库外 wheel smoke。证据见 `reports/software-phase3-step3.md`。这不表示 Step 4–8、输出控制或任何硬件功能已经完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -213,6 +213,8 @@ Step 1 将冻结：
 增加版本化 acceptance criteria，包括目标 gain/容差、最大 offset、最小 R²、最大 RMSE 和最低有效点数。把分析结果映射到正式 `TestRunResult`，并保存每项规则的实际值、限制和通过状态。
 
 验收：完整合格数据得到 PASS，完整超差数据得到 FAIL；没有 criteria、缺失数据或不足点数不能得到 PASS。
+
+**状态：已完成。** `dc-sweep-criteria.v1` 和 `dc-sweep-evaluation.v1` 已实现五项逐规则记录、criteria/analysis 单位一致性、TestRun metadata/证据一致性，以及安全的 PASS/FAIL/INCOMPLETE 映射；示例阈值仅为 HOST_TEST fixture，不是硬件规格。
 
 ### Step 4：控制器无关 DC sweep runner
 

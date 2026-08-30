@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 3 实施中（2/8）
+**当前阶段：** Software Phase 3 实施中（3/8）
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -11,7 +11,7 @@
 | ID | 状态 | 当前实现/证据 | 主要缺口或下一阶段 |
 |---|---|---|---|
 | SW-FR-001 | VERIFIED_HOST | `Measurement` 包含 UTC 时间、通道、值、单位、状态、来源、质量和 schema；100 帧流水线生成 400 条显式来源测量 | Phase 3 runner 使用正式模型 |
-| SW-FR-002 | VERIFIED_HOST | `TestRunMetadata` 保存测试、配置、UTC 时间、软件、设备/profile 和来源；`TestRunResult` 保存结论与证据 | Phase 3 runner 生成实际运行记录 |
+| SW-FR-002 | VERIFIED_HOST | `TestRunMetadata` 保存测试、配置、UTC、软件、设备/profile、来源和 raw IDs；Step 3 已从 DC analysis/criteria 生成实际 PASS/FAIL/INCOMPLETE `TestRunResult` 并核对全部 evidence IDs | Step 4 runner 生成完整运行生命周期记录 |
 | SW-FR-003 | VERIFIED_HOST | 9 类受控 `EvidenceSource` 已验证且每个正式 Measurement 必填；100 帧集成测试确认 400 条记录均为 `SYNTHETIC` 且非 BENCH | Phase 3/5 写入导出和报告 |
 | SW-FR-004 | IMPLEMENTED | Measurement 强制 `record_id`/`raw_record_id`；Step 2 每个 DC point 保存输入/输出两套引用、质量决定和原始单位，排除/拟合均不修改原记录 | Step 6 验证校准派生链后完成整项验收 |
 | SW-FR-005 | VERIFIED_HOST | 12 类受控单位；Step 1 只允许有限 V/mV 显式换算并拒绝安培、count、未知单位和 NaN/Inf | 后续分析继续使用同一规范化入口 |
@@ -31,13 +31,13 @@
 | SW-FR-025 | VERIFIED_HOST | 共享工作流在任何读取前原子检查命令、通道和单位；缺失能力返回无部分数据且列明缺口的 `UNSUPPORTED`；Replay 提前 EOF 单独返回 `INCOMPLETE` | Phase 3 runner 将采集状态映射到正式 TestRunResult |
 | SW-FR-026 | IMPLEMENTED | AFE v1 定义 SAFE_SHUTDOWN command；自动输出验证强制声明该能力 | Phase 2 adapter 实现；输出型硬件接入时做 fault/bench 验证 |
 | SW-FR-030 | IMPLEMENTED | 合成 sweep generator | Phase 3 Step 4 建立安全预检、等待、重复和运行记录 |
-| SW-FR-031 | VERIFIED_HOST | `dc-sweep-analysis.v1` 对有效点正式计算 gain、offset、R²、RMSE、最大绝对残差、使用点数、预测与残差；精确、噪声、常量输出和不足数据均有测试 | Step 3 增加版本化标准与结论映射 |
+| SW-FR-031 | VERIFIED_HOST | `dc-sweep-analysis.v1` 计算 gain、offset、R²、RMSE、最大绝对残差、使用点数、预测与残差；Step 3 criteria 对这些指标生成固定顺序逐项结果 | Step 4 runner 接入采集结果 |
 | SW-FR-032 | VERIFIED_HOST | 上下饱和限值有限、可配置且边界包含；所有点保留并逐点区分 `LOW_SATURATION`/`HIGH_SATURATION` 和组件质量原因 | Step 3 可把有效点数纳入 criteria；真实饱和电压仍待 BENCH |
 | SW-FR-033 | VERIFIED_HOST | `calculate_hysteresis` 和 3 项测试 | Phase 3 Step 5 增加方向、状态、记录引用和重复统计 |
 | SW-FR-034 | ACCEPTED | `calibration.py` 占位 | Phase 3 Step 6 实现版本化系数、派生引用和前后结果 |
 | SW-FR-035 | ACCEPTED | `frequency_response.py` 占位 | Phase 3 Step 6 实现离线幅值点分析 |
 | SW-FR-036 | VERIFIED_HOST | 公共质量层逐项映射缺失、非有限、饱和、超范围、时间、通信和设备故障；Step 2 在正式 DC 点中保存组件决定和 DC 排除原因，显式 allowlist 也不能绕过数值饱和边界 | Step 5 在正式迟滞结果中复用 |
-| SW-FR-037 | IMPLEMENTED | 领域模型强制 PASS/FAIL 具备证据且无缺失项；INCOMPLETE/UNSUPPORTED 不能成为 PASS | Phase 3 实现版本化判定引擎 |
+| SW-FR-037 | VERIFIED_HOST | `dc-sweep-criteria.v1` 版本化 gain/绝对 offset/R²/RMSE/点数规则；`dc-sweep-evaluation.v1` 只有完整且证据一致时产生 PASS/FAIL，缺 criteria、分析缺口或 criteria 点数不足均为 INCOMPLETE | Step 4/5 扩展到 runner 与迟滞结论 |
 | SW-FR-038 | VERIFIED_HOST | 固定 seed 的 100 帧 AFE 流水线保持冻结 SHA-256；同配置/clock 的输入、带噪输出、迟滞和故障序列可重复，且各通道读取顺序互不干扰 | Phase 3 扩展到 runner 端到端测试 |
 | SW-FR-040 | IMPLEMENTED | 两个工具有 argparse | Phase 5 建立统一产品 CLI |
 | SW-FR-041 | ACCEPTED | `app.py` 仅占位 | Phase 5 实现 Dashboard |
@@ -62,7 +62,7 @@
 | SW-NFR-009 | IMPLEMENTED | 当前无网络代码，文件均本地 | Phase 5 文档化并保持默认离线 |
 | SW-NFR-010 | ACCEPTED | 报告未实现 | Phase 1 定义版本字段，Phase 3/5 写入结果 |
 | SW-NFR-011 | ACCEPTED | 无 UI | Phase 5 验证文本与颜色双重表达 |
-| SW-NFR-012 | VERIFIED_HOST | Measurement、capability、TestRun、AFE、配置和新增 `analysis-common.v1` 均显式版本化；AFE/Phase 2 意义由黄金文件冻结 | Phase 3 Step 8 冻结分析 API/结果；未来变化增加版本和迁移说明 |
+| SW-NFR-012 | VERIFIED_HOST | Measurement、capability、TestRun、AFE、配置、`analysis-common.v1`、`dc-sweep-analysis.v1`、`dc-sweep-criteria.v1` 和 `dc-sweep-evaluation.v1` 均显式版本化；Phase 2 意义由黄金文件冻结 | Phase 3 Step 8 冻结新增分析 API/结果 |
 
 ## 未来硬件需求
 
@@ -85,11 +85,11 @@
 
 | 状态 | 数量 |
 |---|---:|
-| VERIFIED_HOST | 23 |
-| IMPLEMENTED | 10 |
+| VERIFIED_HOST | 24 |
+| IMPLEMENTED | 9 |
 | ACCEPTED | 15 |
 | DEFERRED | 12 |
 | VERIFIED_BENCH | 0 |
 | 总计 | 60 |
 
-Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 已完成 8/8。Software Phase 3 Step 2 已通过 81 项专门测试、781 项完整回归、100% 正式 package 覆盖、隔离构建和仓库外安装；正式 DC sweep 已具备双记录追溯、逐点排除、incomplete 缺口和线性指标。下一步是 Step 3 criteria 与 TestRun 结论映射。硬件仍为 DEFERRED，VERIFIED_BENCH 仍为 0。
+Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 已完成 8/8。Software Phase 3 Step 3 已通过 67 项专门测试、848 项完整回归、100% 正式 package 覆盖、隔离构建和仓库外安装；版本化 DC criteria、逐项判定和证据安全的 PASS/FAIL/INCOMPLETE 映射已进入正式 package。下一步是 Step 4 安全门控 DC runner。硬件仍为 DEFERRED，VERIFIED_BENCH 仍为 0。

@@ -12,6 +12,16 @@ from .common import (
     assess_voltage_measurement,
     normalize_voltage,
 )
+from .dc_criteria import (
+    DC_SWEEP_CRITERIA_SCHEMA_VERSION,
+    DC_SWEEP_EVALUATION_SCHEMA_VERSION,
+    DC_SWEEP_TEST_TYPE,
+    DCSweepAcceptanceCriteria,
+    DCSweepCriterionName,
+    DCSweepCriterionResult,
+    DCSweepEvaluationResult,
+    evaluate_dc_sweep,
+)
 from .dc_sweep import (
     DC_SWEEP_ANALYSIS_SCHEMA_VERSION,
     DCSweepAnalysisConfig,
@@ -27,11 +37,18 @@ from .dc_sweep import (
 __all__ = [
     "ANALYSIS_COMMON_SCHEMA_VERSION",
     "DC_SWEEP_ANALYSIS_SCHEMA_VERSION",
+    "DC_SWEEP_CRITERIA_SCHEMA_VERSION",
+    "DC_SWEEP_EVALUATION_SCHEMA_VERSION",
+    "DC_SWEEP_TEST_TYPE",
     "DEFAULT_ANALYSIS_QUALITY_POLICY",
     "AnalysisQualityPolicy",
     "AnalysisRecordReference",
+    "DCSweepAcceptanceCriteria",
     "DCSweepAnalysisConfig",
     "DCSweepAnalysisResult",
+    "DCSweepCriterionName",
+    "DCSweepCriterionResult",
+    "DCSweepEvaluationResult",
     "DCSweepFitResult",
     "DCSweepPointExclusionReason",
     "DCSweepPointPair",
@@ -42,6 +59,7 @@ __all__ = [
     "PointExclusionReason",
     "analyze_dc_sweep",
     "assess_voltage_measurement",
+    "evaluate_dc_sweep",
     "normalize_voltage",
     "pair_dc_sweep_measurements",
 ]
