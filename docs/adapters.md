@@ -83,6 +83,12 @@ The AFE formula previously owned by `tools/telemetry_simulator.py` now lives in 
 
 The simulator does not provide a DAC/PWM stimulus output, analog circuit solver, electrical timing model, or hardware emulation. The configured formula and faults are test fixtures rather than physical measurements.
 
+## CSV Replay v1 parser boundary
+
+Step 5 defines the immutable dataset consumed by the future `CsvReplayAdapter`. The strict parser validates version, fixed columns, dataset/record identity, UTC time, values, units, status, declared source, quality flags, ordering, limits, and a matching END count. File loading is bounded and read-only.
+
+This parser is not itself an adapter: it has no lifecycle, playback clock, pause/resume state, speed multiplier, or EOF operation. Step 6 will add those behaviors and run the same shared read-only adapter contract. Replayed Measurements must use current source `CSV_REPLAY`; a source string preserved from a file is untrusted declared metadata rather than evidence elevation. See [CSV Replay v1](csv-replay-v1.md).
+
 ## What this does not prove
 
 The state machine and tests prove host-software behavior only. `SAFE_SHUTDOWN` means the adapter software path completed; it does not prove that a physical relay, DAC, PWM pin, power rail, or external circuit actually reached a safe voltage. That requires later firmware and bench evidence.

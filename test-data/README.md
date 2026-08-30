@@ -8,5 +8,7 @@ Golden compatibility data:
 - `golden/afe_v1_valid.csv` freezes 20 valid AFE v1 wire records;
 - `golden/afe_v1_invalid.csv` stores Base64-encoded rejected records and their expected error families;
 - `golden/expected_frames.json` freezes the model meaning of every valid wire record.
+- `golden/csv_replay_v1_valid.csv` freezes five complete Replay v1 records and an explicit END count;
+- `golden/csv_replay_v1_invalid.json` freezes rejected schema/semantic mutations and their stable error families.
 
 These files verify host-software compatibility only. They are not measurements and carry no BENCH evidence claim.

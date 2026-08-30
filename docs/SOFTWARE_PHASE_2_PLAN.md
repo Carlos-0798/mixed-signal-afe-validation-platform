@@ -11,12 +11,12 @@
 - [x] Step 2：可复用适配器契约测试；
 - [x] Step 3：确定性 `SimulatorAdapter` 基本数据流；
 - [x] Step 4：模拟增益、偏置、噪声、饱和、迟滞和受控故障；
-- [ ] Step 5：严格、不可变的版本化 CSV replay 格式与 parser；
+- [x] Step 5：严格、不可变的版本化 CSV replay 格式与 parser；
 - [ ] Step 6：`CsvReplayAdapter` 的速度、暂停、恢复和结束状态；
 - [ ] Step 7：同一上层工作流和明确 `UNSUPPORTED` 能力降级；
 - [ ] Step 8：集成、打包、文档和 Software Phase 2 报告收口。
 
-Step 1–4 的真实执行证据见 `reports/software-phase2-step1.md` 至 `reports/software-phase2-step4.md`。下一步定义严格、不可变的版本化 CSV replay 格式与 parser，并保持来源、单位和时间语义不被静默猜测。
+Step 1–5 的真实执行证据见 `reports/software-phase2-step1.md` 至 `reports/software-phase2-step5.md`。下一步实现 `CsvReplayAdapter` 顺序读取、速度、暂停/恢复、明确 EOF 和统一 `CSV_REPLAY` 来源，并让它通过同一适配器契约。
 
 ## 1. 阶段目标
 

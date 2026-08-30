@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 2 in progress — 4/8 checkpoints |
-| Release maturity | Pre-MVP; verified configurable simulator |
+| Development stage | Software Phase 2 in progress — 5/8 checkpoints |
+| Release maturity | Pre-MVP; verified simulator and replay parser |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 445 passed |
-| Formal package coverage | 100% of 1,601 statements |
+| Automated host tests | 545 passed |
+| Formal package coverage | 100% of 1,841 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase2-step4.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase2-step5.md)
 
 ## Product vision
 
@@ -47,10 +47,12 @@ The software-first plan allows the complete software product to mature without r
 - Deterministic read-only `SimulatorAdapter` with versioned gain, offset, noise, saturation, hysteresis, and controlled-fault configuration.
 - Independent analog-input, analog-output, and threshold-state streams with stable timestamps and explicit `SYNTHETIC` provenance.
 - Saturation and missing-data quality flags plus stable communication and CRC fault exceptions.
+- Immutable `csv-replay.v1` dataset/record models with strict version, UTC time, unit, status, declared-source, quality, identity, ordering, and END-count validation.
+- Bounded read-only CSV parsing with stable replay format/version/limit errors and frozen valid/invalid compatibility data.
 - One formal AFE telemetry generator shared by the Simulator foundation, legacy CLI wrapper, and frozen 100-frame regression.
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 
-Not yet implemented: CSV replay, test runners, serial transport, product CLI, dashboard, end-user report generation, firmware, or validated physical hardware.
+Not yet implemented: `CsvReplayAdapter` playback controls, test runners, serial transport, product CLI, dashboard, end-user report generation, firmware, or validated physical hardware.
 
 ## Architecture
 
@@ -90,16 +92,17 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 445 passed |
-| Formal package statement coverage | 100% of 1,601 statements |
+| Full pytest suite | 545 passed |
+| Formal package statement coverage | 100% of 1,841 statements |
 | DeviceAdapter lifecycle and safety tests | 36 passed |
 | Reusable concrete-adapter contract | 8 checks passed by both reference and Simulator adapters |
 | Simulator-specific unit tests | 69 passed |
+| CSV Replay parser tests | 84 unit + 9 golden cases passed |
 | AFE v1 profile tests | 40 passed |
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 54 source files |
+| mypy | Passed on 58 source files |
 | Latest isolated build, sdist, and external wheel public-API smoke checks | Passed |
 | Hardware bench tests | Not run |
 
@@ -172,14 +175,14 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 |---|---|---|
 | Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
-| Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | In progress — 4/8 checkpoints |
+| Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | In progress — 5/8 checkpoints |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Planned |
 | Software Phase 4 | Serial transport and independent controller profiles | Planned |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-The next checkpoint is Software Phase 2 Step 5: define and strictly parse a versioned, immutable CSV replay format with explicit units, UTC timestamps, source, quality, and end conditions. See the [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md).
+The next checkpoint is Software Phase 2 Step 6: implement `CsvReplayAdapter` sequential playback, speed control, pause/resume, explicit EOF, `CSV_REPLAY` provenance, and the same shared read-only adapter contract used by Simulator. See the [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md).
 
 ## Repository guide
 
@@ -220,6 +223,7 @@ See [assumptions requiring confirmation](ASSUMPTIONS.md), [test and evidence pol
 - [Product plan and staged acceptance gates](docs/PRODUCT_PLAN.md)
 - [Product architecture](docs/PRODUCT_ARCHITECTURE.md)
 - [AFE v1 profile](docs/afe-v1-profile.md)
+- [CSV Replay v1 format](docs/csv-replay-v1.md)
 - [Versioned safe configuration](docs/configuration.md)
 - [Capability and TestRun semantics](docs/capabilities-and-test-runs.md)
 - [Theory calculations](docs/theory.md)

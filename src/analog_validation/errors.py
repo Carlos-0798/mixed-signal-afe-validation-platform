@@ -58,6 +58,22 @@ class AdapterDataError(AdapterError):
     """An adapter returned data that violates the public contract."""
 
 
+class ReplayError(AnalogValidationError):
+    """A replay dataset could not be accessed or accepted."""
+
+
+class ReplayFormatError(ReplayError):
+    """Replay content violates its declared schema or record semantics."""
+
+
+class ReplayLimitError(ReplayError):
+    """Replay content exceeds a bounded parser resource limit."""
+
+
+class UnsupportedReplayVersion(ReplayFormatError):
+    """Replay content declares an unsupported schema version."""
+
+
 __all__ = [
     "AdapterConnectionError",
     "AdapterDataError",
@@ -70,6 +86,10 @@ __all__ = [
     "FrameTooLong",
     "FramingError",
     "ProtocolError",
+    "ReplayError",
+    "ReplayFormatError",
+    "ReplayLimitError",
     "UnsupportedProtocolVersion",
+    "UnsupportedReplayVersion",
     "ValidationError",
 ]

@@ -26,5 +26,6 @@
 | TD-017 | P3 | 采购和控制器选择文档仍包含软件转向前候选 | 可能误读为立即采购指令 | 保留历史；采购前由新规划重新冻结 |
 | TD-018 | P0 | 所有硬件性能仍未验证 | 错误成果声明会损害可信度和安全 | 持续保持 `VERIFIED_BENCH=0`，直到真实台架阶段 |
 | TD-019 | CLOSED | `validation-config.v1` 已使用不可执行的严格 JSON，限制文件大小，并对 profile、通道、单位、超时、来源和输出边界执行分层验证；DeviceAdapter 在 I/O 前复用这些安全门 | 配置不依赖任意 Python 代码；具体 Simulator/CSV/Serial I/O 仍按阶段实现 | 证据见 `reports/software-phase1-step7.md` 和 `reports/software-phase2-step1.md` |
+| TD-020 | CLOSED | `csv-replay.v1` 已冻结 13 列、META/DATA/END、UTC、单位、状态、声明来源、质量、记录引用和限制；loader 只读且合法/非法黄金样本冻结错误族 | 历史数据不再依赖猜测列、单位或文件是否完整；播放生命周期仍由 Step 6 跟踪 | 证据见 `docs/csv-replay-v1.md` 和 `reports/software-phase2-step5.md` |
 
 关闭技术债时必须记录对应代码、测试、文档和验证报告，不能只从表格删除。

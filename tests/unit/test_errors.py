@@ -12,7 +12,11 @@ from analog_validation import (
     FrameTooLong,
     FramingError,
     ProtocolError,
+    ReplayError,
+    ReplayFormatError,
+    ReplayLimitError,
     UnsupportedProtocolVersion,
+    UnsupportedReplayVersion,
     ValidationError,
 )
 
@@ -28,6 +32,10 @@ from analog_validation import (
         UnsupportedProtocolVersion,
         CapabilityError,
         ConfigurationError,
+        ReplayError,
+        ReplayFormatError,
+        ReplayLimitError,
+        UnsupportedReplayVersion,
     ],
 )
 def test_every_product_error_is_caught_by_root(
@@ -52,6 +60,18 @@ def test_non_protocol_families_remain_distinct() -> None:
     assert not issubclass(ValidationError, ProtocolError)
     assert not issubclass(CapabilityError, ProtocolError)
     assert not issubclass(ConfigurationError, ProtocolError)
+    assert not issubclass(ReplayError, ProtocolError)
+
+
+@pytest.mark.parametrize(
+    "error_type",
+    [ReplayFormatError, ReplayLimitError, UnsupportedReplayVersion],
+)
+def test_replay_specializations_are_caught_as_replay_errors(
+    error_type: type[ReplayError],
+) -> None:
+    with pytest.raises(ReplayError):
+        raise error_type("bad replay dataset")
 
 
 def test_exception_chaining_preserves_low_level_cause() -> None:

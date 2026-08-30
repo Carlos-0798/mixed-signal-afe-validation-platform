@@ -14,6 +14,10 @@ AnalogValidationError
 │   └── UnsupportedProtocolVersion
 ├── CapabilityError
 ├── ConfigurationError
+├── ReplayError
+│   ├── ReplayFormatError
+│   │   └── UnsupportedReplayVersion
+│   └── ReplayLimitError
 └── AdapterError
     ├── AdapterConnectionError
     ├── AdapterStateError
@@ -31,6 +35,10 @@ AnalogValidationError
 | `UnsupportedProtocolVersion` | Record is valid enough to identify a version, but that version is unsupported |
 | `CapabilityError` | Selected device did not declare the requested operation |
 | `ConfigurationError` | Configuration is missing, inconsistent, or outside allowed policy |
+| `ReplayError` | Base class for replay access, format, or resource-limit failures |
+| `ReplayFormatError` | Replay CSV violates its declared structure or record semantics |
+| `ReplayLimitError` | Replay input exceeds a byte, field, or record-count limit |
+| `UnsupportedReplayVersion` | Replay input declares an unsupported schema version |
 | `AdapterError` | Base class for an expected adapter operation failure |
 | `AdapterConnectionError` | Adapter-specific connect or disconnect failed |
 | `AdapterStateError` | Operation is not permitted in the current lifecycle state |
@@ -69,5 +77,7 @@ This preserves a readable product message and the original diagnostic cause.
 Software Phase 1 completed the one-time migration to `analog_validation.errors`. The retired `dashboard.protocol` and `dashboard.models` files no longer provide a second error or model surface. New adapters, profiles, runners, CLI commands, and the future Dashboard must use the formal exception hierarchy.
 
 Software Phase 2 Step 1 adds stable adapter error families. The base adapter preserves known `AnalogValidationError` subclasses and wraps unexpected hook failures with exception chaining, so callers receive a stable product error without losing the original diagnostic cause.
+
+Software Phase 2 Step 5 adds a separate replay family so malformed local datasets, bounded-resource rejection, and unsupported replay versions do not masquerade as live device or wire-protocol failures.
 
 These error types describe software behavior only. They do not certify hardware ranges, wiring safety, communication reliability, or physical measurements.

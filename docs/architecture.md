@@ -11,13 +11,16 @@ Independent AFE Base Unit
 ```
 
 ```text
-Simulator / future CSV / Serial / Instrument
+Simulator / future CSV adapter / Serial / Instrument
             |
             v
  analog_validation.adapters  ---> lifecycle / capability / safety port
             |
             v
  analog_validation.protocol  ---> versioned AFE v1 records
+            |
+            v
+ analog_validation.replay    ---> strict immutable CSV Replay v1
             |
             v
  analog_validation.domain    ---> provenance / capability / TestRun
@@ -31,5 +34,7 @@ Simulator / future CSV / Serial / Instrument
 `DeviceAdapter` uses template methods: public methods own lifecycle, capability, configuration, unit, provenance, and output-safety checks; concrete adapters implement protected source-specific hooks. `connect()` reaches only `CONNECTED_READ_ONLY`. Output remains impossible until capabilities are confirmed and a matching `allow_output=true` configuration passes both configured and device safe ranges. See `adapters.md`.
 
 The Step 4 `SimulatorAdapter` is the first concrete adapter. It is read-only, uses only standard-library dependencies, exposes explicit input/output mV channels plus a boolean Schmitt-state channel, and returns only `SYNTHETIC` Measurements. Configured non-idealities and fault injection remain software evidence. The repository-local telemetry CLI imports its formal generator; the formal package never imports the tool.
+
+Step 5 adds `analog_validation.replay` as a separate file-format boundary. It validates complete CSV Replay v1 datasets before a future adapter can use them. The parser may preserve a file's declared source as metadata, but only Step 6 may create current replay Measurements, and those must use `CSV_REPLAY` rather than inheriting a possible `BENCH_*` claim.
 
 Hardware, reference-controller firmware, integration profiles, and host tools are separate boundaries. Firmware remains a later-phase placeholder. Public integration with the independent MSP430 project is one future supported profile, limited to documented protocol and electrical interfaces; no application code, ownership, or product identity is shared. See `PRODUCT_ARCHITECTURE.md`.

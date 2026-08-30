@@ -1,0 +1,58 @@
+[
+  {
+    "name": "wrong_header",
+    "find": "timestamp_utc",
+    "replace": "timestamp",
+    "error_type": "ReplayFormatError",
+    "message": "header"
+  },
+  {
+    "name": "unsupported_version",
+    "find": "csv-replay.v1",
+    "replace": "csv-replay.v2",
+    "error_type": "UnsupportedReplayVersion",
+    "message": "unsupported CSV replay version"
+  },
+  {
+    "name": "end_count_mismatch",
+    "find": "END,csv-replay.v1,afe-demo-001,,,,,,,,,,5",
+    "replace": "END,csv-replay.v1,afe-demo-001,,,,,,,,,,4",
+    "error_type": "ReplayFormatError",
+    "message": "record_count"
+  },
+  {
+    "name": "noncanonical_quality_order",
+    "find": "MISSING|COMMUNICATION_ERROR",
+    "replace": "COMMUNICATION_ERROR|MISSING",
+    "error_type": "ReplayFormatError",
+    "message": "canonical enum order"
+  },
+  {
+    "name": "missing_end",
+    "find": "END,csv-replay.v1,afe-demo-001,,,,,,,,,,5\n",
+    "replace": "",
+    "error_type": "ReplayFormatError",
+    "message": "last row"
+  },
+  {
+    "name": "decreasing_timestamp",
+    "find": "2026-08-30T12:00:00.300000Z,afe.ch0.threshold",
+    "replace": "2026-08-30T11:59:59Z,afe.ch0.threshold",
+    "error_type": "ReplayFormatError",
+    "message": "nondecreasing"
+  },
+  {
+    "name": "duplicate_record_id",
+    "find": "bool-004,bool-004",
+    "replace": "input-000,bool-004",
+    "error_type": "ReplayFormatError",
+    "message": "unique"
+  },
+  {
+    "name": "unknown_source",
+    "find": "VALID,HOST_TEST,,",
+    "replace": "VALID,PHYSICAL,,",
+    "error_type": "ReplayFormatError",
+    "message": "unsupported evidence source"
+  }
+]
