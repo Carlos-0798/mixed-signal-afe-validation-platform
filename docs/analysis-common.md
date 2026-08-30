@@ -101,4 +101,4 @@ The analysis API is exposed from `analog_validation.analysis`. It is deliberatel
 
 ## 7. Current boundary
 
-Step 1 supplies reusable vocabulary and validation only. It does not pair input/output records, identify numeric saturation limits, calculate residuals, fit a line, define engineering tolerances, or control an output. Those responsibilities begin in later Phase 3 checkpoints.
+Step 1 supplies reusable vocabulary and validation only; this module itself does not pair records, fit a line, define engineering tolerances, or control output. Step 2 now builds the first pure calculation layer on top of it in [DC sweep analysis v1](dc-sweep-analysis.md). Versioned engineering tolerances, TestRun conclusions, runners, and output control remain later Phase 3 checkpoints.

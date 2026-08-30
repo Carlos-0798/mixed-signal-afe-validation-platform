@@ -4,6 +4,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Host-only software reports:
 
+- `software-phase3-step2.md` — formal DC sweep pairing, point-level quality/saturation decisions, linear metrics, incomplete-analysis semantics, build/install verification, and evidence limits.
 - `software-phase3-step1.md` — common analysis schema, record lineage, quality policy, voltage normalization, focused/full tests, build/install verification, and evidence limits.
 - `software-phase3-planning.md` — Software Phase 3 file-level plan, architecture decisions, eight implementation checkpoints, approval boundary, and hardware evidence limits.
 - `software-phase2-step8.md` — Software Phase 2 closure: public API and end-to-end golden compatibility freeze, full regression, external install, exit criteria, and remaining boundaries.

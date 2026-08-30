@@ -1,7 +1,7 @@
 # Software Phase 3 文件级实施计划
 
 **阶段名称：** 测试执行、质量感知分析与结构化结果<br>
-**规划状态：** 实施中，进度 1/8<br>
+**规划状态：** 实施中，进度 2/8<br>
 **预计时间：** 7–10 个初学者开发日<br>
 **前置：** Software Phase 2 的 adapter、Replay、共用读取工作流和兼容基线完成<br>
 **硬件要求：** 无<br>
@@ -10,7 +10,7 @@
 ## 当前进度
 
 - [x] Step 1：分析公共语义与质量 policy；
-- [ ] Step 2：正式 DC sweep 分析；
+- [x] Step 2：正式 DC sweep 分析；
 - [ ] Step 3：DC sweep criteria 与结论映射；
 - [ ] Step 4：控制器无关 DC sweep runner；
 - [ ] Step 5：正式迟滞分析与 runner；
@@ -18,7 +18,7 @@
 - [ ] Step 7：版本化 CSV/JSON 结果导出；
 - [ ] Step 8：黄金兼容、构建和阶段收口。
 
-Step 1 已通过 56 项专门测试、700 项完整回归、100% 正式 package 覆盖、静态检查、隔离构建和仓库外 wheel smoke。证据见 `reports/software-phase3-step1.md`。这不表示 Step 2–8 或任何硬件功能已经完成。
+Step 2 已通过 81 项专门测试、781 项完整回归、100% 正式 package 覆盖、静态检查、隔离构建和仓库外 wheel smoke。证据见 `reports/software-phase3-step2.md`。这不表示 Step 3–8、输出控制或任何硬件功能已经完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -205,6 +205,8 @@ Step 1 将冻结：
 迁移并重写线性拟合和饱和排除。结果保留所有点、逐点原因、预测值、残差、R²、RMSE 和最大残差；旧 `dashboard.measurements.dc_sweep` 仅作为迁移对照，之后删除或变为薄兼容入口。
 
 验收：精确直线、带噪数据、上下饱和、质量异常、点数不足、相同输入、混合单位和阈值边界均有测试。
+
+**状态：已完成。** `dc-sweep-analysis.v1` 已实现双记录追溯、顺序配对、逐点质量/饱和原因、默认至少三个有效点、明确 incomplete 缺口，以及 gain、offset、R²、RMSE、最大残差和逐点预测/残差；不产生 PASS/FAIL，也不控制输出。
 
 ### Step 3：DC sweep criteria 与结论映射
 

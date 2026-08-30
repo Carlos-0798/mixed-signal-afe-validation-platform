@@ -19,3 +19,4 @@ simulation/ltspice/netlists/*.op.raw
 # Generated test and report output.
 test-data/generated/
 reports/generated/
+outputs/

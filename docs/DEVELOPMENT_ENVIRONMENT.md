@@ -1,7 +1,7 @@
 # 开发环境
 
 **验证日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 2 已完成（8/8）<br>
+**当前阶段：** Software Phase 3 实施中（2/8）<br>
 **硬件要求：** 无
 
 ## 已验证环境
@@ -42,7 +42,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m build
 ```
 
-pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、隔离构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 Step 1 已在 `analog_validation.analysis.common` 建立正式记录追溯、质量 policy、逐记录决定和 V/mV 规范化；旧 `dashboard/measurements/` 数学算法仍将在后续 Step 2/5/6 迁移。旧算法通过当前静态检查和回归测试，不表示其质量、来源和可追溯语义已经达到正式分析核心要求。
+pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、隔离构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 Steps 1–2 已在 `analog_validation.analysis` 建立正式记录追溯、质量 policy、V/mV 规范化和 DC sweep 拟合/饱和/不完整语义。旧 `dashboard/measurements/` 数学算法只保留为迁移回归对照，不属于正式产品核心；迟滞、校准和频响仍待后续迁移。
 
 ## 当前边界
 

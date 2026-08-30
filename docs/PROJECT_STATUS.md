@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-08-30<br>
-**Current milestone:** Software Phase 3 in progress — 1 of 8 checkpoints complete<br>
-**Release maturity:** pre-MVP / device-acquisition layer complete; analysis foundation started<br>
+**Current milestone:** Software Phase 3 in progress — 2 of 8 checkpoints complete<br>
+**Release maturity:** pre-MVP / device-acquisition layer complete; formal DC analysis implemented<br>
 **Highest evidence level:** HOST_TEST  
 **Verified hardware claims:** 0
 
@@ -12,7 +12,7 @@ The repository currently provides an installable, controller-neutral Python core
 
 The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow atomically checks every requested command/channel/unit, executes the same read path for either adapter, returns `UNSUPPORTED` before partial I/O, returns `INCOMPLETE` for early replay EOF, and always releases its adapter. Analysis runners, product CLI, dashboard, serial transport, and a validated physical AFE are not yet implemented.
 
-Software Phase 3 Step 1 adds the versioned `analog_validation.analysis` foundation. It preserves UTC record lineage and evidence source, rejects duplicate/mixed-source batches, distinguishes included/excluded/invalid analysis decisions, maps every current quality flag to a stable reason, requires an explicit policy before including finite suspect data, and converts only finite explicit V/mV values. Formal DC sweep math and runners remain unimplemented.
+Software Phase 3 Steps 1–2 add the versioned `analog_validation.analysis` foundation and formal DC sweep math. The package preserves dual input/output record lineage and evidence source, rejects structural pairing errors, distinguishes included/excluded/invalid points, applies default-deny quality policy and explicit V/mV normalization, excludes inclusive numeric saturation boundaries with exact reasons, and returns a fit only when enough distinct eligible inputs remain. It calculates gain, offset, R², RMSE, maximum absolute residual, predictions, and residuals without producing PASS/FAIL. Runners remain unimplemented.
 
 ## Software Phase 1 checkpoints
 
@@ -44,9 +44,10 @@ Software Phase 3 Step 1 adds the versioned `analog_validation.analysis` foundati
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 700 passed |
-| Formal package statement coverage | 100% of 2,474 statements |
+| Full pytest suite | 781 passed |
+| Formal package statement coverage | 100% of 2,800 statements |
 | Phase 3 common analysis semantics | 56 focused tests; 244/244 statements covered |
+| Phase 3 DC sweep analysis | 81 focused tests; 325/325 statements covered |
 | DeviceAdapter lifecycle and safety | 36 tests passed |
 | Reusable concrete-adapter contract | 8 shared checks passed against reference, Simulator, and CSV Replay adapters |
 | Simulator-specific unit tests | 69 passed; config, generator, channel independence, non-idealities, hysteresis, fault, clock, capability, and reconnect behavior |
@@ -58,8 +59,8 @@ Software Phase 3 Step 1 adds the versioned `analog_validation.analysis` foundati
 | Synthetic integration | 100 frames / 400 explicit `SYNTHETIC` Measurements passed |
 | Core dependency boundary | Passed; standard library and own package only |
 | Ruff | Passed on the full repository |
-| mypy | Passed on `src`, `dashboard`, `tools`, and `tests` — 70 source files |
-| Package build and external install | Passed; installed Step 1 wheel preserved the frozen 84-symbol Phase 2 top-level API and exposed the 10-symbol analysis namespace; external quality/provenance smoke passed |
+| mypy | Passed on `src`, `dashboard`, `tools`, and `tests` — 72 source files |
+| Package build and external install | Passed; installed Step 2 wheel preserved the frozen 84-symbol Phase 2 top-level API and exposed the 19-symbol analysis namespace; external exact-fit/saturation/incomplete smoke passed |
 | Hardware bench validation | Not performed |
 
 ## Software Phase 3 checkpoints
@@ -68,7 +69,7 @@ Software Phase 3 Step 1 adds the versioned `analog_validation.analysis` foundati
 |---:|---|---|---|
 | Plan | File-level architecture, scope, safety boundary, and exit gates | Complete | HOST_TEST planning record |
 | 1 | Common analysis vocabulary and quality policy | Complete | HOST_TEST |
-| 2 | Provenance-aware DC sweep analysis | Planned | — |
+| 2 | Provenance-aware DC sweep analysis | Complete | HOST_TEST / SYNTHETIC |
 | 3 | Versioned DC criteria and TestRun mapping | Planned | — |
 | 4 | Controller-neutral, safety-gated DC sweep runner | Planned | — |
 | 5 | Directional hysteresis analysis and runner | Planned | — |
@@ -96,6 +97,7 @@ Safe to claim now:
 - implemented one versioned read workflow for Simulator and CSV Replay with immutable requests/results, atomic capability degradation, explicit incomplete-data reporting, and guaranteed lifecycle cleanup.
 - froze public imports, schema values, enum values, signature shapes, error bases, replay hashes, and complete Simulator/CSV/UNSUPPORTED workflow meaning in machine-readable compatibility files.
 - implemented a versioned common analysis foundation with immutable record lineage, explicit point dispositions/reasons, one-source batches, default-deny suspect quality handling, and strict finite V/mV normalization.
+- implemented versioned provenance-aware DC sweep pairing, point-level inclusive saturation/quality exclusion, explicit incomplete-analysis gaps, and ordinary least-squares metrics with retained predictions and residuals.
 
 Not safe to claim now:
 
@@ -107,7 +109,7 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 3 Step 1 is complete. Step 2 will formalize DC sweep point pairing, configurable saturation exclusion, ordinary least-squares gain/offset, R², RMSE, maximum absolute residual, predictions, and per-point records. PASS/FAIL criteria and automatic output remain outside Step 2.
+Software Phase 3 Step 2 is complete. Step 3 will define immutable versioned gain/offset/R²/RMSE/point-count acceptance criteria and map complete analyses into evidence-backed TestRun conclusions. Missing criteria or incomplete data must not produce PASS. Automatic output and hardware remain later work.
 
 ## GitHub and LinkedIn presentation policy
 
