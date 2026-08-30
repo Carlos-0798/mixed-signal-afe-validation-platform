@@ -40,6 +40,24 @@ Simulator CSV  future Serial/MSP430/instrument
 
 The base class validates returned channel, unit, and evidence source. A SimulatorAdapter must return `SYNTHETIC`; a replay adapter must return `CSV_REPLAY`. Neither can silently return `BENCH_*` evidence.
 
+## Reusable contract tests
+
+`tests/contracts/adapter_contract.py` defines `ReadOnlyAdapterContract`. A concrete adapter test supplies only an `AdapterContractSpec`:
+
+```python
+class TestExampleAdapterContract(ReadOnlyAdapterContract):
+    contract_spec = AdapterContractSpec(
+        factory=ExampleAdapter,
+        evidence_source=EvidenceSource.SYNTHETIC,
+        analog_channel="adc0",
+        analog_unit=MeasurementUnit.VOLT,
+    )
+```
+
+Pytest then inherits the same eight checks for initial state/provenance, read-only connection, explicit and cached capabilities, premature-read rejection, typed measurement output, unknown-channel classification, idempotent shutdown, and disconnect/reconnect behavior.
+
+The Step 2 `ContractReferenceAdapter` is only a HOST_TEST fixture proving that the suite is collectible and reusable. It is not a SimulatorAdapter, physical device, or product data source. Steps 3 and 6 must run the same suite against the real Simulator and CSV Replay implementations.
+
 ## What this does not prove
 
 The state machine and tests prove host-software behavior only. `SAFE_SHUTDOWN` means the adapter software path completed; it does not prove that a physical relay, DAC, PWM pin, power rail, or external circuit actually reached a safe voltage. That requires later firmware and bench evidence.

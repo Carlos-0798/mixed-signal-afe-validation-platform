@@ -1,7 +1,7 @@
 # Project Status
 
 **Last updated:** 2026-08-29  
-**Current milestone:** Software Phase 2 in progress — 1 of 8 checkpoints<br>
+**Current milestone:** Software Phase 2 in progress — 2 of 8 checkpoints<br>
 **Release maturity:** pre-MVP / verified adapter-contract foundation<br>
 **Highest evidence level:** HOST_TEST  
 **Verified hardware claims:** 0
@@ -30,8 +30,8 @@ It does not yet provide a concrete Simulator or CSV Replay adapter, test runner,
 | Step | Deliverable | Status | Evidence |
 |---:|---|---|---|
 | 1 | `DeviceAdapter`, lifecycle states, safety gates, and typed adapter errors | Complete | HOST_TEST |
-| 2 | Reusable adapter contract suite | Next | — |
-| 3 | Deterministic SimulatorAdapter data flow | Planned | — |
+| 2 | Reusable adapter contract suite | Complete | HOST_TEST |
+| 3 | Deterministic SimulatorAdapter data flow | Next | — |
 | 4 | Simulator non-idealities and controlled faults | Planned | — |
 | 5 | Versioned immutable CSV replay schema/parser | Planned | — |
 | 6 | CsvReplayAdapter speed, pause, resume, and EOF | Planned | — |
@@ -42,9 +42,10 @@ It does not yet provide a concrete Simulator or CSV Replay adapter, test runner,
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 360 passed |
+| Full pytest suite | 368 passed |
 | Formal package statement coverage | 100% of 1,392 statements |
 | DeviceAdapter lifecycle and safety | 36 tests passed |
+| Reusable concrete-adapter contract | 8 shared checks passed against a reference test adapter |
 | AFE golden compatibility | 20 valid + 9 invalid cases passed |
 | Synthetic integration | 100 frames / 400 explicit `SYNTHETIC` Measurements passed |
 | Core dependency boundary | Passed; standard library and own package only |
@@ -77,7 +78,7 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 2 Step 2 will extract a reusable contract-test suite. The future Simulator and CSV Replay implementations must both pass it through the same public interface. Work remains software-only and preserves explicit `SYNTHETIC`/`CSV_REPLAY` evidence labels.
+Software Phase 2 Step 3 will implement the first deterministic, read-capable `SimulatorAdapter` and run the shared contract against it. Work remains software-only and must label every generated Measurement `SYNTHETIC`.
 
 ## GitHub and LinkedIn presentation policy
 
