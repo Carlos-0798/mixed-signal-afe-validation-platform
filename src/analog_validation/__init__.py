@@ -32,10 +32,24 @@ from .errors import (
     UnsupportedProtocolVersion,
     ValidationError,
 )
+from .protocol import (
+    CRC16_CCITT_FALSE_INITIAL,
+    CRC16_CCITT_FALSE_POLYNOMIAL,
+    CRC16_CCITT_FALSE_XOR_OUT,
+    MAX_RECORD_BYTES,
+    Frame,
+    crc16_ccitt_false,
+    decode_frame,
+    encode_frame,
+)
 from .version import __version__
 
 __all__ = [
     "CAPABILITY_SCHEMA_VERSION",
+    "CRC16_CCITT_FALSE_INITIAL",
+    "CRC16_CCITT_FALSE_POLYNOMIAL",
+    "CRC16_CCITT_FALSE_XOR_OUT",
+    "MAX_RECORD_BYTES",
     "MEASUREMENT_SCHEMA_VERSION",
     "TEST_RUN_SCHEMA_VERSION",
     "AnalogValidationError",
@@ -46,6 +60,7 @@ __all__ = [
     "DeviceCapabilities",
     "DeviceCommand",
     "EvidenceSource",
+    "Frame",
     "FrameTooLong",
     "FramingError",
     "Measurement",
@@ -60,4 +75,7 @@ __all__ = [
     "UnsupportedProtocolVersion",
     "ValidationError",
     "__version__",
+    "crc16_ccitt_false",
+    "decode_frame",
+    "encode_frame",
 ]

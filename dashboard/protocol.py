@@ -3,91 +3,39 @@
 from __future__ import annotations
 
 import re
-from dataclasses import dataclass
-from typing import Iterable
+
+from analog_validation.errors import (
+    CrcMismatch,
+    FrameTooLong,
+    FramingError,
+    ProtocolError,
+)
+from analog_validation.protocol import (
+    MAX_RECORD_BYTES,
+    Frame,
+    crc16_ccitt_false,
+    decode_frame,
+    encode_frame,
+)
 
 from .models import Command, Telemetry
 
-MAX_RECORD_BYTES = 128
 _HEX4 = re.compile(r"^[0-9A-F]{4}$")
 
-
-class ProtocolError(ValueError):
-    """Base class for rejected AFE records."""
-
-
-class FrameTooLong(ProtocolError):
-    """The serialized record exceeds the transport limit."""
-
-
-class CrcMismatch(ProtocolError):
-    """The received CRC does not match the payload."""
-
-
-@dataclass(frozen=True)
-class Frame:
-    fields: tuple[str, ...]
-
-
-def crc16_ccitt_false(data: bytes) -> int:
-    """Return CRC-16/CCITT-FALSE (poly 0x1021, init 0xFFFF)."""
-    crc = 0xFFFF
-    for byte in data:
-        crc ^= byte << 8
-        for _ in range(8):
-            crc = ((crc << 1) ^ 0x1021) & 0xFFFF if crc & 0x8000 else (crc << 1) & 0xFFFF
-    return crc
-
-
-def _ascii(text: str) -> bytes:
-    try:
-        return text.encode("ascii")
-    except UnicodeEncodeError as exc:
-        raise ProtocolError("record must contain ASCII only") from exc
-
-
-def encode_frame(fields: Iterable[object]) -> str:
-    rendered = tuple(str(field) for field in fields)
-    if len(rendered) < 3 or rendered[0] != "AFE":
-        raise ProtocolError("frame must begin with AFE and contain type and sequence")
-    if any(not field or "," in field or "\r" in field or "\n" in field or field.strip() != field for field in rendered):
-        raise ProtocolError("fields must be non-empty unquoted CSV tokens without whitespace")
-    payload = ",".join(rendered)
-    crc = crc16_ccitt_false(_ascii(payload))
-    record = f"{payload},{crc:04X}\n"
-    if len(_ascii(record)) > MAX_RECORD_BYTES:
-        raise FrameTooLong(f"record exceeds {MAX_RECORD_BYTES} bytes")
-    return record
-
-
-def decode_frame(record: str | bytes) -> Frame:
-    if isinstance(record, bytes):
-        raw = record
-        try:
-            text = raw.decode("ascii")
-        except UnicodeDecodeError as exc:
-            raise ProtocolError("record must contain ASCII only") from exc
-    else:
-        text = record
-        raw = _ascii(text)
-    if len(raw) > MAX_RECORD_BYTES:
-        raise FrameTooLong(f"record exceeds {MAX_RECORD_BYTES} bytes")
-    text = text.removesuffix("\n").removesuffix("\r")
-    if "\r" in text or "\n" in text:
-        raise ProtocolError("record contains an embedded line ending")
-    parts = text.split(",")
-    if len(parts) < 4 or parts[0] != "AFE":
-        raise ProtocolError("invalid namespace or missing fields")
-    if any(not part or part.strip() != part for part in parts):
-        raise ProtocolError("empty or whitespace-padded field")
-    received = parts[-1]
-    if not _HEX4.fullmatch(received):
-        raise ProtocolError("CRC must be four uppercase hexadecimal digits")
-    payload = ",".join(parts[:-1])
-    expected = crc16_ccitt_false(_ascii(payload))
-    if int(received, 16) != expected:
-        raise CrcMismatch(f"CRC mismatch: expected {expected:04X}")
-    return Frame(tuple(parts[:-1]))
+__all__ = [
+    "MAX_RECORD_BYTES",
+    "CrcMismatch",
+    "Frame",
+    "FrameTooLong",
+    "FramingError",
+    "ProtocolError",
+    "build_telemetry",
+    "crc16_ccitt_false",
+    "decode_frame",
+    "encode_frame",
+    "parse_command",
+    "parse_telemetry",
+]
 
 
 def _int_field(value: str, name: str, minimum: int, maximum: int, *, base: int = 10) -> int:
@@ -145,4 +93,3 @@ def parse_command(record: str | bytes) -> Command:
     if tail == ("SAVE", "CALIBRATION"):
         return Command(seq, "SAVE", "CALIBRATION")
     raise ProtocolError("unsupported command shape")
-

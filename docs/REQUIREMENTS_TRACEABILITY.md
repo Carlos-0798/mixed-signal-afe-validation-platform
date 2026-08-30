@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-29  
-**当前阶段：** Software Phase 1 Step 4 完成
+**当前阶段：** Software Phase 1 Step 5 完成
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -15,8 +15,8 @@
 | SW-FR-003 | IMPLEMENTED | 9 类受控 `EvidenceSource` 已验证且每个正式 Measurement 必填 | Step 8 迁移生成器；Phase 3/5 写入导出和报告 |
 | SW-FR-004 | IMPLEMENTED | Measurement 冻结且强制 `record_id`/`raw_record_id`，可区分原始与派生 | Phase 3 分析结果保存实际引用链 |
 | SW-FR-005 | VERIFIED_HOST | 12 类受控单位；未知单位和含义不明值被拒绝 | 后续 profile 映射保持显式单位 |
-| SW-FR-010 | VERIFIED_HOST | `crc16_ccitt_false`；`tests/test_crc.py` | Phase 1 拆为独立稳定模块并增加向量 |
-| SW-FR-011 | VERIFIED_HOST | 128-byte 限制、换行和 CRLF 测试 | Phase 4 增加流式分帧 |
+| SW-FR-010 | VERIFIED_HOST | CRC 只有 `protocol/crc.py` 一个实现；固定参数、5 个黄金向量和 bytes-like 边界测试通过 | 后续 profile/adapter 复用，不再复制算法 |
+| SW-FR-011 | VERIFIED_HOST | 正式 framing 实现 128-byte 上限、严格可打印 ASCII token、LF/CRLF、CRC envelope 和精确错误；边界测试通过 | Phase 4 增加流式分帧和超长恢复状态机 |
 | SW-FR-012 | VERIFIED_HOST | 严格 telemetry/command parser 和错误测试 | Phase 1 扩展版本化消息和黄金文件 |
 | SW-FR-013 | ACCEPTED | 无序列追踪 | Phase 1 定义语义，Phase 4 实现 transport tracker |
 | SW-FR-014 | ACCEPTED | 无协议版本 | Phase 1 定义 AFE v1 envelope/profile |
@@ -45,7 +45,7 @@
 | SW-FR-043 | ACCEPTED | `csv_export.py` 占位 | Phase 3 实现结构化导出 |
 | SW-FR-044 | ACCEPTED | 无 JSON 摘要 | Phase 3 实现 |
 | SW-FR-045 | ACCEPTED | `summary.py` 占位 | Phase 5 实现证据和限制说明 |
-| SW-FR-046 | IMPLEMENTED | 正式包公开 9 类稳定错误；继承、消息和异常链测试通过 | Step 5 迁移协议错误；Phase 5 增加用户操作指导 |
+| SW-FR-046 | IMPLEMENTED | 正式包公开 9 类稳定错误；framing 已实际区分 `FramingError`、`FrameTooLong` 和 `CrcMismatch` | Step 6 迁移 profile 错误；Phase 5 增加用户操作指导 |
 
 ## 软件非功能需求
 

@@ -4,6 +4,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Host-only software reports:
 
+- `software-phase1-step5.md` — single CRC implementation, bounded strict framing, golden vectors, compatibility regression, package verification, and UART evidence limits.
 - `software-phase1-step4.md` — explicit device capabilities, safe ranges, test-run conclusion semantics, package verification, and hardware evidence limits.
 - `software-phase1-step3.md` — provenance-aware immutable measurement model, controlled units, quality consistency, package verification, and evidence limits.
 - `software-phase1-step2.md` — stable public exception hierarchy, capture semantics, static checks, and migration boundary.

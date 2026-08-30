@@ -1,5 +1,7 @@
 # AFE UART CSV protocol
 
+Software Phase 1 Step 5 已将共享 CRC 和有界 ASCII framing 迁移到正式 `analog_validation.protocol` 包。实现边界、错误分类和初学者说明见 `docs/framing-and-crc.md`。本文后续的 telemetry/command 字段仍是 Phase 0 业务形状；它们将在 Step 6 进入版本化 AFE v1 profile。
+
 ## Transport
 
 - UART: 115200 baud, 8 data bits, no parity, 1 stop bit.
@@ -58,7 +60,7 @@ AFE,CMD,<seq>,RUN,FREQUENCY_SWEEP,<channel>,<crc16>
 AFE,CMD,<seq>,SAVE,CALIBRATION,<crc16>
 ```
 
-Phase 0 parsing validates framing, CRC, types, lengths, and the listed command shapes. Firmware acknowledgements, timeout policy, duplicate-sequence handling, and fault-bit assignments remain Phase 1 decisions.
+当前 parsing validates framing, CRC, types, lengths, and the listed command shapes. Firmware acknowledgements, timeout policy, duplicate-sequence handling, and fault-bit assignments remain later-phase decisions.
 
 The protocol belongs to the AFE product, not to any MSP430, STM32, or RP2040 board. Phase 1 must add a versioned capability exchange before host software enables optional ADC, DAC, PWM, edge-capture, or calibration commands. Board-specific pin numbers and SDK names are never transmitted as part of this public protocol.
 

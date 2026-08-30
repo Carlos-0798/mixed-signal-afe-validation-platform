@@ -1,0 +1,2 @@
+recursive-include test-data *.json *.md
+recursive-include tests *.py
