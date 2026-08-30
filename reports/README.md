@@ -4,6 +4,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Host-only software reports:
 
+- `software-phase3-planning.md` — Software Phase 3 file-level plan, architecture decisions, eight implementation checkpoints, approval boundary, and hardware evidence limits.
 - `software-phase2-step8.md` — Software Phase 2 closure: public API and end-to-end golden compatibility freeze, full regression, external install, exit criteria, and remaining boundaries.
 - `software-phase2-step7.md` — shared Simulator/CSV read workflow, atomic capability degradation, incomplete replay semantics, lifecycle cleanup, and evidence limits.
 - `software-phase2-step6.md` — formal CsvReplayAdapter playback, timing, pause/resume, EOF, provenance conversion, shared contract, and packaging evidence.

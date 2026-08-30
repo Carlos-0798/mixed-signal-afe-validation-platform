@@ -1,7 +1,7 @@
 # Project Status
 
 **Last updated:** 2026-08-30<br>
-**Current milestone:** Software Phase 2 complete — 8 of 8 checkpoints<br>
+**Current milestone:** Software Phase 3 planning complete — implementation 0 of 8 checkpoints<br>
 **Release maturity:** pre-MVP / software device and acquisition layer complete<br>
 **Highest evidence level:** HOST_TEST  
 **Verified hardware claims:** 0
@@ -11,6 +11,8 @@
 The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC/framing implementation, the versioned AFE v1 profile, strict non-executable JSON configuration, frozen protocol and replay compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, a configurable deterministic read-only SimulatorAdapter, a strict immutable CSV Replay v1 parser, a read-only CsvReplayAdapter, and a shared adapter-neutral read workflow.
 
 The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow atomically checks every requested command/channel/unit, executes the same read path for either adapter, returns `UNSUPPORTED` before partial I/O, returns `INCOMPLETE` for early replay EOF, and always releases its adapter. Analysis runners, product CLI, dashboard, serial transport, and a validated physical AFE are not yet implemented.
+
+The Software Phase 3 file-level plan now separates pure analysis, runner lifecycle, versioned acceptance decisions, and CSV/JSON export. It preserves the frozen Phase 2 read-only adapters, requires point-level lineage and exclusion reasons, and routes any future automatic output through the existing capability/configuration/range/shutdown gates. This is a planning result, not an implemented analysis feature.
 
 ## Software Phase 1 checkpoints
 
@@ -59,6 +61,20 @@ The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmi
 | Package build and external install | Passed; golden AFE parse/re-encode and safe configuration round trips returned true, output remained false |
 | Hardware bench validation | Not performed |
 
+## Software Phase 3 checkpoints
+
+| Step | Deliverable | Status | Evidence |
+|---:|---|---|---|
+| Plan | File-level architecture, scope, safety boundary, and exit gates | Complete | HOST_TEST planning record |
+| 1 | Common analysis vocabulary and quality policy | Planned | — |
+| 2 | Provenance-aware DC sweep analysis | Planned | — |
+| 3 | Versioned DC criteria and TestRun mapping | Planned | — |
+| 4 | Controller-neutral, safety-gated DC sweep runner | Planned | — |
+| 5 | Directional hysteresis analysis and runner | Planned | — |
+| 6 | Calibration and offline frequency response | Planned | — |
+| 7 | Versioned CSV/JSON result export | Planned | — |
+| 8 | Golden compatibility, packaging, and closure | Planned | — |
+
 ## Public claim boundary
 
 Safe to claim now:
@@ -89,7 +105,7 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 3 will migrate the existing DC sweep, linear fit, saturation exclusion, and hysteresis algorithms into provenance-aware formal modules, then build versioned analysis runners and structured results on the shared acquisition workflow. The Phase 3 file-level plan and acceptance gates must be approved before implementation.
+Software Phase 3 planning is complete and recorded in `docs/SOFTWARE_PHASE_3_PLAN.md`. The next checkpoint is Step 1: implement only the common analysis vocabulary, point dispositions/exclusion reasons, record lineage, voltage normalization, and default quality policy. DC fitting and PASS/FAIL remain later checkpoints.
 
 ## GitHub and LinkedIn presentation policy
 

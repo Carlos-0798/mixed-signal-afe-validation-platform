@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 2 完成（8/8）
+**当前阶段：** Software Phase 3 规划完成，实施 0/8
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -30,20 +30,20 @@
 | SW-FR-024 | ACCEPTED | 无 MSP430 profile | Phase 4 独立实现，保留原始字段 |
 | SW-FR-025 | VERIFIED_HOST | 共享工作流在任何读取前原子检查命令、通道和单位；缺失能力返回无部分数据且列明缺口的 `UNSUPPORTED`；Replay 提前 EOF 单独返回 `INCOMPLETE` | Phase 3 runner 将采集状态映射到正式 TestRunResult |
 | SW-FR-026 | IMPLEMENTED | AFE v1 定义 SAFE_SHUTDOWN command；自动输出验证强制声明该能力 | Phase 2 adapter 实现；输出型硬件接入时做 fault/bench 验证 |
-| SW-FR-030 | IMPLEMENTED | 合成 sweep generator | Phase 3 建立 runner、等待、重复和运行记录 |
-| SW-FR-031 | VERIFIED_HOST | `linear_fit` 与 2 项核心拟合测试 | Phase 3 增加残差、有限值和质量信息 |
-| SW-FR-032 | IMPLEMENTED | `exclude_saturated` 和测试 | Phase 3 保存逐点排除原因并配置化 |
-| SW-FR-033 | VERIFIED_HOST | `calculate_hysteresis` 和 3 项测试 | Phase 3 增加方向、状态和重复统计 |
-| SW-FR-034 | ACCEPTED | `calibration.py` 占位 | Phase 3 实现版本化系数和前后结果 |
-| SW-FR-035 | ACCEPTED | `frequency_response.py` 占位 | Phase 3 先实现离线分析 |
+| SW-FR-030 | IMPLEMENTED | 合成 sweep generator | Phase 3 Step 4 建立安全预检、等待、重复和运行记录 |
+| SW-FR-031 | VERIFIED_HOST | `linear_fit` 与 2 项核心拟合测试 | Phase 3 Steps 1–3 增加残差、有限值、质量、标准和结论映射 |
+| SW-FR-032 | IMPLEMENTED | `exclude_saturated` 和测试 | Phase 3 Step 2 保存逐点排除原因并配置化 |
+| SW-FR-033 | VERIFIED_HOST | `calculate_hysteresis` 和 3 项测试 | Phase 3 Step 5 增加方向、状态、记录引用和重复统计 |
+| SW-FR-034 | ACCEPTED | `calibration.py` 占位 | Phase 3 Step 6 实现版本化系数、派生引用和前后结果 |
+| SW-FR-035 | ACCEPTED | `frequency_response.py` 占位 | Phase 3 Step 6 实现离线幅值点分析 |
 | SW-FR-036 | IMPLEMENTED | 缺失、非有限、饱和、超范围、时间和通信质量标志已建立；Simulator 实际生成 `SATURATED` 及缺失/通信组合并通过一致性测试 | Phase 3 将规则用于分析和判定 |
 | SW-FR-037 | IMPLEMENTED | 领域模型强制 PASS/FAIL 具备证据且无缺失项；INCOMPLETE/UNSUPPORTED 不能成为 PASS | Phase 3 实现版本化判定引擎 |
 | SW-FR-038 | VERIFIED_HOST | 固定 seed 的 100 帧 AFE 流水线保持冻结 SHA-256；同配置/clock 的输入、带噪输出、迟滞和故障序列可重复，且各通道读取顺序互不干扰 | Phase 3 扩展到 runner 端到端测试 |
 | SW-FR-040 | IMPLEMENTED | 两个工具有 argparse | Phase 5 建立统一产品 CLI |
 | SW-FR-041 | ACCEPTED | `app.py` 仅占位 | Phase 5 实现 Dashboard |
 | SW-FR-042 | ACCEPTED | 无测试向导 | Phase 5 实现 |
-| SW-FR-043 | ACCEPTED | `csv_export.py` 占位 | Phase 3 实现结构化导出 |
-| SW-FR-044 | ACCEPTED | 无 JSON 摘要 | Phase 3 实现 |
+| SW-FR-043 | ACCEPTED | `csv_export.py` 占位 | Phase 3 Step 7 实现结构化导出 |
+| SW-FR-044 | ACCEPTED | 无 JSON 摘要 | Phase 3 Step 7 实现 |
 | SW-FR-045 | ACCEPTED | `summary.py` 占位 | Phase 5 实现证据和限制说明 |
 | SW-FR-046 | IMPLEMENTED | 正式包公开稳定领域/协议/配置/adapter/replay 错误；黄金坏消息冻结 CRC、长度、framing、协议版本、业务协议和 replay 格式/版本错误家族；回放 EOF 使用独立 `ReplayEndOfData` | Phase 5 增加面向用户的操作指导 |
 
@@ -92,4 +92,4 @@
 | VERIFIED_BENCH | 0 |
 | 总计 | 60 |
 
-Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 已完成 8/8：公共 adapter 契约、可配置模拟器、严格 CSV Replay、正式 CsvReplayAdapter、共用读取工作流、明确能力降级，以及 API/端到端黄金兼容冻结均通过主机验证。下一步是 Software Phase 3 分析与 runner 规划；硬件仍为 DEFERRED，VERIFIED_BENCH 仍为 0。
+Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 已完成 8/8：公共 adapter 契约、可配置模拟器、严格 CSV Replay、正式 CsvReplayAdapter、共用读取工作流、明确能力降级，以及 API/端到端黄金兼容冻结均通过主机验证。Software Phase 3 文件级计划已经冻结，需求状态尚未升级；下一步实施 Step 1 公共分析语义与质量 policy。硬件仍为 DEFERRED，VERIFIED_BENCH 仍为 0。

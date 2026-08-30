@@ -4,7 +4,7 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 2 complete — 8/8 checkpoints |
+| Development stage | Software Phase 3 plan frozen — implementation 0/8 checkpoints |
 | Release maturity | Pre-MVP; software device/acquisition layer complete |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
 | Automated host tests | 644 passed |
@@ -12,7 +12,7 @@
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Phase 2 closure report](reports/software-phase2-step8.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 3 plan](docs/SOFTWARE_PHASE_3_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Phase 3 planning report](reports/software-phase3-planning.md)
 
 ## Product vision
 
@@ -187,13 +187,13 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
-| Software Phase 3 | Test runners, analysis, calibration, structured results | Planned |
+| Software Phase 3 | Test runners, analysis, calibration, structured results | Plan frozen — implementation 0/8 |
 | Software Phase 4 | Serial transport and independent controller profiles | Planned |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-The next planned milestone is Software Phase 3: migrate the legacy DC sweep, linear-fit, saturation-exclusion, and hysteresis logic into the formal package and build evidence-aware test runners on top of the shared workflow. A file-level Phase 3 plan and acceptance gates will be frozen before implementation.
+The file-level [Software Phase 3 plan](docs/SOFTWARE_PHASE_3_PLAN.md) is now frozen for review. The next implementation checkpoint is Step 1: common analysis vocabulary, point disposition/exclusion reasons, record lineage, voltage normalization, and the default quality policy. DC fitting, PASS/FAIL rules, automatic output, and hardware remain outside that first checkpoint.
 
 ## Repository guide
 
