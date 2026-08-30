@@ -22,9 +22,9 @@
 | TD-013 | P2 | 本地 mypy、Ruff 和 coverage 已可运行，但尚无冻结规则和 CI | 自动质量门仍不能在每次变更时执行 | Phase 1 冻结核心规则；Phase 6 建立 CI |
 | TD-014 | P2 | 无统一 CLI，`app.py` 仅打印状态 | 用户无法运行产品流程 | Phase 5 |
 | TD-015 | CLOSED | CRC vectors、AFE wire records、预期 model JSON 和非法输入错误家族均已冻结 | 文件兼容性已有 host regression 保护 | 未来 schema 变化必须添加迁移样本 |
-| TD-016 | CLOSED | 正式包已建立 Validation、Protocol、Framing、CRC、版本、Capability 和 Configuration 错误层级；旧协议入口已删除 | UI/CLI 已有稳定捕获边界 | 证据见 `reports/software-phase1-step2.md` 和 Step 8 closure |
+| TD-016 | CLOSED | 正式包已建立 Validation、Protocol、Framing、CRC、版本、Capability、Configuration 和 Adapter 错误层级；旧协议入口已删除 | UI/CLI 已有稳定捕获边界 | 证据见 `reports/software-phase1-step2.md`、Step 8 closure 和 `reports/software-phase2-step1.md` |
 | TD-017 | P3 | 采购和控制器选择文档仍包含软件转向前候选 | 可能误读为立即采购指令 | 保留历史；采购前由新规划重新冻结 |
 | TD-018 | P0 | 所有硬件性能仍未验证 | 错误成果声明会损害可信度和安全 | 持续保持 `VERIFIED_BENCH=0`，直到真实台架阶段 |
-| TD-019 | CLOSED | `validation-config.v1` 已使用不可执行的严格 JSON，限制文件大小，并对 profile、通道、单位、超时、来源和输出边界执行分层验证 | 配置不再依赖任意 Python 代码；adapter I/O 仍属后续阶段 | 证据见 `reports/software-phase1-step7.md` |
+| TD-019 | CLOSED | `validation-config.v1` 已使用不可执行的严格 JSON，限制文件大小，并对 profile、通道、单位、超时、来源和输出边界执行分层验证；DeviceAdapter 在 I/O 前复用这些安全门 | 配置不依赖任意 Python 代码；具体 Simulator/CSV/Serial I/O 仍按阶段实现 | 证据见 `reports/software-phase1-step7.md` 和 `reports/software-phase2-step1.md` |
 
 关闭技术债时必须记录对应代码、测试、文档和验证报告，不能只从表格删除。

@@ -4,6 +4,7 @@ The package is controller-neutral: importing it must not require a serial
 driver, GUI toolkit, board SDK, or physical hardware.
 """
 
+from .adapters import AdapterState, DeviceAdapter
 from .config import (
     MAX_CONFIG_BYTES,
     VALIDATION_CONFIG_SCHEMA_VERSION,
@@ -36,6 +37,10 @@ from .domain import (
     TestRunResult,
 )
 from .errors import (
+    AdapterConnectionError,
+    AdapterDataError,
+    AdapterError,
+    AdapterStateError,
     AnalogValidationError,
     CapabilityError,
     ConfigurationError,
@@ -68,6 +73,11 @@ __all__ = [
     "MEASUREMENT_SCHEMA_VERSION",
     "TEST_RUN_SCHEMA_VERSION",
     "VALIDATION_CONFIG_SCHEMA_VERSION",
+    "AdapterConnectionError",
+    "AdapterDataError",
+    "AdapterError",
+    "AdapterState",
+    "AdapterStateError",
     "AnalogValidationError",
     "CapabilityError",
     "ChannelConfig",
@@ -75,6 +85,7 @@ __all__ = [
     "ChannelRole",
     "ConfigurationError",
     "CrcMismatch",
+    "DeviceAdapter",
     "DeviceCapabilities",
     "DeviceCommand",
     "EvidenceSource",

@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 1 complete — 8/8 checkpoints |
-| Release maturity | Pre-MVP; verified host core foundation |
+| Development stage | Software Phase 2 in progress — 1/8 checkpoints |
+| Release maturity | Pre-MVP; verified adapter-contract foundation |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 324 passed |
-| Formal package coverage | 100% of 1,211 statements |
+| Automated host tests | 360 passed |
+| Formal package coverage | 100% of 1,392 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Product plan](docs/PRODUCT_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase1-step8.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase2-step1.md)
 
 ## Product vision
 
@@ -41,9 +41,11 @@ The software-first plan allows the complete software product to mature without r
 - Frozen AFE v1 compatibility contract: 20 valid wire/model records and 9 rejected error cases.
 - Deterministic 100-frame synthetic telemetry pipeline producing 400 explicitly `SYNTHETIC` Measurements.
 - Executable architecture check that keeps serial, GUI, board SDKs, `dashboard`, and tools outside the formal core.
+- Controller-neutral `DeviceAdapter` contract with explicit disconnected, read-only, capability-confirmed, armed, running, and safe-shutdown states.
+- Host-side adapter gates that reject premature I/O, unsafe output, capability mismatches, wrong units, and evidence-source mismatches.
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 
-Not yet implemented: production adapters, complete Simulator/CSV replay, test runners, serial transport, CLI, dashboard, end-user report generation, firmware, or validated physical hardware.
+Not yet implemented: concrete Simulator/CSV replay adapters, test runners, serial transport, CLI, dashboard, end-user report generation, firmware, or validated physical hardware.
 
 ## Architecture
 
@@ -60,6 +62,8 @@ flowchart LR
 ```
 
 The analysis and reporting layers must not depend on COM port names, board registers, SDK calls, or board-specific pin maps. A new controller should require a profile/adapter, not a rewrite of the core product.
+
+See the [Device adapter contract](docs/adapters.md) for the lifecycle and host-side safety boundary.
 
 ## AFE v1 example
 
@@ -81,14 +85,15 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 324 passed |
-| Formal package statement coverage | 100% of 1,211 statements |
+| Full pytest suite | 360 passed |
+| Formal package statement coverage | 100% of 1,392 statements |
+| DeviceAdapter lifecycle and safety tests | 36 passed |
 | AFE v1 profile tests | 40 passed |
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 44 source files |
-| Step 8 isolated build, sdist contents, and external wheel smoke checks | Passed |
+| mypy | Passed on 47 source files |
+| Latest isolated build, sdist, and external wheel public-API smoke checks | Passed |
 | Hardware bench tests | Not run |
 
 Every completed software checkpoint has a report under [`reports/`](reports/). Test counts and claims are updated only after the corresponding command has actually run.
@@ -141,14 +146,14 @@ assert config.allow_output is False
 |---|---|---|
 | Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
-| Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Planned |
+| Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | In progress — 1/8 checkpoints |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Planned |
 | Software Phase 4 | Serial transport and independent controller profiles | Planned |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-The next milestone is Software Phase 2: `DeviceAdapter`, complete SimulatorAdapter, CSV Replay, and capability workflow. See the [product plan](docs/PRODUCT_PLAN.md).
+The next checkpoint is Software Phase 2 Step 2: extract the reusable adapter contract suite that every Simulator and CSV Replay implementation must pass. See the [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md).
 
 ## Repository guide
 

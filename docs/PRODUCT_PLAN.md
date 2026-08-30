@@ -806,4 +806,4 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/adr/`；
 - `docs/TECHNICAL_DEBT.md`。
 
-Software Phase 1 已于 2026-08-29 完成，真实证据见 `reports/software-phase1-step8.md`。下一步是 **Software Phase 2：适配器框架、模拟器与回放**。该阶段仍不采购、不接线，也不把合成或回放结果描述为实物验证。
+Software Phase 1 已于 2026-08-29 完成，真实证据见 `reports/software-phase1-step8.md`。Software Phase 2 Step 1 已建立 `DeviceAdapter` 公共契约、生命周期和主机侧安全门，证据见 `reports/software-phase2-step1.md`。下一步是提取可复用 adapter 契约测试，再让 Simulator 与 CSV Replay 共同通过。该阶段仍不采购、不接线，也不把合成或回放结果描述为实物验证。

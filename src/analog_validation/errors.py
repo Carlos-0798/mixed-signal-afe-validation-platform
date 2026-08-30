@@ -42,7 +42,27 @@ class ConfigurationError(AnalogValidationError):
     """A product configuration is missing, inconsistent, or unsafe."""
 
 
+class AdapterError(AnalogValidationError):
+    """A device adapter could not complete an expected operation."""
+
+
+class AdapterConnectionError(AdapterError):
+    """An adapter failed to establish or release its connection."""
+
+
+class AdapterStateError(AdapterError):
+    """An adapter operation is not allowed in its current lifecycle state."""
+
+
+class AdapterDataError(AdapterError):
+    """An adapter returned data that violates the public contract."""
+
+
 __all__ = [
+    "AdapterConnectionError",
+    "AdapterDataError",
+    "AdapterError",
+    "AdapterStateError",
     "AnalogValidationError",
     "CapabilityError",
     "ConfigurationError",

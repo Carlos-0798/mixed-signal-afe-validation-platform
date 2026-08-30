@@ -23,7 +23,7 @@
 | SW-FR-015 | IMPLEMENTED | 多记录 CAP_REQ/CAP DEVICE/CHANNEL/END 已定义并可与 `DeviceCapabilities` 往返；未知 bit、序号和数量不一致被拒绝 | Phase 2/4 adapter 实际协商 |
 | SW-FR-016 | ACCEPTED | `serial_worker.py` 占位 | Phase 4 实现有限重试和错误恢复 |
 | SW-FR-017 | ACCEPTED | 无原始帧日志模型 | Phase 1 定义，Phase 4 实现 |
-| SW-FR-020 | ACCEPTED | 无 DeviceAdapter | Phase 2 实现契约和契约测试 |
+| SW-FR-020 | IMPLEMENTED | 正式 `DeviceAdapter` 已定义统一连接、能力、读数、输出、命令、安全关闭和断开接口；36 项生命周期/安全测试通过 | Step 2 建立可复用契约套件，Step 3/6 由两个具体 adapter 共同通过 |
 | SW-FR-021 | IMPLEMENTED | 合成工具已直接使用正式 AFE v1 model/encoder，100 帧 seed/hash 往返已进入 pytest | Phase 2 迁移为可注入故障的 SimulatorAdapter |
 | SW-FR-022 | ACCEPTED | 无 CSV replay | Phase 2 实现 |
 | SW-FR-023 | ACCEPTED | 串口占位文件 | Phase 4 实现且隔离分析层 |
@@ -53,7 +53,7 @@
 |---|---|---|---|
 | SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建、仓库外 wheel 安装和 import 均通过 | Phase 5 增加最终用户运行入口，Phase 6 再做发布候选安装测试 |
 | SW-NFR-002 | IMPLEMENTED | 当前核心使用标准 Python | Phase 4/6 验证 Windows，避免核心平台绑定 |
-| SW-NFR-003 | IMPLEMENTED | framing/profile/config parser 可拒绝坏输入、重复/未知字段、非有限值和超大配置 | 设备断开、CSV、用户中止和 adapter 安全状态仍未实现 |
+| SW-NFR-003 | IMPLEMENTED | framing/profile/config parser 拒绝坏输入；adapter 状态机拒绝越级 I/O，断开会先尝试安全关闭并清理逻辑状态 | CSV、真实断线、用户中止和串口恢复仍未实现 |
 | SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构和 100 帧集成测试均无需硬件；正式核心依赖边界可执行检查 | Phase 2 增加 adapter 契约测试 |
 | SW-NFR-005 | ACCEPTED | 仅有架构文档 | Phase 1/2 建立可执行边界 |
 | SW-NFR-006 | VERIFIED_HOST | 正式领域、协议与配置模块责任分离，公开 API 有类型、文档与完整 host tests | Phase 2 继续保持 adapter 依赖方向 |
@@ -86,10 +86,10 @@
 | 状态 | 数量 |
 |---|---:|
 | VERIFIED_HOST | 16 |
-| IMPLEMENTED | 14 |
-| ACCEPTED | 18 |
+| IMPLEMENTED | 15 |
+| ACCEPTED | 17 |
 | DEFERRED | 12 |
 | VERIFIED_BENCH | 0 |
 | 总计 | 60 |
 
-Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。下一阶段聚焦 SW-FR-020/021/022/025：DeviceAdapter、完整 SimulatorAdapter、CSV replay 和能力降级工作流。
+Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 Step 1 已实现 SW-FR-020 的公共接口和主机侧状态/安全门；下一步建立可复用契约测试，再实现 SimulatorAdapter 与 CsvReplayAdapter。
