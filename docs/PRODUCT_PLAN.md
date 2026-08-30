@@ -806,4 +806,4 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/adr/`；
 - `docs/TECHNICAL_DEBT.md`。
 
-Software Phase 1 已于 2026-08-29 完成，真实证据见 `reports/software-phase1-step8.md`。Software Phase 2 Step 1–2 已建立 `DeviceAdapter` 公共契约、生命周期、主机侧安全门和可复用契约测试，证据见 `reports/software-phase2-step1.md` 与 `reports/software-phase2-step2.md`。下一步是实现确定性 SimulatorAdapter 并让它通过相同契约。该阶段仍不采购、不接线，也不把合成或回放结果描述为实物验证。
+Software Phase 1 已于 2026-08-29 完成，真实证据见 `reports/software-phase1-step8.md`。Software Phase 2 Step 1–3 已建立 `DeviceAdapter`、生命周期、安全门、可复用契约测试和确定性只读 SimulatorAdapter，证据见 `reports/software-phase2-step1.md` 至 `reports/software-phase2-step3.md`。下一步加入可配置非理想与受控故障。该阶段仍不采购、不接线，也不把合成或回放结果描述为实物验证。

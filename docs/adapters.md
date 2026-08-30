@@ -56,7 +56,27 @@ class TestExampleAdapterContract(ReadOnlyAdapterContract):
 
 Pytest then inherits the same eight checks for initial state/provenance, read-only connection, explicit and cached capabilities, premature-read rejection, typed measurement output, unknown-channel classification, idempotent shutdown, and disconnect/reconnect behavior.
 
-The Step 2 `ContractReferenceAdapter` is only a HOST_TEST fixture proving that the suite is collectible and reusable. It is not a SimulatorAdapter, physical device, or product data source. Steps 3 and 6 must run the same suite against the real Simulator and CSV Replay implementations.
+The Step 2 `ContractReferenceAdapter` is only a HOST_TEST fixture proving that the suite is collectible and reusable. It is not a SimulatorAdapter, physical device, or product data source. Step 3 now runs the same suite against the real SimulatorAdapter; Step 6 must do the same for CSV Replay.
+
+## Deterministic SimulatorAdapter
+
+Step 3 adds the first concrete product adapter. Its default public behavior is intentionally small:
+
+- profile `afe`, version `1`;
+- device ID `simulator-afe-1`;
+- one read-only channel, `afe.ch0.input`;
+- unit `mV`, declared range 0–3300 mV;
+- `READ_MEASUREMENT` is the only supported command;
+- source is always `SYNTHETIC`;
+- default seed is 430 and interval is 100 ms;
+- default clock starts at the fixed UTC epoch `2026-01-01T00:00:00Z`;
+- reconnecting restarts the deterministic sequence.
+
+`SimulatorConfig` is immutable and versioned as `simulator-config.v1`. A test or future application may inject a timezone-aware clock; the adapter converts it to UTC and advances timestamps by the configured interval. Same seed, clock, interval, and read order produce identical Measurements.
+
+The AFE formula previously owned by `tools/telemetry_simulator.py` now lives in the formal adapter module. The tool, the 100-frame hash regression, and the adapter reuse that single generator. This preserves the existing AFE wire stream while removing duplicate behavior.
+
+Step 3 does not provide configurable gain, offset, noise, saturation, hysteresis, dropped data, CRC errors, stimulus output, or hardware emulation. Those are Step 4 requirements and must remain explicit rather than being silently implied by the word “simulator.”
 
 ## What this does not prove
 

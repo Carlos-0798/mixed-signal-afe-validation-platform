@@ -4,7 +4,15 @@ The package is controller-neutral: importing it must not require a serial
 driver, GUI toolkit, board SDK, or physical hardware.
 """
 
-from .adapters import AdapterState, DeviceAdapter
+from .adapters import (
+    DEFAULT_SIMULATOR_EPOCH,
+    SIMULATOR_CONFIG_SCHEMA_VERSION,
+    AdapterState,
+    DeviceAdapter,
+    SimulatorAdapter,
+    SimulatorConfig,
+    generate_afe_telemetry,
+)
 from .config import (
     MAX_CONFIG_BYTES,
     VALIDATION_CONFIG_SCHEMA_VERSION,
@@ -68,9 +76,11 @@ __all__ = [
     "CRC16_CCITT_FALSE_INITIAL",
     "CRC16_CCITT_FALSE_POLYNOMIAL",
     "CRC16_CCITT_FALSE_XOR_OUT",
+    "DEFAULT_SIMULATOR_EPOCH",
     "MAX_CONFIG_BYTES",
     "MAX_RECORD_BYTES",
     "MEASUREMENT_SCHEMA_VERSION",
+    "SIMULATOR_CONFIG_SCHEMA_VERSION",
     "TEST_RUN_SCHEMA_VERSION",
     "VALIDATION_CONFIG_SCHEMA_VERSION",
     "AdapterConnectionError",
@@ -99,6 +109,8 @@ __all__ = [
     "ProtocolError",
     "QualityFlag",
     "SafeRange",
+    "SimulatorAdapter",
+    "SimulatorConfig",
     "TestRunMetadata",
     "TestRunOutcome",
     "TestRunResult",
@@ -111,6 +123,7 @@ __all__ = [
     "decode_frame",
     "dump_validation_config_json",
     "encode_frame",
+    "generate_afe_telemetry",
     "load_validation_config",
     "parse_validation_config_json",
     "validate_config_capabilities",

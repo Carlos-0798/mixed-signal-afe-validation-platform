@@ -23,8 +23,8 @@
 | SW-FR-015 | IMPLEMENTED | 多记录 CAP_REQ/CAP DEVICE/CHANNEL/END 已定义并可与 `DeviceCapabilities` 往返；未知 bit、序号和数量不一致被拒绝 | Phase 2/4 adapter 实际协商 |
 | SW-FR-016 | ACCEPTED | `serial_worker.py` 占位 | Phase 4 实现有限重试和错误恢复 |
 | SW-FR-017 | ACCEPTED | 无原始帧日志模型 | Phase 1 定义，Phase 4 实现 |
-| SW-FR-020 | IMPLEMENTED | 正式 `DeviceAdapter` 已定义统一接口；36 项基础测试和可继承的 8 项只读契约均通过 | Step 3/6 让 Simulator 与 CSV Replay 共同继承契约后再提升验收状态 |
-| SW-FR-021 | IMPLEMENTED | 合成工具已直接使用正式 AFE v1 model/encoder，100 帧 seed/hash 往返已进入 pytest | Phase 2 迁移为可注入故障的 SimulatorAdapter |
+| SW-FR-020 | IMPLEMENTED | 正式 `DeviceAdapter` 已定义统一接口；Simulator 已继承全部 8 项只读契约 | Step 6 让 CSV Replay 通过同一契约后再提升验收状态 |
+| SW-FR-021 | IMPLEMENTED | 正式只读 SimulatorAdapter 已使用版本化配置、固定 seed、可注入 clock、明确 capability 和 `SYNTHETIC` Measurement；旧工具复用同一生成器 | Step 4 增加增益、偏置、噪声、饱和、迟滞与故障注入后再完成验收 |
 | SW-FR-022 | ACCEPTED | 无 CSV replay | Phase 2 实现 |
 | SW-FR-023 | ACCEPTED | 串口占位文件 | Phase 4 实现且隔离分析层 |
 | SW-FR-024 | ACCEPTED | 无 MSP430 profile | Phase 4 独立实现，保留原始字段 |
@@ -38,7 +38,7 @@
 | SW-FR-035 | ACCEPTED | `frequency_response.py` 占位 | Phase 3 先实现离线分析 |
 | SW-FR-036 | IMPLEMENTED | 缺失、非有限、饱和、超范围、时间和通信质量标志已建立；一致性测试通过 | Phase 3 将规则用于分析和判定 |
 | SW-FR-037 | IMPLEMENTED | 领域模型强制 PASS/FAIL 具备证据且无缺失项；INCOMPLETE/UNSUPPORTED 不能成为 PASS | Phase 3 实现版本化判定引擎 |
-| SW-FR-038 | VERIFIED_HOST | 固定 seed 的 100 帧 AFE 流水线以冻结 SHA-256 验证生成、编码、解析和来源映射可重复 | Phase 2/3 扩展到 adapter/runner 端到端测试 |
+| SW-FR-038 | VERIFIED_HOST | 固定 seed 的 100 帧 AFE 流水线保持冻结 SHA-256；两个同配置/clock 的 SimulatorAdapter 生成相同序列，重连从相同起点恢复 | Phase 3 扩展到 runner 端到端测试 |
 | SW-FR-040 | IMPLEMENTED | 两个工具有 argparse | Phase 5 建立统一产品 CLI |
 | SW-FR-041 | ACCEPTED | `app.py` 仅占位 | Phase 5 实现 Dashboard |
 | SW-FR-042 | ACCEPTED | 无测试向导 | Phase 5 实现 |
@@ -54,7 +54,7 @@
 | SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建、仓库外 wheel 安装和 import 均通过 | Phase 5 增加最终用户运行入口，Phase 6 再做发布候选安装测试 |
 | SW-NFR-002 | IMPLEMENTED | 当前核心使用标准 Python | Phase 4/6 验证 Windows，避免核心平台绑定 |
 | SW-NFR-003 | IMPLEMENTED | framing/profile/config parser 拒绝坏输入；adapter 状态机拒绝越级 I/O，断开会先尝试安全关闭并清理逻辑状态 | CSV、真实断线、用户中止和串口恢复仍未实现 |
-| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、100 帧集成和 8 项可复用 adapter 契约均无需硬件；正式核心依赖边界可执行检查 | Step 3/6 用具体 adapter 扩展同一契约 |
+| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、100 帧集成和可复用 adapter 契约均无需硬件；正式 Simulator 已通过相同契约 | Step 6 再由 CSV Replay 通过同一契约 |
 | SW-NFR-005 | ACCEPTED | 仅有架构文档 | Phase 1/2 建立可执行边界 |
 | SW-NFR-006 | VERIFIED_HOST | 正式领域、协议与配置模块责任分离，公开 API 有类型、文档与完整 host tests | Phase 2 继续保持 adapter 依赖方向 |
 | SW-NFR-007 | ACCEPTED | 无性能基准 | Phase 5/6 建立实际数据规模基准 |
@@ -92,4 +92,4 @@
 | VERIFIED_BENCH | 0 |
 | 总计 | 60 |
 
-Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 Step 1–2 已实现 SW-FR-020 的公共接口、主机侧状态/安全门和可复用只读契约；下一步让确定性 SimulatorAdapter 首先通过该契约。
+Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 Step 1–3 已实现 SW-FR-020 的公共接口/契约，并交付 SW-FR-021 的确定性只读基础；下一步完成模拟非理想和受控故障。

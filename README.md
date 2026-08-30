@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 2 in progress — 2/8 checkpoints |
-| Release maturity | Pre-MVP; verified adapter-contract foundation |
+| Development stage | Software Phase 2 in progress — 3/8 checkpoints |
+| Release maturity | Pre-MVP; verified deterministic simulator foundation |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 368 passed |
-| Formal package coverage | 100% of 1,392 statements |
+| Automated host tests | 408 passed |
+| Formal package coverage | 100% of 1,491 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase2-step2.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase2-step3.md)
 
 ## Product vision
 
@@ -44,9 +44,11 @@ The software-first plan allows the complete software product to mature without r
 - Controller-neutral `DeviceAdapter` contract with explicit disconnected, read-only, capability-confirmed, armed, running, and safe-shutdown states.
 - Host-side adapter gates that reject premature I/O, unsafe output, capability mismatches, wrong units, and evidence-source mismatches.
 - Reusable eight-check read-only adapter contract that future Simulator and CSV Replay implementations must both inherit.
+- Deterministic read-only `SimulatorAdapter` with versioned configuration, injected clock support, explicit capabilities, and `SYNTHETIC` Measurements.
+- One formal AFE telemetry generator shared by the Simulator foundation, legacy CLI wrapper, and frozen 100-frame regression.
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 
-Not yet implemented: concrete Simulator/CSV replay adapters, test runners, serial transport, CLI, dashboard, end-user report generation, firmware, or validated physical hardware.
+Not yet implemented: simulator non-idealities/fault injection, CSV replay, test runners, serial transport, product CLI, dashboard, end-user report generation, firmware, or validated physical hardware.
 
 ## Architecture
 
@@ -86,15 +88,16 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 368 passed |
-| Formal package statement coverage | 100% of 1,392 statements |
+| Full pytest suite | 408 passed |
+| Formal package statement coverage | 100% of 1,491 statements |
 | DeviceAdapter lifecycle and safety tests | 36 passed |
-| Reusable concrete-adapter contract | 8 shared checks passed |
+| Reusable concrete-adapter contract | 8 checks passed by both reference and Simulator adapters |
+| Simulator-specific tests | 32 passed |
 | AFE v1 profile tests | 40 passed |
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 50 source files |
+| mypy | Passed on 53 source files |
 | Latest isolated build, sdist, and external wheel public-API smoke checks | Passed |
 | Hardware bench tests | Not run |
 
@@ -142,20 +145,39 @@ config = load_validation_config(
 assert config.allow_output is False
 ```
 
+Read three deterministic synthetic measurements through the product adapter:
+
+```python
+from analog_validation import SimulatorAdapter, SimulatorConfig
+
+adapter = SimulatorAdapter(SimulatorConfig(seed=430, interval_ms=10))
+adapter.connect()
+capabilities = adapter.get_capabilities()
+measurements = [
+    adapter.read_measurement("afe.ch0.input")
+    for _ in range(3)
+]
+adapter.disconnect()
+
+assert capabilities.is_read_only
+assert [item.value for item in measurements] == [800.0, 879.0, 953.0]
+assert all(item.source.value == "SYNTHETIC" for item in measurements)
+```
+
 ## Roadmap
 
 | Stage | Purpose | Status |
 |---|---|---|
 | Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
-| Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | In progress — 2/8 checkpoints |
+| Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | In progress — 3/8 checkpoints |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Planned |
 | Software Phase 4 | Serial transport and independent controller profiles | Planned |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-The next checkpoint is Software Phase 2 Step 3: implement a deterministic read-capable `SimulatorAdapter` and make it pass the shared contract without hardware. See the [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md).
+The next checkpoint is Software Phase 2 Step 4: add explicitly configured gain, offset, noise, saturation, hysteresis, and controlled simulator faults without changing provenance. See the [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md).
 
 ## Repository guide
 

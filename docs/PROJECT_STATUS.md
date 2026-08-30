@@ -1,16 +1,16 @@
 # Project Status
 
 **Last updated:** 2026-08-29  
-**Current milestone:** Software Phase 2 in progress — 2 of 8 checkpoints<br>
-**Release maturity:** pre-MVP / verified adapter-contract foundation<br>
+**Current milestone:** Software Phase 2 in progress — 3 of 8 checkpoints<br>
+**Release maturity:** pre-MVP / verified deterministic simulator foundation<br>
 **Highest evidence level:** HOST_TEST  
 **Verified hardware claims:** 0
 
 ## Current product baseline
 
-The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC/framing implementation, the versioned AFE v1 profile, strict non-executable JSON configuration, frozen protocol compatibility data, an executable dependency boundary, and the first public `DeviceAdapter` lifecycle/safety contract.
+The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC/framing implementation, the versioned AFE v1 profile, strict non-executable JSON configuration, frozen protocol compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, and a deterministic read-only SimulatorAdapter.
 
-It does not yet provide a concrete Simulator or CSV Replay adapter, test runner, CLI, dashboard, serial transport, or validated physical AFE.
+It now provides a deterministic read-only SimulatorAdapter, but not yet simulator non-idealities/fault injection, CSV Replay, test runners, product CLI, dashboard, serial transport, or a validated physical AFE.
 
 ## Software Phase 1 checkpoints
 
@@ -31,8 +31,8 @@ It does not yet provide a concrete Simulator or CSV Replay adapter, test runner,
 |---:|---|---|---|
 | 1 | `DeviceAdapter`, lifecycle states, safety gates, and typed adapter errors | Complete | HOST_TEST |
 | 2 | Reusable adapter contract suite | Complete | HOST_TEST |
-| 3 | Deterministic SimulatorAdapter data flow | Next | — |
-| 4 | Simulator non-idealities and controlled faults | Planned | — |
+| 3 | Deterministic SimulatorAdapter data flow | Complete | HOST_TEST / SYNTHETIC |
+| 4 | Simulator non-idealities and controlled faults | Next | — |
 | 5 | Versioned immutable CSV replay schema/parser | Planned | — |
 | 6 | CsvReplayAdapter speed, pause, resume, and EOF | Planned | — |
 | 7 | Shared workflow and `UNSUPPORTED` capability degradation | Planned | — |
@@ -42,10 +42,11 @@ It does not yet provide a concrete Simulator or CSV Replay adapter, test runner,
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 368 passed |
-| Formal package statement coverage | 100% of 1,392 statements |
+| Full pytest suite | 408 passed |
+| Formal package statement coverage | 100% of 1,491 statements |
 | DeviceAdapter lifecycle and safety | 36 tests passed |
-| Reusable concrete-adapter contract | 8 shared checks passed against a reference test adapter |
+| Reusable concrete-adapter contract | 8 shared checks passed against both reference and Simulator adapters |
+| Simulator-specific tests | 32 passed; deterministic config/generator/clock/capability/reconnect behavior |
 | AFE golden compatibility | 20 valid + 9 invalid cases passed |
 | Synthetic integration | 100 frames / 400 explicit `SYNTHETIC` Measurements passed |
 | Core dependency boundary | Passed; standard library and own package only |
@@ -67,6 +68,7 @@ Safe to claim now:
 - implemented explicit provenance and capability/safety semantics;
 - maintained reproducible automated host tests and engineering reports.
 - implemented a controller-neutral adapter lifecycle with explicit host-side capability, configuration, unit, provenance, and output-safety gates.
+- implemented a deterministic read-only SimulatorAdapter that returns only explicit `SYNTHETIC` Measurements and shares the frozen AFE generation formula.
 
 Not safe to claim now:
 
@@ -78,7 +80,7 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 2 Step 3 will implement the first deterministic, read-capable `SimulatorAdapter` and run the shared contract against it. Work remains software-only and must label every generated Measurement `SYNTHETIC`.
+Software Phase 2 Step 4 will add explicitly configured gain, offset, noise, saturation, hysteresis, and controlled faults. These behaviors must remain deterministic for a fixed seed and must never change evidence provenance from `SYNTHETIC`.
 
 ## GitHub and LinkedIn presentation policy
 

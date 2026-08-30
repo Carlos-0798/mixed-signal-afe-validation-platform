@@ -4,6 +4,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Host-only software reports:
 
+- `software-phase2-step3.md` — deterministic read-only SimulatorAdapter, shared AFE generator migration, contract conformance, reproducibility, smoke output, and evidence limits.
 - `software-phase2-step2.md` — reusable eight-check adapter contract, reference test execution, full regression, packaging, and evidence limits.
 - `software-phase2-step1.md` — DeviceAdapter public contract, lifecycle/safety gates, typed adapter errors, and the first Software Phase 2 verification checkpoint.
 - `software-phase1-step8.md` — Software Phase 1 closure: AFE golden compatibility, deterministic 100-frame provenance pipeline, legacy migration, architecture boundary, release-style gates, and remaining limits.
