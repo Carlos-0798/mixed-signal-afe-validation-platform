@@ -1,4 +1,4 @@
-"""Strict bounded ASCII CSV framing independent of any controller profile."""
+"""Strict bounded ASCII CSV framing for the compatible AFE envelope."""
 
 from __future__ import annotations
 

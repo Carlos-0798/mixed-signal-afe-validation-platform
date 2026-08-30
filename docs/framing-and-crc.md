@@ -1,10 +1,11 @@
 # CRC 与 Framing 核心
 
-**当前实现：** Software Phase 1 complete<br>
+**当前实现：** Software Phase 4 Step 1 complete<br>
 **证据等级：** HOST_TEST  
 **硬件验证：** 无
 
-本文解释 `analog_validation.protocol` 为什么被拆成 CRC 和 framing 两层，以及每层负责什么。
+本文解释 `analog_validation.protocol` 的 CRC/单记录 envelope，以及
+`analog_validation.transport` 的真实字节流边界分别负责什么。
 
 ## 1. 用邮寄包裹理解协议分层
 
@@ -35,9 +36,10 @@ CRC 只能发现“收到的 bytes 和发送时不一样”，不能证明数据
 
 固定向量保存在 `test-data/golden/crc16_ccitt_false.json`。黄金向量是“输入和正确输出已经冻结的样本”，可以在重构后快速发现算法参数或位运算是否被意外改变。
 
-## 3. Framing 负责的规则
+## 3. AFE 单记录 framing 负责的规则
 
-正式实现位于 `src/analog_validation/protocol/framing.py`，负责：
+现有兼容实现位于 `src/analog_validation/protocol/framing.py`，当前仍是 AFE
+wrapper，负责：
 
 - `AFE` namespace；
 - 至少包含 namespace、消息类型和序号；
@@ -50,9 +52,29 @@ CRC 只能发现“收到的 bytes 和发送时不一样”，不能证明数据
 - 整条序列化记录最多 128 bytes，包含 terminator；
 - CRC 覆盖最后一个数据字段之前的所有 ASCII payload bytes，不覆盖 CRC 前逗号、CRC 字符和行结束。
 
-Framing 不解释 `TEL`、`CMD`、电压、增益或 capability 的业务意义。这些内容由 `protocol/afe_v1.py` 中的 AFE v1 profile 定义。
+它不解释 `TEL`、`CMD`、电压、增益或 capability 的业务意义。这些内容由
+`protocol/afe_v1.py` 中的 AFE v1 profile 定义。由于该 wrapper 仍硬编码
+`AFE` namespace，profile-neutral token/CRC envelope 将在 Software Phase 4
+Step 2 拆出，同时保持旧 API 和黄金 bytes 不变。
 
-## 4. 精确错误分类
+## 4. Profile-neutral 字节流负责的规则
+
+正式实现位于 `src/analog_validation/transport/stream.py`。它接收任意大小的
+bytes chunks，只识别 LF 和最大记录长度：
+
+- 一条记录分多次到达时保留 incomplete bytes；
+- 多条记录一次到达时按原顺序全部输出；
+- 原样保留 CRLF、非 ASCII、空行和损坏记录，交给 profile 判断；
+- 记录超过上限后停止增长有效 buffer，丢弃到下一个 LF；
+- 输出结构化 `OVERLONG_RECORD` issue 和实际丢弃 byte 数；
+- 同一 chunk 在超长记录 LF 后仍可恢复后续合法记录；
+- disconnect/reset 只报告并丢弃 incomplete bytes，不把它们伪装成记录。
+
+`transport/sequence.py` 由 profile 指定位宽，分别支持 AFE 16-bit 和 MSP430
+32-bit sequence，记录首次、连续、缺帧、重复、乱序和 modular wrap。字节流与
+sequence 层都不打开串口，也不包含设备字段、单位、capability 或业务逻辑。
+
+## 5. 精确错误分类
 
 | 异常 | 含义 | 典型处理 |
 |---|---|---|
@@ -62,13 +84,15 @@ Framing 不解释 `TEL`、`CMD`、电压、增益或 capability 的业务意义�
 
 三者都属于公开 `ProtocolError` 家族，因此上层既可以统一捕获协议错误，也可以针对特定错误采取不同恢复方式。
 
-## 5. 为什么长度限制必须在解析前检查
+## 6. 为什么长度限制必须在解析前检查
 
 真实 UART 可能持续收到没有换行的损坏数据。如果软件无限等待并扩大缓冲区，会造成内存和可用性问题。当前单记录 decoder 对输入 bytes 先检查 128-byte 上限，再进行 ASCII 和 CSV 解析。
 
-真正处理串口分段、粘包和“超长后丢弃到下一个 LF”的流式状态机属于 Software Phase 4；Step 5 没有假装单记录函数已经解决真实串口接收问题。
+Software Phase 4 Step 1 已实现分段、粘包和“超长后丢弃到下一个 LF”的
+profile-neutral 流式状态机。它仍是 HOST_TEST 组件；真实串口 lifecycle、timeout
+和 reconnect 属于后续检查点。
 
-## 6. 黄金兼容数据
+## 7. 黄金兼容数据
 
 Step 8 冻结了三类互补数据：
 
@@ -78,6 +102,8 @@ Step 8 冻结了三类互补数据：
 
 合法记录必须能够解析为预期模型并重新编码为完全相同的 bytes。旧的无版本 AFE façade 不再是受支持入口。
 
-## 7. 证据边界
+## 8. 证据边界
 
-本步验证的是 Python bytes 和字符串处理，不是 UART 电气链路。没有验证波特率误差、电平、接地、线缆、EMI、控制器固件、丢包率或真实 CRC 错误恢复。
+当前验证的是 Python bytes、字符串处理和 host sequence 状态，不是 UART
+电气链路。没有验证波特率误差、电平、接地、线缆、EMI、控制器固件、真实
+timeout/reconnect、丢包率或真实 CRC 错误恢复。

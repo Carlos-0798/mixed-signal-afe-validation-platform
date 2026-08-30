@@ -1,7 +1,7 @@
 # 技术债与已知缺口
 
 **更新日期：** 2026-08-30<br>
-**来源：** Software Phase 0 审计
+**来源：** Software Phase 0–4 持续审计
 
 优先级：`P0` 阻塞安全或正确性；`P1` 阻塞下一主要里程碑；`P2` 应在 v1 前解决；`P3` 可后置。
 
@@ -12,7 +12,7 @@
 | TD-003 | CLOSED | 正式 Measurement 强制来源、状态、质量、单位、UTC 时间和原始引用 | 合成、仿真、回放与 BENCH 标签不再依赖文件名 | 证据见 `reports/software-phase1-step3.md` |
 | TD-004 | CLOSED | Measurement、CRC、framing、AFE v1 profile 和 validation config 已版本化；20 条合法与 9 类非法 AFE 黄金消息已冻结 | 字段、CRC、模型意义和错误家族的意外漂移可由 pytest 发现 | 证据见 `reports/software-phase1-step8.md` |
 | TD-005 | CLOSED | `DeviceCapabilities` 已要求显式通道、安全范围、命令和 safe-shutdown 一致性 | 软件领域层不再需要根据板名猜测功能；线上协商仍属后续实现 | 证据见 `reports/software-phase1-step4.md` |
-| TD-006 | P2 | 无流式分帧和序列追踪 | 真实串口分段、粘包和丢帧无法处理 | Phase 4 |
+| TD-006 | CLOSED | Phase 4 Step 1 已实现 profile-neutral 有界 LF 字节流、超长恢复和 profile-configurable modular sequence tracking | 分段、粘包、超长、16/32-bit 回绕、缺帧、重复和乱序已有 HOST_TEST；真实 serial lifecycle 由 TD-025 跟踪 | 证据见 `reports/software-phase4-step1.md` |
 | TD-007 | CLOSED | 正式 DC 与迟滞算法已迁入 `analog_validation.analysis`，具备有限值/单位/来源/质量/方向/可追溯约束；旧 dashboard 函数仅保留迁移回归对照 | 正式产品分析不再依赖裸 tuple 迟滞入口 | 证据见 `reports/software-phase3-step2.md` 和 `reports/software-phase3-step5.md` |
 | TD-008 | CLOSED | `dc-sweep-analysis.v1` 保留所有点、输入/输出双引用、组件质量决定、逐点 `LOW/HIGH_SATURATION` 和 DC 排除原因 | 正式 DC 结果可解释具体使用或排除的每个点；旧函数不属于正式核心 | 证据见 `docs/dc-sweep-analysis.md` 和 `reports/software-phase3-step2.md` |
 | TD-009 | P2 | Step 7 已实现 `result-export.v1`、DC/迟滞 typed builders、稳定 JSON/CSV 和安全文件写入；人类报告及校准/频响的专用 TestRun/export mapping 尚未实现 | 已有稳定机器结果文件，但最终用户仍缺少叙述、图表和完整分析类型覆盖 | Phase 5；结构化导出证据见 `reports/software-phase3-step7.md` |
@@ -31,5 +31,9 @@
 | TD-022 | CLOSED | `read-workflow.v1` 已用不可变请求/结果和同一函数驱动 Simulator/CSV；全量能力预检发生在读取前，明确区分 `COMPLETED`、`UNSUPPORTED` 与 `INCOMPLETE`，所有路径释放 workflow 自己拥有的 adapter | 上层采集不再根据来源写分支，也不会把缺能力、数据耗尽或执行错误混成一种状态 | 证据见 `docs/read-workflow.md` 和 `reports/software-phase2-step7.md` |
 | TD-023 | CLOSED | `phase2_public_api.json` 冻结公开 imports/schema/enum/signature/error/replay hash，`phase2_workflow_v1.json` 冻结 Simulator/CSV/UNSUPPORTED 端到端含义；隔离构建和仓库外 wheel 验证纳入阶段出口 | Phase 2 兼容性变化不再能静默发生；未来破坏性变更必须升级版本并记录迁移 | 证据见 `docs/phase2-public-api.md` 和 `reports/software-phase2-step8.md` |
 | TD-024 | CLOSED | `phase3_public_api.json` 冻结公开 imports/schema/enum/signature/error/constants 与三份结果文件哈希；exact `SYNTHETIC` DC/迟滞结果冻结拟合、饱和排除、阈值、迟滞宽度及来源语义 | Phase 3 调用和结果兼容性变化不再能静默发生；这些基准不构成实物性能声明 | 证据见 `docs/phase3-public-api.md` 和 `reports/software-phase3-step8.md` |
+| TD-025 | P1 | 尚无 OS serial backend、port discovery、timeout、有限重连和 bounded raw-frame log | profile-neutral stream 已可处理 chunks，但还不能形成真实 SerialAdapter | Software Phase 4 Steps 3/6 |
+| TD-026 | P1 | 当前 `protocol/framing.py` 名称描述为通用 framing，但 envelope 仍硬编码 `AFE` namespace | MSP430 无 namespace 的消息不能安全复用该入口 | Software Phase 4 Step 2 拆出通用 token/CRC envelope，同时保持 AFE API/golden compatibility |
+| TD-027 | P1 | AFE wire mapper 使用 `afe.chN.input_mv/output_mv`，Simulator/workflow 冻结接口使用 `afe.chN.input/output` | 串口、模拟和回放通道配置无法直接互换 | Software Phase 4 Step 2 冻结显式 mapping；禁止静默重命名历史记录 |
+| TD-028 | P1 | 尚无独立 MSP430 Equipment Health v1 profile 和本仓库 golden fixtures | 当前只能人工探测其协议，不能通过正式 adapter/workflow 声称兼容 | Software Phase 4 Step 5；保持只读、32-bit sequence、sentinel/fault 语义和独立证据 |
 
 关闭技术债时必须记录对应代码、测试、文档和验证报告，不能只从表格删除。

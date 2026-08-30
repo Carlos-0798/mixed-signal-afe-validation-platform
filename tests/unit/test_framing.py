@@ -1,4 +1,4 @@
-"""Tests for strict, bounded, profile-neutral ASCII CSV framing."""
+"""Tests for the compatible strict, bounded AFE ASCII CSV envelope."""
 
 from __future__ import annotations
 
