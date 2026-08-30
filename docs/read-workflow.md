@@ -105,6 +105,8 @@ assert not any(item.is_bench_evidence for item in result.measurements)
 
 The identical request can be passed to a CsvReplayAdapter that advertises matching channels and units.
 
+Software Phase 2 Step 8 freezes this API shape and one complete Simulator/CSV/UNSUPPORTED behavior set in `phase2_public_api.json` and `phase2_workflow_v1.json`. Future intentional breaking changes require a new schema/API version and migration notes rather than silently rewriting these files.
+
 ## Current boundary
 
 - no output stimulus is requested or authorized;

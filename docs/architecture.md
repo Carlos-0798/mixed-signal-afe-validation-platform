@@ -42,4 +42,6 @@ Step 5 adds `analog_validation.replay` as a separate file-format boundary that v
 
 Step 7 adds `analog_validation.workflows` above the adapter port. `run_read_workflow` accepts one immutable request regardless of source, owns connect/capability/read/disconnect for that call, and checks every command/channel/unit before the first read. It distinguishes completed acquisition, unsupported capability, early end-of-data, and execution errors. It deliberately performs no gain, linearity, hysteresis, calibration, or PASS/FAIL analysis; those remain future runners built on its Measurements.
 
+Step 8 freezes the Phase 2 boundary through machine-readable exports/schema/enum/signature/error/hash data and exact Simulator/CSV/UNSUPPORTED workflow results. The freeze protects callers and future Phase 3 runners from accidental API or meaning drift while keeping internal implementation replaceable. See `phase2-public-api.md`.
+
 Hardware, reference-controller firmware, integration profiles, and host tools are separate boundaries. Firmware remains a later-phase placeholder. Public integration with the independent MSP430 project is one future supported profile, limited to documented protocol and electrical interfaces; no application code, ownership, or product identity is shared. See `PRODUCT_ARCHITECTURE.md`.

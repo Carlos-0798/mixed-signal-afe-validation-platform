@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-08-30<br>
-**Current milestone:** Software Phase 2 in progress — 7 of 8 checkpoints<br>
-**Release maturity:** pre-MVP / verified shared adapter workflow<br>
+**Current milestone:** Software Phase 2 complete — 8 of 8 checkpoints<br>
+**Release maturity:** pre-MVP / software device and acquisition layer complete<br>
 **Highest evidence level:** HOST_TEST  
 **Verified hardware claims:** 0
 
@@ -36,13 +36,13 @@ The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmi
 | 5 | Versioned immutable CSV replay schema/parser | Complete | HOST_TEST |
 | 6 | CsvReplayAdapter speed, pause, resume, and EOF | Complete | HOST_TEST / CSV_REPLAY |
 | 7 | Shared workflow and `UNSUPPORTED` capability degradation | Complete | HOST_TEST / SYNTHETIC / CSV_REPLAY |
-| 8 | Phase 2 integration, packaging, and closure | Planned | — |
+| 8 | Phase 2 API freeze, integration, packaging, and closure | Complete | HOST_TEST / SYNTHETIC / CSV_REPLAY |
 
 ## Current verification snapshot
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 633 passed |
+| Full pytest suite | 644 passed |
 | Formal package statement coverage | 100% of 2,230 statements |
 | DeviceAdapter lifecycle and safety | 36 tests passed |
 | Reusable concrete-adapter contract | 8 shared checks passed against reference, Simulator, and CSV Replay adapters |
@@ -50,6 +50,7 @@ The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmi
 | CSV Replay parser | 84 unit + 9 golden cases passed; 233/233 module statements covered |
 | CSV Replay adapter | 45 focused unit + 8 shared-contract checks passed; 185/185 module statements covered |
 | Shared read workflow | 25 unit + 8 Simulator/CSV integration tests passed; 201/201 workflow statements covered |
+| Phase 2 golden compatibility | 7 public API + 4 end-to-end workflow checks passed |
 | AFE golden compatibility | 20 valid + 9 invalid cases passed |
 | Synthetic integration | 100 frames / 400 explicit `SYNTHETIC` Measurements passed |
 | Core dependency boundary | Passed; standard library and own package only |
@@ -76,6 +77,7 @@ Safe to claim now:
 - implemented immutable CSV Replay v1 records/datasets, bounded read-only parsing, explicit completion counts, and stable replay error families.
 - implemented read-only CsvReplayAdapter playback with explicit channel capabilities, preserved source references, forced `CSV_REPLAY` provenance, independent cursors, scaled timing, pause/resume, speed control, and typed EOF.
 - implemented one versioned read workflow for Simulator and CSV Replay with immutable requests/results, atomic capability degradation, explicit incomplete-data reporting, and guaranteed lifecycle cleanup.
+- froze public imports, schema values, enum values, signature shapes, error bases, replay hashes, and complete Simulator/CSV/UNSUPPORTED workflow meaning in machine-readable compatibility files.
 
 Not safe to claim now:
 
@@ -87,7 +89,7 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 2 Step 8 will freeze the Phase 2 public adapter/workflow API, run the complete end-to-end regression and repository-external install smoke, review documentation and compatibility fixtures, and publish a consolidated phase-closure report. It will not add serial transport, analysis runners, UI, or hardware claims.
+Software Phase 3 will migrate the existing DC sweep, linear fit, saturation exclusion, and hysteresis algorithms into provenance-aware formal modules, then build versioned analysis runners and structured results on the shared acquisition workflow. The Phase 3 file-level plan and acceptance gates must be approved before implementation.
 
 ## GitHub and LinkedIn presentation policy
 

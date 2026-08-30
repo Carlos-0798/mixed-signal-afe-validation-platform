@@ -1,0 +1,110 @@
+{
+  "schema_version": "phase2-workflow-golden.v1",
+  "evidence_source": "HOST_TEST",
+  "request": {
+    "request_id": "phase2-golden-read",
+    "requirements": [
+      ["afe.ch0.input", "ANALOG", "mV", 1],
+      ["afe.ch0.output", "ANALOG", "mV", 1],
+      ["afe.ch0.threshold", "DIGITAL", "bool", 1]
+    ]
+  },
+  "simulator": {
+    "status": "COMPLETED",
+    "device_id": "simulator-afe-1",
+    "profile": {"name": "afe", "version": "1"},
+    "evidence_source": "SYNTHETIC",
+    "missing_requirements": [],
+    "measurements": [
+      {
+        "record_id": "simulator-00000000",
+        "raw_record_id": "simulator-00000000",
+        "timestamp_utc": "2026-01-01T00:00:00Z",
+        "channel": "afe.ch0.input",
+        "value": 800.0,
+        "unit": "mV",
+        "status": "VALID",
+        "source": "SYNTHETIC",
+        "quality_flags": []
+      },
+      {
+        "record_id": "simulator-afe.ch0.output-00000000",
+        "raw_record_id": "simulator-afe.ch0.output-00000000",
+        "timestamp_utc": "2026-01-01T00:00:00Z",
+        "channel": "afe.ch0.output",
+        "value": 1612.0,
+        "unit": "mV",
+        "status": "VALID",
+        "source": "SYNTHETIC",
+        "quality_flags": []
+      },
+      {
+        "record_id": "simulator-afe.ch0.threshold-00000000",
+        "raw_record_id": "simulator-afe.ch0.threshold-00000000",
+        "timestamp_utc": "2026-01-01T00:00:00Z",
+        "channel": "afe.ch0.threshold",
+        "value": 0.0,
+        "unit": "bool",
+        "status": "VALID",
+        "source": "SYNTHETIC",
+        "quality_flags": []
+      }
+    ]
+  },
+  "csv_replay": {
+    "status": "COMPLETED",
+    "device_id": "csv-replay-1",
+    "profile": {"name": "afe", "version": "1"},
+    "evidence_source": "CSV_REPLAY",
+    "missing_requirements": [],
+    "measurements": [
+      {
+        "record_id": "csv-replay:afe-demo-001:input-000",
+        "raw_record_id": "input-000",
+        "timestamp_utc": "2026-08-30T12:00:00Z",
+        "channel": "afe.ch0.input",
+        "value": 800.0,
+        "unit": "mV",
+        "status": "VALID",
+        "source": "CSV_REPLAY",
+        "quality_flags": []
+      },
+      {
+        "record_id": "csv-replay:afe-demo-001:output-001",
+        "raw_record_id": "output-001",
+        "timestamp_utc": "2026-08-30T12:00:00.100000Z",
+        "channel": "afe.ch0.output",
+        "value": 3275.0,
+        "unit": "mV",
+        "status": "SUSPECT",
+        "source": "CSV_REPLAY",
+        "quality_flags": ["SATURATED"]
+      },
+      {
+        "record_id": "csv-replay:afe-demo-001:bool-004",
+        "raw_record_id": "bool-004",
+        "timestamp_utc": "2026-08-30T12:00:00.300000Z",
+        "channel": "afe.ch0.threshold",
+        "value": 1.0,
+        "unit": "bool",
+        "status": "VALID",
+        "source": "CSV_REPLAY",
+        "quality_flags": []
+      }
+    ]
+  },
+  "unsupported": {
+    "status": "UNSUPPORTED",
+    "device_id": "csv-replay-1",
+    "profile": {"name": "afe", "version": "1"},
+    "evidence_source": "CSV_REPLAY",
+    "missing_requirements": [
+      "command:READ_MEASUREMENT",
+      "analog-channel:afe.ch0.input",
+      "analog-channel:afe.ch0.output",
+      "command:READ_DIGITAL_STATE",
+      "digital-channel:afe.ch0.threshold"
+    ],
+    "measurements": []
+  }
+}

@@ -4,6 +4,11 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Host-only software reports:
 
+- `software-phase2-step8.md` — Software Phase 2 closure: public API and end-to-end golden compatibility freeze, full regression, external install, exit criteria, and remaining boundaries.
+- `software-phase2-step7.md` — shared Simulator/CSV read workflow, atomic capability degradation, incomplete replay semantics, lifecycle cleanup, and evidence limits.
+- `software-phase2-step6.md` — formal CsvReplayAdapter playback, timing, pause/resume, EOF, provenance conversion, shared contract, and packaging evidence.
+- `software-phase2-step5.md` — strict immutable CSV Replay v1 models/parser, valid/invalid golden data, resource limits, and evidence boundaries.
+- `software-phase2-step4.md` — configurable Simulator non-idealities, saturation/hysteresis behavior, fault injection, and deterministic regression.
 - `software-phase2-step3.md` — deterministic read-only SimulatorAdapter, shared AFE generator migration, contract conformance, reproducibility, smoke output, and evidence limits.
 - `software-phase2-step2.md` — reusable eight-check adapter contract, reference test execution, full regression, packaging, and evidence limits.
 - `software-phase2-step1.md` — DeviceAdapter public contract, lifecycle/safety gates, typed adapter errors, and the first Software Phase 2 verification checkpoint.

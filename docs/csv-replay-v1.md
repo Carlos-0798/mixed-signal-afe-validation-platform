@@ -165,9 +165,14 @@ Implemented in Step 7:
 - explicit `INCOMPLETE` results and remaining sample counts when replay reaches EOF;
 - adapter cleanup after complete, unsupported, incomplete, or exceptional execution.
 
-Deferred to Step 8 and later phases:
+Completed in Step 8:
 
-- Phase 2 API/compatibility freeze and consolidated closure report;
+- Replay valid/invalid file SHA-256 hashes frozen by the Phase 2 public API manifest;
+- public parser/adapter exports, schemas, enums, errors, and call shapes frozen;
+- consolidated Phase 2 closure and repository-external install verification.
+
+Deferred to later phases:
+
 - product CLI and Dashboard playback controls;
 - streaming very large datasets beyond the current bounded in-memory model;
 - any claim about real-time scheduling or physical measurements.

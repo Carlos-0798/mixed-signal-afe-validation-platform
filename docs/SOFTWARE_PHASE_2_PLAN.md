@@ -14,9 +14,9 @@
 - [x] Step 5：严格、不可变的版本化 CSV replay 格式与 parser；
 - [x] Step 6：`CsvReplayAdapter` 的速度、暂停、恢复和结束状态；
 - [x] Step 7：同一上层工作流和明确 `UNSUPPORTED` 能力降级；
-- [ ] Step 8：集成、打包、文档和 Software Phase 2 报告收口。
+- [x] Step 8：集成、打包、文档和 Software Phase 2 报告收口。
 
-Step 1–7 的真实执行证据见 `reports/software-phase2-step1.md` 至 `reports/software-phase2-step7.md`。下一步执行阶段收口：冻结公共 API，完成端到端回归、隔离构建/安装、文档审查和 Software Phase 2 综合报告。
+Software Phase 2 已完成 8/8 检查点。逐步证据见 `reports/software-phase2-step1.md` 至 `reports/software-phase2-step8.md`；公共 API、Replay 文件哈希和 Simulator/CSV/UNSUPPORTED 端到端含义已由 Phase 2 黄金数据冻结。下一阶段在编码前先建立 Software Phase 3 文件级计划和验收门。
 
 ## 1. 阶段目标
 
@@ -122,3 +122,5 @@ DISCONNECTED
 - 能力不足产生 `UNSUPPORTED` 语义；
 - 核心仍不依赖串口、GUI、板级 SDK 或真实硬件；
 - 软件声明继续区分 `HOST_TEST`、`SYNTHETIC`、`CSV_REPLAY` 和未验证硬件。
+
+以上出口条件均已由 HOST_TEST/SYNTHETIC/CSV_REPLAY 自动测试和 `reports/software-phase2-step8.md` 记录为通过。它们不构成任何硬件、电气范围、实时性或实验室测量验证。

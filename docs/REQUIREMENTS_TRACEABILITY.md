@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 2 Step 7 完成
+**当前阶段：** Software Phase 2 完成（8/8）
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -55,7 +55,7 @@
 | SW-NFR-002 | IMPLEMENTED | 当前核心使用标准 Python | Phase 4/6 验证 Windows，避免核心平台绑定 |
 | SW-NFR-003 | IMPLEMENTED | framing/profile/config/replay parser 拒绝坏输入；adapter 状态机拒绝越级 I/O；CSV 回放暂停不消耗记录、EOF 类型明确；共享工作流在 success/unsupported/incomplete/error 后均断开自己拥有的 adapter | 真实断线、用户中止和串口恢复仍未实现 |
 | SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、100 帧、adapter 契约和共用 workflow 测试均无需硬件；同一 workflow 已分别运行 Simulator 与 CSV Replay | Phase 3 runner 继续使用依赖注入 |
-| SW-NFR-005 | ACCEPTED | 仅有架构文档 | Phase 1/2 建立可执行边界 |
+| SW-NFR-005 | VERIFIED_HOST | `tests/architecture/test_core_dependencies.py` 可执行地禁止正式核心导入第三方、串口、GUI、板级 SDK、dashboard 或 tools；Phase 2 workflow 保持 adapter 依赖方向 | Phase 3 runner 继续受同一边界保护 |
 | SW-NFR-006 | VERIFIED_HOST | 正式领域、协议与配置模块责任分离，公开 API 有类型、文档与完整 host tests | Phase 2 继续保持 adapter 依赖方向 |
 | SW-NFR-007 | ACCEPTED | 无性能基准 | Phase 5/6 建立实际数据规模基准 |
 | SW-NFR-008 | VERIFIED_HOST | 严格 JSON 与 CSV 只作为数据解析；CSV 拒绝坏 UTF-8/BOM/NUL/控制字符/非规范值/超限/不完整 END，loader 测试确认不修改源文件；无 `eval`/`exec` | Phase 5 扩展到 CLI 路径和命令入口 |
@@ -85,11 +85,11 @@
 
 | 状态 | 数量 |
 |---|---:|
-| VERIFIED_HOST | 20 |
+| VERIFIED_HOST | 21 |
 | IMPLEMENTED | 12 |
-| ACCEPTED | 16 |
+| ACCEPTED | 15 |
 | DEFERRED | 12 |
 | VERIFIED_BENCH | 0 |
 | 总计 | 60 |
 
-Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 Step 1–7 已实现公共 adapter 契约、完整可配置模拟器、严格 CSV Replay v1 parser、正式 CsvReplayAdapter，以及 Simulator/CSV 共用读取工作流与明确能力降级；下一步完成 Phase 2 收口和 API 冻结。
+Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 已完成 8/8：公共 adapter 契约、可配置模拟器、严格 CSV Replay、正式 CsvReplayAdapter、共用读取工作流、明确能力降级，以及 API/端到端黄金兼容冻结均通过主机验证。下一步是 Software Phase 3 分析与 runner 规划；硬件仍为 DEFERRED，VERIFIED_BENCH 仍为 0。

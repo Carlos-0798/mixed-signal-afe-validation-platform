@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 2 in progress — 7/8 checkpoints |
-| Release maturity | Pre-MVP; verified adapter workflow |
+| Development stage | Software Phase 2 complete — 8/8 checkpoints |
+| Release maturity | Pre-MVP; software device/acquisition layer complete |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 633 passed |
+| Automated host tests | 644 passed |
 | Formal package coverage | 100% of 2,230 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Latest completed report](reports/software-phase2-step7.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Phase 2 closure report](reports/software-phase2-step8.md)
 
 ## Product vision
 
@@ -55,6 +55,8 @@ The software-first plan allows the complete software product to mature without r
 - Atomic capability preflight: missing commands, channels, or units return explicit `UNSUPPORTED` before any record is consumed.
 - Explicit `COMPLETED`, `UNSUPPORTED`, and `INCOMPLETE` acquisition states; completion never masquerades as an engineering test PASS.
 - Workflow-owned connect/capability/read/disconnect lifecycle with cleanup on expected EOF and execution errors.
+- Frozen Phase 2 public API manifest covering exports, schema versions, enums, signature shapes, error inheritance, and replay-file hashes.
+- Frozen end-to-end Simulator, CSV Replay, and atomic `UNSUPPORTED` workflow meaning.
 - One formal AFE telemetry generator shared by the Simulator foundation, legacy CLI wrapper, and frozen 100-frame regression.
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 
@@ -98,7 +100,7 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 633 passed |
+| Full pytest suite | 644 passed |
 | Formal package statement coverage | 100% of 2,230 statements |
 | DeviceAdapter lifecycle and safety tests | 36 passed |
 | Reusable concrete-adapter contract | 8 shared checks passed by reference, Simulator, and CSV Replay adapters |
@@ -106,11 +108,12 @@ The current results are host-software evidence only:
 | CSV Replay parser tests | 84 unit + 9 golden cases passed |
 | CSV Replay adapter tests | 45 focused unit + 8 shared-contract checks passed |
 | Shared read workflow | 25 unit + 8 Simulator/CSV integration checks passed |
+| Phase 2 public API/workflow golden compatibility | 11 checks passed |
 | AFE v1 profile tests | 40 passed |
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 65 source files |
+| mypy | Passed on 67 source files |
 | Latest isolated build, sdist, and external wheel public-API smoke checks | Passed |
 | Hardware bench tests | Not run |
 
@@ -183,14 +186,14 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 |---|---|---|
 | Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
-| Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | In progress — 7/8 checkpoints |
+| Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Planned |
 | Software Phase 4 | Serial transport and independent controller profiles | Planned |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-The next checkpoint is Software Phase 2 Step 8: close the phase with frozen public APIs, end-to-end regression, isolated packaging/install checks, documentation review, and a consolidated Phase 2 report. See the [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md).
+The next planned milestone is Software Phase 3: migrate the legacy DC sweep, linear-fit, saturation-exclusion, and hysteresis logic into the formal package and build evidence-aware test runners on top of the shared workflow. A file-level Phase 3 plan and acceptance gates will be frozen before implementation.
 
 ## Repository guide
 
@@ -233,6 +236,7 @@ See [assumptions requiring confirmation](ASSUMPTIONS.md), [test and evidence pol
 - [AFE v1 profile](docs/afe-v1-profile.md)
 - [CSV Replay v1 format](docs/csv-replay-v1.md)
 - [Shared read workflow](docs/read-workflow.md)
+- [Frozen Phase 2 public API](docs/phase2-public-api.md)
 - [Versioned safe configuration](docs/configuration.md)
 - [Capability and TestRun semantics](docs/capabilities-and-test-runs.md)
 - [Theory calculations](docs/theory.md)
