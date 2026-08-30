@@ -9,14 +9,14 @@
 
 - [x] Step 1：正式 `src/analog_validation/` 包、单一版本来源、editable install、独立 wheel 构建和仓库外导入；
 - [x] Step 2：错误分类；
-- [ ] Step 3：来源、质量与通用测量模型；
+- [x] Step 3：来源、质量与通用测量模型；
 - [ ] Step 4：Capability 与 TestRun；
 - [ ] Step 5：CRC 与 framing 迁移；
 - [ ] Step 6：AFE v1 profile；
 - [ ] Step 7：配置模型；
 - [ ] Step 8：测试、文档和阶段报告收口。
 
-Step 1–2 的真实执行证据分别见 `reports/software-phase1-step1.md` 和 `reports/software-phase1-step2.md`。
+Step 1–3 的真实执行证据见 `reports/software-phase1-step1.md`、`reports/software-phase1-step2.md` 和 `reports/software-phase1-step3.md`。
 
 ## 1. 阶段目标
 

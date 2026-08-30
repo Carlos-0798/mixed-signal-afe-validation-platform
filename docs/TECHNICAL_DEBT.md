@@ -9,11 +9,11 @@
 |---|---|---|---|---|
 | TD-001 | CLOSED | Git 身份和首个 Phase 0 基线于 2026-08-29 建立 | 已具有可恢复基线和历史差异 | 后续阶段保持小步提交 |
 | TD-002 | P1 | 核心代码位于 `dashboard/` 包 | UI、领域和协议边界含义混乱 | Phase 1 迁移到 `src/analog_validation/` |
-| TD-003 | P0 | 数据模型缺少来源和质量标志 | 可能混淆合成、回放与实测数据 | Phase 1 优先建立 Provenance/QualityFlag |
-| TD-004 | P1 | 无 schema、协议和 profile 版本 | 将来修改可能静默破坏兼容性 | Phase 1 建立版本常量和黄金消息 |
+| TD-003 | CLOSED | 正式 Measurement 强制来源、状态、质量、单位、UTC 时间和原始引用 | 合成、仿真、回放与 BENCH 标签不再依赖文件名 | 证据见 `reports/software-phase1-step3.md` |
+| TD-004 | P1 | Measurement 已有 `measurement.v1`，协议和 profile 仍未版本化 | 协议修改仍可能静默破坏兼容性 | Step 5/6 建立协议/profile 版本和黄金消息 |
 | TD-005 | P1 | 无 Capability 模型 | 软件可能根据板名猜测功能 | Phase 1 建模，Phase 2/4 实现协商 |
 | TD-006 | P2 | 无流式分帧和序列追踪 | 真实串口分段、粘包和丢帧无法处理 | Phase 4 |
-| TD-007 | P1 | DC/迟滞分析未验证 NaN、Inf、非法状态和方向 | 异常数据可能产生无意义结果 | Phase 3；Phase 1 先建立质量类型 |
+| TD-007 | P1 | Measurement 已强制显式处理 NaN/Inf/缺失；旧 DC/迟滞分析尚未应用质量和方向规则 | 旧分析仍可能对异常裸数据产生无意义结果 | Phase 3 迁移分析并保存逐点质量 |
 | TD-008 | P2 | 饱和排除只保存数量，不保存逐点原因 | 报告不可解释 | Phase 3 |
 | TD-009 | P1 | 校准、频响、判定和报告均为占位 | 不能形成成熟测试产品 | Phase 3/5 |
 | TD-010 | CLOSED | 正式 `src/analog_validation/` 包、单一版本来源、隔离构建和仓库外 wheel 导入已于 2026-08-29 验证 | 包装基础问题已解除；CLI 仍由 TD-014 跟踪 | 证据见 `reports/software-phase1-step1.md` |

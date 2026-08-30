@@ -4,7 +4,7 @@ Independent, reusable product project for a low-voltage configurable analog fron
 
 ## Current status
 
-**Software Phase 1 is in progress. Steps 1–2 established the installable `analog_validation` package, version `0.1.0.dev0`, and its stable public error hierarchy.** Phase 0 design, idealized LTspice checks, synthetic telemetry, and host-side algorithms remain available during migration. No breadboard, PCB, MSP430 firmware, instrument measurement, electrical limit, accuracy target, or hardware behavior has been verified.
+**Software Phase 1 is in progress. Steps 1–3 established the installable `analog_validation` package, version `0.1.0.dev0`, stable public errors, and a provenance-aware immutable measurement model.** Phase 0 design, idealized LTspice checks, synthetic telemetry, and host-side algorithms remain available during migration. No breadboard, PCB, MSP430 firmware, instrument measurement, electrical limit, accuracy target, or hardware behavior has been verified.
 
 The current execution baseline is software-first: mature the controller-neutral validation software before freezing or purchasing the new AFE hardware. The governing scope, requirements, safety rules, staged acceptance gates, and future hardware plan are defined in `docs/PRODUCT_PLAN.md`. The original development specification remains preserved as a requirements source.
 
@@ -13,6 +13,8 @@ Software Phase 0 has now established the current host baseline and implementatio
 Software Phase 1 Step 1 passed editable installation, 25 pytest tests, Ruff and mypy checks for the new package, isolated package builds, and a clean wheel import outside the repository. See `reports/software-phase1-step1.md`.
 
 Software Phase 1 Step 2 added typed error families for validation, protocol framing, CRC, protocol version, capability, and configuration failures. See `docs/errors.md` and `reports/software-phase1-step2.md`.
+
+Software Phase 1 Step 3 added controlled evidence sources, measurement units, status and quality flags, UTC timestamps, raw-record traceability, and explicit missing/non-finite handling. See `docs/measurements.md` and `reports/software-phase1-step3.md`.
 
 The independently installed and verified Windows development setup is documented in `docs/DEVELOPMENT_ENVIRONMENT.md`; its verification record is `reports/environment-setup-2026-08-29.md`.
 

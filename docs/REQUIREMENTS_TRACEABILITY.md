@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-29  
-**当前阶段：** Software Phase 1 Step 2 完成
+**当前阶段：** Software Phase 1 Step 3 完成
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -10,11 +10,11 @@
 
 | ID | 状态 | 当前实现/证据 | 主要缺口或下一阶段 |
 |---|---|---|---|
-| SW-FR-001 | ACCEPTED | `dashboard/models.py` 有有限的 Telemetry | Phase 1 建立通用 Measurement、来源和质量字段 |
+| SW-FR-001 | VERIFIED_HOST | `Measurement` 包含 UTC 时间、通道、值、单位、状态、来源、质量和 schema；边界测试通过 | Step 4/8 接入 TestRun 和黄金数据 |
 | SW-FR-002 | ACCEPTED | 无 TestRun 模型 | Phase 1 建立版本化运行元数据 |
-| SW-FR-003 | IMPLEMENTED | 两个生成工具标记 `SYNTHETIC` | 标签进入每条领域记录和报告 |
-| SW-FR-004 | ACCEPTED | 无原始/派生数据关系 | Phase 1 设计 immutable 原始记录和派生引用 |
-| SW-FR-005 | IMPLEMENTED | 字段名含 `_mv` | Phase 1 增加明确单位模型/字段约束 |
+| SW-FR-003 | IMPLEMENTED | 9 类受控 `EvidenceSource` 已验证且每个正式 Measurement 必填 | Step 8 迁移生成器；Phase 3/5 写入导出和报告 |
+| SW-FR-004 | IMPLEMENTED | Measurement 冻结且强制 `record_id`/`raw_record_id`，可区分原始与派生 | Phase 3 分析结果保存实际引用链 |
+| SW-FR-005 | VERIFIED_HOST | 12 类受控单位；未知单位和含义不明值被拒绝 | 后续 profile 映射保持显式单位 |
 | SW-FR-010 | VERIFIED_HOST | `crc16_ccitt_false`；`tests/test_crc.py` | Phase 1 拆为独立稳定模块并增加向量 |
 | SW-FR-011 | VERIFIED_HOST | 128-byte 限制、换行和 CRLF 测试 | Phase 4 增加流式分帧 |
 | SW-FR-012 | VERIFIED_HOST | 严格 telemetry/command parser 和错误测试 | Phase 1 扩展版本化消息和黄金文件 |
@@ -36,7 +36,7 @@
 | SW-FR-033 | VERIFIED_HOST | `calculate_hysteresis` 和 3 项测试 | Phase 3 增加方向、状态和重复统计 |
 | SW-FR-034 | ACCEPTED | `calibration.py` 占位 | Phase 3 实现版本化系数和前后结果 |
 | SW-FR-035 | ACCEPTED | `frequency_response.py` 占位 | Phase 3 先实现离线分析 |
-| SW-FR-036 | ACCEPTED | 仅有部分 parser range check | Phase 1 建立 QualityFlag，Phase 3 应用 |
+| SW-FR-036 | IMPLEMENTED | 缺失、非有限、饱和、超范围、时间和通信质量标志已建立；一致性测试通过 | Phase 3 将规则用于分析和判定 |
 | SW-FR-037 | ACCEPTED | 无判定引擎 | Phase 3 实现，缺数据不得 PASS |
 | SW-FR-038 | IMPLEMENTED | 当前纯函数和固定 seed 可重复 | Phase 2/3 加端到端确定性测试 |
 | SW-FR-040 | IMPLEMENTED | 两个工具有 argparse | Phase 5 建立统一产品 CLI |
@@ -62,7 +62,7 @@
 | SW-NFR-009 | IMPLEMENTED | 当前无网络代码，文件均本地 | Phase 5 文档化并保持默认离线 |
 | SW-NFR-010 | ACCEPTED | 报告未实现 | Phase 1 定义版本字段，Phase 3/5 写入结果 |
 | SW-NFR-011 | ACCEPTED | 无 UI | Phase 5 验证文本与颜色双重表达 |
-| SW-NFR-012 | ACCEPTED | 无 schema/protocol version | Phase 1 版本化并建立黄金测试 |
+| SW-NFR-012 | IMPLEMENTED | Measurement schema 固定为 `measurement.v1`，未知版本拒绝 | Step 5/6 增加协议/profile 版本与黄金测试 |
 
 ## 未来硬件需求
 
