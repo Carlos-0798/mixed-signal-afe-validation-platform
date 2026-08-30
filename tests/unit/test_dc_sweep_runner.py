@@ -298,10 +298,15 @@ def test_public_runner_schema_exports_and_models_are_frozen() -> None:
     assert DC_SWEEP_RUNNER_SCHEMA_VERSION == "dc-sweep-runner.v1"
     assert runners.__all__ == [
         "DC_SWEEP_RUNNER_SCHEMA_VERSION",
+        "HYSTERESIS_RUNNER_SCHEMA_VERSION",
         "DCSweepAcquisitionStep",
         "DCSweepPlan",
         "DCSweepRunnerResult",
+        "HysteresisAcquisitionStep",
+        "HysteresisPlan",
+        "HysteresisRunnerResult",
         "run_dc_sweep",
+        "run_hysteresis",
     ]
     assert selected_plan.expected_points == 6
     assert selected_plan.expected_measurements == 12

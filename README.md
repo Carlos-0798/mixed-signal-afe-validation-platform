@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 3 in progress — 4/8 checkpoints complete |
-| Release maturity | Pre-MVP; safety-gated host DC runner implemented |
+| Development stage | Software Phase 3 in progress — 5/8 checkpoints complete |
+| Release maturity | Pre-MVP; DC and directional hysteresis host runners implemented |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 906 passed |
-| Formal package coverage | 100% of 3,352 statements |
+| Automated host tests | 944 passed |
+| Formal package coverage | 100% of 4,247 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 3 plan](docs/SOFTWARE_PHASE_3_PLAN.md) · [DC runner](docs/dc-sweep-runner.md) · [Step 4 report](reports/software-phase3-step4.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 3 plan](docs/SOFTWARE_PHASE_3_PLAN.md) · [Hysteresis analysis and runner](docs/hysteresis-analysis-and-runner.md) · [Step 5 report](reports/software-phase3-step5.md)
 
 ## Product vision
 
@@ -68,10 +68,13 @@ The software-first plan allows the complete software product to mature without r
 - Default-deny runner preflight for permission, profile, source, command, channel, unit, every setpoint range, and `SAFE_SHUTDOWN` before any write or read.
 - Injected settle/abort callbacks, ordered repetitions, partial-evidence preservation, and safe `UNSUPPORTED`/`INCOMPLETE`/`ERROR` degradation.
 - Host-test reference output execution plus integration proof that the read-only Simulator and CSV Replay adapters remain `UNSUPPORTED` with zero acquisition.
+- Versioned directional hysteresis analysis with strict rising/falling order, exact 0/1 state, four-record transition lineage, midpoint interval estimates, and no partial thresholds.
+- Per-cycle high/low/width plus repeated-cycle summary statistics; reverse transitions, chatter, multiple transitions, and `high < low` are explicitly rejected.
+- Versioned hysteresis criteria and a safety-gated repeated rising/falling runner with cleanup-before-conclusion semantics.
 - One formal AFE telemetry generator shared by the Simulator foundation, legacy CLI wrapper, and frozen 100-frame regression.
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 
-Not yet implemented: formal hysteresis runner, calibration/frequency analysis, structured result exports, serial transport, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, or validated physical hardware.
+Not yet implemented: calibration/frequency analysis, structured result exports, serial transport, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, or validated physical hardware.
 
 ## Architecture
 
@@ -111,12 +114,13 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 906 passed |
-| Formal package statement coverage | 100% of 3,352 statements |
+| Full pytest suite | 944 passed |
+| Formal package statement coverage | 100% of 4,247 statements |
 | Phase 3 common analysis semantics | 56 focused tests; 244/244 statements covered |
 | Phase 3 DC sweep analysis | 81 focused tests; 325/325 statements covered |
 | Phase 3 DC criteria and TestRun mapping | 67 focused tests; 201/201 statements covered |
 | Phase 3 safety-gated DC runner | 58 focused tests; 348/348 module statements covered |
+| Phase 3 hysteresis analysis, criteria, and runner | 38 focused tests; 892/892 new module statements covered |
 | DeviceAdapter lifecycle and safety tests | 36 passed |
 | Reusable concrete-adapter contract | 8 shared checks passed by reference, Simulator, and CSV Replay adapters |
 | Simulator-specific unit tests | 69 passed |
@@ -128,7 +132,7 @@ The current results are host-software evidence only:
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 78 source files |
+| mypy | Passed on 84 source files |
 | Latest isolated build, sdist, and external wheel public-API smoke checks | Passed |
 | Hardware bench tests | Not run |
 
@@ -202,13 +206,13 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
-| Software Phase 3 | Test runners, analysis, calibration, structured results | In progress — 4/8 checkpoints |
+| Software Phase 3 | Test runners, analysis, calibration, structured results | In progress — 5/8 checkpoints |
 | Software Phase 4 | Serial transport and independent controller profiles | Planned |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-Software Phase 3 Step 4 is complete: the controller-neutral DC runner now preflights every output/read/safe-shutdown requirement, executes ordered setpoints and repetitions, preserves partial evidence, cleans up every owned lifecycle, and only evaluates PASS/FAIL after successful cleanup. Step 5 will add formal directional hysteresis analysis and a runner that reuses the same safety principles. Real hardware remains later work.
+Software Phase 3 Step 5 is complete: formal hysteresis analysis now preserves directional point and transition evidence, estimates thresholds from documented adjacent intervals, summarizes repeated cycles, and refuses incomplete or contradictory conclusions. Its runner reuses the output-safety and cleanup rules while the shipped Simulator and CSV Replay remain zero-I/O `UNSUPPORTED`. Step 6 will add calibration and offline frequency-response analysis. Real hardware remains later work.
 
 ## Repository guide
 

@@ -1,7 +1,7 @@
 # Software Phase 3 文件级实施计划
 
 **阶段名称：** 测试执行、质量感知分析与结构化结果<br>
-**规划状态：** 实施中，进度 4/8<br>
+**规划状态：** 实施中，进度 5/8<br>
 **预计时间：** 7–10 个初学者开发日<br>
 **前置：** Software Phase 2 的 adapter、Replay、共用读取工作流和兼容基线完成<br>
 **硬件要求：** 无<br>
@@ -13,12 +13,12 @@
 - [x] Step 2：正式 DC sweep 分析；
 - [x] Step 3：DC sweep criteria 与结论映射；
 - [x] Step 4：控制器无关 DC sweep runner；
-- [ ] Step 5：正式迟滞分析与 runner；
+- [x] Step 5：正式迟滞分析与 runner；
 - [ ] Step 6：校准与离线频率响应；
 - [ ] Step 7：版本化 CSV/JSON 结果导出；
 - [ ] Step 8：黄金兼容、构建和阶段收口。
 
-Step 4 已通过 58 项专门测试、906 项完整回归和 100% 正式 package 覆盖。runner 使用 HOST_TEST reference adapter 验证主机安全门和生命周期，并确认只读 Simulator/CSV 只能得到零采集的 `UNSUPPORTED`。证据见 `reports/software-phase3-step4.md`。这不表示真实输出控制、Step 5–8 或任何硬件功能已经完成。
+Step 5 已通过 38 项专门测试、944 项完整回归和 100% 正式 package 覆盖。正式迟滞路径保存方向、状态、转换区间引用、逐 cycle high/low/width 和汇总统计；测试专用 HOST_TEST adapter 验证 runner，正式只读 Simulator/CSV 仍只能得到零采集的 `UNSUPPORTED`。证据见 `reports/software-phase3-step5.md`。这不表示真实输出、比较器阈值、Step 6–8 或任何硬件功能已经完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -229,6 +229,8 @@ Step 1 将冻结：
 迁移迟滞算法，增加方向、状态、重复 cycle、转换引用和统计；runner 使用同一安全输出原则组织 rising/falling sweep。
 
 验收：正常转换、边界中点、多 cycle、无转换、反向序列、抖动、缺失点和 high < low 均有稳定结果。
+
+**状态：已完成。** `hysteresis-analysis.v1` 保存逐点模拟/数字证据和转换前后四条引用，以明确的相邻输入区间中点估计阈值；`hysteresis-criteria.v1` 只对完整多 cycle 统计形成 PASS/FAIL；`hysteresis-runner.v1` 在输出前检查全部权限/能力/单位/范围/安全关闭，并在清理成功后分析。无转换/缺失保持 INCOMPLETE，反向、抖动、多转换、非二进制状态和 `high < low` 明确拒绝。
 
 ### Step 6：校准与离线频率响应
 

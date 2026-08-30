@@ -13,9 +13,9 @@
 | TD-004 | CLOSED | Measurement、CRC、framing、AFE v1 profile 和 validation config 已版本化；20 条合法与 9 类非法 AFE 黄金消息已冻结 | 字段、CRC、模型意义和错误家族的意外漂移可由 pytest 发现 | 证据见 `reports/software-phase1-step8.md` |
 | TD-005 | CLOSED | `DeviceCapabilities` 已要求显式通道、安全范围、命令和 safe-shutdown 一致性 | 软件领域层不再需要根据板名猜测功能；线上协商仍属后续实现 | 证据见 `reports/software-phase1-step4.md` |
 | TD-006 | P2 | 无流式分帧和序列追踪 | 真实串口分段、粘包和丢帧无法处理 | Phase 4 |
-| TD-007 | P1 | 正式 DC 算法已迁入 `analysis.dc_sweep` 并具备有限值/单位/来源/质量/可追溯约束；旧 dashboard DC 仅保留回归对照，正式迟滞算法仍未迁移 | 正式 DC 入口已安全，但旧裸值入口和迟滞路径仍可能产生不可追溯结果 | Phase 3 Step 5 完成迟滞迁移并处理旧兼容入口后关闭；DC 证据见 `reports/software-phase3-step2.md` |
+| TD-007 | CLOSED | 正式 DC 与迟滞算法已迁入 `analog_validation.analysis`，具备有限值/单位/来源/质量/方向/可追溯约束；旧 dashboard 函数仅保留迁移回归对照 | 正式产品分析不再依赖裸 tuple 迟滞入口 | 证据见 `reports/software-phase3-step2.md` 和 `reports/software-phase3-step5.md` |
 | TD-008 | CLOSED | `dc-sweep-analysis.v1` 保留所有点、输入/输出双引用、组件质量决定、逐点 `LOW/HIGH_SATURATION` 和 DC 排除原因 | 正式 DC 结果可解释具体使用或排除的每个点；旧函数不属于正式核心 | 证据见 `docs/dc-sweep-analysis.md` 和 `reports/software-phase3-step2.md` |
-| TD-009 | P1 | Step 4 已实现正式 DC plan/runner、安全预检、重复/等待/中止、证据保留和 TestRun 生命周期；迟滞、校准、频响、结构化导出和人类报告仍为占位 | DC 已能形成完整 HOST_TEST 自动运行，但尚无第二种正式分析 runner 和最终用户报告产品 | Phase 3 Steps 5–7 和 Phase 5；DC runner 证据见 `reports/software-phase3-step4.md` |
+| TD-009 | P1 | Steps 4–5 已实现正式 DC/迟滞 plans/runners、安全预检、等待/中止、证据保留和 TestRun 生命周期；校准、频响、结构化导出和人类报告仍待实现 | 已有两类完整 HOST_TEST 自动运行，但仍缺最终结果文件和用户报告产品 | Phase 3 Steps 6–7 和 Phase 5；证据见 `reports/software-phase3-step4.md`、`reports/software-phase3-step5.md` |
 | TD-010 | CLOSED | 正式 `src/analog_validation/` 包、单一版本来源、隔离构建和仓库外 wheel 导入已于 2026-08-29 验证 | 包装基础问题已解除；CLI 仍由 TD-014 跟踪 | 证据见 `reports/software-phase1-step1.md` |
 | TD-011 | CLOSED | 独立 Python `.venv`、setuptools 和隔离 wheel 安装已于 2026-08-29 验证 | 原环境依赖 Codex 运行时的问题已解除 | 证据见 `reports/environment-setup-2026-08-29.md` |
 | TD-012 | CLOSED | 冻结的 100 帧生成器已迁入正式 package，并由 CLI、集成测试和确定性 SimulatorAdapter 共同复用；stream SHA-256 保持不变；非理想和受控故障已在 Step 4 配置化 | 合成基础流水线不再存在第二份公式，增益/噪声/饱和/迟滞/故障均有确定性回归 | 证据见 `reports/software-phase2-step3.md` 和 `reports/software-phase2-step4.md` |

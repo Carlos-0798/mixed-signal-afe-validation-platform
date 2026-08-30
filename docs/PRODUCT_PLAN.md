@@ -806,4 +806,4 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/adr/`；
 - `docs/TECHNICAL_DEBT.md`。
 
-Software Phase 1 已于 2026-08-29 完成，真实证据见 `reports/software-phase1-step8.md`。Software Phase 2 已完成 8/8：`DeviceAdapter`、生命周期/安全门、可复用契约、Simulator、CSV Replay、共用读取工作流及黄金兼容均已通过。Software Phase 3 Steps 1–4 已完成公共分析语义、正式 DC sweep 数学、版本化 criteria/TestRun 映射和安全门控 DC runner；runner 在任何 I/O 前检查权限/能力/范围/单位/安全关闭，保留部分证据，并只在成功 cleanup 后判定，证据见 `reports/software-phase3-step4.md`。当前进度 4/8，下一步是 Step 5 正式迟滞分析与 runner。当前仍不采购、不接线，也不把 HOST_TEST PASS 描述为实物验证。
+Software Phase 1 已于 2026-08-29 完成，真实证据见 `reports/software-phase1-step8.md`。Software Phase 2 已完成 8/8：`DeviceAdapter`、生命周期/安全门、可复用契约、Simulator、CSV Replay、共用读取工作流及黄金兼容均已通过。Software Phase 3 Steps 1–5 已完成公共分析语义、正式 DC sweep、方向性迟滞、多 cycle 统计、版本化 criteria/TestRun 映射和安全门控 runners；runners 在任何 I/O 前检查权限/能力/范围/单位/安全关闭，保留部分证据，并只在成功 cleanup 后判定，证据见 `reports/software-phase3-step4.md`、`reports/software-phase3-step5.md`。当前进度 5/8，下一步是 Step 6 校准与离线频率响应。当前仍不采购、不接线，也不把 HOST_TEST PASS 描述为实物验证。
