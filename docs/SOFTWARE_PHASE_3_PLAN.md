@@ -1,7 +1,7 @@
 # Software Phase 3 文件级实施计划
 
 **阶段名称：** 测试执行、质量感知分析与结构化结果<br>
-**规划状态：** 实施中，进度 5/8<br>
+**规划状态：** 实施中，进度 6/8<br>
 **预计时间：** 7–10 个初学者开发日<br>
 **前置：** Software Phase 2 的 adapter、Replay、共用读取工作流和兼容基线完成<br>
 **硬件要求：** 无<br>
@@ -14,11 +14,11 @@
 - [x] Step 3：DC sweep criteria 与结论映射；
 - [x] Step 4：控制器无关 DC sweep runner；
 - [x] Step 5：正式迟滞分析与 runner；
-- [ ] Step 6：校准与离线频率响应；
+- [x] Step 6：校准与离线频率响应；
 - [ ] Step 7：版本化 CSV/JSON 结果导出；
 - [ ] Step 8：黄金兼容、构建和阶段收口。
 
-Step 5 已通过 38 项专门测试、944 项完整回归和 100% 正式 package 覆盖。正式迟滞路径保存方向、状态、转换区间引用、逐 cycle high/low/width 和汇总统计；测试专用 HOST_TEST adapter 验证 runner，正式只读 Simulator/CSV 仍只能得到零采集的 `UNSUPPORTED`。证据见 `reports/software-phase3-step5.md`。这不表示真实输出、比较器阈值、Step 6–8 或任何硬件功能已经完成。
+Step 6 已通过 48 项专门测试、992 项完整回归和 100% 正式 package 覆盖。正式校准路径保存两个来源、系数版本、拟合输入引用和校准前后误差，并只创建派生 Measurement；离线频响路径计算 ratio/dB，并只对唯一交点做对数频率插值。证据见 `reports/software-phase3-step6.md`。这不表示系数来自标准器、真实 AFE 带宽已测量、Step 7–8 或任何硬件功能已经完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -237,6 +237,8 @@ Step 1 将冻结：
 实现不可变校准系数、派生记录链和校准前后指标；实现离线幅频点、ratio/dB 与截止频率插值。二者都不导入串口或科学计算第三方库。
 
 验收：系数边界、单位、零输入幅值、非正 ratio、频率顺序、无交点和多交点都有明确处理。
+
+**状态：已完成。** `calibration-analysis.v1` 使用普通最小二乘拟合 `reference = scale × observed + offset`，保存参与拟合的 record/raw IDs、双来源和前后 RMSE/MAE/最大绝对误差；应用系数时生成新记录并保留原 `raw_record_id`、来源、时间、状态和质量。`frequency-response-analysis.v1` 只接收显式 Hz 与输入/输出幅值批次，使用 `20 log10(Vout/Vin)` 和 `linear-db-versus-log10-hz` 插值；无交点保持 incomplete，多交点拒绝为歧义。二者均为标准库纯函数，无 I/O、FFT 或硬件控制。
 
 ### Step 7：版本化 CSV/JSON 结果导出
 

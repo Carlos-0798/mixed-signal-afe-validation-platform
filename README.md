@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 3 in progress — 5/8 checkpoints complete |
-| Release maturity | Pre-MVP; DC and directional hysteresis host runners implemented |
+| Development stage | Software Phase 3 in progress — 6/8 checkpoints complete |
+| Release maturity | Pre-MVP; core runners plus offline calibration/frequency analysis implemented |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 944 passed |
-| Formal package coverage | 100% of 4,247 statements |
+| Automated host tests | 992 passed |
+| Formal package coverage | 100% of 4,954 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 3 plan](docs/SOFTWARE_PHASE_3_PLAN.md) · [Hysteresis analysis and runner](docs/hysteresis-analysis-and-runner.md) · [Step 5 report](reports/software-phase3-step5.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 3 plan](docs/SOFTWARE_PHASE_3_PLAN.md) · [Calibration and frequency response](docs/calibration-and-frequency-response.md) · [Step 6 report](reports/software-phase3-step6.md)
 
 ## Product vision
 
@@ -71,10 +71,14 @@ The software-first plan allows the complete software product to mature without r
 - Versioned directional hysteresis analysis with strict rising/falling order, exact 0/1 state, four-record transition lineage, midpoint interval estimates, and no partial thresholds.
 - Per-cycle high/low/width plus repeated-cycle summary statistics; reverse transitions, chatter, multiple transitions, and `high < low` are explicitly rejected.
 - Versioned hysteresis criteria and a safety-gated repeated rising/falling runner with cleanup-before-conclusion semantics.
+- Immutable versioned linear calibration fitting with separate observed/reference provenance, before/after error metrics, and coefficient input lineage.
+- Calibration application creates new Measurements, preserves source/raw record identity, and never overwrites the input batch.
+- Offline frequency-response analysis accepts explicit Hz/input/output amplitude points, normalizes V/mV, calculates ratio and dB, and uses documented dB-versus-log-frequency cutoff interpolation.
+- Missing/invalid points suppress conclusions; zero or negative amplitudes, non-increasing frequency, and ambiguous multiple cutoff crossings are rejected explicitly.
 - One formal AFE telemetry generator shared by the Simulator foundation, legacy CLI wrapper, and frozen 100-frame regression.
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 
-Not yet implemented: calibration/frequency analysis, structured result exports, serial transport, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, or validated physical hardware.
+Not yet implemented: structured result exports, serial transport, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, or validated physical hardware.
 
 ## Architecture
 
@@ -114,13 +118,14 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 944 passed |
-| Formal package statement coverage | 100% of 4,247 statements |
+| Full pytest suite | 992 passed |
+| Formal package statement coverage | 100% of 4,954 statements |
 | Phase 3 common analysis semantics | 56 focused tests; 244/244 statements covered |
 | Phase 3 DC sweep analysis | 81 focused tests; 325/325 statements covered |
 | Phase 3 DC criteria and TestRun mapping | 67 focused tests; 201/201 statements covered |
 | Phase 3 safety-gated DC runner | 58 focused tests; 348/348 module statements covered |
 | Phase 3 hysteresis analysis, criteria, and runner | 38 focused tests; 892/892 new module statements covered |
+| Phase 3 calibration and offline frequency response | 48 focused tests; 705/705 new module statements covered |
 | DeviceAdapter lifecycle and safety tests | 36 passed |
 | Reusable concrete-adapter contract | 8 shared checks passed by reference, Simulator, and CSV Replay adapters |
 | Simulator-specific unit tests | 69 passed |
@@ -132,7 +137,7 @@ The current results are host-software evidence only:
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 84 source files |
+| mypy | Passed on 88 source files |
 | Latest isolated build, sdist, and external wheel public-API smoke checks | Passed |
 | Hardware bench tests | Not run |
 
@@ -206,13 +211,13 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
-| Software Phase 3 | Test runners, analysis, calibration, structured results | In progress — 5/8 checkpoints |
+| Software Phase 3 | Test runners, analysis, calibration, structured results | In progress — 6/8 checkpoints |
 | Software Phase 4 | Serial transport and independent controller profiles | Planned |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-Software Phase 3 Step 5 is complete: formal hysteresis analysis now preserves directional point and transition evidence, estimates thresholds from documented adjacent intervals, summarizes repeated cycles, and refuses incomplete or contradictory conclusions. Its runner reuses the output-safety and cleanup rules while the shipped Simulator and CSV Replay remain zero-I/O `UNSUPPORTED`. Step 6 will add calibration and offline frequency-response analysis. Real hardware remains later work.
+Software Phase 3 Step 6 is complete: linear calibration now produces versioned, traceable coefficients and new derived Measurements without modifying source evidence. Offline frequency response computes amplitude ratio/dB from explicit points and publishes a cutoff only when one unambiguous crossing exists. Step 7 will add versioned CSV/JSON result export. Real hardware remains later work.
 
 ## Repository guide
 
@@ -258,6 +263,7 @@ See [assumptions requiring confirmation](ASSUMPTIONS.md), [test and evidence pol
 - [DC sweep analysis](docs/dc-sweep-analysis.md)
 - [DC criteria and TestRun mapping](docs/dc-sweep-criteria.md)
 - [Safety-gated DC sweep runner](docs/dc-sweep-runner.md)
+- [Calibration and offline frequency response](docs/calibration-and-frequency-response.md)
 - [Frozen Phase 2 public API](docs/phase2-public-api.md)
 - [Versioned safe configuration](docs/configuration.md)
 - [Capability and TestRun semantics](docs/capabilities-and-test-runs.md)

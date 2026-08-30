@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-08-30<br>
-**Current milestone:** Software Phase 3 in progress — 5 of 8 checkpoints complete<br>
-**Release maturity:** pre-MVP / DC and directional hysteresis host runners implemented<br>
+**Current milestone:** Software Phase 3 in progress — 6 of 8 checkpoints complete<br>
+**Release maturity:** pre-MVP / core runners plus offline calibration/frequency analysis implemented<br>
 **Highest evidence level:** HOST_TEST  
 **Verified hardware claims:** 0
 
@@ -10,9 +10,9 @@
 
 The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC/framing implementation, the versioned AFE v1 profile, strict non-executable JSON configuration, frozen protocol and replay compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, a configurable deterministic read-only SimulatorAdapter, a strict immutable CSV Replay v1 parser, a read-only CsvReplayAdapter, and a shared adapter-neutral read workflow.
 
-The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow remains a frozen read-only acquisition API. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Calibration/frequency analysis, product CLI, dashboard, serial transport, and a validated physical AFE are not yet implemented.
+The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow remains a frozen read-only acquisition API. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration and offline frequency-response analysis are implemented; product CLI, dashboard, serial transport, exports, and a validated physical AFE are not yet implemented.
 
-Software Phase 3 Steps 1–5 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, and `analog_validation.runners`. The hysteresis path validates rising/falling order and exact state transitions, retains the four records surrounding each transition, reports midpoint interval estimates, and summarizes repeated cycles. Both runners check every configuration/device gate before I/O, preserve partial evidence, disconnect every owned lifecycle, and evaluate only after cleanup succeeds.
+Software Phase 3 Steps 1–6 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, and offline amplitude-response analysis. Calibration keeps observed/reference source lineage and creates derived Measurements instead of rewriting evidence. Frequency response accepts explicit points only and publishes a cutoff only for one explainable crossing. No Step 6 code performs I/O.
 
 ## Software Phase 1 checkpoints
 
@@ -44,13 +44,14 @@ Software Phase 3 Steps 1–5 add the versioned analysis foundation, formal DC an
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 944 passed |
-| Formal package statement coverage | 100% of 4,247 statements |
+| Full pytest suite | 992 passed |
+| Formal package statement coverage | 100% of 4,954 statements |
 | Phase 3 common analysis semantics | 56 focused tests; 244/244 statements covered |
 | Phase 3 DC sweep analysis | 81 focused tests; 325/325 statements covered |
 | Phase 3 DC criteria and TestRun mapping | 67 focused tests; 201/201 statements covered |
 | Phase 3 safety-gated DC runner | 58 focused tests; 348/348 module statements covered |
 | Phase 3 hysteresis analysis, criteria, and runner | 38 focused tests; 892/892 new module statements covered |
+| Phase 3 calibration and offline frequency response | 48 focused tests; 705/705 new module statements covered |
 | DeviceAdapter lifecycle and safety | 36 tests passed |
 | Reusable concrete-adapter contract | 8 shared checks passed against reference, Simulator, and CSV Replay adapters |
 | Simulator-specific unit tests | 69 passed; config, generator, channel independence, non-idealities, hysteresis, fault, clock, capability, and reconnect behavior |
@@ -62,8 +63,8 @@ Software Phase 3 Steps 1–5 add the versioned analysis foundation, formal DC an
 | Synthetic integration | 100 frames / 400 explicit `SYNTHETIC` Measurements passed |
 | Core dependency boundary | Passed; standard library and own package only |
 | Ruff | Passed on the full repository |
-| mypy | Passed on `src`, `dashboard`, `tools`, and `tests` — 84 source files |
-| Package build and external install | Passed; sdist contains all six Step 5 source/test files, and an external wheel install preserved the frozen 84-symbol top level while exposing 45 analysis and 10 runner symbols |
+| mypy | Passed on `src`, `dashboard`, `tools`, and `tests` — 88 source files |
+| Package build and external install | Passed; sdist contains all four Step 6 source/test files, and an external wheel install preserved the frozen 84-symbol top level while exposing 68 analysis and 10 runner symbols |
 | Hardware bench validation | Not performed |
 
 ## Software Phase 3 checkpoints
@@ -76,7 +77,7 @@ Software Phase 3 Steps 1–5 add the versioned analysis foundation, formal DC an
 | 3 | Versioned DC criteria and TestRun mapping | Complete | HOST_TEST / SYNTHETIC |
 | 4 | Controller-neutral, safety-gated DC sweep runner | Complete | HOST_TEST |
 | 5 | Directional hysteresis analysis and runner | Complete | HOST_TEST / SYNTHETIC / CSV_REPLAY |
-| 6 | Calibration and offline frequency response | Planned | — |
+| 6 | Calibration and offline frequency response | Complete | HOST_TEST / SYNTHETIC |
 | 7 | Versioned CSV/JSON result export | Planned | — |
 | 8 | Golden compatibility, packaging, and closure | Planned | — |
 
@@ -117,7 +118,7 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 3 Step 5 is complete. Step 6 will add immutable calibration coefficients with derived-record lineage and offline frequency-response analysis with explicit ratio/dB/cutoff rules. Real hardware remains later work.
+Software Phase 3 Step 6 is complete. Step 7 will add immutable, versioned CSV/JSON result export with stable ordering, provenance, criteria, metrics, point decisions, and safe no-overwrite behavior. Real hardware remains later work.
 
 ## GitHub and LinkedIn presentation policy
 
