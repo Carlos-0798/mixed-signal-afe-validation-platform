@@ -1,6 +1,6 @@
 # 技术债与已知缺口
 
-**更新日期：** 2026-08-29  
+**更新日期：** 2026-08-30<br>
 **来源：** Software Phase 0 审计
 
 优先级：`P0` 阻塞安全或正确性；`P1` 阻塞下一主要里程碑；`P2` 应在 v1 前解决；`P3` 可后置。
@@ -18,7 +18,7 @@
 | TD-009 | P1 | 校准、频响、判定和报告均为占位 | 不能形成成熟测试产品 | Phase 3/5 |
 | TD-010 | CLOSED | 正式 `src/analog_validation/` 包、单一版本来源、隔离构建和仓库外 wheel 导入已于 2026-08-29 验证 | 包装基础问题已解除；CLI 仍由 TD-014 跟踪 | 证据见 `reports/software-phase1-step1.md` |
 | TD-011 | CLOSED | 独立 Python `.venv`、setuptools 和隔离 wheel 安装已于 2026-08-29 验证 | 原环境依赖 Codex 运行时的问题已解除 | 证据见 `reports/environment-setup-2026-08-29.md` |
-| TD-012 | CLOSED | 冻结的 100 帧生成器已迁入正式 package，并由 CLI、集成测试和确定性 SimulatorAdapter 共同复用；stream SHA-256 保持不变 | 合成基础流水线不再存在第二份公式；非理想/故障由 SW-FR-021 Step 4 跟踪 | 证据见 `reports/software-phase2-step3.md` |
+| TD-012 | CLOSED | 冻结的 100 帧生成器已迁入正式 package，并由 CLI、集成测试和确定性 SimulatorAdapter 共同复用；stream SHA-256 保持不变；非理想和受控故障已在 Step 4 配置化 | 合成基础流水线不再存在第二份公式，增益/噪声/饱和/迟滞/故障均有确定性回归 | 证据见 `reports/software-phase2-step3.md` 和 `reports/software-phase2-step4.md` |
 | TD-013 | P2 | 本地 mypy、Ruff 和 coverage 已可运行，但尚无冻结规则和 CI | 自动质量门仍不能在每次变更时执行 | Phase 1 冻结核心规则；Phase 6 建立 CI |
 | TD-014 | P2 | 无统一 CLI，`app.py` 仅打印状态 | 用户无法运行产品流程 | Phase 5 |
 | TD-015 | CLOSED | CRC vectors、AFE wire records、预期 model JSON 和非法输入错误家族均已冻结 | 文件兼容性已有 host regression 保护 | 未来 schema 变化必须添加迁移样本 |

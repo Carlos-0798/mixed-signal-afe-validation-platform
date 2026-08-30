@@ -11,6 +11,7 @@ from analog_validation.adapters import (
     SIMULATOR_CONFIG_SCHEMA_VERSION,
     SimulatorAdapter,
     SimulatorConfig,
+    SimulatorFaultMode,
     generate_afe_telemetry,
 )
 from analog_validation.domain import (
@@ -45,6 +46,17 @@ def test_simulator_config_defaults_are_versioned_and_immutable() -> None:
     assert config.profile_name == "afe"
     assert config.profile_version == "1"
     assert config.analog_channel == "afe.ch0.input"
+    assert config.output_channel == "afe.ch0.output"
+    assert config.threshold_channel == "afe.ch0.threshold"
+    assert config.gain == 2.0
+    assert config.offset_mv == 12.0
+    assert config.noise_stddev_mv == 0.0
+    assert config.saturation_min_mv == 25.0
+    assert config.saturation_max_mv == 3275.0
+    assert config.hysteresis_low_mv == 900.0
+    assert config.hysteresis_high_mv == 1000.0
+    assert config.fault_mode is SimulatorFaultMode.NONE
+    assert config.fault_every_n is None
     assert config.schema_version == SIMULATOR_CONFIG_SCHEMA_VERSION
     with pytest.raises(FrozenInstanceError):
         config.seed = 1  # type: ignore[misc]
@@ -69,7 +81,14 @@ def test_simulator_config_rejects_invalid_numbers(
 
 @pytest.mark.parametrize(
     "field",
-    ["device_id", "profile_name", "profile_version", "analog_channel"],
+    [
+        "device_id",
+        "profile_name",
+        "profile_version",
+        "analog_channel",
+        "output_channel",
+        "threshold_channel",
+    ],
 )
 @pytest.mark.parametrize("value", ["", " invalid"])
 def test_simulator_config_rejects_invalid_identifiers(field: str, value: str) -> None:
@@ -124,14 +143,19 @@ def test_default_simulator_capabilities_are_explicit_and_read_only() -> None:
     assert capabilities.device_id == "simulator-afe-1"
     assert capabilities.profile_name == "afe"
     assert capabilities.profile_version == "1"
-    assert capabilities.adc_channels == ("afe.ch0.input",)
+    assert capabilities.adc_channels == ("afe.ch0.input", "afe.ch0.output")
+    assert capabilities.digital_input_channels == ("afe.ch0.threshold",)
     assert capabilities.supported_commands == frozenset(
-        {DeviceCommand.READ_MEASUREMENT}
+        {DeviceCommand.READ_DIGITAL_STATE, DeviceCommand.READ_MEASUREMENT}
     )
     assert capabilities.is_read_only
     assert not capabilities.automated_output_allowed
     assert (
         capabilities.get_input_range("afe.ch0.input").unit
+        is MeasurementUnit.MILLIVOLT
+    )
+    assert (
+        capabilities.get_input_range("afe.ch0.output").unit
         is MeasurementUnit.MILLIVOLT
     )
 
@@ -154,7 +178,7 @@ def test_custom_identity_and_channel_are_reflected_in_capabilities() -> None:
     assert capabilities.device_id == "demo-sim"
     assert capabilities.profile_name == "demo"
     assert capabilities.profile_version == "2"
-    assert capabilities.adc_channels == ("demo.input",)
+    assert capabilities.adc_channels == ("demo.input", "afe.ch0.output")
     assert measurement.channel == "demo.input"
 
 

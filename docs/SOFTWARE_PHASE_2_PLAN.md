@@ -10,13 +10,13 @@
 - [x] Step 1：`DeviceAdapter` 公共契约、生命周期和主机侧输出安全门；
 - [x] Step 2：可复用适配器契约测试；
 - [x] Step 3：确定性 `SimulatorAdapter` 基本数据流；
-- [ ] Step 4：模拟增益、偏置、噪声、饱和、迟滞和受控故障；
+- [x] Step 4：模拟增益、偏置、噪声、饱和、迟滞和受控故障；
 - [ ] Step 5：严格、不可变的版本化 CSV replay 格式与 parser；
 - [ ] Step 6：`CsvReplayAdapter` 的速度、暂停、恢复和结束状态；
 - [ ] Step 7：同一上层工作流和明确 `UNSUPPORTED` 能力降级；
 - [ ] Step 8：集成、打包、文档和 Software Phase 2 报告收口。
 
-Step 1–3 的真实执行证据见 `reports/software-phase2-step1.md` 至 `reports/software-phase2-step3.md`。下一步是在保持 `SYNTHETIC` 来源和确定性的前提下，加入可配置非理想与受控故障。
+Step 1–4 的真实执行证据见 `reports/software-phase2-step1.md` 至 `reports/software-phase2-step4.md`。下一步定义严格、不可变的版本化 CSV replay 格式与 parser，并保持来源、单位和时间语义不被静默猜测。
 
 ## 1. 阶段目标
 

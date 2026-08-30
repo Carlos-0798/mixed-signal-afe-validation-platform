@@ -6,6 +6,7 @@ from .simulator import (
     SIMULATOR_CONFIG_SCHEMA_VERSION,
     SimulatorAdapter,
     SimulatorConfig,
+    SimulatorFaultMode,
     generate_afe_telemetry,
 )
 
@@ -16,5 +17,6 @@ __all__ = [
     "DeviceAdapter",
     "SimulatorAdapter",
     "SimulatorConfig",
+    "SimulatorFaultMode",
     "generate_afe_telemetry",
 ]

@@ -1,8 +1,8 @@
 # 产品需求追踪矩阵
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
-**更新日期：** 2026-08-29  
-**当前阶段：** Software Phase 1 完成
+**更新日期：** 2026-08-30<br>
+**当前阶段：** Software Phase 2 Step 4 完成
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -24,7 +24,7 @@
 | SW-FR-016 | ACCEPTED | `serial_worker.py` 占位 | Phase 4 实现有限重试和错误恢复 |
 | SW-FR-017 | ACCEPTED | 无原始帧日志模型 | Phase 1 定义，Phase 4 实现 |
 | SW-FR-020 | IMPLEMENTED | 正式 `DeviceAdapter` 已定义统一接口；Simulator 已继承全部 8 项只读契约 | Step 6 让 CSV Replay 通过同一契约后再提升验收状态 |
-| SW-FR-021 | IMPLEMENTED | 正式只读 SimulatorAdapter 已使用版本化配置、固定 seed、可注入 clock、明确 capability 和 `SYNTHETIC` Measurement；旧工具复用同一生成器 | Step 4 增加增益、偏置、噪声、饱和、迟滞与故障注入后再完成验收 |
+| SW-FR-021 | VERIFIED_HOST | 版本化只读 SimulatorAdapter 已验证增益、偏置、确定性噪声、上下限饱和、Schmitt 迟滞、缺失样本、通信错误和 CRC 错误；所有记录保持 `SYNTHETIC` | Phase 3 runner 使用该适配器执行完整工作流 |
 | SW-FR-022 | ACCEPTED | 无 CSV replay | Phase 2 实现 |
 | SW-FR-023 | ACCEPTED | 串口占位文件 | Phase 4 实现且隔离分析层 |
 | SW-FR-024 | ACCEPTED | 无 MSP430 profile | Phase 4 独立实现，保留原始字段 |
@@ -36,9 +36,9 @@
 | SW-FR-033 | VERIFIED_HOST | `calculate_hysteresis` 和 3 项测试 | Phase 3 增加方向、状态和重复统计 |
 | SW-FR-034 | ACCEPTED | `calibration.py` 占位 | Phase 3 实现版本化系数和前后结果 |
 | SW-FR-035 | ACCEPTED | `frequency_response.py` 占位 | Phase 3 先实现离线分析 |
-| SW-FR-036 | IMPLEMENTED | 缺失、非有限、饱和、超范围、时间和通信质量标志已建立；一致性测试通过 | Phase 3 将规则用于分析和判定 |
+| SW-FR-036 | IMPLEMENTED | 缺失、非有限、饱和、超范围、时间和通信质量标志已建立；Simulator 实际生成 `SATURATED` 及缺失/通信组合并通过一致性测试 | Phase 3 将规则用于分析和判定 |
 | SW-FR-037 | IMPLEMENTED | 领域模型强制 PASS/FAIL 具备证据且无缺失项；INCOMPLETE/UNSUPPORTED 不能成为 PASS | Phase 3 实现版本化判定引擎 |
-| SW-FR-038 | VERIFIED_HOST | 固定 seed 的 100 帧 AFE 流水线保持冻结 SHA-256；两个同配置/clock 的 SimulatorAdapter 生成相同序列，重连从相同起点恢复 | Phase 3 扩展到 runner 端到端测试 |
+| SW-FR-038 | VERIFIED_HOST | 固定 seed 的 100 帧 AFE 流水线保持冻结 SHA-256；同配置/clock 的输入、带噪输出、迟滞和故障序列可重复，且各通道读取顺序互不干扰 | Phase 3 扩展到 runner 端到端测试 |
 | SW-FR-040 | IMPLEMENTED | 两个工具有 argparse | Phase 5 建立统一产品 CLI |
 | SW-FR-041 | ACCEPTED | `app.py` 仅占位 | Phase 5 实现 Dashboard |
 | SW-FR-042 | ACCEPTED | 无测试向导 | Phase 5 实现 |
@@ -85,11 +85,11 @@
 
 | 状态 | 数量 |
 |---|---:|
-| VERIFIED_HOST | 16 |
-| IMPLEMENTED | 15 |
+| VERIFIED_HOST | 17 |
+| IMPLEMENTED | 14 |
 | ACCEPTED | 17 |
 | DEFERRED | 12 |
 | VERIFIED_BENCH | 0 |
 | 总计 | 60 |
 
-Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 Step 1–3 已实现 SW-FR-020 的公共接口/契约，并交付 SW-FR-021 的确定性只读基础；下一步完成模拟非理想和受控故障。
+Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 Step 1–4 已实现 SW-FR-020 的公共接口/契约，并在主机环境完整验证 SW-FR-021 的可配置确定性模拟器；下一步建立严格的 CSV Replay schema 和 parser。

@@ -11,6 +11,7 @@ from .adapters import (
     DeviceAdapter,
     SimulatorAdapter,
     SimulatorConfig,
+    SimulatorFaultMode,
     generate_afe_telemetry,
 )
 from .config import (
@@ -111,6 +112,7 @@ __all__ = [
     "SafeRange",
     "SimulatorAdapter",
     "SimulatorConfig",
+    "SimulatorFaultMode",
     "TestRunMetadata",
     "TestRunOutcome",
     "TestRunResult",

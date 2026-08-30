@@ -1,16 +1,16 @@
 # Project Status
 
-**Last updated:** 2026-08-29  
-**Current milestone:** Software Phase 2 in progress — 3 of 8 checkpoints<br>
-**Release maturity:** pre-MVP / verified deterministic simulator foundation<br>
+**Last updated:** 2026-08-30<br>
+**Current milestone:** Software Phase 2 in progress — 4 of 8 checkpoints<br>
+**Release maturity:** pre-MVP / verified configurable simulator<br>
 **Highest evidence level:** HOST_TEST  
 **Verified hardware claims:** 0
 
 ## Current product baseline
 
-The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC/framing implementation, the versioned AFE v1 profile, strict non-executable JSON configuration, frozen protocol compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, and a deterministic read-only SimulatorAdapter.
+The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC/framing implementation, the versioned AFE v1 profile, strict non-executable JSON configuration, frozen protocol compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, and a configurable deterministic read-only SimulatorAdapter.
 
-It now provides a deterministic read-only SimulatorAdapter, but not yet simulator non-idealities/fault injection, CSV Replay, test runners, product CLI, dashboard, serial transport, or a validated physical AFE.
+The SimulatorAdapter now models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CSV Replay, test runners, product CLI, dashboard, serial transport, and a validated physical AFE are not yet implemented.
 
 ## Software Phase 1 checkpoints
 
@@ -32,7 +32,7 @@ It now provides a deterministic read-only SimulatorAdapter, but not yet simulato
 | 1 | `DeviceAdapter`, lifecycle states, safety gates, and typed adapter errors | Complete | HOST_TEST |
 | 2 | Reusable adapter contract suite | Complete | HOST_TEST |
 | 3 | Deterministic SimulatorAdapter data flow | Complete | HOST_TEST / SYNTHETIC |
-| 4 | Simulator non-idealities and controlled faults | Next | — |
+| 4 | Simulator non-idealities and controlled faults | Complete | HOST_TEST / SYNTHETIC |
 | 5 | Versioned immutable CSV replay schema/parser | Planned | — |
 | 6 | CsvReplayAdapter speed, pause, resume, and EOF | Planned | — |
 | 7 | Shared workflow and `UNSUPPORTED` capability degradation | Planned | — |
@@ -42,11 +42,11 @@ It now provides a deterministic read-only SimulatorAdapter, but not yet simulato
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 408 passed |
-| Formal package statement coverage | 100% of 1,491 statements |
+| Full pytest suite | 445 passed |
+| Formal package statement coverage | 100% of 1,601 statements |
 | DeviceAdapter lifecycle and safety | 36 tests passed |
 | Reusable concrete-adapter contract | 8 shared checks passed against both reference and Simulator adapters |
-| Simulator-specific tests | 32 passed; deterministic config/generator/clock/capability/reconnect behavior |
+| Simulator-specific unit tests | 69 passed; config, generator, channel independence, non-idealities, hysteresis, fault, clock, capability, and reconnect behavior |
 | AFE golden compatibility | 20 valid + 9 invalid cases passed |
 | Synthetic integration | 100 frames / 400 explicit `SYNTHETIC` Measurements passed |
 | Core dependency boundary | Passed; standard library and own package only |
@@ -69,6 +69,7 @@ Safe to claim now:
 - maintained reproducible automated host tests and engineering reports.
 - implemented a controller-neutral adapter lifecycle with explicit host-side capability, configuration, unit, provenance, and output-safety gates.
 - implemented a deterministic read-only SimulatorAdapter that returns only explicit `SYNTHETIC` Measurements and shares the frozen AFE generation formula.
+- implemented configurable gain, offset, deterministic noise, upper/lower saturation, Schmitt hysteresis, missing samples, communication errors, and CRC errors in the simulator.
 
 Not safe to claim now:
 
@@ -80,7 +81,7 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 2 Step 4 will add explicitly configured gain, offset, noise, saturation, hysteresis, and controlled faults. These behaviors must remain deterministic for a fixed seed and must never change evidence provenance from `SYNTHETIC`.
+Software Phase 2 Step 5 will define a strict, versioned, immutable CSV replay schema and parser. Units, UTC timestamps, source, quality, and end conditions must be explicit; the parser must not execute content, modify source files, or guess missing meaning.
 
 ## GitHub and LinkedIn presentation policy
 
