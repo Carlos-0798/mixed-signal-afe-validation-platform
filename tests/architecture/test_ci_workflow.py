@@ -62,14 +62,11 @@ def test_ci_matrix_and_formal_quality_gates_are_explicit() -> None:
 def test_ci_package_job_preserves_optional_and_hardware_boundaries() -> None:
     text = _workflow_text()
 
-    assert "python -m build --outdir dist" in text
-    assert '$PSNativeCommandUseErrorActionPreference = $true' in text
-    assert "pip install --no-deps $wheel" in text
-    assert "$wheel`[serial`]" in text
-    assert "SYNTHETIC_PORT" in text
-    assert "not hasattr(backend, 'write')" in text
-    assert "analog-validation.exe" in text
-    assert " demo --output " in text
+    assert 'python -m pip install ".[dev,serial]"' in text
+    assert "python tools/release_candidate_check.py" in text
+    assert '--output "${{ runner.temp }}/release-candidate"' in text
+    assert "private-beta-release-candidate" in text
+    assert "${{ runner.temp }}/release-candidate/*" in text
     assert "retention-days: 7" in text
     forbidden = (
         "gh release",
