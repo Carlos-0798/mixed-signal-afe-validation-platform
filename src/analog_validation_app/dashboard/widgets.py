@@ -213,9 +213,11 @@ def create_dashboard_widgets(
     )
     progress_bar = ttk.Progressbar(progress_frame, mode="determinate")
     progress_bar.grid(row=1, column=0, sticky="ew", pady=(6, 0))
-    cancel_button = ttk.Button(progress_frame, text="Cancel safely", command=cancel)
+    cancel_button = ttk.Button(
+        progress_frame, text="Cancel safely", command=cancel, takefocus=True
+    )
     cancel_button.grid(row=0, column=1, padx=(8, 0))
-    ttk.Button(progress_frame, text="Close", command=close).grid(
+    ttk.Button(progress_frame, text="Close", command=close, takefocus=True).grid(
         row=1, column=1, padx=(8, 0), pady=(6, 0)
     )
 
@@ -229,7 +231,13 @@ def create_dashboard_widgets(
         row=0, column=0, sticky="w"
     )
     columns = ("index", "label", "disposition", "values")
-    plot_table = ttk.Treeview(plot_frame, columns=columns, show="headings", height=8)
+    plot_table = ttk.Treeview(
+        plot_frame,
+        columns=columns,
+        show="headings",
+        height=8,
+        takefocus=True,
+    )
     for column, heading, width in (
         ("index", "Index", 60),
         ("label", "Label", 180),
@@ -599,9 +607,15 @@ def create_dashboard_workflow_widgets(
         wizard_frame, textvariable=guidance_value, wraplength=1120, justify="left"
     ).grid(row=1, column=0, columnspan=6, sticky="w", pady=(4, 8))
 
-    source_select = combobox(wizard_frame, textvariable=form.source, state="readonly")
-    profile_select = combobox(wizard_frame, textvariable=form.profile, state="readonly")
-    job_select = combobox(wizard_frame, textvariable=form.job, state="readonly")
+    source_select = combobox(
+        wizard_frame, textvariable=form.source, state="readonly", takefocus=True
+    )
+    profile_select = combobox(
+        wizard_frame, textvariable=form.profile, state="readonly", takefocus=True
+    )
+    job_select = combobox(
+        wizard_frame, textvariable=form.job, state="readonly", takefocus=True
+    )
     for column, label, widget in (
         (0, "Source", source_select),
         (1, "Profile", profile_select),
@@ -622,12 +636,14 @@ def create_dashboard_workflow_widgets(
         textvariable=form.operation,
         values=("ANALOG", "DIGITAL"),
         state="readonly",
+        takefocus=True,
     )
     unit_select = combobox(
         wizard_frame,
         textvariable=form.unit,
         values=("V", "mV", "boolean", "unitless"),
         state="readonly",
+        takefocus=True,
     )
     config_fields = (
         ("Operation", operation_select),
@@ -687,7 +703,10 @@ def create_dashboard_workflow_widgets(
         )
 
     serial_port_select = combobox(
-        wizard_frame, textvariable=form.serial_port, state="normal"
+        wizard_frame,
+        textvariable=form.serial_port,
+        state="normal",
+        takefocus=True,
     )
     serial_fields = (
         ("Serial port", serial_port_select),
@@ -706,6 +725,7 @@ def create_dashboard_workflow_widgets(
         wizard_frame,
         text="I confirm receive-only operation",
         variable=form.serial_confirm_read_only,
+        takefocus=True,
     ).grid(row=11, column=0, columnspan=3, sticky="w")
 
     ttk.Label(
@@ -721,16 +741,19 @@ def create_dashboard_workflow_widgets(
         wizard_frame, textvariable=issue_value, wraplength=1120, justify="left"
     ).grid(row=13, column=3, columnspan=3, sticky="nw", pady=(6, 0))
 
-    back_button = ttk.Button(wizard_frame, text="Back", command=on_back)
-    next_button = ttk.Button(wizard_frame, text="Next", command=on_next)
+    back_button = ttk.Button(wizard_frame, text="Back", command=on_back, takefocus=True)
+    next_button = ttk.Button(wizard_frame, text="Next", command=on_next, takefocus=True)
     review_button = ttk.Button(
         wizard_frame,
         text="Validate & review",
         command=lambda: on_review(form.snapshot()),
+        takefocus=True,
     )
-    run_button = ttk.Button(wizard_frame, text="Run reviewed job", command=on_run)
+    run_button = ttk.Button(
+        wizard_frame, text="Run reviewed job", command=on_run, takefocus=True
+    )
     discover_button = ttk.Button(
-        wizard_frame, text="Discover ports", command=on_discover
+        wizard_frame, text="Discover ports", command=on_discover, takefocus=True
     )
     export_button = ttk.Button(
         wizard_frame,
@@ -738,6 +761,7 @@ def create_dashboard_workflow_widgets(
         command=lambda: on_export(
             str(form.export_path.get()), str(form.export_format.get())
         ),
+        takefocus=True,
     )
     for column, button in enumerate(
         (
@@ -758,6 +782,7 @@ def create_dashboard_workflow_widgets(
         textvariable=form.export_format,
         values=("json", "csv"),
         state="readonly",
+        takefocus=True,
     ).grid(row=15, column=5, sticky="ew", pady=(6, 0))
     ttk.Label(
         wizard_frame, textvariable=export_value, wraplength=1120, justify="left"

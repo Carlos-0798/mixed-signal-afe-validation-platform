@@ -1,6 +1,6 @@
 # Local Dashboard
 
-**Implemented:** Software Phase 5 Steps 5–6, 2026-08-31<br>
+**Implemented:** Software Phase 5 Steps 5–7, 2026-08-31<br>
 **State schemas:** `dashboard-state.v1`, `dashboard-wizard.v1`, and `dashboard-session.v1`<br>
 **Default source:** Simulator<br>
 **Hardware claim:** `NO_NEW_HARDWARE_VALIDATION`
@@ -122,16 +122,18 @@ write JSON or CSV. The Dashboard does not recompute that bundle.
   no export.
 - Fake-toolkit tests exercised every Step 6 callback; a separate real Windows Tk
   smoke verified installed-package startup and safe auto-close.
-- The full repository passed 2,131 tests and covered 11,219/11,219 executable
-  statements. The new workflow and Dashboard modules also reached 100% branch
-  coverage.
+- Step 7 made actionable controls explicit keyboard-focus targets. Real Windows
+  Tk smoke at scaling 1.0, 1.5, and 2.0 verified focus traversal and successful
+  layout creation.
+- The full repository passed 2,175 tests and covered 11,474/11,474 executable
+  statements.
 
 ## Current limitations
 
-- The installed real-Tk smoke covered startup/render/close; automated full
-  keyboard navigation, display scaling, and long interactive sessions remain
-  Step 7 acceptance work.
-- The one-command reproducible portfolio demo is not implemented yet.
+- Keyboard focus and common Tk scaling have automated baseline coverage; full
+  screen-reader certification and long interactive sessions remain unverified.
+- The one-command demo is implemented, but it remains a deterministic software
+  demonstration and does not validate physical hardware.
 - Real COM worker lifecycle, disconnect/reconnect, and long-duration timing have
   not been tested in Step 6.
 - The connected MSP430 was not enumerated, opened, read, reset, flashed, or
@@ -140,5 +142,6 @@ write JSON or CSV. The Dashboard does not recompute that bundle.
   instrument behavior was validated.
 
 See the [CLI guide](product-cli.md), [human-report guide](human-reports.md),
+[product-quality acceptance](product-quality-acceptance.md),
 [Phase 5 plan](SOFTWARE_PHASE_5_PLAN.md), and
-[Step 6 evidence report](../reports/software-phase5-step6.md).
+[Step 7 evidence report](../reports/software-phase5-step7.md).

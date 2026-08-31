@@ -1,7 +1,7 @@
 # Software Phase 5 文件级实施计划
 
 **阶段名称：** 产品工作流、CLI、Dashboard 与证据可见报告<br>
-**规划状态：** 已完成；实现进度 6/8<br>
+**规划状态：** 已完成；实现进度 7/8<br>
 **预计时间：** 5–8 个有效开发日；初学者兼职约 2–3 周<br>
 **前置：** Software Phase 1–4 的领域、分析、runner、导出、transport、profile 和 adapter 兼容基线完成<br>
 **默认硬件要求：** 无<br>
@@ -15,7 +15,7 @@
 - [x] Step 4：证据可见的人类报告与确定性图表；
 - [x] Step 5：Dashboard 状态模型、presenter 与桌面外壳；
 - [x] Step 6：初学者向导、worker 接线与只读串口入口；
-- [ ] Step 7：可复现演示、性能/可访问性/隐私验收；
+- [x] Step 7：可复现演示、性能/可访问性/隐私验收；
 - [ ] Step 8：公共兼容性冻结、构建、外部安装和阶段收口。
 
 Step 1 已新增产品契约、受控 catalog、错误解释和最小 CLI，同时清理被正式核心
@@ -29,7 +29,10 @@ render-only widgets 和延迟导入 Tk 的本地桌面外壳，并真实验证 W
 Step 6 已把固定六步向导、同一套 reviewed product workflow、single-owner worker、取消、
 结果与默认不覆盖导出接入 Dashboard。Simulator 仍为默认来源；CSV 在 Run 前预检；
 Serial 仍需显式 port/profile/bounds/receive-only 确认，且产品接口没有 write surface。
-六步都没有新增 AFE 实物证据，因此完成 6/8 不等于 Phase 5 产品已完成。
+Step 7 已实现一条命令的固定 synthetic DC demo、双格式机器结果、自包含报告、
+replay/fault 示例和 exact hash manifest，并完成 10k 数据/事件、Unicode 路径、
+键盘焦点、常用 Tk scaling、隐私和无网络验收。七步都没有新增 AFE 实物证据，因此
+完成 7/8 不等于 Phase 5 产品已完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -399,6 +402,20 @@ Simulator DC 请求得到等价 finalized result。181 项 Step 6 聚焦测试�
 来源和限制冻结；无网络访问；路径/覆盖/恶意文本/Unicode/大输入有测试；完成键盘
 导航、文本状态、缩放和敏感 raw-data 默认排除检查。
 
+**状态：已完成（2026-08-31）。** `analog-validation demo --output <new-dir>`
+通过既有 `prepare_product_job()`、single-owner worker、read workflow、正式 DC
+analysis/criteria、result export 与 presentation-only report 生成 12 个确定性 artifact。
+两个不同（含 Unicode）目录的全部字节和 SHA-256 完全一致；`phase5_demo_v1.json`
+冻结 exact manifest。最终无 instrumentation 的验收中，10,000 条 Replay 解析为
+0.823268 s、13.102 MiB traced peak；10,000 个 progress event 为 0.048879 s、只保留
+256 个且明确记录 9,747 个丢弃事件；完整 demo 发布为 0.040913 s。
+真实 Windows Tk 在 scaling 1.0/1.5/2.0 下完成键盘焦点遍历 smoke；socket fail-fast
+测试证明 demo 未请求网络。完整回归为 2,175 tests、11,474/11,474 statements。
+未打开串口、未发送字节、未测量硬件。详见
+[`software-demo.md`](software-demo.md)、
+[`product-quality-acceptance.md`](product-quality-acceptance.md) 和
+[`software-phase5-step7.md`](../reports/software-phase5-step7.md)。
+
 ### Step 8：公共兼容性冻结、构建与阶段收口
 
 冻结 product public exports、schemas、CLI 命令/退出码、report fields、worker states、
@@ -412,8 +429,8 @@ demo/report 正常；安装 serial extra 后只做 discovery/host substitute，�
 
 ## 8. CLI 和用户体验最低合同
 
-Steps 3–5 已冻结并测试以下命令族；`report` 和安全 `dashboard` 外壳已实现，`demo`
-目前只保留名称并诚实返回 capability-unavailable，由后续步骤实现：
+Steps 3–7 已实现并测试以下命令族；`demo` 现在执行固定、只读、软件-only 产品链并
+以 create-new 方式发布确定性 artifact：
 
 ```text
 analog-validation version
@@ -528,8 +545,8 @@ analog-validation dashboard
 
 ## 14. 下一检查点
 
-Phase 5 Steps 1–6 已完成，实现进度为 6/8。下一次继续时只实施 Step 7：建立一条命令
-即可重复执行的无硬件产品演示，并完成性能、可访问性、路径/Unicode、隐私、无网络和
-有界资源验收。Step 6 已让 Dashboard 真正运行复核后的 Simulator/Replay/receive-only
-工作流；这不扩大先前的窄范围 MSP430 HIL，也不构成 AFE 实物验证。真实 COM、物理板
-或仪器操作仍需单独授权、单独停止条件和单独证据记录。
+Phase 5 Steps 1–7 已完成，实现进度为 7/8。下一次继续时只实施 Step 8：冻结 product
+public exports、schemas、CLI/exit codes、report fields、worker states、exact demo manifest
+和 issue families，执行最终构建/仓库外 base + serial 安装矩阵并完成阶段收口与 GitHub
+展示更新。Step 7 没有扩大先前的窄范围 MSP430 HIL，也不构成 AFE 实物验证。真实
+COM、物理板或仪器操作仍需单独授权、单独停止条件和单独证据记录。

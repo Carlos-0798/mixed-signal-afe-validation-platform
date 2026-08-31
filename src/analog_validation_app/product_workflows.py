@@ -39,6 +39,7 @@ from .factories import (
 )
 from .models import ProductJobRequest, ProductJobType, ProductSourceMode
 from .services import (
+    Clock,
     ProductServiceOutputSlot,
     make_dc_sweep_service_factory,
     make_hysteresis_service_factory,
@@ -473,6 +474,7 @@ def prepare_product_job(
     *,
     backend_factory: SerialBackendFactory = default_serial_backend_factory,
     prevalidate_replay: bool = True,
+    service_clock: Clock | None = None,
 ) -> PreparedProductJob:
     """Validate all user-controlled inputs before binding a deferred service."""
 
@@ -483,6 +485,8 @@ def prepare_product_job(
         raise ProductRequestError("backend_factory must be callable")
     if not isinstance(prevalidate_replay, bool):
         raise ProductRequestError("prevalidate_replay must be boolean")
+    if service_clock is not None and not callable(service_clock):
+        raise ProductRequestError("service_clock must be callable or None")
     request = ProductJobRequest(
         job_id,
         config.source_mode,
@@ -512,14 +516,25 @@ def prepare_product_job(
         )
     elif config.job_type is ProductJobType.DC_ANALYSIS:
         dc_workflow, dc_analysis, dc_criteria = _dc_parts(config)
-        service_factory = make_dc_sweep_service_factory(
-            adapter_factory,
-            dc_workflow,
-            dc_analysis,
-            dc_criteria,
-            limitations,
-            slot,
-        )
+        if service_clock is None:
+            service_factory = make_dc_sweep_service_factory(
+                adapter_factory,
+                dc_workflow,
+                dc_analysis,
+                dc_criteria,
+                limitations,
+                slot,
+            )
+        else:
+            service_factory = make_dc_sweep_service_factory(
+                adapter_factory,
+                dc_workflow,
+                dc_analysis,
+                dc_criteria,
+                limitations,
+                slot,
+                clock=service_clock,
+            )
         workflow_review = (
             f"Test: DC_ANALYSIS; {config.sample_count} paired points.",
             f"Channels: {config.primary_channel} -> {config.secondary_channel} ({config.unit.value}).",
@@ -531,16 +546,29 @@ def prepare_product_job(
         hysteresis_workflow, hysteresis_analysis, hysteresis_criteria = (
             _hysteresis_parts(config)
         )
-        service_factory = make_hysteresis_service_factory(
-            adapter_factory,
-            hysteresis_workflow,
-            hysteresis_analysis,
-            hysteresis_criteria,
-            config.rising_count,
-            config.falling_count,
-            limitations,
-            slot,
-        )
+        if service_clock is None:
+            service_factory = make_hysteresis_service_factory(
+                adapter_factory,
+                hysteresis_workflow,
+                hysteresis_analysis,
+                hysteresis_criteria,
+                config.rising_count,
+                config.falling_count,
+                limitations,
+                slot,
+            )
+        else:
+            service_factory = make_hysteresis_service_factory(
+                adapter_factory,
+                hysteresis_workflow,
+                hysteresis_analysis,
+                hysteresis_criteria,
+                config.rising_count,
+                config.falling_count,
+                limitations,
+                slot,
+                clock=service_clock,
+            )
         workflow_review = (
             f"Test: HYSTERESIS_ANALYSIS; {config.rising_count} rising + {config.falling_count} falling points.",
             f"Channels: {config.primary_channel} + {config.state_channel} ({config.unit.value}/boolean).",

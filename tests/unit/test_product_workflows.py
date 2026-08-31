@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, cast
 
 import pytest
 
 from analog_validation import MeasurementUnit, ReadOperation
+from analog_validation.exports import result_export_to_dict
 from analog_validation_app import (
     MAX_PRODUCT_WORKFLOW_SAMPLES,
     MAX_PRODUCT_WORKFLOW_TEXT_CHARS,
@@ -217,6 +219,10 @@ def test_prepared_job_contract_and_prepare_arguments_are_strict() -> None:
         prepare_product_job(
             simulator_config(), "job", prevalidate_replay=cast(Any, "yes")
         )
+    with pytest.raises(ProductRequestError, match="service_clock"):
+        prepare_product_job(
+            simulator_config(), "job", service_clock=cast(Any, object())
+        )
 
 
 @pytest.mark.parametrize(
@@ -241,6 +247,34 @@ def test_simulator_prepared_jobs_execute_through_one_shared_path(
     assert execution.result is not None
     assert execution.output is not None
     assert execution.output.result_export is not None or job_type is ProductJobType.READ
+
+
+@pytest.mark.parametrize(
+    "job_type",
+    [ProductJobType.DC_ANALYSIS, ProductJobType.HYSTERESIS_ANALYSIS],
+)
+def test_analysis_workflows_accept_an_explicit_reproducibility_clock(
+    job_type: ProductJobType,
+) -> None:
+    fixed = datetime(2026, 1, 1, tzinfo=timezone.utc)
+    prepared = prepare_product_job(
+        simulator_config(job_type, sample_count=24),
+        f"fixed-{job_type.value}",
+        service_clock=lambda: fixed,
+    )
+
+    execution = execute_product_job(
+        prepared.request, prepared.service_factory, prepared.output_slot
+    )
+
+    assert execution.output is not None
+    assert execution.output.result_export is not None
+    document = result_export_to_dict(execution.output.result_export)
+    metadata = cast(
+        dict[str, object], cast(dict[str, object], document["test_run"])["metadata"]
+    )
+    assert metadata["started_at"] == "2026-01-01T00:00:00.000000Z"
+    assert metadata["ended_at"] == "2026-01-01T00:00:00.000000Z"
 
 
 @pytest.mark.parametrize(

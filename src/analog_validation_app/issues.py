@@ -27,6 +27,9 @@ from .errors import (
     ProductAppError,
     ProductCatalogError,
     ProductDashboardUnavailableError,
+    ProductDemoExistsError,
+    ProductDemoFormatError,
+    ProductDemoPathError,
     ProductDependencyError,
     ProductFeatureUnavailableError,
     ProductReportExistsError,
@@ -186,7 +189,10 @@ def issue_from_exception(error: BaseException) -> UserIssue:
             "Choose a supported read-only workflow or a reviewed compatible adapter.",
             technical_type,
         )
-    if isinstance(error, (ResultExportExistsError, ProductReportExistsError)):
+    if isinstance(
+        error,
+        (ResultExportExistsError, ProductReportExistsError, ProductDemoExistsError),
+    ):
         return UserIssue(
             UserIssueCode.OUTPUT_EXISTS,
             UserIssueSeverity.WARNING,
@@ -195,12 +201,12 @@ def issue_from_exception(error: BaseException) -> UserIssue:
             "Choose a new output path or explicitly review overwrite later.",
             technical_type,
         )
-    if isinstance(error, ProductReportPathError):
+    if isinstance(error, (ProductReportPathError, ProductDemoPathError)):
         return UserIssue(
             UserIssueCode.OUTPUT_PATH,
             UserIssueSeverity.ERROR,
             detail,
-            "The selected report destination is missing, invalid, or could not be published atomically.",
+            "The selected output destination is missing, invalid, or could not be published atomically.",
             "Choose a new directory name inside an existing writable parent directory.",
             technical_type,
         )
@@ -209,6 +215,7 @@ def issue_from_exception(error: BaseException) -> UserIssue:
         (
             ProductReportFormatError,
             ProductReportLimitError,
+            ProductDemoFormatError,
             ResultExportFormatError,
             ResultExportLimitError,
             ResultExportPathError,

@@ -37,6 +37,22 @@ class ProductServiceError(ProductAppError):
     """A product application service cannot safely complete its operation."""
 
 
+class ProductDemoError(ProductAppError):
+    """Base class for expected deterministic-demo failures."""
+
+
+class ProductDemoFormatError(ProductDemoError):
+    """The demo workflow did not produce its reviewed deterministic contract."""
+
+
+class ProductDemoPathError(ProductDemoError):
+    """A demo destination cannot be prepared or published safely."""
+
+
+class ProductDemoExistsError(ProductDemoPathError):
+    """A demo destination exists while replacement is disabled."""
+
+
 class ProductReportError(ProductAppError):
     """Base class for expected human-report failures."""
 
@@ -87,6 +103,10 @@ __all__ = [
     "ProductCatalogError",
     "ProductCliError",
     "ProductDashboardUnavailableError",
+    "ProductDemoError",
+    "ProductDemoExistsError",
+    "ProductDemoFormatError",
+    "ProductDemoPathError",
     "ProductDependencyError",
     "ProductFeatureUnavailableError",
     "ProductJobCancelled",

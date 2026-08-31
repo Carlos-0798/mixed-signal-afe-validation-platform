@@ -1,0 +1,8 @@
+{
+  "canonical_result_sha256": "4d5692709d185bf5fbfa1bbe62d7a86e0564af1ff3cd45669482b738a76a128c",
+  "evidence_source": "SYNTHETIC",
+  "manifest_sha256": "46ba85be8abc69ff1e5682c97ad903a883652480dceb6706bf4e0d7c897505d9",
+  "new_hardware_validation": false,
+  "outcome": "PASS",
+  "schema_version": "portfolio-demo-expected-manifest.v1"
+}

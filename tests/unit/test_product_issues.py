@@ -27,6 +27,9 @@ from analog_validation_app import (
     ProductAppError,
     ProductCatalogError,
     ProductDashboardUnavailableError,
+    ProductDemoExistsError,
+    ProductDemoFormatError,
+    ProductDemoPathError,
     ProductDependencyError,
     ProductFeatureUnavailableError,
     ProductReportExistsError,
@@ -150,7 +153,17 @@ def test_user_issue_rejects_invalid_presentation_contracts(
             UserIssueSeverity.WARNING,
         ),
         (
+            ProductDemoExistsError("demo exists"),
+            UserIssueCode.OUTPUT_EXISTS,
+            UserIssueSeverity.WARNING,
+        ),
+        (
             ProductReportPathError("bad output parent"),
+            UserIssueCode.OUTPUT_PATH,
+            UserIssueSeverity.ERROR,
+        ),
+        (
+            ProductDemoPathError("bad demo parent"),
             UserIssueCode.OUTPUT_PATH,
             UserIssueSeverity.ERROR,
         ),
@@ -161,6 +174,11 @@ def test_user_issue_rejects_invalid_presentation_contracts(
         ),
         (
             ProductReportLimitError("too many points"),
+            UserIssueCode.INPUT_DATA,
+            UserIssueSeverity.ERROR,
+        ),
+        (
+            ProductDemoFormatError("bad demo result"),
             UserIssueCode.INPUT_DATA,
             UserIssueSeverity.ERROR,
         ),

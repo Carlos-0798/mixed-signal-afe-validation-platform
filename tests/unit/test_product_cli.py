@@ -37,6 +37,7 @@ from analog_validation_app.cli import (
     CLI_ENGINEERING_FAIL_EXIT_CODE,
     CLI_INCOMPLETE_EXIT_CODE,
     CLI_INTERNAL_ERROR_EXIT_CODE,
+    CLI_OPERATION_ERROR_EXIT_CODE,
     CLI_OUTPUT_SCHEMA_VERSION,
     CLI_UNSUPPORTED_EXIT_CODE,
     CLI_USAGE_EXIT_CODE,
@@ -545,15 +546,66 @@ def test_observe_msp430_memory_stream_is_bounded_receive_only() -> None:
     assert not hasattr(backend, "write_calls")
 
 
-def test_demo_command_is_stable_but_honestly_unavailable() -> None:
+def test_demo_command_publishes_machine_and_human_views(tmp_path: Path) -> None:
+    machine = io.StringIO()
+    machine_path = tmp_path / "machine-demo"
+    assert (
+        main(
+            ["demo", "--output", str(machine_path), "--json"],
+            stdout=machine,
+            dependencies=dependencies(),
+        )
+        == 0
+    )
+    document = json.loads(machine.getvalue())
+    assert document["command"] == "demo"
+    assert document["demo_schema_version"] == "portfolio-demo.v1"
+    assert document["outcome"] == "PASS"
+    assert document["evidence_source"] == "SYNTHETIC"
+    assert document["hardware_claim"] == "NO_NEW_HARDWARE_VALIDATION"
+    assert {artifact["relative_path"] for artifact in document["artifacts"]} >= {
+        "result.json",
+        "result.csv",
+        "report/report.html",
+        "report/chart.svg",
+        "manifest.json",
+    }
+
+    human = io.StringIO()
+    human_path = tmp_path / "human-demo"
+    assert (
+        main(
+            ["demo", "--output", str(human_path)],
+            stdout=human,
+            dependencies=dependencies(),
+        )
+        == 0
+    )
+    assert "Demo outcome: PASS" in human.getvalue()
+    assert "Evidence source: SYNTHETIC" in human.getvalue()
+    assert "Serial ports opened: 0" in human.getvalue()
+    assert "Network access: NONE" in human.getvalue()
+
+
+def test_demo_requires_new_output_and_maps_existing_destination(
+    tmp_path: Path,
+) -> None:
+    errors = io.StringIO()
+    assert main(["demo", "--json"], stderr=errors) == CLI_USAGE_EXIT_CODE
+    assert "INVALID_REQUEST" in errors.getvalue()
+
+    destination = tmp_path / "existing"
+    destination.mkdir()
     errors = io.StringIO()
     assert (
-        main(["demo", "--json"], stderr=errors, dependencies=dependencies())
-        == CLI_UNSUPPORTED_EXIT_CODE
+        main(
+            ["demo", "--output", str(destination), "--json"],
+            stderr=errors,
+            dependencies=dependencies(),
+        )
+        == CLI_OPERATION_ERROR_EXIT_CODE
     )
-    document = json.loads(errors.getvalue())
-    assert document["issue"]["code"] == "CAPABILITY_UNAVAILABLE"
-    assert "later reviewed" in document["issue"]["what_happened"]
+    assert json.loads(errors.getvalue())["issue"]["code"] == "OUTPUT_EXISTS"
 
 
 def test_dashboard_command_has_human_and_machine_safe_close_views() -> None:

@@ -94,6 +94,31 @@ def test_installed_module_builds_self_contained_report_outside_repository(
     assert "src=" not in html.lower()
 
 
+def test_installed_module_builds_reproducible_demo_outside_repository(
+    tmp_path: Path,
+) -> None:
+    first_path = tmp_path / "demo-one"
+    second_path = tmp_path / "演示-two"
+    first = run_module("demo", "--output", str(first_path), "--json", cwd=tmp_path)
+    second = run_module("demo", "--output", str(second_path), "--json", cwd=tmp_path)
+
+    assert first.returncode == second.returncode == 0
+    assert first.stderr == second.stderr == ""
+    first_document = json.loads(first.stdout)
+    second_document = json.loads(second.stdout)
+    assert first_document["outcome"] == "PASS"
+    assert first_document["evidence_source"] == "SYNTHETIC"
+    assert first_document["hardware_claim"] == "NO_NEW_HARDWARE_VALIDATION"
+    assert (
+        first_document["canonical_result_sha256"]
+        == second_document["canonical_result_sha256"]
+    )
+    assert first_document["artifacts"] == second_document["artifacts"]
+    assert (first_path / "manifest.json").read_bytes() == (
+        second_path / "manifest.json"
+    ).read_bytes()
+
+
 @pytest.mark.skipif(
     sys.platform != "win32" or not CONSOLE_SCRIPT.is_file(),
     reason="Windows console script is verified after an installed build",

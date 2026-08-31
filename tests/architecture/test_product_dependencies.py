@@ -161,6 +161,42 @@ def test_reporting_is_presentation_only_and_has_no_network_or_analysis_imports()
     assert all(not _imports_prefix(imports, prefix) for prefix in forbidden)
 
 
+def test_demo_reuses_the_reviewed_product_chain_without_network_or_serial_runtime() -> (
+    None
+):
+    path = APP_ROOT / "demo.py"
+    imports = _absolute_imports(path)
+    forbidden = (
+        "analog_validation.adapters",
+        "analog_validation.analysis",
+        "analog_validation.protocol",
+        "analog_validation.runners",
+        "analog_validation.serial_adapters",
+        "analog_validation.transport",
+        "analog_validation_pyserial",
+        "http",
+        "requests",
+        "serial",
+        "socket",
+        "subprocess",
+        "tkinter",
+        "urllib",
+    )
+    source = path.read_text(encoding="utf-8")
+
+    assert all(not _imports_prefix(imports, prefix) for prefix in forbidden)
+    assert "prepare_product_job(" in source
+    assert "execute_product_job(" in source
+    assert 'output_permission": "DENIED' in source
+
+
+def test_dashboard_actionable_controls_are_explicit_keyboard_focus_targets() -> None:
+    source = (APP_ROOT / "dashboard" / "widgets.py").read_text(encoding="utf-8")
+
+    assert source.count("takefocus=True") >= 12
+    assert "Outcome:" in (APP_ROOT / "reporting.py").read_text(encoding="utf-8")
+
+
 def test_superseded_phase0_dashboard_and_legacy_tests_are_absent() -> None:
     assert not tuple((ROOT / "dashboard").rglob("*.py"))
     assert not (ROOT / "tests" / "test_dc_sweep.py").exists()

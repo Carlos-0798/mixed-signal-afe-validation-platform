@@ -1,0 +1,59 @@
+{
+  "schema_version": "phase5-demo-golden.v1",
+  "verification_scope": "HOST_TEST deterministic installed-package software demo",
+  "new_hardware_validation": false,
+  "demo_schema_version": "portfolio-demo.v1",
+  "outcome": "PASS",
+  "evidence_source": "SYNTHETIC",
+  "canonical_result_sha256": "4d5692709d185bf5fbfa1bbe62d7a86e0564af1ff3cd45669482b738a76a128c",
+  "artifacts": {
+    "README.md": {
+      "size_bytes": 1207,
+      "sha256": "52faa66912a0560ea2c49e5bf4e9ede9b93c0cebca96ef232dc57c1639260c0a"
+    },
+    "demo-config.json": {
+      "size_bytes": 705,
+      "sha256": "12f2620e1b644a7d8addeeb31801509fd6dc959664d26d1651c6e925c2d284c7"
+    },
+    "examples/replay-dc.csv": {
+      "size_bytes": 8459,
+      "sha256": "ec0a4c70d7b89fd71f770fe055af47d5cecf1de15be8199b1fe70593e94328dc"
+    },
+    "examples/replay-faults.csv": {
+      "size_bytes": 947,
+      "sha256": "0ac5ae3df937c1ac5b58fe2bff05d0530b98fe970d7759363dbc64120edebf01"
+    },
+    "report/chart.svg": {
+      "size_bytes": 5838,
+      "sha256": "51f4dc1373b4d0d02fcaca5ce5c6d60475c2efc32ee46b8ed3c1b77ebeeb77c5"
+    },
+    "report/manifest.json": {
+      "size_bytes": 1157,
+      "sha256": "784fcab85e3c8a7b546004abe8603463900df38574e6e53f066a1594795d16d0"
+    },
+    "report/report.html": {
+      "size_bytes": 16158,
+      "sha256": "258bb1069daeb3fcd0e09a9ab9867d0f60ed1a7eb12c9f5e7454d299db83a0ab"
+    },
+    "report/report.md": {
+      "size_bytes": 6544,
+      "sha256": "d4fc3ec88f21bd0b1e2f76f9380aeefaaa45d1094dd4ced3fced617c649cefed"
+    },
+    "report/report.txt": {
+      "size_bytes": 6347,
+      "sha256": "9bf7ce58748936cc987c72ff901cf9240a5441514aaecb092bf517ace41ecba6"
+    },
+    "result.csv": {
+      "size_bytes": 24969,
+      "sha256": "ebe91716b261b1fab660be003ac7b29bad64240ec697f25739f3e2e00e035241"
+    },
+    "result.json": {
+      "size_bytes": 33510,
+      "sha256": "4d5692709d185bf5fbfa1bbe62d7a86e0564af1ff3cd45669482b738a76a128c"
+    },
+    "manifest.json": {
+      "size_bytes": 3863,
+      "sha256": "46ba85be8abc69ff1e5682c97ad903a883652480dceb6706bf4e0d7c897505d9"
+    }
+  }
+}

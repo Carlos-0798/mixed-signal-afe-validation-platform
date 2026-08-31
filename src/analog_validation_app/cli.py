@@ -33,10 +33,10 @@ from analog_validation.exports import (
 )
 
 from .catalog import PRODUCT_CATALOG_SCHEMA_VERSION, list_product_profiles
+from .demo import PortfolioDemoPublication, publish_portfolio_demo
 from .errors import (
     CliUsageError,
     ProductAppError,
-    ProductFeatureUnavailableError,
     ProductRequestError,
     ProductServiceError,
 )
@@ -453,12 +453,21 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_machine_view(report_parser)
 
-    for name, help_text in (
-        ("demo", "generate the reproducible portfolio demo (Step 7)"),
-        ("dashboard", "launch the local six-step validation dashboard (Step 6)"),
-    ):
-        future = commands.add_parser(name, help=help_text)
-        _add_machine_view(future)
+    demo_parser = commands.add_parser(
+        "demo", help="generate the reproducible software-only portfolio demo"
+    )
+    demo_parser.add_argument(
+        "--output",
+        required=True,
+        type=Path,
+        help="new demo directory; an existing path is never overwritten",
+    )
+    _add_machine_view(demo_parser)
+
+    dashboard_parser = commands.add_parser(
+        "dashboard", help="launch the local six-step validation dashboard (Step 6)"
+    )
+    _add_machine_view(dashboard_parser)
     return parser
 
 
@@ -882,6 +891,47 @@ def _write_report_publication(
     stream.write("New hardware performance validation: NOT CLAIMED\n")
 
 
+def _demo_document(publication: PortfolioDemoPublication) -> dict[str, object]:
+    return {
+        "schema_version": CLI_OUTPUT_SCHEMA_VERSION,
+        "command": "demo",
+        "product": PRODUCT_DISPLAY_NAME,
+        "software_version": __version__,
+        "demo_schema_version": publication.schema_version,
+        "outcome": publication.outcome.value,
+        "evidence_source": publication.evidence_source.value,
+        "hardware_claim": REPORT_HARDWARE_CLAIM,
+        "output_directory": str(publication.output_directory),
+        "canonical_result_sha256": publication.canonical_result_sha256,
+        "artifacts": [
+            {
+                "relative_path": artifact.relative_path,
+                "media_type": artifact.media_type,
+                "size_bytes": artifact.size_bytes,
+                "sha256": artifact.sha256,
+            }
+            for artifact in publication.artifacts
+        ],
+    }
+
+
+def _write_demo_publication(
+    publication: PortfolioDemoPublication,
+    stream: TextIO,
+) -> None:
+    stream.write(f"Demo outcome: {publication.outcome.value}\n")
+    stream.write(f"Evidence source: {publication.evidence_source.value}\n")
+    stream.write(f"Canonical result SHA-256: {publication.canonical_result_sha256}\n")
+    stream.write(f"Demo directory: {publication.output_directory}\n")
+    stream.writelines(
+        f"Artifact: {artifact.relative_path} | {artifact.size_bytes} bytes | SHA-256 {artifact.sha256}\n"
+        for artifact in publication.artifacts
+    )
+    stream.write("Serial ports opened: 0\n")
+    stream.write("Network access: NONE\n")
+    stream.write("New hardware performance validation: NOT CLAIMED\n")
+
+
 def _report_exit_code(outcome: TestRunOutcome) -> int:
     return {
         TestRunOutcome.PASS: 0,
@@ -998,6 +1048,13 @@ def main(
             else:
                 _write_report_publication(report_view, publication, output)
             return _report_exit_code(report_view.outcome)
+        if arguments.command == "demo":
+            demo = publish_portfolio_demo(arguments.output)
+            if arguments.as_json:
+                _write_json(_demo_document(demo), output)
+            else:
+                _write_demo_publication(demo, output)
+            return _report_exit_code(demo.outcome)
         if arguments.command == "dashboard":
             session = _launch_dashboard(injected)
             if arguments.as_json:
@@ -1009,10 +1066,6 @@ def main(
                 output.write(f"Worker state: {session.worker_state.value}\n")
                 output.write(f"Hardware claim: {session.hardware_claim}\n")
             return 0
-        if arguments.command == "demo":
-            raise ProductFeatureUnavailableError(
-                f"{arguments.command} is reserved for a later reviewed Phase 5 step"
-            )
         if arguments.command in {"simulate", "replay"}:
             execution = _execute_workflow(arguments, injected)
         elif arguments.command == "observe":

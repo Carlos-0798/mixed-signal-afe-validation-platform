@@ -1,6 +1,6 @@
 # Analog Validation Studio CLI
 
-**Implemented:** Software Phase 5 Steps 3–6, 2026-08-31<br>
+**Implemented:** Software Phase 5 Steps 3–7, 2026-08-31<br>
 **Schema:** `product-cli-output.v1`<br>
 **Default source:** deterministic software-only Simulator<br>
 **Physical AFE claim:** none
@@ -38,6 +38,7 @@ analog-validation profiles
 analog-validation simulate read --samples 3
 analog-validation simulate dc --points 12 --json
 analog-validation simulate hysteresis
+analog-validation demo --output .\analog-validation-demo
 analog-validation dashboard
 ```
 
@@ -63,7 +64,7 @@ saturation level, or threshold.
 | `observe` | Run one bounded receive-only serial read | Exact port/profile/channel plus `--confirm-read-only`; no write API |
 | `report` | Turn one finalized JSON/CSV result export into five deterministic human-report files | No adapter, serial port, analysis, or hardware operation |
 | `dashboard` | Launch the local six-step Tkinter/ttk validation workflow | Defaults to Simulator; Replay validates before Run; Serial remains explicit, bounded, and receive-only |
-| `demo` | Reserved for Step 7 | Returns exit code 4 without fabricating demo artifacts |
+| `demo` | Run the fixed 24-point synthetic DC product chain and publish the exact portfolio package | Create-new local output only; no serial, network, physical stimulus, or hardware claim |
 
 Run any command with `--help` to see its exact options. Sample and record counts
 are bounded at the parser boundary, numeric values must be finite, and profile
@@ -83,6 +84,25 @@ If Tk is unavailable, the CLI gives a structured explanation and suggests using
 the existing terminal workflows rather than printing a traceback. Dashboard Run
 does not change evidence class: Simulator remains `SYNTHETIC`, Replay remains
 `CSV_REPLAY`, and a host-side memory serial test remains `HOST_TEST`.
+
+## One-command software demo
+
+```powershell
+analog-validation demo `
+  --output .\analog-validation-demo `
+  --json
+```
+
+The demo runs a real reviewed product job with fixed software inputs and then
+publishes deterministic JSON/CSV results, a self-contained report, SVG,
+clean/fault replay examples, and SHA-256 manifests. It refuses to replace an
+existing directory. Two tested normal and Unicode output directories produced
+byte-identical artifacts.
+
+The manifest explicitly records `SYNTHETIC`, output permission `DENIED`, zero
+serial ports, zero application bytes, no network access, no absolute embedded
+paths, and `NO_NEW_HARDWARE_VALIDATION`. See the
+[software-demo guide](software-demo.md) before presenting its PASS result.
 
 ## CSV Replay example
 
@@ -162,7 +182,7 @@ also emits `hardware_claim=NO_PERFORMANCE_VALIDATION`.
 | `1` | A complete engineering evaluation produced `FAIL` |
 | `2` | Invalid command, option, or request |
 | `3` | Valid operation, but evidence was incomplete |
-| `4` | `UNSUPPORTED`, a still-reserved feature, or missing optional dependency |
+| `4` | `UNSUPPORTED` capability or missing optional dependency |
 | `5` | Expected operation/adapter/data failure |
 | `70` | Unexpected internal software defect |
 | `130` | User/interpreter interrupt produced cooperative cancellation |
@@ -220,4 +240,4 @@ claim; a normal interactive-terminal smoke remains a later release check.
 See the [product layer](product-layer.md),
 [worker design](product-worker.md),
 [Dashboard guide](dashboard.md), and
-[Step 6 evidence report](../reports/software-phase5-step6.md).
+[Step 7 evidence report](../reports/software-phase5-step7.md).
