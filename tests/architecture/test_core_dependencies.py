@@ -7,6 +7,9 @@ import sys
 from pathlib import Path
 
 CORE_ROOT = Path(__file__).resolve().parents[2] / "src" / "analog_validation"
+PYSERIAL_ROOT = (
+    Path(__file__).resolve().parents[2] / "src" / "analog_validation_pyserial"
+)
 REPOSITORY_ROOT = CORE_ROOT.parents[1]
 
 
@@ -103,4 +106,25 @@ def test_msp430_interoperability_uses_no_peer_runtime_namespace() -> None:
         imported != root and not imported.startswith(f"{root}.")
         for imported in imports
         for root in peer_roots
+    )
+
+
+def test_optional_pyserial_backend_stays_below_product_workflows() -> None:
+    imports = _absolute_imports(PYSERIAL_ROOT)
+    forbidden = (
+        "analog_validation.adapters",
+        "analog_validation.analysis",
+        "analog_validation.exports",
+        "analog_validation.profiles",
+        "analog_validation.runners",
+        "analog_validation.serial_adapters",
+        "analog_validation.workflows",
+        "dashboard",
+        "tools",
+    )
+
+    assert not any(
+        imported == prefix or imported.startswith(f"{prefix}.")
+        for imported in imports
+        for prefix in forbidden
     )
