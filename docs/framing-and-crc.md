@@ -99,12 +99,12 @@ sequence 层都不打开串口，也不包含设备字段、单位、capability 
 
 真实 UART 可能持续收到没有换行的损坏数据。如果软件无限等待并扩大缓冲区，会造成内存和可用性问题。当前单记录 decoder 对输入 bytes 先检查 128-byte 上限，再进行 ASCII 和 CSV 解析。
 
-Software Phase 4 Steps 1–5 已用复合集成测试把不规则 chunks 依次经过
+Software Phase 4 Steps 1–6 已用复合集成测试把不规则 chunks 依次经过
 driver-neutral session、bounded stream、raw event 和 neutral envelope，并保持
 混合 AFE/MSP 形状记录的 bytes、顺序和 fields。timeout、断线清半帧和有限
 reconnect 已由内存 backend 做 HOST_TEST；AFE/MSP430 records 现在分别继续经过
 独立 serial profile，形成 canonical/unavailable-safe Measurements、capability
-outcome 或 typed rejection。
+outcome 或 typed rejection，并通过 receive-only SerialAdapter 进入共用 workflow。
 真实 OS backend、COM timing 和 HIL 仍属于后续检查点。
 
 ## 8. 黄金兼容数据

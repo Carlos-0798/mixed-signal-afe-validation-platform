@@ -138,3 +138,25 @@ profile/program state errors and are not presented as device faults. The wire
 `fault_flags` field is device telemetry data, not a Python exception family.
 
 See [serial profiles and independent AFE/MSP430 integrations](serial-profiles.md).
+
+## Phase 4 SerialAdapter error translation
+
+Software Phase 4 Step 6 keeps transport/profile details below the existing
+`DeviceAdapter` public boundary:
+
+- session open, close, fatal poll, and visible reconnect boundaries become
+  `AdapterConnectionError` with the original transport exception chained;
+- bounded poll exhaustion, invalid/changing capabilities, projector failure,
+  invalid profile output, evidence mismatch, and measurement-buffer overflow
+  become `AdapterDataError`;
+- unsupported channels or commands continue to use the existing
+  `CapabilityError` preflight rather than being mislabeled as communication
+  failures;
+- expected bad wire records remain raw `REJECTED` events and polling can
+  continue within the configured finite budget.
+
+A successful low-level reconnect is not hidden as a successful read. The
+adapter clears buffered Measurements and capability trust, returns to
+`CONNECTED_READ_ONLY`, and raises a visible connection error so the caller must
+confirm capabilities again. These behaviors are HOST_TEST results from an
+in-memory backend, not OS/UART reliability claims.

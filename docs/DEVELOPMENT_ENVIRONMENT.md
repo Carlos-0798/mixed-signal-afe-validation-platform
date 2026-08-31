@@ -1,8 +1,8 @@
 # 开发环境
 
 **验证日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 4 进行中（5/8）<br>
-**硬件要求：** 无
+**当前阶段：** Software Phase 4 进行中（6/8）<br>
+**硬件要求：** 已完成 Steps 1–6 无；Step 7 仅在单独确认后可选使用已连接 MSP430
 
 ## 已验证环境
 
@@ -42,11 +42,11 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m build
 ```
 
-pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式记录追溯、质量 policy、DC sweep 与方向性迟滞数学、版本化 criteria/TestRun 映射、安全门控 runners、不可变线性校准、离线幅值频响分析，以及严格 `result-export.v1` JSON/CSV。Phase 4 Steps 1–5 已增加 profile-neutral bounded stream、modular sequence tracker、token/CRC envelope、AFE compatibility wrapper、显式 channel mapping、driver-neutral serial lifecycle、bounded memory-only raw events、通用 serial-profile port、独立 AFE v1 profile 和独立只读 MSP430 Equipment Health v1 profile；当前完整门禁为 1,398 tests、6,916/6,916 正式 package statements、全仓库 Ruff、133-file mypy、依赖检查、sdist/wheel 和仓库外无 pyserial 的 raw→MSP430 profile→sentinel-safe Measurement smoke。它们仍是 HOST_TEST 证据。旧 `dashboard/reporting/csv_export.py` 仅为指向正式 package 的 legacy placeholder。
+pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式记录追溯、质量 policy、DC sweep 与方向性迟滞数学、版本化 criteria/TestRun 映射、安全门控 runners、不可变线性校准、离线幅值频响分析，以及严格 `result-export.v1` JSON/CSV。Phase 4 Steps 1–6 已增加 profile-neutral bounded stream、modular sequence tracker、token/CRC envelope、AFE compatibility wrapper、显式 channel mapping、driver-neutral serial lifecycle、bounded memory-only raw events、通用 serial-profile port、独立 AFE/MSP430 profiles，以及 receive-only `SerialAdapter` 对共用 adapter/workflow 的组合；当前完整门禁为 1,472 tests、7,198/7,198 正式 package statements、全仓库 Ruff、140-file mypy、依赖检查、sdist/wheel 和仓库外无 pyserial 的 installed SerialAdapter→ReadWorkflow smoke（`HOST_TEST`、25.3 °C、1 raw event、0 writes）。它们仍是 HOST_TEST 证据。旧 `dashboard/reporting/csv_export.py` 仅为指向正式 package 的 legacy placeholder。
 
 ## 当前边界
 
-- 当前正式核心仍不安装 `pyserial`；可选 serial dependency、具体 OS backend 与 `SerialAdapter` 后置到 Software Phase 4 Step 6；
+- 当前正式核心仍不安装 `pyserial`；receive-only `SerialAdapter` 已完成，但可选 serial dependency、具体 OS backend 与 owning worker 尚未实现；
 - 不需要 CCS、MSP430 GCC、KiCad 或实验室仪器；
 - 软件测试结果不代表任何模拟电路、控制器、接线或仪器已经验证；
 - Git 提交身份已配置为 GitHub 账号 `Carlos-0798` 及其 noreply 邮箱。

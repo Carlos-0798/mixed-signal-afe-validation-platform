@@ -46,6 +46,24 @@ Do not power the analog assembly until the open toolchain, inventory, permission
   Measurement mapping.
 - Confirm the MSP430 profile has no command encoder, output capability, or
   `SAFE_SHUTDOWN`, and imports no peer-project runtime namespace.
+- Construct `SerialAdapter` only from an explicitly matching closed session,
+  profile identity/version, record limit, evidence source, and capability
+  projector; reject mismatches before I/O.
+- Run the same reusable eight-check read-only adapter contract against both AFE
+  and MSP430 serial configurations, then drive both through the unchanged
+  `ReadWorkflow` with an in-memory backend.
+- Retain AFE native capabilities, explicitly alias
+  `adcN/dacN/pwmN/dinN` to canonical workflow names, and reject any projector
+  that changes identity, channel counts, numeric ranges, or adds commands.
+- Bound capability/read polling and queued Measurements; cover timeout, bad CRC,
+  overlong input, buffer overflow, profile failure, capability drift, fatal
+  session loss, and successful-reconnect capability invalidation.
+- Prove read-only MSP430 DC and hysteresis runner preflight returns
+  `UNSUPPORTED` with zero reads/writes using a backend that exposes no write
+  method.
+- Install the built wheel outside the repository without pyserial and run an
+  installed-package SerialAdapter -> ReadWorkflow smoke while asserting
+  `HOST_TEST`, raw lineage, deterministic close, and zero writes.
 - Keep real port/HIL commands `NOT RUN` until the separate owner-approved gate;
   host lifecycle tests do not prove OS timing, UART electrical behavior, or a
   physical controller link.

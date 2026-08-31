@@ -1,6 +1,6 @@
-# Serial Profiles and AFE v1 Integration
+# Serial Profiles and Receive-Only Adapter Integration
 
-**Implemented:** Software Phase 4 Steps 4–5<br>
+**Implemented:** Software Phase 4 Steps 4–6<br>
 **Schema:** `serial-profile.v1`<br>
 **Evidence:** HOST_TEST<br>
 **Physical serial or AFE validation:** none
@@ -10,7 +10,7 @@
 A serial connection only delivers bytes. It cannot tell the product whether a
 record is AFE telemetry, an MSP430 status record, a capability declaration, or
 damaged input. Step 4 adds the business-language layer between the generic
-transport and a future `SerialAdapter`:
+transport and the Step 6 receive-only `SerialAdapter`:
 
 ```text
 SerialBackend / in-memory backend
@@ -28,9 +28,13 @@ explicit SerialProfile selection
        |             |
        v             v
  AFE v1 profile   MSP430 Health v1 profile
-       |
-       v
-typed message + canonical Measurements + profile-native capabilities
+       +------+------+
+              |
+              v
+ explicit capability projector + SerialAdapter
+              |
+              v
+DeviceAdapter / ReadWorkflow + raw provenance
 ```
 
 For a beginner, the separation is similar to three checks on a delivered
@@ -38,7 +42,7 @@ package:
 
 1. transport confirms that one bounded package arrived;
 2. the profile reads the language and validates its grammar;
-3. the future adapter decides how the validated information is offered to the
+3. the adapter decides how the validated information is offered to the
    rest of the product.
 
 Keeping these checks separate means a new controller adds a profile instead of
@@ -58,6 +62,12 @@ The public `analog_validation.profiles` namespace defines four core values:
 Profile selection is never guessed from a COM number, board name, USB ID, or
 manufacturer. A session event's `profile_name` must match the selected identity,
 and the wire decoder must independently validate the version inside the record.
+
+Step 6 adds `initial_capabilities` to the generic profile port. MSP430 returns
+its static read-only contract immediately; AFE returns `None`, requiring a
+complete passive `CAP DEVICE/CHANNEL/END` stream before adapter capabilities
+can be confirmed. The receive-only adapter does not send `CAP_REQ` in this
+checkpoint.
 
 `SerialProfileRecord` has two valid shapes:
 
@@ -139,13 +149,23 @@ sequence, wrong count, or inconsistent command/channel declaration rejects the
 current raw record and clears the incomplete transaction so later input can
 recover.
 
-The completed snapshot intentionally retains the frozen AFE wire names
-`adcN`, `dacN`, `pwmN`, and `dinN`. Existing
-`validate_command_capability()` therefore keeps exactly the same safety meaning.
-Step 6 must perform an explicit adapter-facing projection where needed; it must
-not silently reinterpret a DAC, PWM, or ADC channel. The telemetry
-legacy-to-canonical conversion and capability wire-to-adapter projection are
-different boundaries.
+The completed profile-native snapshot intentionally retains the frozen AFE
+wire names `adcN`, `dacN`, `pwmN`, and `dinN`. Step 6 now performs a separate,
+explicit adapter projection:
+
+| Profile-native name | Adapter/workflow name |
+|---|---|
+| `adcN` | `afe.chN.input` |
+| `dacN` | `afe.chN.dac` |
+| `pwmN` | `afe.chN.pwm` |
+| `dinN` | `afe.chN.threshold` |
+
+The adapter retains the unmodified native snapshot for audit, verifies that
+identity, channel counts, and numeric ranges did not change, and rejects a
+projector that adds commands. Because `SerialAdapter` v1 is receive-only, its
+projected command set contains only supported read operations and always sets
+`supports_safe_shutdown=False`. Declared DAC/PWM names remain visible as
+descriptive capability aliases, but no adapter API can write them.
 
 ## 7. Error and state behavior
 
@@ -162,7 +182,8 @@ the raw log cannot store a final parsed/rejected outcome, the profile restores
 its prior sequence and capability state. This prevents internal state from
 claiming progress that the provenance log did not retain.
 
-`reset()` is used at a future session/disconnect boundary. It clears telemetry
+`reset()` is used by the Step 6 adapter at connect, disconnect, reconnect, and
+lost-session boundaries. It clears telemetry
 continuity and incomplete capability records and reports what was discarded.
 
 ## 8. Host-only composite proof
@@ -249,20 +270,46 @@ The in-memory composite proof performs fragmented/coalesced bytes ->
 `SerialSession` -> exact raw events -> MSP430 profile -> Measurements -> typed
 CRC rejection. It does not import the peer `dashboard`, firmware, or tools.
 
-## 10. Evidence boundary and next step
+## 10. Receive-only SerialAdapter product chain
 
-Steps 4–5 prove deterministic software parsing, mapping, aggregation, state
-recovery, independent interoperability fixtures, and in-memory transport
-composition. They do not
+`analog_validation.serial_adapters.SerialAdapter` composes exactly one closed
+`SerialSession`, one explicitly matching profile, one immutable
+`SerialAdapterConfig`, and one explicit capability projector. It never selects
+a profile from a port identity. Public reads use the existing `DeviceAdapter`
+state/capability/unit/provenance gates, while all polling and queued
+Measurements are bounded.
+
+The Step 6 host proofs cover:
+
+- AFE capability records plus telemetry -> native/projected capabilities ->
+  analog/digital `ReadWorkflow` samples with raw-record lineage;
+- MSP430 telemetry, including unavailable sentinels/faults -> the same workflow
+  with `HOST_TEST` and invalid/missing Measurements preserved;
+- the reusable eight-check read-only adapter contract for both configurations;
+- bad CRC, overlong input, timeout, buffer overflow, open/read/close failures,
+  session capability drift, and reconnect invalidation;
+- read-only MSP430 DC/hysteresis runner preflight returning `UNSUPPORTED` before
+  any read or write, using a backend with no write method.
+
+A successful transport reconnect deliberately returns the adapter to
+`CONNECTED_READ_ONLY`, clears derived buffers and both capability snapshots,
+and raises a visible connection error. The caller must confirm capabilities
+again before reading; bytes from different connection epochs are not silently
+joined.
+
+## 11. Evidence boundary and next step
+
+Steps 4–6 prove deterministic software parsing, mapping, aggregation, adapter
+lifecycle, shared workflow composition, failure handling, and independent
+interoperability fixtures with in-memory transport. They do not
 prove:
 
-- an OS or pyserial backend;
+- a concrete OS or pyserial backend;
 - UART baud, voltage levels, timing, grounding, cable, or EMI behavior;
 - any AFE circuit, ADC/DAC, gain, cutoff, threshold, saturation, or protection;
 - OS-level or physical MSP430 serial compatibility;
 - physical safe shutdown.
 
-Step 6 will wrap the transport and either selected profile in one
-`SerialAdapter`, project profile-native capabilities explicitly, and exercise
-the existing `DeviceAdapter`/`ReadWorkflow` contracts with an in-memory backend.
-It will not access a physical port; owner-approved read-only HIL remains Step 7.
+Step 7 may add a separately authorized, receive-only MSP430 HIL record after the
+current firmware/interface identity, correct port, and concrete OS backend are
+confirmed. It must send no command and cannot support any AFE hardware claim.

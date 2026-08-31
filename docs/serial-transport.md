@@ -32,8 +32,11 @@ flowchart LR
   reconnect attempts, and deterministic logical closure.
 - `BoundedLineFramer` turns arbitrary chunks into complete LF-delimited bytes.
 - `BoundedRawEventLog` retains bounded receive provenance in memory.
-- the independent Step 4 AFE and Step 5 MSP430 profiles own device fields, versions, CRC interpretation,
-  capabilities, Measurements, and sequence widths.
+- the independent Step 4 AFE and Step 5 MSP430 profiles own device fields,
+  versions, CRC interpretation, capabilities, Measurements, and sequence
+  widths;
+- the Step 6 receive-only `SerialAdapter` composes one selected profile with the
+  session behind the existing product adapter lifecycle.
 
 Receiving bytes is therefore not the same as understanding or validating them.
 
@@ -150,8 +153,8 @@ the original cause.
 
 ## Replaceable backend rule
 
-The formal package defines the `SerialBackend` port but deliberately ships no
-OS driver implementation in Step 3. The test suite supplies
+The formal package defines the `SerialBackend` port but still ships no concrete
+OS driver implementation through Step 6. The test suite supplies
 `tests.support.MemorySerialBackend`, which can script data, timeouts,
 disconnects, and failures without hardware or sleeping.
 
@@ -165,18 +168,20 @@ fields to the session or framer.
 
 HOST_TEST evidence covers partial/coalesced reads, timeout, open/read/close
 failure, disconnect/reset, finite reconnect, overlong recovery, event eviction,
-parse/reject transitions, CRC-envelope composition, package construction, and
-external installed-package use.
+parse/reject transitions, CRC-envelope composition, receive-only adapter
+composition, shared workflow use, package construction, and external
+installed-package use.
 
 It does not establish:
 
 - OS port enumeration, permissions, driver behavior, or timing;
 - pyserial compatibility or a real COM-port lifecycle;
 - UART baud accuracy, voltage level, grounding, EMI, cable, or board behavior;
-- an MSP430 business profile or a physically verified AFE profile;
+- a physical MSP430/AFE connection or any verified UART business behavior;
 - any physical measurement or hardware performance.
 
-AFE and MSP430 profiles remain independent Steps 4 and 5. The AFE profile now
-implements this boundary under HOST_TEST; the MSP profile remains Step 5. Their
+AFE and MSP430 profiles remain independent Steps 4 and 5. Step 6 composes each
+behind the same receive-only adapter contract with an in-memory backend. Their
 compatibility is a public-interface integration between peer products, not a
-repository merge or transfer of evidence.
+repository merge or transfer of evidence. A concrete OS backend and any
+owner-approved physical HIL remain separate later evidence gates.

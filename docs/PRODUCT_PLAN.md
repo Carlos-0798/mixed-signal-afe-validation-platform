@@ -441,6 +441,7 @@ DISCONNECTED
 - 串口发现、连接、读取、超时和重连；
 - AFE profile；
 - MSP430 Equipment Health Controller profile；
+- receive-only SerialAdapter 与共用 ReadWorkflow 组合；
 - 序列检查和原始帧日志；
 - 内存流/串口替身集成测试；
 - 硬件实测待办清单；
@@ -808,4 +809,4 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/adr/`；
 - `docs/TECHNICAL_DEBT.md`。
 
-Software Phase 1、2、3 均已完成各自 8/8。Software Phase 4 已完成 Steps 1–5/8：profile-neutral bounded LF stream、超长恢复、16/32-bit modular sequence tracking、namespace-neutral token/CRC envelope、AFE compatibility wrapper、`afe-channel-map.v1`、driver-neutral serial lifecycle、bounded memory-only raw events、`serial-profile.v1` port、独立 AFE v1 profile 和独立只读 MSP430 Equipment Health v1 profile 均已实现。Step 5 新增 121 项测试；当前 1,398 项完整回归和 6,916/6,916 正式 package 覆盖通过。下一步是以内存 backend 实现 `SerialAdapter` 和产品内复合链。当前仍不采购、不接线、不访问 COM，也不把 HOST_TEST PASS 或另一个项目的 HIL 证据描述为 AFE 实物验证。
+Software Phase 1、2、3 均已完成各自 8/8。Software Phase 4 已完成 Steps 1–6/8：profile-neutral bounded LF stream、超长恢复、16/32-bit modular sequence tracking、namespace-neutral token/CRC envelope、AFE compatibility wrapper、`afe-channel-map.v1`、driver-neutral serial lifecycle、bounded memory-only raw events、`serial-profile.v1` port、独立 AFE/MSP430 profiles，以及 receive-only `SerialAdapter` 对冻结 `DeviceAdapter`/`ReadWorkflow` 的组合均已实现。Step 6 新增 74 项测试；当前 1,472 项完整回归和 7,198/7,198 正式 package 覆盖通过。下一步是可选、需单独授权的 MSP430 只读 OS-serial HIL；如果端口、固件或 concrete backend 前置条件不满足，则记录 `NOT RUN` 并进入 host-compatible Phase 4 收口。当前仍不采购、不接线、不发送命令，也不把 HOST_TEST PASS 或另一个项目的 HIL 证据描述为 AFE 实物验证。

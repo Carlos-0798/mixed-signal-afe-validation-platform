@@ -4,6 +4,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Host-only software reports:
 
+- `software-phase4-step6.md` — receive-only SerialAdapter composition, explicit AFE capability projection, AFE/MSP shared adapter/workflow contracts, bounded failure/reconnect behavior, zero-write runner degradation, package/install evidence, and no-COM boundary.
 - `software-phase4-step5.md` — independent read-only MSP430 Equipment Health v1 profile, frozen peer-interface reference, repository-owned fixtures, sentinel/fault mapping, 32-bit continuity, build/install evidence, and no-COM boundary.
 - `software-phase4-step4.md` — generic serial-profile contract, independent AFE v1 integration, canonical telemetry, capability/sequence semantics, golden migration, build/install evidence, and hardware limits.
 - `software-phase4-step3.md` — driver-neutral serial lifecycle, finite reconnect, bounded memory-only raw events, failure injection, build/install evidence, and real-port limits.

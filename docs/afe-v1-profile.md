@@ -131,8 +131,8 @@ AFE v1 将 numeric index 映射为：
 ## 7. 当前限制
 
 - Software Phase 4 Step 4 已提供 host-tested `AfeV1SerialProfile`、16-bit TEL continuity、capability 多记录状态收集和 raw outcome mapping；
-- 尚无具体 OS/pyserial backend、`SerialAdapter` 或真实异步 COM/HIL 证据；
-- capability snapshot 使用冻结的 `adcN/dacN/pwmN/dinN` wire vocabulary；Step 6 必须显式投影到 adapter/workflow channels，不能猜测；
+- Step 6 已实现 receive-only `SerialAdapter` 和显式 capability projection，但尚无具体 OS/pyserial backend 或真实异步 COM/HIL 证据；
+- profile-native capability snapshot 继续使用冻结的 `adcN/dacN/pwmN/dinN` wire vocabulary；Step 6 adapter 将其显式投影到 `afe.chN.input/dac/pwm/threshold`，保留 native snapshot 且不允许 command escalation；
 - 没有 ACK/NACK message；
 - 没有冻结 fault-bit assignment；
 - 没有固件实现或 controller contract test；

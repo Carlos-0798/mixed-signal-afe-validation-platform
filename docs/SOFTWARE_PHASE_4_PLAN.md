@@ -1,7 +1,7 @@
 # Software Phase 4 文件级实施计划
 
 **阶段名称：** 串口传输、对等控制器 profiles 与真实链路边界<br>
-**规划状态：** 进行中，进度 5/8<br>
+**规划状态：** 进行中，进度 6/8<br>
 **预计时间：** 5–8 个初学者开发日<br>
 **前置：** Software Phase 3 的分析、runner 与结构化结果兼容基线完成<br>
 **硬件要求：** Steps 1–6 无；Step 7 可选使用已连接的 MSP430 LaunchPad<br>
@@ -14,7 +14,7 @@
 - [x] Step 3：串口发现、连接、超时、重连与原始帧日志；
 - [x] Step 4：AFE v1 serial profile；
 - [x] Step 5：MSP430 Equipment Health v1 只读 profile；
-- [ ] Step 6：SerialAdapter、共用 workflow 与异常链路集成；
+- [x] Step 6：SerialAdapter、共用 workflow 与异常链路集成；
 - [ ] Step 7：可选的 MSP430 只读串口 HIL；
 - [ ] Step 8：黄金兼容、构建、文档和阶段收口。
 
@@ -27,6 +27,8 @@ Step 3 已新增 replaceable `SerialBackend` port、`SerialSession` 生命周期
 Step 4 已新增 `analog_validation.profiles` 与独立 `AfeV1SerialProfile`。它明确声明 `afe`/`1`、16-bit telemetry sequence 和 128-byte record limit；旧 mapper 经显式 mapping 输出 canonical channels；capability 多记录响应严格聚合；协议错误进入 bounded `REJECTED` raw outcome，程序/状态错误不会冒充设备错误。全部 20 valid + 9 invalid AFE golden records 已通过新路径，完整回归为 1,277 项和 6,499/6,499 正式 statements；仍未访问 COM、MSP430 或 AFE 实物。
 
 Step 5 已从对等项目提交 `151fdcfa60661bce1ba04af13c1d3509706f7d4a` 的公开 `docs/protocol.md` 独立实现 `msp430-equipment-health.v1`。本仓库自己的 10 条合法与 11 条非法 fixtures 冻结 `TEL/ACK/STS/CFG/LOG`、CRC、范围、unknown state 和 32-bit wrap。温度/INA219 unavailable 语义映射为 `None + INVALID + MISSING`，原始 sentinel、零值、power 和 fault bits 保留在 typed message；能力固定为只读且无 `SAFE_SHUTDOWN`。新增 121 项测试后完整回归为 1,398 项，正式 package 6,916/6,916 statements；没有导入对等仓库代码、打开 COM 或执行硬件操作。
+
+Step 6 已新增独立 `analog_validation.serial_adapters` namespace，把一个显式选择的 `SerialSession`、`SerialProfile` 和 capability projector 组合到冻结的 `DeviceAdapter`/`ReadWorkflow` 契约。第一版严格 receive-only：无 write API、无 generic command escape hatch、输出命令被剥离且不声明 safe shutdown。AFE 的 `adcN/dacN/pwmN/dinN` 能力显式投影到 `afe.chN.input/dac/pwm/threshold`，同时保留 native snapshot；MSP430 使用静态只读能力。两个配置均通过共用八项 adapter contract 和产品 workflow；重连会使 capability/buffer 失效，DC/迟滞 runners 对 MSP430 返回 `UNSUPPORTED` 且零写入。新增 74 项测试后完整回归为 1,472 项，正式 package 7,198/7,198 statements；没有访问 COM、板卡或执行命令。
 
 ## 1. 本阶段解决什么
 
@@ -173,7 +175,9 @@ MSP430 项目的两小时 soak 证明其自身固件/Dashboard 链路，不证�
 
 组合 backend、stream、profile、sequence、raw log 与 `DeviceAdapter` 生命周期。让 AFE/MSP profile 通过同一 adapter 接口进入现有 `ReadWorkflow`，并保证关闭和重连路径不会提升 evidence。
 
-验收：`config -> SerialAdapter -> raw stream -> profile -> Measurement -> ReadWorkflow -> export` 在内存 backend 中通过；只读 MSP 对 DC/迟滞 output runner 返回 `UNSUPPORTED` 且零写入。
+验收：`config -> SerialAdapter -> raw stream -> profile -> Measurement -> ReadWorkflow -> structured export-ready result` 在内存 backend 中通过；只读 MSP 对 DC/迟滞 output runner 返回 `UNSUPPORTED` 且零写入。通用 read-only workflow 的新文件格式不在本步骤临时发明，留给版本化导出需求单独评审。
+
+**状态：已完成。** `SerialAdapterConfig` 冻结显式 profile name/version 与有界 poll/buffer policy；adapter 验证 session/profile/record-limit identity，保留 native/projected capabilities 和 bounded raw snapshot，并把 transport/profile failures 转成稳定 adapter 错误。AFE 和 MSP430 两种配置都通过共用契约；AFE 的内存 capability + telemetry 链进入 `ReadWorkflow` 并保留 raw lineage，MSP430 sentinel/fault 链进入同一 workflow 且保持 `HOST_TEST`。断线重连要求重新确认能力；CRC/超长/timeout/buffer overflow 均有边界测试。DC 与迟滞 runner 使用没有 write 方法的 backend，均在能力预检返回 `UNSUPPORTED`，实际 write 次数为 0。74 项新增测试、1,472 项完整回归、7,198/7,198 statements、140-file mypy、Ruff、依赖检查、隔离构建和仓库外无 pyserial 的安装后 SerialAdapter→ReadWorkflow smoke 通过。结构化 `ReadWorkflowResult` 已形成 export-ready lineage；本步骤没有新增文件导出格式。证据见 `reports/software-phase4-step6.md`。
 
 ### Step 7：可选 MSP430 只读串口 HIL
 
@@ -211,4 +215,4 @@ MSP430 项目的两小时 soak 证明其自身固件/Dashboard 链路，不证�
 
 ## 9. 下一检查点
 
-Step 6 将组合现有 backend、stream、raw log 和两个独立 profiles，形成正式 `SerialAdapter` 与产品内存复合链。它必须通过同一 `DeviceAdapter`/`ReadWorkflow` 契约提供 AFE 与 MSP430 读取，显式投影 AFE capability channel names，并证明只读 MSP430 对 DC/迟滞输出 runner 返回 `UNSUPPORTED` 且零写入。Step 6 仍只使用内存 backend；真实 COM、板卡访问和任何命令仍留到 owner-approved Step 7。
+Step 7 是可选、需要单独授权的 MSP430 只读串口 HIL。开始前必须确认板卡仍运行冻结的公开接口、目标 COM 端口属于该板且没有被其他程序占用，并先实现/验证最小 concrete OS backend。HIL 默认只接收设备主动 telemetry，不发送 `CMD`、不刷写、不改变 FRAM、不要求外接传感器或风扇。结果必须记录当前 identity、原始帧、CRC、sequence/uptime、sentinel/fault、timeout 和断连行为；任何前置条件不明确时标记 `NOT RUN`，不阻塞 Step 8 的 host-compatible 收口。

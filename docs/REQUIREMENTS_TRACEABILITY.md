@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 4 进行中（5/8）
+**当前阶段：** Software Phase 4 进行中（6/8）
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -16,18 +16,18 @@
 | SW-FR-004 | VERIFIED_HOST | Measurement 强制 `record_id`/`raw_record_id`；DC/迟滞分析和 Step 7 builders 保留逐点 record/raw 引用，bundle 强制其与 TestRun 完全一致 | 校准派生链的专用 TestRun/export mapping 后续补充 |
 | SW-FR-005 | VERIFIED_HOST | 12 类受控单位；Step 1 只允许有限 V/mV 显式换算并拒绝安培、count、未知单位和 NaN/Inf | 后续分析继续使用同一规范化入口 |
 | SW-FR-010 | VERIFIED_HOST | CRC 只有 `protocol/crc.py` 一个实现；固定参数、5 个黄金向量和 bytes-like 边界测试通过 | 后续 profile/adapter 复用，不再复制算法 |
-| SW-FR-011 | VERIFIED_HOST | Step 1–3 已把 bounded LF stream、严格 token/CRC envelope 和 SerialSession partial/coalesced input 转成有界 raw events；Steps 4–5 的独立 AFE/MSP430 profiles 已分别解释业务字段并形成 typed outcome | Step 6 组合 adapter |
-| SW-FR-012 | VERIFIED_HOST | AFE v1 严格解析和错误分类由 20 条合法、9 类非法黄金消息冻结；Step 4 又将全部记录送入 serial profile 并 exact re-encode/保留错误契约；telemetry 显式转换为 canonical `afe.chN.input/output/gain/threshold` | Step 6 显式完成 profile-native capability 到 adapter vocabulary 的 projection，不猜测输出含义 |
-| SW-FR-013 | VERIFIED_HOST | 通用 tracker 已覆盖 2–64 bits；AFE profile 提供 16-bit TEL continuity 和 65535→0 wrap，command/CAP seq 按 transaction correlation；MSP430 profile 提供 32-bit TEL continuity 和 4294967295→0 wrap，ACK/STS/CFG/LOG request seq 不进入 tracker；CRC 失败均不推进 | Step 6 保持相同 profile-specific sequence 语义 |
-| SW-FR-014 | VERIFIED_HOST | `SerialProfileIdentity` 明确 AFE name=`afe`、wire version=`1`、16 bits、128 bytes；event profile mismatch 拒绝，wire 坏版本保持 `UnsupportedProtocolVersion` | Step 6 配置/adapter 使用同一显式 selection，不按 COM/VID/PID 猜测 |
-| SW-FR-015 | VERIFIED_HOST | Step 4 已实际聚合 CAP DEVICE/CHANNEL/END，只在 sequence/count/range/command consistency 全部有效后发布 `DeviceCapabilities`；未知 bit、孤立/乱序/不完整 transaction 被拒绝并清状态；原安全 gate 回归通过 | Step 6 adapter 发起真实协商；实物能力仍待 HIL/BENCH |
-| SW-FR-016 | VERIFIED_HOST | `SerialBackend`/`SerialSession` 已验证发现、打开、bounded read、正常 timeout、断线清半帧、每次断线 0–10 次有限重连和 deterministic close；失败使用稳定 transport error 且逻辑状态关闭 | 具体 OS/pyserial backend 与 SerialAdapter 留到 Step 6；真实端口留到可选 Step 7 |
-| SW-FR-017 | VERIFIED_HOST | `BoundedRawEventLog` 保留 exact bytes、UTC、logical port、显式 profile、parse/error 和 typed sequence；AFE/MSP430 profiles 均填写 PARSED/REJECTED outcome，并在 log finalize 失败时回滚内部状态；默认 1,024 条/256 KiB，硬上限 10,000 条/2 MiB，仅内存且不自动持久化/上传 | Step 6 组合 adapter；未来 export 需显式隐私评审 |
-| SW-FR-020 | VERIFIED_HOST | 正式 `DeviceAdapter` 已定义统一接口；reference、Simulator 和 CSV Replay 均通过同一套 8 项只读契约；`run_read_workflow` 已用同一请求实际驱动两个正式适配器 | Phase 4 让 Serial 适配器通过相同契约和工作流 |
+| SW-FR-011 | VERIFIED_HOST | Step 1–5 的 bounded stream/envelope/session/raw-log/profiles 已由 Step 6 `SerialAdapter` 组合；AFE/MSP 内存 bytes 可经 typed raw outcome 和 Measurement 进入同一 `ReadWorkflow` | 真实 OS stream 仍待可选 HIL |
+| SW-FR-012 | VERIFIED_HOST | AFE v1 的 20 valid/9 invalid 契约不变；telemetry 显式转换为 canonical names；Step 6 另将 native `adcN/dacN/pwmN/dinN` capabilities 显式投影为 `afe.chN.input/dac/pwm/threshold` 并拒绝 identity/count/range/command 漂移 | 实物字段/行为仍待 AFE BENCH |
+| SW-FR-013 | VERIFIED_HOST | 通用 tracker 已覆盖 2–64 bits；AFE 使用 16-bit TEL continuity，MSP430 使用 32-bit TEL continuity；Step 6 adapter 保持 profile-owned semantics，并在重连清 profile/buffer/capability trust | OS 端口 sequence/uptime 证据待 Step 7 |
+| SW-FR-014 | VERIFIED_HOST | `SerialProfileIdentity` 明确 name/version/sequence/limit；`SerialAdapterConfig`、session 和 profile 必须精确匹配，构造时拒绝不一致，不按 COM/VID/PID 猜测 | 无 wire-version token 的 MSP430 仍需用户确认固件接口 |
+| SW-FR-015 | VERIFIED_HOST | AFE profile 只在完整合法 CAP transaction 后发布 native capabilities；Step 6 adapter 被动接收并显式投影，同时保留 native snapshot，禁止 command escalation；MSP430 使用静态只读 snapshot | Step 6 不发送 `CAP_REQ`；实物 capability 仍待 HIL/BENCH |
+| SW-FR-016 | VERIFIED_HOST | `SerialSession` 的 bounded lifecycle/reconnect 已通过；Step 6 将 open/read/close/reconnect 映射到 adapter errors，成功重连后强制 capability reconfirmation，所有操作有 finite poll budget | concrete OS/pyserial backend 和真实端口留到可选 Step 7 |
+| SW-FR-017 | VERIFIED_HOST | bounded raw log 保留 exact bytes/UTC/logical port/profile/outcome/sequence；Step 6 adapter 暴露 immutable snapshot，坏 CRC/overlong 不产生 Measurement，raw 不自动持久化/上传 | 未来 export 需显式隐私评审 |
+| SW-FR-020 | VERIFIED_HOST | 正式 `DeviceAdapter` 统一接口和八项只读契约已由 reference、Simulator、CSV Replay、AFE SerialAdapter、MSP430 SerialAdapter 配置通过；同一 `run_read_workflow` 实际驱动四类正式来源 | 未来 instrument adapter 继续复用契约 |
 | SW-FR-021 | VERIFIED_HOST | 版本化只读 SimulatorAdapter 已验证增益、偏置、噪声、饱和、迟滞和受控故障；Steps 4–5 确认它在 DC/迟滞输出 runners 中保持零采集 `UNSUPPORTED`，不会伪装成 DAC | 后续离线分析保持同一来源边界 |
 | SW-FR-022 | VERIFIED_HOST | `csv-replay.v1` 提供不可变 dataset/record 与严格 parser；正式 `CsvReplayAdapter` 已验证顺序读取、独立通道游标、速度、暂停/恢复、明确 EOF、原引用保留和强制 `CSV_REPLAY` 来源；共享工作流已消费回放 | Phase 5 UI 增加用户控制 |
-| SW-FR-023 | IMPLEMENTED | 正式核心已有 driver-neutral backend/session/event port 且架构测试保持标准库依赖；尚无 concrete OS backend 或 `SerialAdapter` | Phase 4 Step 6 实现可选 pyserial backend/SerialAdapter 并继续隔离分析层 |
-| SW-FR-024 | VERIFIED_HOST | 独立 `msp430-equipment-health.v1` parser/profile 解析 `TEL/ACK/STS/CFG/LOG`，使用 32-bit TEL continuity，保留 raw sentinel/power/state/fault bits，并将 unavailable 值映射为 missing/invalid；10 valid + 11 invalid 本仓库 fixtures 和内存串口复合链通过 | Step 6 包装为 `SerialAdapter`；Step 7 才可产生本项目自己的可选只读 HIL |
+| SW-FR-023 | VERIFIED_HOST | driver-neutral backend/session/event 与 receive-only `SerialAdapter` 已实现；adapter 不导入 analysis/exports/runners/workflows/dashboard/pyserial，且 AFE/MSP 复合链通过 | concrete OS backend/worker 尚未实现；真实端口待 Step 7 |
+| SW-FR-024 | VERIFIED_HOST | 独立 MSP430 parser/profile 保留 raw sentinel/power/state/fault 并安全映射 unavailable；Step 6 已包装为 `SerialAdapter`、通过共用 contract/workflow，并对 DC/迟滞 runner 零写入 `UNSUPPORTED` | Step 7 才可产生本项目自己的可选只读 HIL |
 | SW-FR-025 | VERIFIED_HOST | 读工作流及 DC/迟滞 runners 均先做原子能力预检；runners 对缺输出/读取/数字输入/安全关闭能力返回零采集 `UNSUPPORTED`，Simulator/CSV 集成测试通过 | 新 runners 继续复用相同原则 |
 | SW-FR-026 | VERIFIED_HOST | AFE v1/Capabilities 定义 SAFE_SHUTDOWN；DC/迟滞 runners 在成功、中止、读取/等待异常路径调用 cleanup，shutdown/disconnect 故障强制覆盖潜在 PASS 为 ERROR | 输出型硬件接入时仍需 fault/bench 验证物理安全状态 |
 | SW-FR-030 | VERIFIED_HOST | `dc-sweep-runner.v1` 支持有序 setpoints、每点重复次数、注入 settle/abort、逐步记录和完整/部分结果；公开 plan/runner 签名已冻结，builder 导出完整逐点链 | 真实刺激仍待硬件 |
@@ -54,9 +54,9 @@
 | SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建、仓库外 wheel 安装和 import 均通过 | Phase 5 增加最终用户运行入口，Phase 6 再做发布候选安装测试 |
 | SW-NFR-002 | IMPLEMENTED | 当前核心使用标准 Python | Phase 4/6 验证 Windows，避免核心平台绑定 |
 | SW-NFR-003 | IMPLEMENTED | adapter/read workflow/runners 保持既有 cleanup；Step 3 另外验证 serial 打开/读取/关闭失败、断线、半帧 reset、有限重连和失败后逻辑关闭，不会把 timeout 误作有效数据 | concrete OS backend、真实断线和进程级 worker 退出仍待 Step 6/7 |
-| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析、导出和 Steps 1–5 transport/envelope/profiles 全部无需硬件；1,398 项完整回归、6,916/6,916 正式 package 覆盖及仓库外无 pyserial wheel smoke 均离线通过 | Phase 4 保持硬件可选测试路径 |
-| SW-NFR-005 | VERIFIED_HOST | 架构测试禁止正式核心导入第三方/GUI/SDK，并建立 one-way gate：transport 不导入 profiles/高层，profiles 不导入 adapters/analysis/runners/workflows；MSP profile 另有无 peer runtime namespace 门禁 | Step 6 保持同一依赖方向；具体 OS driver 作为可选边界 |
-| SW-NFR-006 | VERIFIED_HOST | 正式领域、协议、transport、两个独立 profiles、配置与 adapters 责任分离；公开 API 有类型、文档与完整 host tests | Step 6 继续保持 profile 不打开 COM、adapter 不复制 CRC/分析 |
+| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析、导出和 Steps 1–6 serial stack 全部无需硬件；1,472 项完整回归、7,198/7,198 正式 package 覆盖及仓库外无 pyserial installed SerialAdapter smoke 均离线通过 | Phase 4 保持硬件可选测试路径 |
+| SW-NFR-005 | VERIFIED_HOST | one-way gates 要求 transport 不导入 profiles/高层，profiles 不导入 adapters/analysis/runners/workflows，`serial_adapters` 不导入 analysis/exports/runners/workflows/dashboard/pyserial；MSP profile 无 peer runtime namespace | concrete OS driver 继续作为可选边界 |
+| SW-NFR-006 | VERIFIED_HOST | domain/protocol/transport/profiles/serial adapter/config/analysis 责任分离；profile 不打开 COM，adapter 不复制 CRC/分析；公开接口有类型、文档和完整 host tests | Step 8 冻结 Phase 4 public contract |
 | SW-NFR-007 | ACCEPTED | 无性能基准 | Phase 5/6 建立实际数据规模基准 |
 | SW-NFR-008 | VERIFIED_HOST | Replay 与 result-export 的严格 JSON/CSV 均有版本/大小/类型/Unicode/非有限值边界；结果写入默认不覆盖并使用原子发布；无 `eval`/`exec` | Phase 5 扩展到 CLI 路径和命令入口 |
 | SW-NFR-009 | IMPLEMENTED | 当前无网络代码，文件均本地 | Phase 5 文档化并保持默认离线 |
@@ -76,8 +76,8 @@
 | HW-FR-006 | DEFERRED | 只有迟滞算法/理想 SPICE | 比较器实物和重复测量 |
 | HW-FR-007 | DEFERRED | 未采购 ADC | 参考源和对照测量计划 |
 | HW-FR-008 | DEFERRED | 架构目标 | 无 MCU 手动模式原型 |
-| HW-FR-009 | DEFERRED | 软件适配器尚未完成 | 软件 v1 和参考控制器 |
-| HW-FR-010 | DEFERRED | 只有兼容性设计 | 独立 MSP430 profile 与实物接线 |
+| HW-FR-009 | DEFERRED | receive-only 软件 SerialAdapter 已完成 HOST_TEST；尚无输出型参考控制器或实物链路 | 软件 v1、参考控制器和硬件安全评审 |
+| HW-FR-010 | DEFERRED | 独立 MSP430 profile/adapter 已完成 HOST_TEST；尚无本仓库 OS-serial HIL 或实物接线证据 | Step 7 可选只读 HIL；未来硬件阶段另做接线 |
 | HW-FR-011 | DEFERRED | 只有安全规则 | 断电、上电和拔除控制器检查 |
 | HW-FR-012 | DEFERRED | 只有接口原则 | 原理图、测试点和丝印评审 |
 
@@ -85,11 +85,11 @@
 
 | 状态 | 数量 |
 |---|---:|
-| VERIFIED_HOST | 36 |
-| IMPLEMENTED | 6 |
+| VERIFIED_HOST | 37 |
+| IMPLEMENTED | 5 |
 | ACCEPTED | 6 |
 | DEFERRED | 12 |
 | VERIFIED_BENCH | 0 |
 | 总计 | 60 |
 
-Software Phase 1、2、3 均已完成各自 8/8。Software Phase 4 已完成 Steps 1–5/8：profile-neutral stream/sequence、token/CRC envelope、AFE compatibility wrapper、显式 channel mapping、driver-neutral serial lifecycle、bounded memory-only raw event、独立 AFE v1 profile 和独立只读 MSP430 Equipment Health v1 profile 均通过 HOST_TEST；当前完整回归 1,398 项，正式 package 6,916/6,916 语句覆盖。下一里程碑是 `SerialAdapter` 与产品内复合链；硬件仍为 DEFERRED，VERIFIED_BENCH 仍为 0。
+Software Phase 1、2、3 均已完成各自 8/8。Software Phase 4 已完成 Steps 1–6/8：profile-neutral stream/sequence/envelope、driver-neutral lifecycle/raw events、独立 AFE/MSP profiles，以及 receive-only `SerialAdapter` 对共用 adapter/workflow 的组合均通过 HOST_TEST；当前完整回归 1,472 项，正式 package 7,198/7,198 语句覆盖。下一里程碑是可选、单独授权的 MSP430 只读 OS-serial HIL；硬件仍为 DEFERRED，VERIFIED_BENCH 仍为 0。
