@@ -1,7 +1,7 @@
 # Software Phase 6 文件级实施计划
 
 **阶段名称：** 发布工程、外部测试与 v1.0 准备<br>
-**规划状态：** 已完成；实现进度 2/8<br>
+**规划状态：** 已完成；实现进度 3/8<br>
 **首个交付目标：** 私有测试版 `0.1.0b1`（展示名 `v0.1.0-beta.1`）<br>
 **最终阶段目标：** owner-approved Analog Validation Studio v1.0<br>
 **预计时间：** 4–7 个有效开发日；初学者兼职约 1–2 周<br>
@@ -12,7 +12,7 @@
 
 - [x] Step 1：发布合同、版本策略、支持范围和停止条件；
 - [x] Step 2：GitHub Actions 持续集成；
-- [ ] Step 3：beta 版本与 package/release metadata；
+- [x] Step 3：beta 版本与 package/release metadata；
 - [ ] Step 4：确定性构建、clean-install 和 release manifest；
 - [ ] Step 5：安装、测试、故障排查和反馈文档；
 - [ ] Step 6：仅依赖公开 API 的第三方 adapter 示例；
@@ -192,7 +192,7 @@ Steps 1–7 通过后，可称：
 
 ## 8. 下一检查点
 
-Step 2 已完成：最终 hosted run `33444546631` 在 Windows/Ubuntu、Python
-3.10/3.12/3.14 六组 host matrix 以及 coverage、Ruff、mypy、build、base/serial
-clean-install 中全部通过。两个早期失败 run 作为兼容性诊断证据保留；没有操作真实串口
-或硬件。下一次实施 Step 3 beta 版本与 metadata；它不创建 tag 或 Release。
+Step 3 已完成：package/import/CLI/compatibility/golden metadata 已统一为 `0.1.0b1`，
+changelog 与无许可证状态明确，最终 hosted run `33445311456` 全部通过。没有创建 tag、
+Release 或操作硬件。下一次实施 Step 4 确定性构建、clean-install 和 privacy-minimal
+release manifest。

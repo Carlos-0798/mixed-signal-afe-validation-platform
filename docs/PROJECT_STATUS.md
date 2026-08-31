@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-08-31<br>
-**Current milestone:** Software Phase 5 complete — 8 of 8 checkpoints<br>
-**Release maturity:** Software Beta / Phase 6 release engineering not yet complete<br>
+**Current milestone:** Software Phase 6 release engineering — 3 of 8 checkpoints<br>
+**Release maturity:** Private beta candidate preparation (`0.1.0b1`); no tag or Release<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
 
@@ -80,8 +80,10 @@ port and did not repeat or broaden the Step 7 HIL.
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 2,189 passed; 0 skipped |
+| Full pytest suite | 2,194 passed in the final full local run |
 | Formal + optional + product package statement coverage | 100% of 11,470 statements |
+| Phase 6 hosted CI | PASS — Windows/Ubuntu with Python 3.10, 3.12, and 3.14; quality/build/base/serial jobs passed |
+| Phase 6 beta metadata | PASS — import, CLI, wheel, public manifests, README, and changelog aligned at `0.1.0b1`; no license/tag/Release selected |
 | Phase 5 public compatibility | 15 new tests; 154 complete golden checks; 4 namespaces, 14 schemas, 10 enum sets, 36 dataclasses, 35 signatures, 24 errors, 25 issue mappings, 16 CLI paths, 8 exits, 13 serialized groups, and 6 hashes frozen |
 | Phase 5 Step 7 reproducible demo and product quality | 186 focused tests; two installed demos in normal/Unicode paths were byte-identical; 10,000-record Replay, 10,000-event bounded queue, privacy/offline, and real Tk scaling/focus smoke passed |
 | Phase 4 golden compatibility | 13 checks; 121 exports, 3 schemas, 12 enum/flag sets, 21 signatures, 17 errors, 5 fixture hashes, and exact AFE/MSP external-backend results frozen |
@@ -111,7 +113,7 @@ port and did not repeat or broaden the Step 7 HIL.
 | Synthetic integration | 100 frames / 400 explicit `SYNTHETIC` Measurements passed |
 | Core dependency boundary | Passed; standard library and own package only |
 | Ruff | Rule check passed on the full repository; historical files retain formatting-only debt |
-| mypy | Passed on `src`, `tools`, and `tests` — 191 source/tool/test files |
+| mypy | Passed on `src`, `tools`, and `tests` — 192 source/tool/test files |
 | Package build and external installs | Passed; isolated sdist/wheel include product/demo/typing and compatibility data; fresh base and `[serial]` installs passed, base remained headless/driver-free, normal/Unicode demos were byte-identical, real Tk safely launched/closed, and serial used an injected substitute with zero real-port operations |
 | Physical controller UART | PASS with limitations — receive-only COM4 Protocol v1 compatibility; exact firmware, disconnect recovery, external peripherals, and AFE are unverified |
 | AFE hardware bench validation | Not performed |
@@ -157,6 +159,19 @@ port and did not repeat or broaden the Step 7 HIL.
 | 6 | Beginner workflow and read-only serial wiring | Complete | HOST_TEST / SYNTHETIC / CSV_REPLAY / memory-serial zero-write / external base-wheel install |
 | 7 | Reproducible demo and product-quality acceptance | Complete | HOST_TEST / SYNTHETIC / repository-external base-wheel install / real Windows Tk smoke |
 | 8 | Public compatibility freeze and software Beta closure | Complete | HOST_TEST / SYNTHETIC / repository-external base and `[serial]` installs |
+
+## Software Phase 6 checkpoints
+
+| Step | Deliverable | Status | Evidence |
+|---:|---|---|---|
+| 1 | Release contract, version strategy, support scope, and stop conditions | Complete | HOST_TEST planning record |
+| 2 | Read-only hosted CI and cross-version clean-install gates | Complete | HOST_TEST / hosted Windows and Ubuntu |
+| 3 | `0.1.0b1` version, package metadata, changelog, and golden alignment | Complete | HOST_TEST / SYNTHETIC / isolated build |
+| 4 | Deterministic build, clean install, and release manifest | In progress | Not yet accepted |
+| 5 | Installation, tester, troubleshooting, and feedback documentation | Planned | Not yet run |
+| 6 | Public-API-only external adapter proof | Planned | Not yet run |
+| 7 | Privacy, license, history, claims, and candidate audit | Planned | Not yet run |
+| 8 | Owner review, merge/tag/Release, and v1.0 decision | Owner-gated | Not authorized |
 
 ## Public claim boundary
 
@@ -243,13 +258,12 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 5 is complete at 8/8 and the safe maturity label is Software
-Beta. The next checkpoint is Software Phase 6 planning and release engineering:
-hosted CI, supported-Python/clean-environment matrix, release-candidate
-versioning, installation and publication audit, and an owner-approved GitHub
-release decision. Simulator remains the default. Real-port reliability and
-future physical AFE work stay separately gated and are not inherited by the
-software release path.
+Software Phase 6 Steps 1–3 are complete. The next checkpoint is the create-new
+release verifier and privacy-minimal candidate manifest. Installation/tester
+documentation, public-adapter proof, final audit, and owner-approved GitHub
+release decisions remain after that. Simulator remains the default. Real-port
+reliability and future physical AFE work stay separately gated and are not
+inherited by the software release path.
 
 ## GitHub and LinkedIn presentation policy
 
