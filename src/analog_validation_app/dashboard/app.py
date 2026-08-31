@@ -8,12 +8,10 @@ from typing import Any, cast
 
 from ..errors import (
     ProductDashboardUnavailableError,
-    ProductFeatureUnavailableError,
     ProductRequestError,
     ProductWorkerTimeoutError,
 )
-from ..models import ProductJobRequest, ProductSourceMode, ProductWorkerState
-from ..worker import ProductJobService
+from ..models import ProductSourceMode, ProductWorkerState
 from .application import DashboardApplication
 from .controller import DashboardWorkerPort
 from .state import DASHBOARD_HARDWARE_CLAIM
@@ -70,13 +68,6 @@ def _load_tk() -> tuple[object, object]:  # pragma: no cover - platform smoke ga
     from tkinter import ttk
 
     return tk, ttk
-
-
-def _idle_service_factory(request: ProductJobRequest) -> ProductJobService:
-    del request
-    raise ProductFeatureUnavailableError(
-        "Step 5 Dashboard shell cannot start jobs; workflow wiring begins in Step 6"
-    )
 
 
 def _bounded_integer(name: str, value: object, maximum: int) -> int:

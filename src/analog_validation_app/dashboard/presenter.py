@@ -153,7 +153,7 @@ def _empty_result() -> DashboardResultPanel:
 
 def _empty_artifacts() -> DashboardArtifactsPanel:
     return DashboardArtifactsPanel(
-        "No artifacts are present; Step 5 does not create files automatically."
+        "No artifacts are present; complete a reviewed analysis before exporting."
     )
 
 

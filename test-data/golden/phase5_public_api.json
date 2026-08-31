@@ -1,0 +1,4673 @@
+{
+  "cli_contract": {
+    "commands": {
+      "<root>": [
+        {
+          "choices": null,
+          "dest": "debug",
+          "flags": [
+            "--debug"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "version",
+          "flags": [
+            "--version"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "dashboard": [
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "demo": [
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "observe": [
+        {
+          "choices": null,
+          "dest": "baud_rate",
+          "flags": [
+            "--baud-rate"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "channel",
+          "flags": [
+            "--channel"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "confirm_read_only",
+          "flags": [
+            "--confirm-read-only"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_polls",
+          "flags": [
+            "--max-polls"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_records",
+          "flags": [
+            "--max-records"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "analog",
+            "digital"
+          ],
+          "dest": "operation",
+          "flags": [
+            "--operation"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "port",
+          "flags": [
+            "--port"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "read_timeout",
+          "flags": [
+            "--read-timeout"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "V",
+            "mV",
+            "A",
+            "mA",
+            "ohm",
+            "Hz",
+            "degC",
+            "count",
+            "ratio",
+            "dB",
+            "bool",
+            "unitless"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "ports": [
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "profiles": [
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "replay": [
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "replay dc": [
+        {
+          "choices": [
+            "json",
+            "csv"
+          ],
+          "dest": "output_format",
+          "flags": [
+            "--format"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "gain_tolerance",
+          "flags": [
+            "--gain-tolerance"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "high_output_limit",
+          "flags": [
+            "--high-output-limit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "input_channel",
+          "flags": [
+            "--input-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "low_output_limit",
+          "flags": [
+            "--low-output-limit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_abs_offset",
+          "flags": [
+            "--max-abs-offset"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_rmse",
+          "flags": [
+            "--max-rmse"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum",
+          "flags": [
+            "--maximum"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "min_r_squared",
+          "flags": [
+            "--min-r-squared"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum",
+          "flags": [
+            "--minimum"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output_channel",
+          "flags": [
+            "--output-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "points",
+          "flags": [
+            "--points"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "target_gain",
+          "flags": [
+            "--target-gain"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "mV",
+            "V"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "replay hysteresis": [
+        {
+          "choices": null,
+          "dest": "falling_count",
+          "flags": [
+            "--falling-count"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "json",
+            "csv"
+          ],
+          "dest": "output_format",
+          "flags": [
+            "--format"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "input_channel",
+          "flags": [
+            "--input-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum",
+          "flags": [
+            "--maximum"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum_high_threshold",
+          "flags": [
+            "--maximum-high-threshold"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum_low_threshold",
+          "flags": [
+            "--maximum-low-threshold"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum_width",
+          "flags": [
+            "--maximum-width"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum_width_span",
+          "flags": [
+            "--maximum-width-span"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum",
+          "flags": [
+            "--minimum"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum_high_threshold",
+          "flags": [
+            "--minimum-high-threshold"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum_low_threshold",
+          "flags": [
+            "--minimum-low-threshold"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum_width",
+          "flags": [
+            "--minimum-width"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "rising_count",
+          "flags": [
+            "--rising-count"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "state_channel",
+          "flags": [
+            "--state-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "mV",
+            "V"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "replay read": [
+        {
+          "choices": null,
+          "dest": "channel",
+          "flags": [
+            "--channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum",
+          "flags": [
+            "--maximum"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum",
+          "flags": [
+            "--minimum"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "analog",
+            "digital"
+          ],
+          "dest": "operation",
+          "flags": [
+            "--operation"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "samples",
+          "flags": [
+            "--samples"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "V",
+            "mV",
+            "A",
+            "mA",
+            "ohm",
+            "Hz",
+            "degC",
+            "count",
+            "ratio",
+            "dB",
+            "bool",
+            "unitless"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "report": [
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": [
+            "auto",
+            "json",
+            "csv"
+          ],
+          "dest": "input_format",
+          "flags": [
+            "--input-format"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "simulate": [
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "simulate dc": [
+        {
+          "choices": [
+            "json",
+            "csv"
+          ],
+          "dest": "output_format",
+          "flags": [
+            "--format"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "gain_tolerance",
+          "flags": [
+            "--gain-tolerance"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "high_output_limit",
+          "flags": [
+            "--high-output-limit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "input_channel",
+          "flags": [
+            "--input-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "low_output_limit",
+          "flags": [
+            "--low-output-limit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_abs_offset",
+          "flags": [
+            "--max-abs-offset"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_rmse",
+          "flags": [
+            "--max-rmse"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "min_r_squared",
+          "flags": [
+            "--min-r-squared"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output_channel",
+          "flags": [
+            "--output-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "points",
+          "flags": [
+            "--points"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "target_gain",
+          "flags": [
+            "--target-gain"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "mV",
+            "V"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "simulate hysteresis": [
+        {
+          "choices": null,
+          "dest": "falling_count",
+          "flags": [
+            "--falling-count"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "json",
+            "csv"
+          ],
+          "dest": "output_format",
+          "flags": [
+            "--format"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "input_channel",
+          "flags": [
+            "--input-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum_high_threshold",
+          "flags": [
+            "--maximum-high-threshold"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum_low_threshold",
+          "flags": [
+            "--maximum-low-threshold"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum_width",
+          "flags": [
+            "--maximum-width"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum_width_span",
+          "flags": [
+            "--maximum-width-span"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum_high_threshold",
+          "flags": [
+            "--minimum-high-threshold"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum_low_threshold",
+          "flags": [
+            "--minimum-low-threshold"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum_width",
+          "flags": [
+            "--minimum-width"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "rising_count",
+          "flags": [
+            "--rising-count"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "state_channel",
+          "flags": [
+            "--state-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "mV",
+            "V"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "simulate read": [
+        {
+          "choices": null,
+          "dest": "channel",
+          "flags": [
+            "--channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": [
+            "analog",
+            "digital"
+          ],
+          "dest": "operation",
+          "flags": [
+            "--operation"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "samples",
+          "flags": [
+            "--samples"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "V",
+            "mV",
+            "A",
+            "mA",
+            "ohm",
+            "Hz",
+            "degC",
+            "count",
+            "ratio",
+            "dB",
+            "bool",
+            "unitless"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "version": [
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ]
+    },
+    "program": "analog-validation"
+  },
+  "dataclass_fields": {
+    "CliDependencies": [
+      [
+        "serial_backend_factory",
+        false,
+        false
+      ],
+      [
+        "job_id_factory",
+        false,
+        false
+      ],
+      [
+        "event_id_factory",
+        false,
+        false
+      ],
+      [
+        "dashboard_launcher",
+        false,
+        false
+      ]
+    ],
+    "DashboardAction": [
+      [
+        "action_type",
+        true,
+        false
+      ],
+      [
+        "source_mode",
+        false,
+        false
+      ],
+      [
+        "profile_name",
+        false,
+        false
+      ],
+      [
+        "profile_version",
+        false,
+        false
+      ],
+      [
+        "job_type",
+        false,
+        false
+      ]
+    ],
+    "DashboardArtifactView": [
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "media_type",
+        true,
+        false
+      ],
+      [
+        "size_bytes",
+        true,
+        false
+      ],
+      [
+        "sha256",
+        true,
+        false
+      ]
+    ],
+    "DashboardArtifactsPanel": [
+      [
+        "summary",
+        true,
+        false
+      ],
+      [
+        "artifacts",
+        false,
+        false
+      ]
+    ],
+    "DashboardConfigurationPanel": [
+      [
+        "job_type",
+        true,
+        false
+      ],
+      [
+        "job_name",
+        true,
+        false
+      ],
+      [
+        "summary",
+        true,
+        false
+      ],
+      [
+        "safety_review",
+        true,
+        false
+      ],
+      [
+        "can_run",
+        false,
+        false
+      ]
+    ],
+    "DashboardPlotPanel": [
+      [
+        "title",
+        true,
+        false
+      ],
+      [
+        "summary",
+        true,
+        false
+      ],
+      [
+        "points",
+        false,
+        false
+      ],
+      [
+        "total_points",
+        false,
+        false
+      ]
+    ],
+    "DashboardPlotPoint": [
+      [
+        "index",
+        true,
+        false
+      ],
+      [
+        "label",
+        true,
+        false
+      ],
+      [
+        "disposition",
+        true,
+        false
+      ],
+      [
+        "values",
+        true,
+        false
+      ]
+    ],
+    "DashboardProgressPanel": [
+      [
+        "worker_state",
+        true,
+        false
+      ],
+      [
+        "status_text",
+        true,
+        false
+      ],
+      [
+        "completed",
+        false,
+        false
+      ],
+      [
+        "total",
+        false,
+        false
+      ],
+      [
+        "can_cancel",
+        false,
+        false
+      ],
+      [
+        "event_count",
+        false,
+        false
+      ],
+      [
+        "dropped_event_count",
+        false,
+        false
+      ],
+      [
+        "last_event_index",
+        false,
+        false
+      ]
+    ],
+    "DashboardResultPanel": [
+      [
+        "status",
+        true,
+        false
+      ],
+      [
+        "outcome",
+        true,
+        false
+      ],
+      [
+        "evidence_source",
+        true,
+        false
+      ],
+      [
+        "summary",
+        true,
+        false
+      ],
+      [
+        "limitations",
+        true,
+        false
+      ],
+      [
+        "not_verified",
+        true,
+        false
+      ],
+      [
+        "issue",
+        false,
+        false
+      ]
+    ],
+    "DashboardSessionResult": [
+      [
+        "source_mode",
+        true,
+        false
+      ],
+      [
+        "profile_identity",
+        true,
+        false
+      ],
+      [
+        "worker_state",
+        true,
+        false
+      ],
+      [
+        "closed_safely",
+        true,
+        false
+      ],
+      [
+        "hardware_claim",
+        false,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "DashboardSourcePanel": [
+      [
+        "source_mode",
+        true,
+        false
+      ],
+      [
+        "source_name",
+        true,
+        false
+      ],
+      [
+        "source_summary",
+        true,
+        false
+      ],
+      [
+        "profile_name",
+        true,
+        false
+      ],
+      [
+        "profile_version",
+        true,
+        false
+      ],
+      [
+        "profile_display_name",
+        true,
+        false
+      ],
+      [
+        "connection_text",
+        true,
+        false
+      ],
+      [
+        "evidence_text",
+        true,
+        false
+      ],
+      [
+        "read_only",
+        false,
+        false
+      ]
+    ],
+    "DashboardState": [
+      [
+        "revision",
+        true,
+        false
+      ],
+      [
+        "source",
+        true,
+        false
+      ],
+      [
+        "configuration",
+        true,
+        false
+      ],
+      [
+        "progress",
+        true,
+        false
+      ],
+      [
+        "plot",
+        true,
+        false
+      ],
+      [
+        "result",
+        true,
+        false
+      ],
+      [
+        "artifacts",
+        true,
+        false
+      ],
+      [
+        "event_messages",
+        true,
+        false
+      ],
+      [
+        "active_job_id",
+        false,
+        false
+      ],
+      [
+        "close_requested",
+        false,
+        false
+      ],
+      [
+        "hardware_claim",
+        false,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "DashboardWizardDraft": [
+      [
+        "source_mode",
+        false,
+        false
+      ],
+      [
+        "job_type",
+        false,
+        false
+      ],
+      [
+        "profile_name",
+        false,
+        false
+      ],
+      [
+        "profile_version",
+        false,
+        false
+      ],
+      [
+        "primary_channel",
+        false,
+        false
+      ],
+      [
+        "secondary_channel",
+        false,
+        false
+      ],
+      [
+        "state_channel",
+        false,
+        false
+      ],
+      [
+        "operation",
+        false,
+        false
+      ],
+      [
+        "unit",
+        false,
+        false
+      ],
+      [
+        "sample_count",
+        false,
+        false
+      ],
+      [
+        "rising_count",
+        false,
+        false
+      ],
+      [
+        "falling_count",
+        false,
+        false
+      ],
+      [
+        "replay_path",
+        false,
+        false
+      ],
+      [
+        "replay_minimum",
+        false,
+        false
+      ],
+      [
+        "replay_maximum",
+        false,
+        false
+      ],
+      [
+        "serial_port",
+        false,
+        false
+      ],
+      [
+        "serial_baud_rate",
+        false,
+        false
+      ],
+      [
+        "serial_read_timeout",
+        false,
+        false
+      ],
+      [
+        "serial_max_polls",
+        false,
+        false
+      ],
+      [
+        "serial_confirm_read_only",
+        false,
+        false
+      ],
+      [
+        "low_output_limit",
+        false,
+        false
+      ],
+      [
+        "high_output_limit",
+        false,
+        false
+      ],
+      [
+        "target_gain",
+        false,
+        false
+      ],
+      [
+        "gain_tolerance",
+        false,
+        false
+      ],
+      [
+        "max_abs_offset",
+        false,
+        false
+      ],
+      [
+        "min_r_squared",
+        false,
+        false
+      ],
+      [
+        "max_rmse",
+        false,
+        false
+      ],
+      [
+        "minimum_high_threshold",
+        false,
+        false
+      ],
+      [
+        "maximum_high_threshold",
+        false,
+        false
+      ],
+      [
+        "minimum_low_threshold",
+        false,
+        false
+      ],
+      [
+        "maximum_low_threshold",
+        false,
+        false
+      ],
+      [
+        "minimum_width",
+        false,
+        false
+      ],
+      [
+        "maximum_width",
+        false,
+        false
+      ],
+      [
+        "maximum_width_span",
+        false,
+        false
+      ],
+      [
+        "export_path",
+        false,
+        false
+      ],
+      [
+        "export_format",
+        false,
+        false
+      ]
+    ],
+    "DashboardWizardGuidance": [
+      [
+        "number",
+        true,
+        false
+      ],
+      [
+        "title",
+        true,
+        false
+      ],
+      [
+        "what",
+        true,
+        false
+      ],
+      [
+        "why",
+        true,
+        false
+      ],
+      [
+        "confirm",
+        true,
+        false
+      ]
+    ],
+    "DashboardWizardState": [
+      [
+        "revision",
+        true,
+        false
+      ],
+      [
+        "step",
+        true,
+        false
+      ],
+      [
+        "draft",
+        true,
+        false
+      ],
+      [
+        "review_lines",
+        false,
+        false
+      ],
+      [
+        "discovered_ports",
+        false,
+        false
+      ],
+      [
+        "issue",
+        false,
+        false
+      ],
+      [
+        "export_available",
+        false,
+        false
+      ],
+      [
+        "export_message",
+        false,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "DemoArtifact": [
+      [
+        "relative_path",
+        true,
+        false
+      ],
+      [
+        "media_type",
+        true,
+        false
+      ],
+      [
+        "size_bytes",
+        true,
+        false
+      ],
+      [
+        "sha256",
+        true,
+        false
+      ]
+    ],
+    "HumanReportPublication": [
+      [
+        "output_directory",
+        true,
+        false
+      ],
+      [
+        "artifacts",
+        true,
+        false
+      ]
+    ],
+    "HumanReportView": [
+      [
+        "title",
+        true,
+        false
+      ],
+      [
+        "canonical_result_sha256",
+        true,
+        false
+      ],
+      [
+        "generator_version",
+        true,
+        false
+      ],
+      [
+        "input_schema_version",
+        true,
+        false
+      ],
+      [
+        "run_id",
+        true,
+        false
+      ],
+      [
+        "test_type",
+        true,
+        false
+      ],
+      [
+        "configuration_id",
+        true,
+        false
+      ],
+      [
+        "configuration_version",
+        true,
+        false
+      ],
+      [
+        "started_at",
+        true,
+        false
+      ],
+      [
+        "ended_at",
+        true,
+        false
+      ],
+      [
+        "input_software_version",
+        true,
+        false
+      ],
+      [
+        "device_id",
+        true,
+        false
+      ],
+      [
+        "profile_name",
+        true,
+        false
+      ],
+      [
+        "profile_version",
+        true,
+        false
+      ],
+      [
+        "evidence_source",
+        true,
+        false
+      ],
+      [
+        "outcome",
+        true,
+        false
+      ],
+      [
+        "summary",
+        true,
+        false
+      ],
+      [
+        "source_schemas",
+        true,
+        false
+      ],
+      [
+        "metrics",
+        true,
+        false
+      ],
+      [
+        "points",
+        true,
+        false
+      ],
+      [
+        "limitations",
+        true,
+        false
+      ],
+      [
+        "missing_requirements",
+        true,
+        false
+      ],
+      [
+        "not_verified",
+        true,
+        false
+      ],
+      [
+        "chart_kind",
+        true,
+        false
+      ],
+      [
+        "criteria_id",
+        false,
+        false
+      ],
+      [
+        "criteria_version",
+        false,
+        false
+      ],
+      [
+        "criterion_results",
+        false,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "PortfolioDemoPublication": [
+      [
+        "output_directory",
+        true,
+        false
+      ],
+      [
+        "outcome",
+        true,
+        false
+      ],
+      [
+        "evidence_source",
+        true,
+        false
+      ],
+      [
+        "canonical_result_sha256",
+        true,
+        false
+      ],
+      [
+        "artifacts",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "PreparedProductJob": [
+      [
+        "request",
+        true,
+        false
+      ],
+      [
+        "service_factory",
+        true,
+        false
+      ],
+      [
+        "output_slot",
+        true,
+        false
+      ],
+      [
+        "review_lines",
+        true,
+        false
+      ]
+    ],
+    "ProductJobEvent": [
+      [
+        "job_id",
+        true,
+        false
+      ],
+      [
+        "index",
+        true,
+        false
+      ],
+      [
+        "created_at",
+        true,
+        false
+      ],
+      [
+        "state",
+        true,
+        false
+      ],
+      [
+        "message",
+        true,
+        false
+      ],
+      [
+        "completed",
+        false,
+        false
+      ],
+      [
+        "total",
+        false,
+        false
+      ],
+      [
+        "issue",
+        false,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ProductJobExecution": [
+      [
+        "request",
+        true,
+        false
+      ],
+      [
+        "worker_state",
+        true,
+        false
+      ],
+      [
+        "result",
+        true,
+        false
+      ],
+      [
+        "issue",
+        true,
+        false
+      ],
+      [
+        "events",
+        true,
+        false
+      ],
+      [
+        "output",
+        true,
+        false
+      ],
+      [
+        "dropped_event_count",
+        true,
+        false
+      ],
+      [
+        "interrupted",
+        false,
+        false
+      ],
+      [
+        "developer_error",
+        false,
+        false
+      ]
+    ],
+    "ProductJobRequest": [
+      [
+        "job_id",
+        true,
+        false
+      ],
+      [
+        "source_mode",
+        true,
+        false
+      ],
+      [
+        "job_type",
+        true,
+        false
+      ],
+      [
+        "profile_name",
+        true,
+        false
+      ],
+      [
+        "profile_version",
+        true,
+        false
+      ],
+      [
+        "allow_output",
+        false,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ProductJobResult": [
+      [
+        "request",
+        true,
+        false
+      ],
+      [
+        "status",
+        true,
+        false
+      ],
+      [
+        "evidence_source",
+        true,
+        false
+      ],
+      [
+        "limitations",
+        true,
+        false
+      ],
+      [
+        "test_run_outcome",
+        false,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ProductProfileDescriptor": [
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "version",
+        true,
+        false
+      ],
+      [
+        "display_name",
+        true,
+        false
+      ],
+      [
+        "summary",
+        true,
+        false
+      ],
+      [
+        "source_modes",
+        true,
+        false
+      ],
+      [
+        "product_read_only",
+        false,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ProductServiceOutput": [
+      [
+        "read_result",
+        true,
+        false
+      ],
+      [
+        "result_export",
+        false,
+        false
+      ]
+    ],
+    "ProductSourceDescriptor": [
+      [
+        "mode",
+        true,
+        false
+      ],
+      [
+        "display_name",
+        true,
+        false
+      ],
+      [
+        "summary",
+        true,
+        false
+      ],
+      [
+        "evidence_sources",
+        true,
+        false
+      ],
+      [
+        "supported_jobs",
+        true,
+        false
+      ],
+      [
+        "requires_serial_extra",
+        false,
+        false
+      ],
+      [
+        "is_default",
+        false,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ProductWorkflowConfiguration": [
+      [
+        "source_mode",
+        true,
+        false
+      ],
+      [
+        "job_type",
+        true,
+        false
+      ],
+      [
+        "profile_name",
+        false,
+        false
+      ],
+      [
+        "profile_version",
+        false,
+        false
+      ],
+      [
+        "primary_channel",
+        false,
+        false
+      ],
+      [
+        "secondary_channel",
+        false,
+        false
+      ],
+      [
+        "state_channel",
+        false,
+        false
+      ],
+      [
+        "operation",
+        false,
+        false
+      ],
+      [
+        "unit",
+        false,
+        false
+      ],
+      [
+        "sample_count",
+        false,
+        false
+      ],
+      [
+        "rising_count",
+        false,
+        false
+      ],
+      [
+        "falling_count",
+        false,
+        false
+      ],
+      [
+        "replay_path",
+        false,
+        false
+      ],
+      [
+        "replay_minimum",
+        false,
+        false
+      ],
+      [
+        "replay_maximum",
+        false,
+        false
+      ],
+      [
+        "serial_config",
+        false,
+        false
+      ],
+      [
+        "confirm_read_only",
+        false,
+        false
+      ],
+      [
+        "low_output_limit",
+        false,
+        false
+      ],
+      [
+        "high_output_limit",
+        false,
+        false
+      ],
+      [
+        "target_gain",
+        false,
+        false
+      ],
+      [
+        "gain_tolerance",
+        false,
+        false
+      ],
+      [
+        "max_abs_offset",
+        false,
+        false
+      ],
+      [
+        "min_r_squared",
+        false,
+        false
+      ],
+      [
+        "max_rmse",
+        false,
+        false
+      ],
+      [
+        "minimum_high_threshold",
+        false,
+        false
+      ],
+      [
+        "maximum_high_threshold",
+        false,
+        false
+      ],
+      [
+        "minimum_low_threshold",
+        false,
+        false
+      ],
+      [
+        "maximum_low_threshold",
+        false,
+        false
+      ],
+      [
+        "minimum_width",
+        false,
+        false
+      ],
+      [
+        "maximum_width",
+        false,
+        false
+      ],
+      [
+        "maximum_width_span",
+        false,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ReportArtifact": [
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "media_type",
+        true,
+        false
+      ],
+      [
+        "size_bytes",
+        true,
+        false
+      ],
+      [
+        "sha256",
+        true,
+        false
+      ]
+    ],
+    "ReportCriterionView": [
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "actual_value",
+        true,
+        false
+      ],
+      [
+        "unit",
+        true,
+        false
+      ],
+      [
+        "passed",
+        true,
+        false
+      ],
+      [
+        "lower_limit",
+        true,
+        false
+      ],
+      [
+        "upper_limit",
+        true,
+        false
+      ]
+    ],
+    "ReportPointView": [
+      [
+        "index",
+        true,
+        false
+      ],
+      [
+        "label",
+        true,
+        false
+      ],
+      [
+        "disposition",
+        true,
+        false
+      ],
+      [
+        "references",
+        true,
+        false
+      ],
+      [
+        "values",
+        true,
+        false
+      ],
+      [
+        "quality_flags",
+        true,
+        false
+      ],
+      [
+        "exclusion_reasons",
+        true,
+        false
+      ]
+    ],
+    "ReportReferenceView": [
+      [
+        "record_id",
+        true,
+        false
+      ],
+      [
+        "raw_record_id",
+        true,
+        false
+      ],
+      [
+        "timestamp",
+        true,
+        false
+      ],
+      [
+        "channel",
+        true,
+        false
+      ],
+      [
+        "source",
+        true,
+        false
+      ]
+    ],
+    "ReportSchemaView": [
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "version",
+        true,
+        false
+      ]
+    ],
+    "ReportValueView": [
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "value",
+        true,
+        false
+      ],
+      [
+        "unit",
+        true,
+        false
+      ]
+    ],
+    "SerialSourceConfig": [
+      [
+        "port_id",
+        true,
+        false
+      ],
+      [
+        "baud_rate",
+        false,
+        false
+      ],
+      [
+        "read_timeout_seconds",
+        false,
+        false
+      ],
+      [
+        "max_polls_per_operation",
+        false,
+        false
+      ],
+      [
+        "max_buffered_measurements",
+        false,
+        false
+      ],
+      [
+        "evidence_source",
+        false,
+        false
+      ]
+    ],
+    "UserIssue": [
+      [
+        "code",
+        true,
+        false
+      ],
+      [
+        "severity",
+        true,
+        false
+      ],
+      [
+        "what_happened",
+        true,
+        false
+      ],
+      [
+        "possible_cause",
+        true,
+        false
+      ],
+      [
+        "safe_next_step",
+        true,
+        false
+      ],
+      [
+        "technical_type",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ]
+  },
+  "enum_members": {
+    "DashboardActionType": [
+      [
+        "SELECT_SOURCE",
+        "SELECT_SOURCE"
+      ],
+      [
+        "SELECT_PROFILE",
+        "SELECT_PROFILE"
+      ],
+      [
+        "SELECT_JOB",
+        "SELECT_JOB"
+      ],
+      [
+        "REQUEST_CANCEL",
+        "REQUEST_CANCEL"
+      ],
+      [
+        "REQUEST_CLOSE",
+        "REQUEST_CLOSE"
+      ],
+      [
+        "CLEAR_RESULT",
+        "CLEAR_RESULT"
+      ]
+    ],
+    "DashboardExportFormat": [
+      [
+        "JSON",
+        "json"
+      ],
+      [
+        "CSV",
+        "csv"
+      ]
+    ],
+    "DashboardWizardStep": [
+      [
+        "SOURCE",
+        "SOURCE"
+      ],
+      [
+        "TEST",
+        "TEST"
+      ],
+      [
+        "CONFIGURATION",
+        "CONFIGURATION"
+      ],
+      [
+        "REVIEW",
+        "REVIEW"
+      ],
+      [
+        "RUN",
+        "RUN"
+      ],
+      [
+        "RESULT",
+        "RESULT"
+      ]
+    ],
+    "ProductJobType": [
+      [
+        "READ",
+        "READ"
+      ],
+      [
+        "DC_ANALYSIS",
+        "DC_ANALYSIS"
+      ],
+      [
+        "HYSTERESIS_ANALYSIS",
+        "HYSTERESIS_ANALYSIS"
+      ]
+    ],
+    "ProductResultStatus": [
+      [
+        "COMPLETED",
+        "COMPLETED"
+      ],
+      [
+        "INCOMPLETE",
+        "INCOMPLETE"
+      ],
+      [
+        "UNSUPPORTED",
+        "UNSUPPORTED"
+      ],
+      [
+        "CANCELLED",
+        "CANCELLED"
+      ],
+      [
+        "ERROR",
+        "ERROR"
+      ]
+    ],
+    "ProductSourceMode": [
+      [
+        "SIMULATOR",
+        "SIMULATOR"
+      ],
+      [
+        "CSV_REPLAY",
+        "CSV_REPLAY"
+      ],
+      [
+        "SERIAL_READ_ONLY",
+        "SERIAL_READ_ONLY"
+      ]
+    ],
+    "ProductWorkerState": [
+      [
+        "IDLE",
+        "IDLE"
+      ],
+      [
+        "STARTING",
+        "STARTING"
+      ],
+      [
+        "RUNNING",
+        "RUNNING"
+      ],
+      [
+        "CANCELLING",
+        "CANCELLING"
+      ],
+      [
+        "SUCCEEDED",
+        "SUCCEEDED"
+      ],
+      [
+        "FAILED",
+        "FAILED"
+      ],
+      [
+        "CANCELLED",
+        "CANCELLED"
+      ]
+    ],
+    "ReportChartKind": [
+      [
+        "DC_SWEEP",
+        "DC_SWEEP"
+      ],
+      [
+        "HYSTERESIS",
+        "HYSTERESIS"
+      ],
+      [
+        "NONE",
+        "NONE"
+      ]
+    ],
+    "UserIssueCode": [
+      [
+        "INVALID_REQUEST",
+        "INVALID_REQUEST"
+      ],
+      [
+        "CATALOG_NOT_FOUND",
+        "CATALOG_NOT_FOUND"
+      ],
+      [
+        "UNSAFE_CONFIGURATION",
+        "UNSAFE_CONFIGURATION"
+      ],
+      [
+        "CAPABILITY_UNAVAILABLE",
+        "CAPABILITY_UNAVAILABLE"
+      ],
+      [
+        "DEVICE_CONNECTION",
+        "DEVICE_CONNECTION"
+      ],
+      [
+        "INPUT_DATA",
+        "INPUT_DATA"
+      ],
+      [
+        "OUTPUT_EXISTS",
+        "OUTPUT_EXISTS"
+      ],
+      [
+        "OUTPUT_PATH",
+        "OUTPUT_PATH"
+      ],
+      [
+        "OPTIONAL_DEPENDENCY",
+        "OPTIONAL_DEPENDENCY"
+      ],
+      [
+        "OPERATION_FAILED",
+        "OPERATION_FAILED"
+      ],
+      [
+        "INTERNAL_ERROR",
+        "INTERNAL_ERROR"
+      ]
+    ],
+    "UserIssueSeverity": [
+      [
+        "WARNING",
+        "WARNING"
+      ],
+      [
+        "ERROR",
+        "ERROR"
+      ]
+    ]
+  },
+  "error_bases": {
+    "CliUsageError": "ProductCliError",
+    "ProductAppError": "Exception",
+    "ProductCatalogError": "ProductAppError",
+    "ProductCliError": "ProductAppError",
+    "ProductDashboardUnavailableError": "ProductDependencyError",
+    "ProductDemoError": "ProductAppError",
+    "ProductDemoExistsError": "ProductDemoPathError",
+    "ProductDemoFormatError": "ProductDemoError",
+    "ProductDemoPathError": "ProductDemoError",
+    "ProductDependencyError": "ProductAppError",
+    "ProductFeatureUnavailableError": "ProductCliError",
+    "ProductJobCancelled": "ProductWorkerError",
+    "ProductReportError": "ProductAppError",
+    "ProductReportExistsError": "ProductReportPathError",
+    "ProductReportFormatError": "ProductReportError",
+    "ProductReportLimitError": "ProductReportError",
+    "ProductReportPathError": "ProductReportError",
+    "ProductRequestError": "ProductAppError",
+    "ProductServiceError": "ProductAppError",
+    "ProductWorkerBusyError": "ProductWorkerError",
+    "ProductWorkerClosedError": "ProductWorkerError",
+    "ProductWorkerContractError": "ProductWorkerError",
+    "ProductWorkerError": "ProductAppError",
+    "ProductWorkerTimeoutError": "ProductWorkerError"
+  },
+  "evidence_source": "HOST_TEST",
+  "exit_codes": {
+    "cancelled": 130,
+    "engineering_fail": 1,
+    "incomplete": 3,
+    "internal_error": 70,
+    "operation_error": 5,
+    "success": 0,
+    "unsupported": 4,
+    "usage": 2
+  },
+  "golden_sha256": {
+    "phase2_public_api.json": "798dc65f10f39ac8cf47d375978a3736c1cdb01460ff07293a3fd09b62b902eb",
+    "phase3_public_api.json": "50277ba3236e8d46033907f95918f60e246eadb6710e27aedfb7633b34034f8f",
+    "phase4_composite_v1.json": "9059a4fd1abff086c0f633dab2d17a07467966c1617aa830868245ed16cad1e5",
+    "phase4_public_api.json": "72ff9b1dfed4b27672a17f65133fef966fa8668f0489d6ac45988bcf11a4d7f2",
+    "phase5_demo_v1.json": "bf3f43401886d9d15f3424edbc94d5a69847ae7aa1c2df261a386fd5cdd0ab43",
+    "phase5_human_reports_v1.json": "b9a57aea5b2d48733214f194702e69ba34e37dcc3c0bef1039a8a91a4519c262"
+  },
+  "issue_families": {
+    "CliUsageError": [
+      "INVALID_REQUEST",
+      "ERROR",
+      "CliUsageError"
+    ],
+    "ProductAppError": [
+      "OPERATION_FAILED",
+      "ERROR",
+      "ProductAppError"
+    ],
+    "ProductCatalogError": [
+      "CATALOG_NOT_FOUND",
+      "ERROR",
+      "ProductCatalogError"
+    ],
+    "ProductCliError": [
+      "OPERATION_FAILED",
+      "ERROR",
+      "ProductCliError"
+    ],
+    "ProductDashboardUnavailableError": [
+      "OPTIONAL_DEPENDENCY",
+      "ERROR",
+      "ProductDashboardUnavailableError"
+    ],
+    "ProductDemoError": [
+      "OPERATION_FAILED",
+      "ERROR",
+      "ProductDemoError"
+    ],
+    "ProductDemoExistsError": [
+      "OUTPUT_EXISTS",
+      "WARNING",
+      "ProductDemoExistsError"
+    ],
+    "ProductDemoFormatError": [
+      "INPUT_DATA",
+      "ERROR",
+      "ProductDemoFormatError"
+    ],
+    "ProductDemoPathError": [
+      "OUTPUT_PATH",
+      "ERROR",
+      "ProductDemoPathError"
+    ],
+    "ProductDependencyError": [
+      "OPTIONAL_DEPENDENCY",
+      "ERROR",
+      "ProductDependencyError"
+    ],
+    "ProductFeatureUnavailableError": [
+      "CAPABILITY_UNAVAILABLE",
+      "WARNING",
+      "ProductFeatureUnavailableError"
+    ],
+    "ProductJobCancelled": [
+      "OPERATION_FAILED",
+      "ERROR",
+      "ProductJobCancelled"
+    ],
+    "ProductReportError": [
+      "OPERATION_FAILED",
+      "ERROR",
+      "ProductReportError"
+    ],
+    "ProductReportExistsError": [
+      "OUTPUT_EXISTS",
+      "WARNING",
+      "ProductReportExistsError"
+    ],
+    "ProductReportFormatError": [
+      "INPUT_DATA",
+      "ERROR",
+      "ProductReportFormatError"
+    ],
+    "ProductReportLimitError": [
+      "INPUT_DATA",
+      "ERROR",
+      "ProductReportLimitError"
+    ],
+    "ProductReportPathError": [
+      "OUTPUT_PATH",
+      "ERROR",
+      "ProductReportPathError"
+    ],
+    "ProductRequestError": [
+      "INVALID_REQUEST",
+      "ERROR",
+      "ProductRequestError"
+    ],
+    "ProductServiceError": [
+      "OPERATION_FAILED",
+      "ERROR",
+      "ProductServiceError"
+    ],
+    "ProductWorkerBusyError": [
+      "OPERATION_FAILED",
+      "ERROR",
+      "ProductWorkerBusyError"
+    ],
+    "ProductWorkerClosedError": [
+      "OPERATION_FAILED",
+      "ERROR",
+      "ProductWorkerClosedError"
+    ],
+    "ProductWorkerContractError": [
+      "OPERATION_FAILED",
+      "ERROR",
+      "ProductWorkerContractError"
+    ],
+    "ProductWorkerError": [
+      "OPERATION_FAILED",
+      "ERROR",
+      "ProductWorkerError"
+    ],
+    "ProductWorkerTimeoutError": [
+      "OPERATION_FAILED",
+      "ERROR",
+      "ProductWorkerTimeoutError"
+    ],
+    "RuntimeError": [
+      "INTERNAL_ERROR",
+      "ERROR",
+      "RuntimeError"
+    ]
+  },
+  "module_exports": {
+    "analog_validation_app": [
+      "AdapterFactory",
+      "CliUsageError",
+      "Clock",
+      "DASHBOARD_HARDWARE_CLAIM",
+      "DASHBOARD_STATE_SCHEMA_VERSION",
+      "DASHBOARD_WIZARD_SCHEMA_VERSION",
+      "DCSweepJobService",
+      "DEFAULT_PRODUCT_EVENT_QUEUE_SIZE",
+      "DEFAULT_PRODUCT_JOIN_TIMEOUT_S",
+      "DashboardAction",
+      "DashboardActionType",
+      "DashboardApplication",
+      "DashboardArtifactView",
+      "DashboardArtifactsPanel",
+      "DashboardConfigurationPanel",
+      "DashboardController",
+      "DashboardExportFormat",
+      "DashboardJobIdFactory",
+      "DashboardPlotPanel",
+      "DashboardPlotPoint",
+      "DashboardPresenter",
+      "DashboardProgressPanel",
+      "DashboardResultPanel",
+      "DashboardSourcePanel",
+      "DashboardStartableWorkerPort",
+      "DashboardState",
+      "DashboardWizardDraft",
+      "DashboardWizardGuidance",
+      "DashboardWizardPresenter",
+      "DashboardWizardState",
+      "DashboardWizardStep",
+      "DashboardWorkerPort",
+      "DemoArtifact",
+      "HUMAN_REPORT_MANIFEST_SCHEMA_VERSION",
+      "HUMAN_REPORT_SCHEMA_VERSION",
+      "HumanReportPublication",
+      "HumanReportView",
+      "HysteresisJobService",
+      "MAX_CATALOG_TEXT_CHARS",
+      "MAX_DASHBOARD_ARTIFACTS",
+      "MAX_DASHBOARD_EVENT_HISTORY",
+      "MAX_DASHBOARD_PLOT_POINTS",
+      "MAX_DASHBOARD_TEXT_CHARS",
+      "MAX_DASHBOARD_WIZARD_PORTS",
+      "MAX_DASHBOARD_WIZARD_REVIEW_LINES",
+      "MAX_DASHBOARD_WIZARD_TEXT_CHARS",
+      "MAX_PRODUCT_CANCELLATION_WAIT_S",
+      "MAX_PRODUCT_EVENT_QUEUE_SIZE",
+      "MAX_PRODUCT_EVENT_TEXT_CHARS",
+      "MAX_PRODUCT_IDENTIFIER_CHARS",
+      "MAX_PRODUCT_JOIN_TIMEOUT_S",
+      "MAX_PRODUCT_LIMITATIONS",
+      "MAX_PRODUCT_LIMITATION_CHARS",
+      "MAX_PRODUCT_WORKFLOW_SAMPLES",
+      "MAX_PRODUCT_WORKFLOW_TEXT_CHARS",
+      "MAX_REPORT_POINTS",
+      "MAX_USER_ISSUE_TEXT_CHARS",
+      "PORTFOLIO_DEMO_CONFIG_SCHEMA_VERSION",
+      "PORTFOLIO_DEMO_EPOCH",
+      "PORTFOLIO_DEMO_JOB_ID",
+      "PORTFOLIO_DEMO_MANIFEST_FILENAME",
+      "PORTFOLIO_DEMO_POINT_COUNT",
+      "PORTFOLIO_DEMO_SCHEMA_VERSION",
+      "PRODUCT_CATALOG_SCHEMA_VERSION",
+      "PRODUCT_JOB_EVENT_SCHEMA_VERSION",
+      "PRODUCT_JOB_SCHEMA_VERSION",
+      "PRODUCT_PROFILES",
+      "PRODUCT_RESULT_SCHEMA_VERSION",
+      "PRODUCT_SOURCES",
+      "PRODUCT_WORKFLOW_CONFIG_SCHEMA_VERSION",
+      "PortfolioDemoPublication",
+      "PreparedProductJob",
+      "ProductAppError",
+      "ProductCancellationToken",
+      "ProductCatalogError",
+      "ProductCliError",
+      "ProductDashboardUnavailableError",
+      "ProductDemoError",
+      "ProductDemoExistsError",
+      "ProductDemoFormatError",
+      "ProductDemoPathError",
+      "ProductDependencyError",
+      "ProductFeatureUnavailableError",
+      "ProductJobCancelled",
+      "ProductJobEvent",
+      "ProductJobExecution",
+      "ProductJobRequest",
+      "ProductJobResult",
+      "ProductJobService",
+      "ProductJobServiceFactory",
+      "ProductJobType",
+      "ProductJobWorker",
+      "ProductProfileDescriptor",
+      "ProductProgressReporter",
+      "ProductReportError",
+      "ProductReportExistsError",
+      "ProductReportFormatError",
+      "ProductReportLimitError",
+      "ProductReportPathError",
+      "ProductRequestError",
+      "ProductResultStatus",
+      "ProductServiceError",
+      "ProductServiceOutput",
+      "ProductServiceOutputSlot",
+      "ProductSourceDescriptor",
+      "ProductSourceMode",
+      "ProductWorkerBusyError",
+      "ProductWorkerClosedError",
+      "ProductWorkerContractError",
+      "ProductWorkerError",
+      "ProductWorkerState",
+      "ProductWorkerTimeoutError",
+      "ProductWorkflowConfiguration",
+      "REPLAY_LIMITATIONS",
+      "REPORT_HARDWARE_CLAIM",
+      "REPORT_HTML_FILENAME",
+      "REPORT_MANIFEST_FILENAME",
+      "REPORT_MARKDOWN_FILENAME",
+      "REPORT_SVG_FILENAME",
+      "REPORT_TEXT_FILENAME",
+      "ReadJobService",
+      "ReportArtifact",
+      "ReportChartKind",
+      "ReportCriterionView",
+      "ReportPointView",
+      "ReportReferenceView",
+      "ReportScalar",
+      "ReportSchemaView",
+      "ReportValueView",
+      "ReviewedServiceRouter",
+      "SERIAL_LIMITATIONS",
+      "SIMULATOR_LIMITATIONS",
+      "SerialBackendFactory",
+      "SerialSourceConfig",
+      "USER_ISSUE_SCHEMA_VERSION",
+      "UserIssue",
+      "UserIssueCode",
+      "UserIssueSeverity",
+      "__version__",
+      "build_human_report_view",
+      "default_serial_backend_factory",
+      "discover_serial_ports",
+      "execute_product_job",
+      "get_product_profile",
+      "get_product_source",
+      "initial_dashboard_state",
+      "issue_from_exception",
+      "list_product_profiles",
+      "list_product_sources",
+      "make_csv_replay_adapter_factory",
+      "make_csv_replay_dataset_adapter_factory",
+      "make_dc_sweep_service_factory",
+      "make_hysteresis_service_factory",
+      "make_read_service_factory",
+      "make_serial_adapter_factory",
+      "make_simulator_adapter_factory",
+      "prepare_product_job",
+      "publish_human_report",
+      "publish_portfolio_demo",
+      "render_human_report_html",
+      "render_human_report_markdown",
+      "render_human_report_svg",
+      "render_human_report_text",
+      "user_issue_to_dict"
+    ],
+    "analog_validation_app.cli": [
+      "CLI_CANCELLED_EXIT_CODE",
+      "CLI_ENGINEERING_FAIL_EXIT_CODE",
+      "CLI_INCOMPLETE_EXIT_CODE",
+      "CLI_INTERNAL_ERROR_EXIT_CODE",
+      "CLI_OPERATION_ERROR_EXIT_CODE",
+      "CLI_OUTPUT_SCHEMA_VERSION",
+      "CLI_UNSUPPORTED_EXIT_CODE",
+      "CLI_USAGE_EXIT_CODE",
+      "CliDependencies",
+      "DashboardLauncher",
+      "PRODUCT_DISPLAY_NAME",
+      "build_parser",
+      "main"
+    ],
+    "analog_validation_app.dashboard": [
+      "DASHBOARD_HARDWARE_CLAIM",
+      "DASHBOARD_STATE_SCHEMA_VERSION",
+      "DASHBOARD_WIZARD_SCHEMA_VERSION",
+      "DashboardAction",
+      "DashboardActionType",
+      "DashboardApplication",
+      "DashboardArtifactView",
+      "DashboardArtifactsPanel",
+      "DashboardConfigurationPanel",
+      "DashboardController",
+      "DashboardExportFormat",
+      "DashboardJobIdFactory",
+      "DashboardPlotPanel",
+      "DashboardPlotPoint",
+      "DashboardPresenter",
+      "DashboardProgressPanel",
+      "DashboardResultPanel",
+      "DashboardSourcePanel",
+      "DashboardStartableWorkerPort",
+      "DashboardState",
+      "DashboardWizardDraft",
+      "DashboardWizardGuidance",
+      "DashboardWizardPresenter",
+      "DashboardWizardState",
+      "DashboardWizardStep",
+      "DashboardWorkerPort",
+      "MAX_DASHBOARD_ARTIFACTS",
+      "MAX_DASHBOARD_EVENT_HISTORY",
+      "MAX_DASHBOARD_PLOT_POINTS",
+      "MAX_DASHBOARD_TEXT_CHARS",
+      "MAX_DASHBOARD_WIZARD_PORTS",
+      "MAX_DASHBOARD_WIZARD_REVIEW_LINES",
+      "MAX_DASHBOARD_WIZARD_TEXT_CHARS",
+      "ReviewedServiceRouter",
+      "initial_dashboard_state"
+    ],
+    "analog_validation_app.dashboard.app": [
+      "DASHBOARD_SESSION_SCHEMA_VERSION",
+      "DEFAULT_DASHBOARD_POLL_MS",
+      "DashboardSessionResult",
+      "DashboardWorkerFactory",
+      "MAX_DASHBOARD_POLL_MS",
+      "MAX_DASHBOARD_SMOKE_MS",
+      "TkLoader",
+      "launch_dashboard"
+    ]
+  },
+  "new_hardware_validation": false,
+  "package_version": "0.1.0.dev0",
+  "schema_version": "phase5-public-api-golden.v1",
+  "schema_versions": {
+    "CLI_OUTPUT_SCHEMA_VERSION": "product-cli-output.v1",
+    "DASHBOARD_SESSION_SCHEMA_VERSION": "dashboard-session.v1",
+    "DASHBOARD_STATE_SCHEMA_VERSION": "dashboard-state.v1",
+    "DASHBOARD_WIZARD_SCHEMA_VERSION": "dashboard-wizard.v1",
+    "HUMAN_REPORT_MANIFEST_SCHEMA_VERSION": "human-report-manifest.v1",
+    "HUMAN_REPORT_SCHEMA_VERSION": "human-report.v1",
+    "PORTFOLIO_DEMO_CONFIG_SCHEMA_VERSION": "portfolio-demo-config.v1",
+    "PORTFOLIO_DEMO_SCHEMA_VERSION": "portfolio-demo.v1",
+    "PRODUCT_CATALOG_SCHEMA_VERSION": "product-catalog.v1",
+    "PRODUCT_JOB_EVENT_SCHEMA_VERSION": "product-job-event.v1",
+    "PRODUCT_JOB_SCHEMA_VERSION": "product-job.v1",
+    "PRODUCT_RESULT_SCHEMA_VERSION": "product-result.v1",
+    "PRODUCT_WORKFLOW_CONFIG_SCHEMA_VERSION": "product-workflow-config.v1",
+    "USER_ISSUE_SCHEMA_VERSION": "user-issue.v1"
+  },
+  "serialized_fields": {
+    "cli_demo": [
+      "artifacts",
+      "canonical_result_sha256",
+      "command",
+      "demo_schema_version",
+      "evidence_source",
+      "hardware_claim",
+      "outcome",
+      "output_directory",
+      "product",
+      "schema_version",
+      "software_version"
+    ],
+    "cli_demo_artifact": [
+      "media_type",
+      "relative_path",
+      "sha256",
+      "size_bytes"
+    ],
+    "cli_profile_entry": [
+      "display_name",
+      "name",
+      "product_read_only",
+      "source_modes",
+      "summary",
+      "version"
+    ],
+    "cli_profiles": [
+      "catalog_schema_version",
+      "command",
+      "hardware_claim",
+      "product",
+      "profiles",
+      "schema_version",
+      "software_version"
+    ],
+    "cli_version": [
+      "command",
+      "product",
+      "schema_version",
+      "software_version"
+    ],
+    "demo_artifact": [
+      "media_type",
+      "relative_path",
+      "sha256",
+      "size_bytes"
+    ],
+    "demo_examples": [
+      "declared_evidence",
+      "faults",
+      "replay"
+    ],
+    "demo_manifest": [
+      "artifact_count",
+      "artifact_hash_algorithm",
+      "artifacts",
+      "examples",
+      "limitations",
+      "not_verified",
+      "product",
+      "result",
+      "safety_and_privacy",
+      "schema_version",
+      "software_version",
+      "workflow"
+    ],
+    "demo_result": [
+      "canonical_result_sha256",
+      "evidence_source",
+      "outcome"
+    ],
+    "demo_safety_and_privacy": [
+      "absolute_paths_embedded",
+      "application_bytes_written",
+      "hardware_claim",
+      "network_access",
+      "raw_serial_bytes_embedded",
+      "serial_ports_opened"
+    ],
+    "demo_workflow": [
+      "job_id",
+      "job_type",
+      "output_permission",
+      "point_count",
+      "source_mode"
+    ],
+    "human_report_artifact": [
+      "media_type",
+      "name",
+      "sha256",
+      "size_bytes"
+    ],
+    "human_report_manifest": [
+      "artifacts",
+      "canonical_result_sha256",
+      "evidence_source",
+      "hardware_claim",
+      "outcome",
+      "report_schema_version",
+      "run_id",
+      "schema_version"
+    ]
+  },
+  "signature_parameters": {
+    "CliDependencies": [
+      [
+        "serial_backend_factory",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "job_id_factory",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "event_id_factory",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "dashboard_launcher",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "DashboardApplication": [
+      [
+        "worker",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "serial_backend_factory",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "job_id_factory",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "DashboardController": [
+      [
+        "presenter",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "worker",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "DashboardPresenter": [
+      [
+        "state",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "DashboardSessionResult": [
+      [
+        "source_mode",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "profile_identity",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "worker_state",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "closed_safely",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "hardware_claim",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "DashboardWizardPresenter": [
+      [
+        "state",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "DemoArtifact": [
+      [
+        "relative_path",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "media_type",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "size_bytes",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "sha256",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "HumanReportPublication": [
+      [
+        "output_directory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "artifacts",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "HumanReportView": [
+      [
+        "title",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "canonical_result_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "generator_version",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "input_schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "run_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "test_type",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "configuration_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "configuration_version",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "started_at",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "ended_at",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "input_software_version",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "device_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "profile_name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "profile_version",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "evidence_source",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "outcome",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "summary",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "source_schemas",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "metrics",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "points",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "limitations",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "missing_requirements",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "not_verified",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "chart_kind",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "criteria_id",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "criteria_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "criterion_results",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "PortfolioDemoPublication": [
+      [
+        "output_directory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "outcome",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "evidence_source",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "canonical_result_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "artifacts",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "PreparedProductJob": [
+      [
+        "request",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "service_factory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "output_slot",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "review_lines",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "ProductJobEvent": [
+      [
+        "job_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "index",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "created_at",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "state",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "message",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "completed",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "total",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "issue",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ProductJobRequest": [
+      [
+        "job_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "source_mode",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "job_type",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "profile_name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "profile_version",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "allow_output",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ProductJobResult": [
+      [
+        "request",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "status",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "evidence_source",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "limitations",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "test_run_outcome",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ProductJobWorker": [
+      [
+        "service_factory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "max_events",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "join_timeout_s",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "ProductProfileDescriptor": [
+      [
+        "name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "version",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "display_name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "summary",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "source_modes",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "product_read_only",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ProductServiceOutputSlot": [],
+    "ProductSourceDescriptor": [
+      [
+        "mode",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "display_name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "summary",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "evidence_sources",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "supported_jobs",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "requires_serial_extra",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "is_default",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ProductWorkflowConfiguration": [
+      [
+        "source_mode",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "job_type",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "profile_name",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "profile_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "primary_channel",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "secondary_channel",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "state_channel",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "operation",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "unit",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "sample_count",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "rising_count",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "falling_count",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "replay_path",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "replay_minimum",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "replay_maximum",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "serial_config",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "confirm_read_only",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "low_output_limit",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "high_output_limit",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "target_gain",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "gain_tolerance",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "max_abs_offset",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "min_r_squared",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "max_rmse",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "minimum_high_threshold",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "maximum_high_threshold",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "minimum_low_threshold",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "maximum_low_threshold",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "minimum_width",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "maximum_width",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "maximum_width_span",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ReportArtifact": [
+      [
+        "name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "media_type",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "size_bytes",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "sha256",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "SerialSourceConfig": [
+      [
+        "port_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "baud_rate",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "read_timeout_seconds",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "max_polls_per_operation",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "max_buffered_measurements",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "evidence_source",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "UserIssue": [
+      [
+        "code",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "severity",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "what_happened",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "possible_cause",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "safe_next_step",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "technical_type",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "build_human_report_view": [
+      [
+        "bundle",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "build_parser": [],
+    "execute_product_job": [
+      [
+        "request",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "service_factory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "output_slot",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "join_timeout_s",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "initial_dashboard_state": [],
+    "issue_from_exception": [
+      [
+        "error",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "launch_dashboard": [
+      [
+        "tk_loader",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "worker_factory",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "poll_interval_ms",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "auto_close_ms",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "withdraw",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "main": [
+      [
+        "argv",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "stdout",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "stderr",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "dependencies",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "make_dc_sweep_service_factory": [
+      [
+        "adapter_factory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "workflow_request",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "analysis_config",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "criteria",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "limitations",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "output_slot",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "clock",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "make_hysteresis_service_factory": [
+      [
+        "adapter_factory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "workflow_request",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "analysis_config",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "criteria",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "rising_count",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "falling_count",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "limitations",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "output_slot",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "clock",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "make_read_service_factory": [
+      [
+        "adapter_factory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "workflow_request",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "limitations",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "output_slot",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "prepare_product_job": [
+      [
+        "config",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "job_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "backend_factory",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "prevalidate_replay",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "service_clock",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "publish_human_report": [
+      [
+        "output_directory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "view",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "publish_portfolio_demo": [
+      [
+        "output_directory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ]
+  },
+  "stable_constants": {
+    "demo_identity": {
+      "epoch_utc": "2026-01-01T00:00:00.000000Z",
+      "job_id": "portfolio-demo-dc-v1",
+      "manifest_filename": "manifest.json",
+      "point_count": 24
+    },
+    "hardware_claims": {
+      "dashboard": "NO_NEW_HARDWARE_VALIDATION",
+      "report": "NO_NEW_HARDWARE_VALIDATION"
+    },
+    "limitations": {
+      "replay": [
+        "Results describe a local CSV replay under the declared channel mapping.",
+        "Replay analysis does not prove current hardware wiring or performance."
+      ],
+      "serial": [
+        "Receive-only host integration; no command or serial write was issued.",
+        "Received records alone do not prove calibrated AFE performance or safe wiring."
+      ],
+      "simulator": [
+        "Synthetic software observations only; no physical hardware was measured.",
+        "A software PASS or FAIL does not validate an assembled analog front end."
+      ]
+    },
+    "product_display_name": "Analog Validation Studio",
+    "profiles": [
+      {
+        "display_name": "Configurable AFE v1",
+        "name": "afe",
+        "product_read_only": true,
+        "schema_version": "product-catalog.v1",
+        "source_modes": [
+          "SIMULATOR",
+          "CSV_REPLAY",
+          "SERIAL_READ_ONLY"
+        ],
+        "summary": "Controller-neutral AFE records; Phase 5 product access remains receive-only.",
+        "version": "1"
+      },
+      {
+        "display_name": "MSP430 Equipment Health v1",
+        "name": "msp430-equipment-health",
+        "product_read_only": true,
+        "schema_version": "product-catalog.v1",
+        "source_modes": [
+          "SERIAL_READ_ONLY"
+        ],
+        "summary": "Independent peer telemetry profile with unavailable-safe mapping.",
+        "version": "1"
+      }
+    ],
+    "report_filenames": [
+      "report.txt",
+      "report.md",
+      "report.html",
+      "chart.svg",
+      "manifest.json"
+    ],
+    "sources": [
+      {
+        "display_name": "Simulator",
+        "evidence_sources": [
+          "SYNTHETIC"
+        ],
+        "is_default": true,
+        "mode": "SIMULATOR",
+        "requires_serial_extra": false,
+        "schema_version": "product-catalog.v1",
+        "summary": "Deterministic software records; never physical measurements.",
+        "supported_jobs": [
+          "READ",
+          "DC_ANALYSIS",
+          "HYSTERESIS_ANALYSIS"
+        ]
+      },
+      {
+        "display_name": "CSV Replay",
+        "evidence_sources": [
+          "CSV_REPLAY"
+        ],
+        "is_default": false,
+        "mode": "CSV_REPLAY",
+        "requires_serial_extra": false,
+        "schema_version": "product-catalog.v1",
+        "summary": "Strict local replay that preserves lineage and labels current use as replay.",
+        "supported_jobs": [
+          "READ",
+          "DC_ANALYSIS",
+          "HYSTERESIS_ANALYSIS"
+        ]
+      },
+      {
+        "display_name": "Serial (read-only)",
+        "evidence_sources": [
+          "HOST_TEST",
+          "BENCH_CONTROLLER"
+        ],
+        "is_default": false,
+        "mode": "SERIAL_READ_ONLY",
+        "requires_serial_extra": true,
+        "schema_version": "product-catalog.v1",
+        "summary": "Explicit bounded receive-only integration; no command or write surface.",
+        "supported_jobs": [
+          "READ"
+        ]
+      }
+    ],
+    "worker_defaults": {
+      "event_queue_size": 256,
+      "join_timeout_seconds": 5
+    }
+  }
+}

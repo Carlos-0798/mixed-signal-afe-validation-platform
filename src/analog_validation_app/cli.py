@@ -465,7 +465,7 @@ def build_parser() -> argparse.ArgumentParser:
     _add_machine_view(demo_parser)
 
     dashboard_parser = commands.add_parser(
-        "dashboard", help="launch the local six-step validation dashboard (Step 6)"
+        "dashboard", help="launch the local six-step validation dashboard"
     )
     _add_machine_view(dashboard_parser)
     return parser

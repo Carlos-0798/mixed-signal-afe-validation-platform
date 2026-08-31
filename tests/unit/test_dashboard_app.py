@@ -7,9 +7,6 @@ import pytest
 import analog_validation_app.dashboard.app as app_module
 from analog_validation_app import (
     ProductDashboardUnavailableError,
-    ProductFeatureUnavailableError,
-    ProductJobRequest,
-    ProductJobType,
     ProductRequestError,
     ProductSourceMode,
     ProductWorkerState,
@@ -344,18 +341,6 @@ def test_failed_bounded_close_returns_an_honest_timeout() -> None:
             auto_close_ms=1,
         )
     assert root.destroyed is False
-
-
-def test_idle_service_factory_is_an_explicit_step6_gate() -> None:
-    selected = ProductJobRequest(
-        "future-job",
-        ProductSourceMode.SIMULATOR,
-        ProductJobType.READ,
-        "afe",
-        "1",
-    )
-    with pytest.raises(ProductFeatureUnavailableError, match="Step 6"):
-        app_module._idle_service_factory(selected)
 
 
 def test_six_step_window_callbacks_drive_the_headless_application() -> None:
