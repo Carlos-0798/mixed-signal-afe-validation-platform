@@ -105,6 +105,24 @@ def make_csv_replay_adapter_factory(
         raise ProductRequestError("config must be a CsvReplayAdapterConfig")
 
     def create(request: ProductJobRequest) -> DeviceAdapter:
+        dataset = load_csv_replay(path)
+        return make_csv_replay_dataset_adapter_factory(dataset, config)(request)
+
+    return create
+
+
+def make_csv_replay_dataset_adapter_factory(
+    dataset: CsvReplayDataset,
+    config: CsvReplayAdapterConfig,
+) -> AdapterFactory:
+    """Bind an already-validated immutable replay snapshot to a worker factory."""
+
+    if not isinstance(dataset, CsvReplayDataset):
+        raise ProductRequestError("dataset must be a CsvReplayDataset")
+    if not isinstance(config, CsvReplayAdapterConfig):
+        raise ProductRequestError("config must be a CsvReplayAdapterConfig")
+
+    def create(request: ProductJobRequest) -> DeviceAdapter:
         _validate_request(request, ProductSourceMode.CSV_REPLAY)
         if (config.profile_name, config.profile_version) != (
             request.profile_name,
@@ -113,7 +131,6 @@ def make_csv_replay_adapter_factory(
             raise ProductRequestError(
                 "replay config does not match the requested profile identity"
             )
-        dataset = load_csv_replay(path)
         selected_channels = {channel.name for channel in config.channels}
         selected_records = tuple(
             record for record in dataset.records if record.channel in selected_channels
@@ -303,6 +320,7 @@ __all__ = [
     "default_serial_backend_factory",
     "discover_serial_ports",
     "make_csv_replay_adapter_factory",
+    "make_csv_replay_dataset_adapter_factory",
     "make_serial_adapter_factory",
     "make_simulator_adapter_factory",
 ]

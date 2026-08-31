@@ -84,6 +84,14 @@ def issue() -> UserIssue:
     )
 
 
+def test_present_review_rejects_invalid_request_and_lines() -> None:
+    presenter = DashboardPresenter()
+    with pytest.raises(ProductRequestError, match="ProductJobRequest"):
+        presenter.present_review(cast(Any, object()), ("Reviewed.",))
+    with pytest.raises(ProductRequestError, match="review_lines"):
+        presenter.present_review(request(), ())
+
+
 def event(
     index: int,
     state: ProductWorkerState,

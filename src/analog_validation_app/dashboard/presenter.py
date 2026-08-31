@@ -120,8 +120,8 @@ def _configuration_panel(
     return DashboardConfigurationPanel(
         job_type,
         _JOB_NAMES[job_type],
-        "Step 5 previews the reviewed selection; Step 6 will wire run configuration.",
-        "READ-ONLY DEFAULT: no adapter, serial port, file, or output path is opened by this shell.",
+        "Use the six-step wizard to configure and review this test.",
+        "READ-ONLY DEFAULT: selection alone opens no adapter, serial port, file, or output path.",
         can_run=False,
     )
 
@@ -335,6 +335,37 @@ class DashboardPresenter:
             artifacts=_empty_artifacts(),
             event_messages=(),
             active_job_id=request.job_id,
+        )
+
+    def present_review(
+        self,
+        request: ProductJobRequest,
+        review_lines: tuple[str, ...],
+    ) -> DashboardState:
+        """Show the exact compiled job before Run without opening its resource."""
+
+        self._require_owner()
+        if not isinstance(request, ProductJobRequest):
+            raise ProductRequestError("request must be a ProductJobRequest")
+        if not isinstance(review_lines, tuple) or not review_lines:
+            raise ProductRequestError("review_lines must be a non-empty tuple")
+        source = get_product_source(request.source_mode)
+        profile = get_product_profile(request.profile_name, request.profile_version)
+        panel = _configuration_panel(source, request.job_type)
+        return self._replace(
+            source=_source_panel(source, profile),
+            configuration=replace(
+                panel,
+                summary="Configuration compiled and ready for explicit Run.",
+                safety_review=" | ".join(review_lines),
+                can_run=True,
+            ),
+            progress=_empty_progress(),
+            plot=_empty_plot(),
+            result=_empty_result(),
+            artifacts=_empty_artifacts(),
+            event_messages=(),
+            active_job_id=None,
         )
 
     def present_event(

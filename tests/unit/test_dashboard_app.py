@@ -32,12 +32,16 @@ class FakeVariable:
     def set(self, value: str) -> None:
         self.value = value
 
+    def get(self) -> object:
+        return self.value
+
 
 class FakeWidget:
     def __init__(self, *args: object, **kwargs: object) -> None:
         self.kwargs = dict(kwargs)
         self.rows: dict[str, tuple[object, ...]] = {}
         self.config: dict[str, object] = {}
+        self.bindings: dict[str, Any] = {}
 
     def grid(self, **kwargs: object) -> None:
         pass
@@ -50,6 +54,9 @@ class FakeWidget:
 
     def configure(self, **kwargs: object) -> None:
         self.config.update(kwargs)
+
+    def bind(self, event: str, callback: Any) -> None:
+        self.bindings[event] = callback
 
     def heading(self, column: str, **kwargs: object) -> None:
         pass
@@ -78,19 +85,26 @@ class FakeWidget:
 class FakeTtk:
     def __init__(self) -> None:
         self.buttons: list[FakeWidget] = []
+        self.created: list[FakeWidget] = []
 
     def _widget(self, *args: object, **kwargs: object) -> FakeWidget:
-        return FakeWidget(*args, **kwargs)
+        selected = FakeWidget(*args, **kwargs)
+        self.created.append(selected)
+        return selected
 
     Frame = _widget
     LabelFrame = _widget
     Label = _widget
     Progressbar = _widget
     Treeview = _widget
+    Entry = _widget
+    Combobox = _widget
+    Checkbutton = _widget
 
     def Button(self, *args: object, **kwargs: object) -> FakeWidget:
         selected = FakeWidget(*args, **kwargs)
         self.buttons.append(selected)
+        self.created.append(selected)
         return selected
 
 
@@ -148,6 +162,7 @@ class FakeTk:
         pass
 
     StringVar = FakeVariable
+    BooleanVar = FakeVariable
 
     def __init__(self, root: FakeRoot) -> None:
         self.root = root
@@ -341,3 +356,62 @@ def test_idle_service_factory_is_an_explicit_step6_gate() -> None:
     )
     with pytest.raises(ProductFeatureUnavailableError, match="Step 6"):
         app_module._idle_service_factory(selected)
+
+
+def test_six_step_window_callbacks_drive_the_headless_application() -> None:
+    class InteractiveRoot(FakeRoot):
+        def _button(self, text: str) -> FakeWidget:
+            return next(
+                button
+                for button in self.ttk.buttons
+                if button.kwargs.get("text") == text
+            )
+
+        def _select(self, value: str) -> None:
+            selected = next(
+                widget
+                for widget in self.ttk.created
+                if "<<ComboboxSelected>>" in widget.bindings
+                and cast(Any, widget.kwargs["textvariable"]).get() == value
+            )
+            selected.bindings["<<ComboboxSelected>>"](None)
+
+        def mainloop(self) -> None:
+            self._select("SIMULATOR")
+            self._select("afe/1")
+            cast(Any, self._button("Next").kwargs["command"])()
+            self._select("READ")
+            cast(Any, self._button("Next").kwargs["command"])()
+            cast(Any, self._button("Discover ports").kwargs["command"])()
+            cast(Any, self._button("Validate & review").kwargs["command"])()
+            cast(Any, self._button("Run reviewed job").kwargs["command"])()
+            cast(Any, self._button("Cancel safely").kwargs["command"])()
+            cast(Any, self._button("Export (no overwrite)").kwargs["command"])()
+            cast(Any, self._button("Back").kwargs["command"])()
+            if self.scheduled:
+                self.scheduled.sort(key=lambda value: (value[0], value[1]))
+                _, _, callback = self.scheduled.pop(0)
+                callback()
+            self.protocols["WM_DELETE_WINDOW"]()
+
+    ttk = FakeTtk()
+    root = InteractiveRoot(ttk)
+    session = launch_dashboard(tk_loader=lambda: (FakeTk(root), ttk))
+
+    assert session.closed_safely is True
+    assert root.destroyed is True
+
+
+def test_review_callback_rejects_non_draft_payload_and_still_closes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root, tk, ttk = fake_toolkit()
+
+    def invalid_review(*args: object, **kwargs: object) -> object:
+        cast(Any, kwargs["on_review"])(object())
+        raise AssertionError("invalid review must stop widget creation")
+
+    monkeypatch.setattr(app_module, "create_dashboard_workflow_widgets", invalid_review)
+    with pytest.raises(ProductRequestError, match="wizard draft"):
+        launch_dashboard(tk_loader=lambda: (tk, ttk))
+    assert root.destroyed is True

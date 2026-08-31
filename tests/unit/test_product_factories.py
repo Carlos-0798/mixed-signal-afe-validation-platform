@@ -23,6 +23,7 @@ from analog_validation.profiles import (
     AFE_V1_SERIAL_IDENTITY,
     MSP430_HEALTH_V1_SERIAL_IDENTITY,
 )
+from analog_validation.replay import load_csv_replay
 from analog_validation.serial_adapters import SerialAdapter
 from analog_validation.transport import SerialPortInfo
 from analog_validation_app import (
@@ -35,6 +36,7 @@ from analog_validation_app import (
     default_serial_backend_factory,
     discover_serial_ports,
     make_csv_replay_adapter_factory,
+    make_csv_replay_dataset_adapter_factory,
     make_serial_adapter_factory,
     make_simulator_adapter_factory,
 )
@@ -126,6 +128,16 @@ def test_replay_factory_validates_construction_inputs(
 ) -> None:
     with pytest.raises(ProductRequestError, match=message):
         make_csv_replay_adapter_factory(cast(Any, path), cast(Any, config))
+
+
+def test_prevalidated_replay_factory_requires_exact_dataset_and_config() -> None:
+    dataset = load_csv_replay(GOLDEN_REPLAY)
+    with pytest.raises(ProductRequestError, match="CsvReplayDataset"):
+        make_csv_replay_dataset_adapter_factory(
+            cast(Any, object()), replay_input_config()
+        )
+    with pytest.raises(ProductRequestError, match="CsvReplayAdapterConfig"):
+        make_csv_replay_dataset_adapter_factory(dataset, cast(Any, object()))
 
 
 def test_replay_factory_rejects_source_and_profile_mismatch() -> None:

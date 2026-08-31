@@ -13,11 +13,11 @@ from ..errors import (
     ProductWorkerTimeoutError,
 )
 from ..models import ProductJobRequest, ProductSourceMode, ProductWorkerState
-from ..worker import ProductJobService, ProductJobWorker
-from .controller import DashboardController, DashboardWorkerPort
-from .presenter import DashboardPresenter
+from ..worker import ProductJobService
+from .application import DashboardApplication
+from .controller import DashboardWorkerPort
 from .state import DASHBOARD_HARDWARE_CLAIM
-from .widgets import create_dashboard_widgets
+from .widgets import create_dashboard_workflow_widgets
 
 DASHBOARD_SESSION_SCHEMA_VERSION = "dashboard-session.v1"
 DEFAULT_DASHBOARD_POLL_MS = 50
@@ -79,10 +79,6 @@ def _idle_service_factory(request: ProductJobRequest) -> ProductJobService:
     )
 
 
-def _idle_worker_factory() -> ProductJobWorker:
-    return ProductJobWorker(_idle_service_factory)
-
-
 def _bounded_integer(name: str, value: object, maximum: int) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
         raise ProductRequestError(f"{name} must be an integer")
@@ -94,7 +90,7 @@ def _bounded_integer(name: str, value: object, maximum: int) -> int:
 def launch_dashboard(
     *,
     tk_loader: TkLoader | None = None,
-    worker_factory: DashboardWorkerFactory = _idle_worker_factory,
+    worker_factory: DashboardWorkerFactory | None = None,
     poll_interval_ms: int = DEFAULT_DASHBOARD_POLL_MS,
     auto_close_ms: int | None = None,
     withdraw: bool = False,
@@ -103,8 +99,8 @@ def launch_dashboard(
 
     if tk_loader is not None and not callable(tk_loader):
         raise ProductRequestError("tk_loader must be callable or None")
-    if not callable(worker_factory):
-        raise ProductRequestError("worker_factory must be callable")
+    if worker_factory is not None and not callable(worker_factory):
+        raise ProductRequestError("worker_factory must be callable or None")
     poll_ms = _bounded_integer(
         "poll_interval_ms", poll_interval_ms, MAX_DASHBOARD_POLL_MS
     )
@@ -135,9 +131,9 @@ def launch_dashboard(
             ) from error
         raise
 
-    presenter = DashboardPresenter()
     try:
-        controller = DashboardController(presenter, worker_factory())
+        worker = None if worker_factory is None else worker_factory()
+        application = DashboardApplication(worker=worker)
     except BaseException:
         root.destroy()
         raise
@@ -145,17 +141,60 @@ def launch_dashboard(
     widgets: Any = None
 
     def render() -> None:
-        widgets.render(controller.state)
+        widgets.render(application.dashboard_state, application.wizard_state)
 
     def cancel_job() -> None:
-        controller.request_cancel()
+        application.request_cancel()
+        render()
+
+    def select_source(value: str) -> None:
+        application.select_source(ProductSourceMode(value))
+        render()
+
+    def select_profile(value: str) -> None:
+        name, version = value.split("/", maxsplit=1)
+        application.select_profile(name, version)
+        render()
+
+    def select_job(value: str) -> None:
+        from ..models import ProductJobType
+
+        application.select_job(ProductJobType(value))
+        render()
+
+    def previous_step() -> None:
+        application.back()
+        render()
+
+    def next_step() -> None:
+        application.next()
+        render()
+
+    def review_job(draft: object) -> None:
+        from .wizard import DashboardWizardDraft
+
+        if not isinstance(draft, DashboardWizardDraft):
+            raise ProductRequestError("Dashboard review requires a wizard draft")
+        application.prepare_review(draft)
+        render()
+
+    def run_job() -> None:
+        application.run()
+        render()
+
+    def discover_ports() -> None:
+        application.discover_ports()
+        render()
+
+    def export_result(path: str, format_name: str) -> None:
+        application.export_result(path, format_name)
         render()
 
     def close_window() -> None:
         nonlocal closed
         if closed:
             return
-        if controller.request_close():
+        if application.request_close():
             closed = True
             render()
             root.destroy()
@@ -165,20 +204,29 @@ def launch_dashboard(
     def poll_worker() -> None:
         if closed:
             return
-        controller.poll()
+        application.poll()
         render()
         root.after(poll_ms, poll_worker)
 
     try:
-        widgets = create_dashboard_widgets(
+        widgets = create_dashboard_workflow_widgets(
             root,
             tk,
             ttk,
+            on_source=select_source,
+            on_profile=select_profile,
+            on_job=select_job,
+            on_back=previous_step,
+            on_next=next_step,
+            on_review=review_job,
+            on_run=run_job,
             on_cancel=cancel_job,
+            on_discover=discover_ports,
+            on_export=export_result,
             on_close=close_window,
         )
         root.protocol("WM_DELETE_WINDOW", close_window)
-        widgets.render(controller.state)
+        render()
         if withdraw:
             root.withdraw()
         root.after(0, poll_worker)
@@ -187,14 +235,14 @@ def launch_dashboard(
         root.mainloop()
     finally:
         if not closed:
-            closed = controller.request_close()
+            closed = application.request_close()
             if closed:
                 root.destroy()
     if not closed:
         raise ProductWorkerTimeoutError(
             "the Dashboard window could not close its worker within the bounded timeout"
         )
-    state = controller.state
+    state = application.dashboard_state
     return DashboardSessionResult(
         state.source.source_mode,
         state.source.profile_identity,

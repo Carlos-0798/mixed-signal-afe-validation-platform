@@ -1,6 +1,15 @@
 """Headless Dashboard contracts; importing this package never imports Tk."""
 
-from .controller import DashboardController, DashboardWorkerPort
+from .application import (
+    DashboardApplication,
+    DashboardJobIdFactory,
+    ReviewedServiceRouter,
+)
+from .controller import (
+    DashboardController,
+    DashboardStartableWorkerPort,
+    DashboardWorkerPort,
+)
 from .presenter import DashboardPresenter, initial_dashboard_state
 from .state import (
     DASHBOARD_HARDWARE_CLAIM,
@@ -21,27 +30,53 @@ from .state import (
     DashboardSourcePanel,
     DashboardState,
 )
+from .wizard import (
+    DASHBOARD_WIZARD_SCHEMA_VERSION,
+    MAX_DASHBOARD_WIZARD_PORTS,
+    MAX_DASHBOARD_WIZARD_REVIEW_LINES,
+    MAX_DASHBOARD_WIZARD_TEXT_CHARS,
+    DashboardExportFormat,
+    DashboardWizardDraft,
+    DashboardWizardGuidance,
+    DashboardWizardPresenter,
+    DashboardWizardState,
+    DashboardWizardStep,
+)
 
 __all__ = [
     "DASHBOARD_HARDWARE_CLAIM",
     "DASHBOARD_STATE_SCHEMA_VERSION",
+    "DASHBOARD_WIZARD_SCHEMA_VERSION",
     "MAX_DASHBOARD_ARTIFACTS",
     "MAX_DASHBOARD_EVENT_HISTORY",
     "MAX_DASHBOARD_PLOT_POINTS",
     "MAX_DASHBOARD_TEXT_CHARS",
+    "MAX_DASHBOARD_WIZARD_PORTS",
+    "MAX_DASHBOARD_WIZARD_REVIEW_LINES",
+    "MAX_DASHBOARD_WIZARD_TEXT_CHARS",
     "DashboardAction",
     "DashboardActionType",
+    "DashboardApplication",
     "DashboardArtifactView",
     "DashboardArtifactsPanel",
     "DashboardConfigurationPanel",
     "DashboardController",
+    "DashboardExportFormat",
+    "DashboardJobIdFactory",
     "DashboardPlotPanel",
     "DashboardPlotPoint",
     "DashboardPresenter",
     "DashboardProgressPanel",
     "DashboardResultPanel",
     "DashboardSourcePanel",
+    "DashboardStartableWorkerPort",
     "DashboardState",
+    "DashboardWizardDraft",
+    "DashboardWizardGuidance",
+    "DashboardWizardPresenter",
+    "DashboardWizardState",
+    "DashboardWizardStep",
     "DashboardWorkerPort",
+    "ReviewedServiceRouter",
     "initial_dashboard_state",
 ]

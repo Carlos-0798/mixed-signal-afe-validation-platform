@@ -45,6 +45,13 @@ class DashboardWorkerPort(Protocol):
     def close(self, timeout_s: float | None = None) -> None: ...
 
 
+@runtime_checkable
+class DashboardStartableWorkerPort(Protocol):
+    """Optional worker capability used only after a reviewed Run action."""
+
+    def start(self, request: ProductJobRequest) -> None: ...
+
+
 class DashboardController:
     """Move worker snapshots into a presenter; never create a job or adapter."""
 
@@ -92,6 +99,23 @@ class DashboardController:
             dropped_event_count=self._worker.dropped_event_count,
         )
 
+    def start_job(self, request: ProductJobRequest) -> bool:
+        """Start one reviewed request without constructing its owned resources here."""
+
+        if self._closed:
+            return False
+        if not isinstance(request, ProductJobRequest):
+            raise ProductRequestError("request must be a ProductJobRequest")
+        if not isinstance(self._worker, DashboardStartableWorkerPort):
+            raise ProductRequestError("Dashboard worker does not support starting jobs")
+        try:
+            self._worker.start(request)
+            self.poll()
+            return True
+        except ProductAppError as error:
+            self._presenter.present_issue(issue_from_exception(error))
+            return False
+
     def request_cancel(self) -> bool:
         """Request cooperative cancellation and immediately refresh visible state."""
 
@@ -124,5 +148,6 @@ class DashboardController:
 
 __all__ = [
     "DashboardController",
+    "DashboardStartableWorkerPort",
     "DashboardWorkerPort",
 ]

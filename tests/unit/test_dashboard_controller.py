@@ -120,6 +120,14 @@ def test_controller_requires_headless_presenter_and_worker_port() -> None:
         DashboardController(presenter, cast(Any, object()))
 
 
+def test_start_job_rejects_invalid_request_and_is_noop_after_close() -> None:
+    controller = DashboardController(DashboardPresenter(), FakeWorker())
+    with pytest.raises(ProductRequestError, match="ProductJobRequest"):
+        controller.start_job(cast(Any, object()))
+    assert controller.request_close()
+    assert controller.start_job(request()) is False
+
+
 def test_poll_drains_events_and_copies_terminal_snapshot() -> None:
     selected = request()
     worker = FakeWorker()

@@ -16,25 +16,12 @@ from uuid import uuid4
 
 from analog_validation import (
     AnalogValidationError,
-    ChannelReadRequest,
-    CsvReplayAdapterConfig,
     EvidenceSource,
     Measurement,
     MeasurementUnit,
     ReadOperation,
-    ReadWorkflowRequest,
-    ReplayChannelConfig,
-    ReplayChannelKind,
-    SafeRange,
-    SimulatorConfig,
     TestRunOutcome,
     __version__,
-)
-from analog_validation.analysis import (
-    DCSweepAcceptanceCriteria,
-    DCSweepAnalysisConfig,
-    HysteresisAcceptanceCriteria,
-    HysteresisAnalysisConfig,
 )
 from analog_validation.exports import (
     ResultExportBundle,
@@ -54,18 +41,13 @@ from .errors import (
     ProductServiceError,
 )
 from .factories import (
-    AdapterFactory,
     SerialBackendFactory,
     SerialSourceConfig,
     default_serial_backend_factory,
     discover_serial_ports,
-    make_csv_replay_adapter_factory,
-    make_serial_adapter_factory,
-    make_simulator_adapter_factory,
 )
 from .issues import UserIssue, UserIssueCode, issue_from_exception, user_issue_to_dict
 from .models import (
-    ProductJobRequest,
     ProductJobType,
     ProductResultStatus,
     ProductSourceMode,
@@ -76,14 +58,11 @@ from .presentation import (
     HumanReportView,
     build_human_report_view,
 )
+from .product_workflows import ProductWorkflowConfiguration, prepare_product_job
 from .reporting import HumanReportPublication, publish_human_report
 from .services import (
     ProductJobExecution,
-    ProductServiceOutputSlot,
     execute_product_job,
-    make_dc_sweep_service_factory,
-    make_hysteresis_service_factory,
-    make_read_service_factory,
 )
 
 if TYPE_CHECKING:
@@ -99,19 +78,6 @@ CLI_INTERNAL_ERROR_EXIT_CODE = 70
 CLI_CANCELLED_EXIT_CODE = 130
 MAX_CLI_SAMPLES = 10_000
 PRODUCT_DISPLAY_NAME = "Analog Validation Studio"
-
-SIMULATOR_LIMITATIONS = (
-    "Synthetic software observations only; no physical hardware was measured.",
-    "A software PASS or FAIL does not validate an assembled analog front end.",
-)
-REPLAY_LIMITATIONS = (
-    "Results describe a local CSV replay under the declared channel mapping.",
-    "Replay analysis does not prove current hardware wiring or performance.",
-)
-SERIAL_LIMITATIONS = (
-    "Receive-only host integration; no command or serial write was issued.",
-    "Received records alone do not prove calibrated AFE performance or safe wiring.",
-)
 
 IdentifierFactory = Callable[[], str]
 DashboardLauncher = Callable[[], "DashboardSessionResult"]
@@ -489,7 +455,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     for name, help_text in (
         ("demo", "generate the reproducible portfolio demo (Step 7)"),
-        ("dashboard", "launch the local desktop dashboard (Step 5)"),
+        ("dashboard", "launch the local six-step validation dashboard (Step 6)"),
     ):
         future = commands.add_parser(name, help=help_text)
         _add_machine_view(future)
@@ -601,201 +567,6 @@ def _unit(value: str) -> MeasurementUnit:
     return MeasurementUnit(value)
 
 
-def _profile_request(
-    arguments: argparse.Namespace,
-    dependencies: CliDependencies,
-    source_mode: ProductSourceMode,
-    job_type: ProductJobType,
-) -> ProductJobRequest:
-    return ProductJobRequest(
-        dependencies.job_id_factory(),
-        source_mode,
-        job_type,
-        arguments.profile,
-        arguments.profile_version,
-    )
-
-
-def _read_workflow(arguments: argparse.Namespace) -> ReadWorkflowRequest:
-    sample_count = (
-        arguments.samples if hasattr(arguments, "samples") else arguments.max_records
-    )
-    return ReadWorkflowRequest(
-        (
-            ChannelReadRequest(
-                arguments.channel,
-                _operation(arguments.operation),
-                _unit(arguments.unit),
-                sample_count,
-            ),
-        ),
-        request_id="product-read",
-    )
-
-
-def _analog_channel(
-    name: str,
-    unit: MeasurementUnit,
-    minimum: float,
-    maximum: float,
-) -> ReplayChannelConfig:
-    return ReplayChannelConfig(
-        name,
-        ReplayChannelKind.ANALOG,
-        unit,
-        SafeRange(minimum, maximum, unit),
-    )
-
-
-def _simulator_factory(
-    arguments: argparse.Namespace,
-) -> tuple[AdapterFactory, SimulatorConfig]:
-    config = SimulatorConfig(
-        profile_name=arguments.profile,
-        profile_version=arguments.profile_version,
-    )
-    return make_simulator_adapter_factory(config), config
-
-
-def _replay_read_factory(arguments: argparse.Namespace) -> AdapterFactory:
-    unit = _unit(arguments.unit)
-    kind = (
-        ReplayChannelKind.ANALOG
-        if arguments.operation == "analog"
-        else ReplayChannelKind.DIGITAL
-    )
-    channel = (
-        _analog_channel(arguments.channel, unit, arguments.minimum, arguments.maximum)
-        if kind is ReplayChannelKind.ANALOG
-        else ReplayChannelConfig(
-            arguments.channel,
-            ReplayChannelKind.DIGITAL,
-            MeasurementUnit.BOOLEAN,
-        )
-    )
-    config = CsvReplayAdapterConfig(
-        (channel,),
-        profile_name=arguments.profile,
-        profile_version=arguments.profile_version,
-    )
-    return make_csv_replay_adapter_factory(arguments.input, config)
-
-
-def _dc_parts(
-    arguments: argparse.Namespace,
-) -> tuple[ReadWorkflowRequest, DCSweepAnalysisConfig, DCSweepAcceptanceCriteria]:
-    unit = _unit(arguments.unit)
-    workflow = ReadWorkflowRequest(
-        (
-            ChannelReadRequest(
-                arguments.input_channel, ReadOperation.ANALOG, unit, arguments.points
-            ),
-            ChannelReadRequest(
-                arguments.output_channel, ReadOperation.ANALOG, unit, arguments.points
-            ),
-        ),
-        request_id="product-dc-sweep",
-    )
-    analysis = DCSweepAnalysisConfig(
-        arguments.input_channel,
-        arguments.output_channel,
-        arguments.low_output_limit,
-        arguments.high_output_limit,
-        unit,
-    )
-    criteria = DCSweepAcceptanceCriteria(
-        "product-dc-default",
-        "1",
-        arguments.target_gain,
-        arguments.gain_tolerance,
-        arguments.max_abs_offset,
-        arguments.min_r_squared,
-        arguments.max_rmse,
-        3,
-        unit,
-    )
-    return workflow, analysis, criteria
-
-
-def _hysteresis_parts(
-    arguments: argparse.Namespace,
-) -> tuple[
-    ReadWorkflowRequest,
-    HysteresisAnalysisConfig,
-    HysteresisAcceptanceCriteria,
-]:
-    unit = _unit(arguments.unit)
-    count = arguments.rising_count + arguments.falling_count
-    if count > MAX_CLI_SAMPLES:
-        raise CliUsageError(
-            f"rising-count plus falling-count cannot exceed {MAX_CLI_SAMPLES}"
-        )
-    workflow = ReadWorkflowRequest(
-        (
-            ChannelReadRequest(
-                arguments.input_channel, ReadOperation.ANALOG, unit, count
-            ),
-            ChannelReadRequest(
-                arguments.state_channel,
-                ReadOperation.DIGITAL,
-                MeasurementUnit.BOOLEAN,
-                count,
-            ),
-        ),
-        request_id="product-hysteresis",
-    )
-    analysis = HysteresisAnalysisConfig(
-        arguments.input_channel, arguments.state_channel, unit
-    )
-    criteria = HysteresisAcceptanceCriteria(
-        "product-hysteresis-default",
-        "1",
-        arguments.minimum_high_threshold,
-        arguments.maximum_high_threshold,
-        arguments.minimum_low_threshold,
-        arguments.maximum_low_threshold,
-        arguments.minimum_width,
-        arguments.maximum_width,
-        arguments.maximum_width_span,
-        1,
-        unit,
-    )
-    return workflow, analysis, criteria
-
-
-def _replay_analysis_factory(
-    arguments: argparse.Namespace,
-    *,
-    hysteresis: bool,
-) -> AdapterFactory:
-    unit = _unit(arguments.unit)
-    channels = [
-        _analog_channel(
-            arguments.input_channel, unit, arguments.minimum, arguments.maximum
-        )
-    ]
-    if hysteresis:
-        channels.append(
-            ReplayChannelConfig(
-                arguments.state_channel,
-                ReplayChannelKind.DIGITAL,
-                MeasurementUnit.BOOLEAN,
-            )
-        )
-    else:
-        channels.append(
-            _analog_channel(
-                arguments.output_channel, unit, arguments.minimum, arguments.maximum
-            )
-        )
-    config = CsvReplayAdapterConfig(
-        tuple(channels),
-        profile_name=arguments.profile,
-        profile_version=arguments.profile_version,
-    )
-    return make_csv_replay_adapter_factory(arguments.input, config)
-
-
 def _execute_workflow(
     arguments: argparse.Namespace,
     dependencies: CliDependencies,
@@ -805,67 +576,71 @@ def _execute_workflow(
         if arguments.command == "simulate"
         else ProductSourceMode.CSV_REPLAY
     )
-    limitations = (
-        SIMULATOR_LIMITATIONS
-        if source_mode is ProductSourceMode.SIMULATOR
-        else REPLAY_LIMITATIONS
-    )
-    slot = ProductServiceOutputSlot()
     if arguments.workflow == "read":
-        request = _profile_request(
-            arguments, dependencies, source_mode, ProductJobType.READ
-        )
-        if source_mode is ProductSourceMode.SIMULATOR:
-            adapter_factory, _ = _simulator_factory(arguments)
-        else:
-            adapter_factory = _replay_read_factory(arguments)
-        service_factory = make_read_service_factory(
-            adapter_factory, _read_workflow(arguments), limitations, slot
-        )
+        job_type = ProductJobType.READ
+        values = {
+            "primary_channel": arguments.channel,
+            "operation": _operation(arguments.operation),
+            "unit": _unit(arguments.unit),
+            "sample_count": arguments.samples,
+        }
     elif arguments.workflow == "dc":
-        request = _profile_request(
-            arguments, dependencies, source_mode, ProductJobType.DC_ANALYSIS
-        )
-        if source_mode is ProductSourceMode.SIMULATOR:
-            adapter_factory, _ = _simulator_factory(arguments)
-        else:
-            adapter_factory = _replay_analysis_factory(arguments, hysteresis=False)
-        dc_workflow, dc_analysis, dc_criteria = _dc_parts(arguments)
-        service_factory = make_dc_sweep_service_factory(
-            adapter_factory,
-            dc_workflow,
-            dc_analysis,
-            dc_criteria,
-            limitations,
-            slot,
-        )
+        job_type = ProductJobType.DC_ANALYSIS
+        values = {
+            "primary_channel": arguments.input_channel,
+            "secondary_channel": arguments.output_channel,
+            "unit": _unit(arguments.unit),
+            "sample_count": arguments.points,
+            "low_output_limit": arguments.low_output_limit,
+            "high_output_limit": arguments.high_output_limit,
+            "target_gain": arguments.target_gain,
+            "gain_tolerance": arguments.gain_tolerance,
+            "max_abs_offset": arguments.max_abs_offset,
+            "min_r_squared": arguments.min_r_squared,
+            "max_rmse": arguments.max_rmse,
+        }
     elif arguments.workflow == "hysteresis":
-        request = _profile_request(
-            arguments,
-            dependencies,
-            source_mode,
-            ProductJobType.HYSTERESIS_ANALYSIS,
-        )
-        if source_mode is ProductSourceMode.SIMULATOR:
-            adapter_factory, _ = _simulator_factory(arguments)
-        else:
-            adapter_factory = _replay_analysis_factory(arguments, hysteresis=True)
-        hysteresis_workflow, hysteresis_analysis, hysteresis_criteria = (
-            _hysteresis_parts(arguments)
-        )
-        service_factory = make_hysteresis_service_factory(
-            adapter_factory,
-            hysteresis_workflow,
-            hysteresis_analysis,
-            hysteresis_criteria,
-            arguments.rising_count,
-            arguments.falling_count,
-            limitations,
-            slot,
-        )
+        job_type = ProductJobType.HYSTERESIS_ANALYSIS
+        values = {
+            "primary_channel": arguments.input_channel,
+            "state_channel": arguments.state_channel,
+            "unit": _unit(arguments.unit),
+            "rising_count": arguments.rising_count,
+            "falling_count": arguments.falling_count,
+            "minimum_high_threshold": arguments.minimum_high_threshold,
+            "maximum_high_threshold": arguments.maximum_high_threshold,
+            "minimum_low_threshold": arguments.minimum_low_threshold,
+            "maximum_low_threshold": arguments.maximum_low_threshold,
+            "minimum_width": arguments.minimum_width,
+            "maximum_width": arguments.maximum_width,
+            "maximum_width_span": arguments.maximum_width_span,
+        }
     else:
         raise CliUsageError(f"{arguments.command} requires a workflow")
-    return execute_product_job(request, service_factory, slot)
+    if source_mode is ProductSourceMode.CSV_REPLAY:
+        values.update(
+            {
+                "replay_path": arguments.input,
+                "replay_minimum": arguments.minimum,
+                "replay_maximum": arguments.maximum,
+            }
+        )
+    config = ProductWorkflowConfiguration(
+        source_mode,
+        job_type,
+        arguments.profile,
+        arguments.profile_version,
+        **values,
+    )
+    prepared = prepare_product_job(
+        config,
+        dependencies.job_id_factory(),
+        backend_factory=dependencies.serial_backend_factory,
+        prevalidate_replay=False,
+    )
+    return execute_product_job(
+        prepared.request, prepared.service_factory, prepared.output_slot
+    )
 
 
 def _execute_observe(
@@ -874,14 +649,7 @@ def _execute_observe(
 ) -> ProductJobExecution:
     if not arguments.confirm_read_only:
         raise CliUsageError("observe requires --confirm-read-only")
-    request = _profile_request(
-        arguments,
-        dependencies,
-        ProductSourceMode.SERIAL_READ_ONLY,
-        ProductJobType.READ,
-    )
-    slot = ProductServiceOutputSlot()
-    config = SerialSourceConfig(
+    serial_config = SerialSourceConfig(
         arguments.port,
         arguments.baud_rate,
         arguments.read_timeout,
@@ -889,16 +657,26 @@ def _execute_observe(
         max(128, arguments.max_records * 8),
         EvidenceSource.HOST_TEST,
     )
-    adapter_factory = make_serial_adapter_factory(
-        config, backend_factory=dependencies.serial_backend_factory
+    config = ProductWorkflowConfiguration(
+        ProductSourceMode.SERIAL_READ_ONLY,
+        ProductJobType.READ,
+        arguments.profile,
+        arguments.profile_version,
+        primary_channel=arguments.channel,
+        operation=_operation(arguments.operation),
+        unit=_unit(arguments.unit),
+        sample_count=arguments.max_records,
+        serial_config=serial_config,
+        confirm_read_only=True,
     )
-    service_factory = make_read_service_factory(
-        adapter_factory,
-        _read_workflow(arguments),
-        SERIAL_LIMITATIONS,
-        slot,
+    prepared = prepare_product_job(
+        config,
+        dependencies.job_id_factory(),
+        backend_factory=dependencies.serial_backend_factory,
     )
-    return execute_product_job(request, service_factory, slot)
+    return execute_product_job(
+        prepared.request, prepared.service_factory, prepared.output_slot
+    )
 
 
 def _measurement_document(measurement: object) -> dict[str, object]:
