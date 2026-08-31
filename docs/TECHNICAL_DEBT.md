@@ -1,7 +1,7 @@
 # 技术债与已知缺口
 
 **更新日期：** 2026-08-31<br>
-**来源：** Software Phase 0–5 Step 6 持续审计
+**来源：** Software Phase 0–6 Step 4 持续审计
 
 优先级：`P0` 阻塞安全或正确性；`P1` 阻塞下一主要里程碑；`P2` 应在 v1 前解决；`P3` 可后置。
 
@@ -19,7 +19,7 @@
 | TD-010 | CLOSED | 正式 `src/analog_validation/` 包、单一版本来源、隔离构建和仓库外 wheel 导入已于 2026-08-29 验证 | 包装基础问题已解除；CLI 仍由 TD-014 跟踪 | 证据见 `reports/software-phase1-step1.md` |
 | TD-011 | CLOSED | 独立 Python `.venv`、setuptools 和隔离 wheel 安装已于 2026-08-29 验证 | 原环境依赖 Codex 运行时的问题已解除 | 证据见 `reports/environment-setup-2026-08-29.md` |
 | TD-012 | CLOSED | 冻结的 100 帧生成器已迁入正式 package，并由 CLI、集成测试和确定性 SimulatorAdapter 共同复用；stream SHA-256 保持不变；非理想和受控故障已在 Step 4 配置化 | 合成基础流水线不再存在第二份公式，增益/噪声/饱和/迟滞/故障均有确定性回归 | 证据见 `reports/software-phase2-step3.md` 和 `reports/software-phase2-step4.md` |
-| TD-013 | P2 | 本地 mypy、Ruff、coverage、golden compatibility、隔离构建和外部 wheel smoke 已成为阶段门禁，但尚无 CI | 开发者可手动完整验证，远程变更仍不会自动执行质量门 | Phase 6 建立 CI |
+| TD-013 | CLOSED | 只读 GitHub Actions 已覆盖 Windows/Ubuntu 与 Python 3.10/3.12/3.14；独立 quality job 和 Step 4 release verifier 执行 coverage、Ruff、mypy、依赖、双构建、clean-install、demo 与候选 manifest 门禁 | 本地与远程变更均有自动质量门；workflow 无 write permission 或发布动作 | 证据见 `reports/software-phase6-step2.md`、`reports/software-phase6-step4.md` 和 hosted run `33447031789` |
 | TD-014 | CLOSED | 单一 `analog-validation` 已安装并提供稳定 human/JSON 的 version/profiles/ports、Simulator/Replay read/DC/迟滞、显式 receive-only observe、确定性 `report`、六步本地 `dashboard` 和 12-artifact `demo` | 用户可从已安装基础包运行正式软件验证、报告、reviewed Dashboard workflow 和完整 synthetic demo；所有入口共享请求编译与 worker service，不维护第二套工程逻辑 | 证据见 Phase 5 Steps 3–7 reports、`docs/product-cli.md`、`docs/dashboard.md` 和 `docs/software-demo.md` |
 | TD-015 | CLOSED | CRC vectors、AFE wire records、预期 model JSON 和非法输入错误家族均已冻结 | 文件兼容性已有 host regression 保护 | 未来 schema 变化必须添加迁移样本 |
 | TD-016 | CLOSED | 正式包已建立 Validation、Protocol、Framing、CRC、版本、Capability、Configuration 和 Adapter 错误层级；旧协议入口已删除 | UI/CLI 已有稳定捕获边界 | 证据见 `reports/software-phase1-step2.md`、Step 8 closure 和 `reports/software-phase2-step1.md` |
@@ -42,7 +42,7 @@
 | TD-033 | CLOSED | Phase 5 Step 1 已建立 `analog_validation_app`，删除根 `dashboard/` Python 占位与两个 legacy-only analysis tests；Steps 2–8 worker/factories/services/shared workflow/CLI/presentation/reporting/Dashboard/demo/freeze 继续通过单向架构门禁 | 六步 UI、demo 和 compatibility freeze 均通过正式 product services 接线，没有重新引入旧占位或复制工程算法 | 2,189 项完整回归、11,470/11,470 package statements 与 Phase 1–4 goldens 继续通过；见 Phase 5 Steps 1–8 reports |
 | TD-034 | P3 | Ruff 0.16.5 的规则检查已通过，但全仓库 formatter 仍建议重排历史 Python 文件；Step 6 的 20 个新增/修改 Python 文件自身已通过格式检查 | 不影响当前行为或 lint 正确性，但未来全仓统一格式会产生较大、低信号 diff | 在独立 formatting-only 变更中处理，先冻结工具版本并重新跑完整测试；不得混入功能提交 |
 | TD-035 | P3 | Phase 5 Step 8 正式门禁保持 11,470/11,470 语句覆盖；Step 7 的额外全仓分支 instrumentation 计算为 99.90%、15 条 partial branches，但其额外开销使 5 秒 Replay 性能检查返回 false，因而当时的诊断运行是 1 failed/2,174 passed，不是通过的正式门禁 | 当前未执行 package 语句仍为 0，独立无 instrumentation 的产品质量工具实测 10k Replay 为 0.823268 s 并通过；但把性能验收与覆盖 instrumentation 混跑会产生误导性失败 | 文档始终写明 statement coverage；Phase 6 将 timing acceptance 与 branch diagnostic 分离，并评审 15 条分支是不可达、防御性还是需要新增测试 |
-| TD-036 | P2 | Step 7 wheel 在当前仓库深层 `work/` 虚拟环境安装时触发 Windows `WinError 206`；Step 8 在两个短的仓库外 base/serial 环境完成安装、`pip check`、双 demo、真实 Tk 和 serial-substitute smoke | 默认未启用长路径的 Windows 主机仍可能因安装目录过深失败，功能代码本身不会自动缩短用户路径 | Phase 6/release 文档明确建议短 venv 路径，并评审是否需要缩短 distribution 名或要求启用 Windows long paths |
+| TD-036 | P2 | 旧深层 `work/` venv 曾触发 `WinError 206`；Step 4 verifier 已把临时 venv/build 放入系统临时目录、使用短原子 staging 名，并在写入前检查 legacy Windows 路径长度；深层仓库内候选已通过 | 发布门不会再因重复候选目录名超过 260 字符而 traceback，但用户仍可手动选择过深的 venv/输出路径 | Step 5 安装/故障排查文档明确推荐短 venv/output 路径；保留路径预检和失败时零候选清理测试 |
 | TD-037 | CLOSED | `phase5_public_api.json` 已冻结 4 product namespaces、14 schemas、10 enums、36 dataclasses、35 signatures、24 error relationships、25 issue mappings、16 CLI paths、8 exits、13 serialized groups 和 6 golden hashes | Product/CLI/report/demo compatibility 变化不再能静默发生；breaking change 必须升级 contract/schema 并记录迁移 | 证据见 `docs/phase5-public-api.md`、15 项新 golden tests 和 `reports/software-phase5-step8.md` |
 
 关闭技术债时必须记录对应代码、测试、文档和验证报告，不能只从表格删除。

@@ -1,7 +1,7 @@
 # Software Phase 6 文件级实施计划
 
 **阶段名称：** 发布工程、外部测试与 v1.0 准备<br>
-**规划状态：** 已完成；实现进度 3/8<br>
+**规划状态：** 已完成；实现进度 4/8<br>
 **首个交付目标：** 私有测试版 `0.1.0b1`（展示名 `v0.1.0-beta.1`）<br>
 **最终阶段目标：** owner-approved Analog Validation Studio v1.0<br>
 **预计时间：** 4–7 个有效开发日；初学者兼职约 1–2 周<br>
@@ -13,7 +13,7 @@
 - [x] Step 1：发布合同、版本策略、支持范围和停止条件；
 - [x] Step 2：GitHub Actions 持续集成；
 - [x] Step 3：beta 版本与 package/release metadata；
-- [ ] Step 4：确定性构建、clean-install 和 release manifest；
+- [x] Step 4：确定性构建、clean-install 和 release manifest；
 - [ ] Step 5：安装、测试、故障排查和反馈文档；
 - [ ] Step 6：仅依赖公开 API 的第三方 adapter 示例；
 - [ ] Step 7：隐私、许可证、历史、claims 和候选包审计；
@@ -192,7 +192,8 @@ Steps 1–7 通过后，可称：
 
 ## 8. 下一检查点
 
-Step 3 已完成：package/import/CLI/compatibility/golden metadata 已统一为 `0.1.0b1`，
-changelog 与无许可证状态明确，最终 hosted run `33445311456` 全部通过。没有创建 tag、
-Release 或操作硬件。下一次实施 Step 4 确定性构建、clean-install 和 privacy-minimal
-release manifest。
+Step 4 已完成：create-new verifier 在干净提交上执行 2,211 项测试、100% package
+statement coverage、Ruff、mypy、依赖检查、两次独立构建、base/serial clean-install 与
+双路径 synthetic demo；本机与 hosted run `33447031789` 对 commit `0c04aee` 生成的
+wheel、规范化 sdist 和 privacy-minimal manifest 逐字节一致。没有创建 tag、Release、
+公开上传或操作硬件。下一次实施 Step 5 的安装、测试、故障排查、已知限制和反馈闭环文档。

@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 6 release engineering — 3/8 checkpoints |
+| Development stage | Software Phase 6 release engineering — 4/8 checkpoints |
 | Release maturity | Private beta candidate preparation; no tag or Release published |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0b1` |
-| Automated tests | 2,194 passed in the final full local run |
+| Automated tests | 2,211 passed in the final full local release-verifier run |
 | Formal + optional + product package coverage | 100% of 11,470 statements |
 | Highest evidence level | `BENCH_CONTROLLER` — MSP430 UART compatibility only |
 | Verified AFE hardware performance claims | **0 — the AFE has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 6 plan](docs/SOFTWARE_PHASE_6_PLAN.md) · [CI verification](reports/software-phase6-step2.md) · [Changelog](CHANGELOG.md) · [CLI guide](docs/product-cli.md) · [Dashboard guide](docs/dashboard.md) · [Phase 5 compatibility contract](docs/phase5-public-api.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 6 plan](docs/SOFTWARE_PHASE_6_PLAN.md) · [CI verification](reports/software-phase6-step2.md) · [Release-candidate verification](reports/software-phase6-step4.md) · [Changelog](CHANGELOG.md) · [CLI guide](docs/product-cli.md) · [Dashboard guide](docs/dashboard.md) · [Phase 5 compatibility contract](docs/phase5-public-api.md)
 
 ## Product vision
 
@@ -139,8 +139,9 @@ The separate MSP430 Equipment Health Controller is a peer product, not a subordi
 - Product-quality acceptance for 10,000-record Replay parsing, a bounded 10,000-event worker burst, keyboard focus, Windows Tk scaling, Unicode paths, fail-closed output, privacy, and offline operation.
 - Frozen Phase 5 product compatibility covering four public namespaces, 14 schemas, 10 enum sets, 36 dataclass contracts, 35 public signatures, 24 error relationships, 25 issue mappings, 16 CLI paths, eight exit codes, 13 serialized field groups, and six golden hashes.
 - Release-style repository-external base and `[serial]` wheel installations; the base product remains driver-independent, while the serial smoke uses an injected host substitute without enumerating or opening a real port.
+- A create-new release verifier that requires a clean Git commit, repeats isolated wheel/sdist builds, normalizes non-content sdist metadata, compares exact bytes, runs fresh base and `[serial]` installs, reproduces the demo in normal/Unicode paths, and emits `release-candidate-manifest.v1` only after every gate passes.
 
-Not yet implemented: calibration/frequency TestRun export mappings, firmware, real-time runner deadlines, long-duration physical transport testing through this product, the audited release manifest/tester bundle, or validated physical AFE hardware.
+Not yet implemented: calibration/frequency TestRun export mappings, firmware, real-time runner deadlines, long-duration physical transport testing through this product, the guided tester documentation/bundle, the final candidate audit, or validated physical AFE hardware.
 
 ## Architecture
 
@@ -194,7 +195,7 @@ row is separately limited to the Step 7 five-record `BENCH_CONTROLLER` capture.
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 2,194 passed in the final full local run |
+| Full pytest suite | 2,211 passed in the final full local release-verifier run |
 | Formal + optional + product package statement coverage | 100% of 11,470 statements |
 | Phase 5 Step 8 product compatibility | 15 new checks; 154 total golden checks; public imports/schemas/call shapes, CLI/options/exits, serialized fields, errors/issues, and exact prior manifests frozen |
 | Phase 5 Step 7 demo and product quality | 186 focused tests; two installed demos in normal/Unicode paths were byte-identical; 10,000-record/event bounded acceptance and real Tk scaling/focus smoke passed |
@@ -225,8 +226,8 @@ row is separately limited to the Step 7 five-record `BENCH_CONTROLLER` capture.
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 192 source/tool/test files |
-| Latest build and repository-external installs | Isolated sdist/wheel plus fresh base and `[serial]` installs passed; installed normal/Unicode demos were byte-identical, real Tk launched/closed, and the serial extra used only an injected host substitute with zero real-port operations |
+| mypy | Passed on 195 source/tool/test files |
+| Latest deterministic candidate | Local and hosted Windows/Python 3.12 verifiers independently produced identical `0.1.0b1` wheel, normalized sdist, and privacy-minimal manifest from commit `0c04aee`; fresh base and `[serial]` installs and normal/Unicode demos passed |
 | Physical controller UART | Passed with limitations — receive-only Protocol v1 compatibility only; see Step 7 report |
 | AFE hardware bench tests | Not run |
 
@@ -334,10 +335,10 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Complete — 8/8 checkpoints |
 | Software Phase 4 | Serial transport and independent controller profiles | Complete — 8/8 checkpoints |
 | Software Phase 5 | CLI, dashboard, demo, evidence-aware reports, and compatibility freeze | Complete — 8/8 checkpoints; Software Beta |
-| Software Phase 6 | Packaging, CI, documentation, and v1.0 preparation | In progress — 3/8 checkpoints |
+| Software Phase 6 | Packaging, CI, documentation, and v1.0 preparation | In progress — 4/8 checkpoints |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-Software Phases 1–5 are complete. Phase 6 Steps 1–3 have frozen the release contract, established read-only hosted CI across Windows/Ubuntu and Python 3.10/3.12/3.14, and aligned the private-beta package/version metadata at `0.1.0b1`. Release manifest, tester documentation, public-adapter proof, final audit, and owner-only publication decisions remain. The earlier Phase 4 Step 7 physical result remains a separate narrow controller-UART claim, and all real AFE hardware work remains gated.
+Software Phases 1–5 are complete. Phase 6 Steps 1–4 have frozen the release contract, established read-only hosted CI across Windows/Ubuntu and Python 3.10/3.12/3.14, aligned the private-beta metadata at `0.1.0b1`, and added a deterministic create-new candidate verifier with a privacy-minimal manifest. Tester documentation, public-adapter proof, final audit, and owner-only publication decisions remain. The earlier Phase 4 Step 7 physical result remains a separate narrow controller-UART claim, and all real AFE hardware work remains gated.
 
 ## Repository guide
 

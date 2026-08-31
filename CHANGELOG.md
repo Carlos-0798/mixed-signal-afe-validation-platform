@@ -24,6 +24,9 @@ First controlled private-beta candidate for Analog Validation Studio.
   reproducible offline demonstration.
 - Hosted Windows/Ubuntu CI for Python 3.10, 3.12, and 3.14, with 100% package
   statement coverage, Ruff, mypy, dependency, build, and clean-install gates.
+- A deterministic, create-new release-candidate verifier with repeated builds,
+  fresh base/serial installs, installed synthetic-demo reproduction, SHA-256
+  identities, and a privacy-minimal host-evidence manifest.
 
 ### Safety and evidence limits
 
