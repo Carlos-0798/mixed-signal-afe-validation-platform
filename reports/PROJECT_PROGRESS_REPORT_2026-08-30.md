@@ -2,7 +2,7 @@
 
 **Report date:** 2026-08-30 (America/New_York)<br>
 **Product:** Configurable Analog Front-End & Validation Platform / Analog Validation Studio<br>
-**Current milestone:** Software Phase 4, Step 3 of 8 complete<br>
+**Current milestone:** Software Phase 4, Step 4 of 8 complete<br>
 **Release maturity:** pre-MVP<br>
 **Highest accepted evidence:** HOST_TEST<br>
 **Verified AFE hardware claims:** 0
@@ -11,9 +11,9 @@
 
 Analog Validation Studio is an independent, controller-neutral validation and test-automation product. Software Phases 1–3 are complete within host, synthetic, and replay evidence boundaries. They provide versioned data models, protocol/configuration contracts, adapter lifecycles, deterministic simulation, CSV replay, safety-gated runners, DC/hysteresis/calibration/frequency analysis, acceptance mapping, and structured result export.
 
-Software Phase 4 started from the exact Phase 3 baseline commit `9ac23494b86212928185de9b0eef1c1a82a8c0ea`. Step 1 is complete at commit `299a1407a025f30c954b1387883a43e3f224de91`: a profile-neutral bounded byte-stream state machine and 2–64-bit modular sequence tracker are implemented and fully host-tested. Step 2 adds a namespace-neutral token/CRC envelope, retains the frozen AFE wrapper unchanged at its public boundary, freezes explicit AFE channel naming conversion, and connects fragmented byte-stream input to envelope decoding in a mixed-profile host integration test. Step 3 at commit `362c82d5cf736e6d9726624536da2af09a14de13` now adds a replaceable serial backend port, deterministic lifecycle/finite reconnect behavior, and bounded memory-only raw-record provenance, all verified without pyserial or physical I/O.
+Software Phase 4 started from the exact Phase 3 baseline commit `9ac23494b86212928185de9b0eef1c1a82a8c0ea`. Step 1 is complete at commit `299a1407a025f30c954b1387883a43e3f224de91`: a profile-neutral bounded byte-stream state machine and 2–64-bit modular sequence tracker are implemented and fully host-tested. Step 2 adds a namespace-neutral token/CRC envelope, retains the frozen AFE wrapper unchanged at its public boundary, freezes explicit AFE channel naming conversion, and connects fragmented byte-stream input to envelope decoding in a mixed-profile host integration test. Step 3 at commit `362c82d5cf736e6d9726624536da2af09a14de13` adds a replaceable serial backend port, deterministic lifecycle/finite reconnect behavior, and bounded memory-only raw-record provenance. Step 4 at commit `dd4ca666d7903c622eec103441524cbb3c174790` now adds the generic `serial-profile.v1` extension point and independent AFE v1 implementation with 16-bit telemetry continuity, canonical Measurements, strict capability aggregation, and raw parsed/rejected outcomes. All work remains host-only without pyserial or physical I/O.
 
-The software core is mature and well-tested, but the end-user product is not complete. OS serial access, independent controller profiles, SerialAdapter orchestration, CLI, Dashboard, human-readable reports, release automation, and physical AFE validation remain. No hardware performance claim is made.
+The software core is mature and well-tested, but the end-user product is not complete. OS serial access, the independent MSP430 profile, SerialAdapter orchestration, CLI, Dashboard, human-readable reports, release automation, and physical AFE validation remain. No hardware performance claim is made.
 
 ## 2. Product identity and peer-project boundary
 
@@ -34,6 +34,7 @@ Analog Validation Studio and MSP430 Equipment Health Controller are peer, indepe
 - Phase 4 Step 1 implementation: `299a1407a025f30c954b1387883a43e3f224de91`
 - Phase 4 Step 2 implementation: `95c1432febdce70007daba013cae4cce47cf8556`
 - Phase 4 Step 3 implementation: `362c82d5cf736e6d9726624536da2af09a14de13`
+- Phase 4 Step 4 implementation: `dd4ca666d7903c622eec103441524cbb3c174790`
 - Package version: `0.1.0.dev0`
 - License status: all rights reserved; no open-source license selected
 - Python support target: 3.10 or later
@@ -47,23 +48,24 @@ Analog Validation Studio and MSP430 Equipment Health Controller are peer, indepe
 | 1 — domain/protocol/config | Complete, 8/8 | Installable package, evidence-aware models, AFE v1, strict config, frozen protocol compatibility | HOST_TEST / SYNTHETIC |
 | 2 — adapters/replay/workflow | Complete, 8/8 | DeviceAdapter safety lifecycle, Simulator, CSV Replay, shared read workflow | HOST_TEST / SYNTHETIC / CSV_REPLAY |
 | 3 — analysis/runners/results | Complete, 8/8 | DC/hysteresis runners and criteria, calibration, frequency analysis, JSON/CSV results | HOST_TEST / SYNTHETIC / CSV_REPLAY |
-| 4 — serial/profiles | In progress, 3/8 | Profile-neutral stream/sequence/envelope, AFE wrapper/channel mapping, driver-neutral serial lifecycle, and bounded raw events | HOST_TEST |
+| 4 — serial/profiles | In progress, 4/8 | Profile-neutral stream/sequence/envelope, driver-neutral lifecycle/raw events, and independent AFE v1 serial profile | HOST_TEST |
 | 5 — CLI/Dashboard/reports | Planned | End-user workflow and human-readable product experience | None yet |
 | 6 — product release | Planned | Installation, CI, user/developer docs, release candidate | None yet |
 
 ## 5. Current verified results
 
-- 1,218 pytest tests pass.
-- Formal `src/analog_validation` package coverage is 6,274/6,274 statements, 100%.
+- 1,277 pytest tests pass.
+- Formal `src/analog_validation` package coverage is 6,499/6,499 statements, 100%.
 - Step 1 adds 32 focused tests and covers 158/158 new transport statements.
 - Step 2 adds 51 tests; envelope, channel mapping, and AFE wrapper cover 176/176 statements.
 - Step 3 adds 88 tests and 428 covered formal statements for serial lifecycle, failure injection, raw events, and composite processing.
+- Step 4 adds 59 tests and 225 covered formal statements for profile contracts, AFE mapping, sequence/capability state, error rollback, golden migration, and memory serial composition.
 - CRC-16/CCITT-FALSE is frozen with `123456789 -> 0x29B1`.
 - AFE v1 retains 20 valid and 9 invalid golden wire/error cases.
 - Phase 2 and Phase 3 public APIs and exact representative results remain frozen.
-- Full-repository Ruff passes; mypy passes on all 119 source/test files under `src`, `dashboard`, `tools`, and `tests`.
-- The sdist/wheel build includes transport, envelope, channel mapping, driver-neutral serial, and raw-event modules; a clean repository-external virtual environment without pyserial installs the wheel and passes backend→raw→CRC→PARSED→close smoke.
-- No serial port or physical hardware was used by the accepted Steps 1–3 checkpoints.
+- Full-repository Ruff passes; mypy passes on all 127 files under `src`, `dashboard`, `tools`, and `tests`.
+- The sdist/wheel build includes transport, envelope, channel mapping, raw-event, and serial-profile modules; a clean repository-external virtual environment without pyserial installs the wheel and passes raw→AFE profile→canonical Measurement smoke.
+- No serial port or physical hardware was used by the accepted Steps 1–4 checkpoints.
 
 The original Phase 4 baseline test command first reached 1,040 passes and seven pytest setup errors because its requested generated `work/` parent directory did not exist. No product assertion failed. The unchanged baseline then passed 1,047/1,047 after creating the ignored generated directory. This corrected rerun is the authoritative pre-change result; the original setup failure is not hidden or relabeled as a PASS.
 
@@ -79,13 +81,15 @@ The existing internal chains are connected and tested at the library level:
 - output-capable reference adapter -> safety preflight -> DC/hysteresis runner -> cleanup -> TestRun result.
 - fragmented mixed AFE/MSP record bytes -> bounded LF stream -> neutral CRC envelope -> ordered fields.
 - scripted backend -> serial lifecycle -> bounded framer -> pending raw event -> CRC envelope -> sequence -> parsed/rejected outcome.
+- fragmented/coalesced memory serial -> exact AFE raw events -> `AfeV1SerialProfile` -> canonical Measurements/read-only capabilities -> typed CRC rejection.
 
-Two product-level gaps remain important:
+Three product-level gaps remain important:
 
 1. there is no concrete OS serial backend or stable end-user orchestration entry that connects configuration, adapter selection, acquisition, analysis, criteria, export, and report in one command;
 2. Simulator and CSV Replay are intentionally read-only, so output-controlled DC/hysteresis runners correctly return `UNSUPPORTED`; a separate explicitly synthetic output-capable product path or an offline demonstration workflow is still required for the final user demo.
+3. the AFE capability response retains its frozen wire vocabulary (`adcN/dacN/pwmN/dinN`) while adapter/workflow Measurements use canonical `afe.chN.*`; Step 6 must implement and test an explicit adapter projection without weakening the existing command safety gate.
 
-The previous channel-name gap is now closed by `afe-channel-map.v1`. Historical `telemetry_to_measurements()` output remains unchanged; future serial profiles must cross the explicit mapping boundary before using canonical adapter/workflow names.
+The previous telemetry channel-name gap is now closed in execution: `AfeV1SerialProfile` crosses `afe-channel-map.v1`, while historical `telemetry_to_measurements()` output remains unchanged. The separate capability-to-adapter projection is deliberately tracked rather than hidden behind string replacement.
 
 These are integration/productization gaps, not evidence that the implemented Phase 1–3 algorithms are failing.
 
@@ -113,6 +117,8 @@ Safe to claim now:
 - implemented a profile-neutral bounded byte-stream and modular sequence foundation;
 - implemented a namespace-neutral CRC envelope, frozen AFE compatibility wrapper, and explicit legacy/canonical channel mapping;
 - implemented a driver-neutral serial lifecycle with bounded reads, normal timeout, disconnect reset, finite reconnect, deterministic close, and bounded memory-only raw provenance;
+- implemented the generic serial-profile extension point and independent AFE v1 profile with explicit identity, 16-bit telemetry continuity, canonical Measurements, strict capability aggregation, typed raw outcomes, and rollback-safe state;
+- preserved all 20 valid and 9 invalid historical AFE contracts through the new serial-profile path and verified the installed wheel without pyserial;
 - preserved compatibility through golden records, frozen public contracts, full coverage, and reproducible reports;
 - designed a peer-project MSP430 compatibility path through an independent versioned adapter.
 
@@ -128,7 +134,7 @@ Not safe to claim now:
 
 ### Software Phase 4 — serial transport and peer profiles
 
-Estimated 5–8 effective development days for the full phase. Remaining Steps 4–8 will deliver an AFE serial profile, independent read-only MSP430 profile, concrete OS backend/SerialAdapter integration, optional owner-approved read-only LaunchPad HIL, and Phase 4 compatibility closure.
+Estimated 5–8 effective development days for the full phase. Remaining Steps 5–8 will deliver the independent read-only MSP430 profile, concrete OS backend/SerialAdapter integration, optional owner-approved read-only LaunchPad HIL, and Phase 4 compatibility closure.
 
 ### Software Phase 5 — product workflow and presentation
 
@@ -169,15 +175,15 @@ A complete breadboard/BENCH program is expected to require roughly 8–14 weeks 
 
 ## 12. Immediate next checkpoint
 
-Software Phase 4 Step 4 will:
+Software Phase 4 Step 5 will:
 
-1. define an independent AFE v1 serial profile over the generic Step 3 raw records;
-2. reuse the existing AFE decoder, capability exchange, channel mapping, and 16-bit sequence semantics instead of duplicating them;
-3. map accepted records and typed errors without importing serial/OS behavior into the profile;
-4. drive all historical AFE golden records through the new profile path with the in-memory backend;
-5. keep actual COM access, command transmission, and the connected MSP430 outside this checkpoint.
+1. define this repository's independent, read-only `msp430-equipment-health.v1` profile from the peer project's frozen public UART contract;
+2. use repository-owned interoperability fixtures and import no peer-project runtime code;
+3. parse 32-bit telemetry sequence and preserve raw uptime, unavailable sentinels, states, and fault flags;
+4. map unavailable sensor/current data to explicit invalid/missing domain values rather than false zero measurements;
+5. expose no AFE stimulus, fan-control, or `SAFE_SHUTDOWN` capability and keep actual COM access outside the checkpoint.
 
-Step 4 will not send a device command, flash a board, change firmware/FRAM, or claim physical compatibility.
+Step 5 will not send a device command, flash a board, change firmware/FRAM, access the connected MSP430, or claim physical compatibility.
 
 ## 13. Portfolio presentation plan
 

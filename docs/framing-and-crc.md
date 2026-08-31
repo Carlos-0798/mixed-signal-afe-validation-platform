@@ -99,11 +99,12 @@ sequence 层都不打开串口，也不包含设备字段、单位、capability 
 
 真实 UART 可能持续收到没有换行的损坏数据。如果软件无限等待并扩大缓冲区，会造成内存和可用性问题。当前单记录 decoder 对输入 bytes 先检查 128-byte 上限，再进行 ASCII 和 CSV 解析。
 
-Software Phase 4 Steps 1–3 已用复合集成测试把不规则 chunks 依次经过
+Software Phase 4 Steps 1–4 已用复合集成测试把不规则 chunks 依次经过
 driver-neutral session、bounded stream、raw event 和 neutral envelope，并保持
 混合 AFE/MSP 形状记录的 bytes、顺序和 fields。timeout、断线清半帧和有限
-reconnect 已由内存 backend 做 HOST_TEST；真实 OS backend、COM timing 和 HIL
-仍属于后续检查点。
+reconnect 已由内存 backend 做 HOST_TEST；AFE records 现在继续经过独立
+serial profile，形成 canonical Measurements、capability outcome 或 typed rejection。
+真实 OS backend、COM timing 和 HIL 仍属于后续检查点。
 
 ## 8. 黄金兼容数据
 
@@ -116,6 +117,8 @@ Step 8 冻结了三类互补数据：
   profile-neutral CRC bytes/fields；只冻结 envelope 兼容。
 
 合法记录必须能够解析为预期模型并重新编码为完全相同的 bytes。旧的无版本 AFE façade 不再是受支持入口。
+Step 4 进一步要求全部 20 valid/9 invalid records 经过 serial-profile raw
+outcome 路径，仍保持相同 bytes 和 error family。
 
 ## 9. 证据边界
 

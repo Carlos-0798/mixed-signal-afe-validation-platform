@@ -4,6 +4,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Host-only software reports:
 
+- `software-phase4-step4.md` — generic serial-profile contract, independent AFE v1 integration, canonical telemetry, capability/sequence semantics, golden migration, build/install evidence, and hardware limits.
 - `software-phase4-step3.md` — driver-neutral serial lifecycle, finite reconnect, bounded memory-only raw events, failure injection, build/install evidence, and real-port limits.
 - `software-phase4-step2.md` — namespace-neutral CRC envelope, frozen AFE wrapper compatibility, explicit channel mapping, composite stream path, build/install verification, and hardware limits.
 - `software-phase4-step1.md` — profile-neutral bounded byte stream, modular sequence tracking, package verification, and serial/hardware evidence limits.

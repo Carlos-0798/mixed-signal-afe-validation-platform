@@ -35,6 +35,11 @@ Do not power the analog assembly until the open toolchain, inventory, permission
   eviction counters and do not persist/upload raw records automatically.
 - Run the installed-wheel chain without pyserial to prove simulation/replay and
   core imports remain hardware optional.
+- Drive every valid/invalid AFE golden record through the selected AFE serial
+  profile; retain exact accepted bytes and stable rejected error families.
+- Verify telemetry-only 16-bit continuity, explicit legacy-to-canonical
+  Measurement mapping, strict capability transaction aggregation, and state
+  rollback if a final raw outcome cannot be retained.
 - Keep real port/HIL commands `NOT RUN` until the separate owner-approved gate;
   host lifecycle tests do not prove OS timing, UART electrical behavior, or a
   controller business profile.

@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 4 in progress — 3/8 checkpoints |
-| Release maturity | Pre-MVP; driver-neutral serial lifecycle and bounded raw provenance added |
+| Development stage | Software Phase 4 in progress — 4/8 checkpoints |
+| Release maturity | Pre-MVP; host-tested AFE v1 serial profile added |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 1,218 passed |
-| Formal package coverage | 100% of 6,274 statements |
+| Automated host tests | 1,277 passed |
+| Formal package coverage | 100% of 6,499 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Current progress report](reports/PROJECT_PROGRESS_REPORT_2026-08-30.md) · [Phase 4 plan](docs/SOFTWARE_PHASE_4_PLAN.md) · [Step 3 report](reports/software-phase4-step3.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Current progress report](reports/PROJECT_PROGRESS_REPORT_2026-08-30.md) · [Phase 4 plan](docs/SOFTWARE_PHASE_4_PLAN.md) · [Step 4 report](reports/software-phase4-step4.md)
 
 ## Product vision
 
@@ -96,8 +96,11 @@ The separate MSP430 Equipment Health Controller is a peer product, not a subordi
 - Explicit `PENDING_PROFILE`, `PARSED`, and `REJECTED` states so receiving data never silently becomes validated data.
 - Count/byte/metadata limits, FIFO eviction counters, privacy notice, and no automatic raw persistence or upload.
 - Test-only failure-injecting memory backend plus a composite serial→framer→raw→CRC→sequence→outcome host proof.
+- Public `serial-profile.v1` extension point with explicit identity, typed accepted/rejected results, reset diagnostics, and one-way dependency enforcement.
+- Independent `AfeV1SerialProfile` that maps exact raw records through the frozen AFE decoder, 16-bit telemetry continuity, canonical Measurement channels, strict capability aggregation, and bounded raw outcomes.
+- All 20 valid and 9 invalid historical AFE golden records pass through the new serial-profile path without changing their exact bytes or error contracts.
 
-Not yet implemented: concrete OS/pyserial backend, AFE/MSP430 serial profiles, SerialAdapter, calibration/frequency TestRun export mappings, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, or validated physical AFE hardware.
+Not yet implemented: concrete OS/pyserial backend, MSP430 serial profile, SerialAdapter, calibration/frequency TestRun export mappings, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, or validated physical AFE hardware.
 
 ## Architecture
 
@@ -137,8 +140,9 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 1,218 passed |
-| Formal package statement coverage | 100% of 6,274 statements |
+| Full pytest suite | 1,277 passed |
+| Formal package statement coverage | 100% of 6,499 statements |
+| Phase 4 AFE v1 serial profile | 59 new tests; 225/225 added statements covered; 20 valid + 9 invalid golden cases retained |
 | Phase 4 driver-neutral serial lifecycle/raw events | 88 new tests; 428/428 added statements covered |
 | Phase 4 bounded stream and sequence foundation | 32 focused tests; 158/158 statements covered |
 | Phase 4 neutral envelope and channel mapping | 51 new tests; envelope/mapping/framing 176/176 statements covered |
@@ -161,8 +165,8 @@ The current results are host-software evidence only:
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 119 source/test files |
-| Latest sdist/wheel build and repository-external serial/raw/envelope smoke without pyserial | Passed |
+| mypy | Passed on 127 source/test files |
+| Latest sdist/wheel build and repository-external raw→AFE-profile→canonical-Measurement smoke without pyserial | Passed |
 | Hardware bench tests | Not run |
 
 Every completed software checkpoint has a report under [`reports/`](reports/). Test counts and claims are updated only after the corresponding command has actually run.
@@ -236,12 +240,12 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Complete — 8/8 checkpoints |
-| Software Phase 4 | Serial transport and independent controller profiles | In progress — 3/8 checkpoints |
+| Software Phase 4 | Serial transport and independent controller profiles | In progress — 4/8 checkpoints |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-Software Phase 3 is complete: analysis, safety-gated runners, calibration, offline frequency response, and `result-export.v1` passed all eight checkpoints. Public namespaces and exact representative DC/hysteresis results are protected by golden compatibility tests. Software Phase 4 Steps 1–3 now provide the host-tested bounded stream/sequence foundation, profile-neutral CRC envelope, backward-compatible AFE wrapper, explicit channel mapping, driver-neutral serial lifecycle, and bounded memory-only raw provenance. Concrete OS access, AFE/MSP430 business profiles, and SerialAdapter remain later checkpoints. Real AFE hardware remains later work.
+Software Phase 3 is complete: analysis, safety-gated runners, calibration, offline frequency response, and `result-export.v1` passed all eight checkpoints. Public namespaces and exact representative DC/hysteresis results are protected by golden compatibility tests. Software Phase 4 Steps 1–4 now provide the host-tested bounded stream/sequence foundation, profile-neutral CRC envelope, backward-compatible AFE wrapper, explicit channel mapping, driver-neutral serial lifecycle, bounded memory-only raw provenance, and the independent AFE v1 serial profile. Concrete OS access, the peer MSP430 profile, and SerialAdapter remain later checkpoints. Real AFE hardware remains later work.
 
 ## Repository guide
 
@@ -284,6 +288,7 @@ See [assumptions requiring confirmation](ASSUMPTIONS.md), [test and evidence pol
 - [AFE v1 profile](docs/afe-v1-profile.md)
 - [AFE channel naming mapping v1](docs/afe-channel-mapping.md)
 - [Serial lifecycle and raw-event boundary](docs/serial-transport.md)
+- [Serial profiles and AFE v1 integration](docs/serial-profiles.md)
 - [CSV Replay v1 format](docs/csv-replay-v1.md)
 - [Shared read workflow](docs/read-workflow.md)
 - [DC sweep analysis](docs/dc-sweep-analysis.md)

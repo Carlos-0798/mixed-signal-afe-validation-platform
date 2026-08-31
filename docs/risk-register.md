@@ -17,3 +17,5 @@
 | Port identity is mistaken for device capability | Explicit profile required | Never infer profile, firmware, safe range, or output ability from COM/USB identity |
 | Raw frames expose device/configuration details | Memory-only host model | Count/byte/metadata limits, logical port only, no automatic persistence/upload, explicit future export review |
 | Host serial tests are presented as hardware proof | HOST_TEST only | Real OS backend and owner-approved HIL have separate later gates; `VERIFIED_BENCH` remains zero |
+| Repeated capability transaction sequence is mislabeled as duplicate telemetry | Separate semantics implemented | Track continuity only for AFE `TEL`; validate repeated capability sequence inside the transaction aggregator |
+| Profile-native capability names disagree with adapter/workflow channel names | Explicit Step 6 debt | Keep frozen wire safety vocabulary now; require a reviewed, tested adapter projection instead of string guessing |

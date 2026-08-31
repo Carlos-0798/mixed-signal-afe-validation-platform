@@ -22,7 +22,7 @@ flowchart LR
     Backend[Replaceable serial backend] --> Session[SerialSession lifecycle]
     Session --> Framer[Bounded LF framer]
     Framer --> Raw[PENDING_PROFILE raw event]
-    Raw --> Profile[Explicit future profile]
+    Raw --> Profile[Explicit selected profile]
     Profile -->|accepted| Parsed[PARSED + sequence]
     Profile -->|rejected| Rejected[REJECTED + typed error]
 ```
@@ -32,7 +32,7 @@ flowchart LR
   reconnect attempts, and deterministic logical closure.
 - `BoundedLineFramer` turns arbitrary chunks into complete LF-delimited bytes.
 - `BoundedRawEventLog` retains bounded receive provenance in memory.
-- future AFE/MSP430 profiles own device fields, versions, CRC interpretation,
+- the Step 4 AFE profile and future MSP430 profile own device fields, versions, CRC interpretation,
   capabilities, Measurements, and sequence widths.
 
 Receiving bytes is therefore not the same as understanding or validating them.
@@ -95,7 +95,7 @@ Every complete bounded record is initially logged with:
 - the exact received bytes, including the line terminator;
 - status `PENDING_PROFILE` and no inferred business meaning.
 
-A future profile must explicitly finish the event as one of:
+A selected profile must explicitly finish the event as one of:
 
 | Status | Required outcome | Forbidden meaning |
 |---|---|---|
@@ -173,9 +173,10 @@ It does not establish:
 - OS port enumeration, permissions, driver behavior, or timing;
 - pyserial compatibility or a real COM-port lifecycle;
 - UART baud accuracy, voltage level, grounding, EMI, cable, or board behavior;
-- an AFE or MSP430 business profile;
+- an MSP430 business profile or a physically verified AFE profile;
 - any physical measurement or hardware performance.
 
-AFE and MSP430 profiles remain independent Steps 4 and 5. Their future
+AFE and MSP430 profiles remain independent Steps 4 and 5. The AFE profile now
+implements this boundary under HOST_TEST; the MSP profile remains Step 5. Their
 compatibility is a public-interface integration between peer products, not a
 repository merge or transfer of evidence.

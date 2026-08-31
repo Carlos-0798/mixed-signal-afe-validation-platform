@@ -118,3 +118,16 @@ records.
 
 See [serial transport and raw-event boundary](serial-transport.md) for the
 lifecycle, retry, privacy, and resource-limit contract.
+
+## Phase 4 profile-local errors
+
+Software Phase 4 Step 4 adds `SerialProfileError` and
+`SerialProfileStateError` under `analog_validation.profiles`. They describe a
+wrong selected identity, mismatched/stale raw event, invalid result contract, or
+unsupported evidence-source use. Expected wire problems remain the existing
+`ProtocolError` family and are recorded as `REJECTED`; programming/profile-state
+problems propagate instead of being mislabeled as bad device input. If raw-log
+finalization fails, prior profile state is restored and the raw-log error
+propagates.
+
+See [serial profiles and AFE v1 integration](serial-profiles.md).

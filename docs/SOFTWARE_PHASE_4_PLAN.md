@@ -1,7 +1,7 @@
 # Software Phase 4 文件级实施计划
 
 **阶段名称：** 串口传输、对等控制器 profiles 与真实链路边界<br>
-**规划状态：** 进行中，进度 3/8<br>
+**规划状态：** 进行中，进度 4/8<br>
 **预计时间：** 5–8 个初学者开发日<br>
 **前置：** Software Phase 3 的分析、runner 与结构化结果兼容基线完成<br>
 **硬件要求：** Steps 1–6 无；Step 7 可选使用已连接的 MSP430 LaunchPad<br>
@@ -12,7 +12,7 @@
 - [x] Step 1：profile-neutral 有界字节流与序列连续性；
 - [x] Step 2：profile-neutral CRC envelope 与 AFE v1 兼容迁移；
 - [x] Step 3：串口发现、连接、超时、重连与原始帧日志；
-- [ ] Step 4：AFE v1 serial profile；
+- [x] Step 4：AFE v1 serial profile；
 - [ ] Step 5：MSP430 Equipment Health v1 只读 profile；
 - [ ] Step 6：SerialAdapter、共用 workflow 与异常链路集成；
 - [ ] Step 7：可选的 MSP430 只读串口 HIL；
@@ -23,6 +23,8 @@ Step 1 已增加 `analog_validation.transport`，使用设备无关的有界 LF 
 Step 2 已把 ASCII token、terminator、长度和 CRC 规则拆到 `protocol.envelope`，原 `framing.py` 成为完全兼容的 AFE wrapper；新增三个 profile-neutral 黄金形状、Step 1→2 分段复合链和 `afe-channel-map.v1` 显式 legacy/canonical mapping。51 项新增测试、1,130 项完整回归和 5,846/5,846 正式 package statements 通过。它仍未打开串口、解释 MSP430 业务字段、实现设备 profile 或验证物理链路。
 
 Step 3 已新增 replaceable `SerialBackend` port、`SerialSession` 生命周期和 `BoundedRawEventLog`。发现、打开、bounded read、正常 timeout、断线清半帧、每次断线有限重连、确定性逻辑关闭、超长恢复和 raw event 的 `PENDING_PROFILE/PARSED/REJECTED` 状态都由故障可注入的内存 backend 验证。日志默认 1,024 条/256 KiB，仅驻留内存且不自动持久化或上传。88 项新增测试、1,218 项完整回归和 6,274/6,274 正式 package statements 通过；没有 OS backend、pyserial、COM I/O 或硬件证据。
+
+Step 4 已新增 `analog_validation.profiles` 与独立 `AfeV1SerialProfile`。它明确声明 `afe`/`1`、16-bit telemetry sequence 和 128-byte record limit；旧 mapper 经显式 mapping 输出 canonical channels；capability 多记录响应严格聚合；协议错误进入 bounded `REJECTED` raw outcome，程序/状态错误不会冒充设备错误。全部 20 valid + 9 invalid AFE golden records 已通过新路径，完整回归为 1,277 项和 6,499/6,499 正式 statements；仍未访问 COM、MSP430 或 AFE 实物。
 
 ## 1. 本阶段解决什么
 
@@ -153,6 +155,8 @@ MSP430 项目的两小时 soak 证明其自身固件/Dashboard 链路，不证�
 
 验收：全部旧 AFE golden records 通过新的 profile 路径；能力和安全 gate 不退化；尚无 AFE 设备时标记 HOST_TEST only。
 
+**状态：已完成。** 新 `serial-profile.v1` port 冻结显式 identity、typed result/reset 和 profile state error；AFE 实现复用原 decoder/CRC/capability/mapping，不加入 MSP 字段。TEL 独立使用 16-bit continuity，command/capability sequence 保持 transaction correlation，避免合法 capability 多记录被误报 duplicate。Telemetry 转为 canonical `afe.chN.*` Measurements；capability 仍保留冻结的 `adcN/dacN/pwmN/dinN` 安全语义，留待 Step 6 做显式 adapter projection。59 项新增测试、1,277 项完整回归、6,499/6,499 statements、构建和仓库外无 pyserial smoke 通过。证据见 `docs/serial-profiles.md` 和 `reports/software-phase4-step4.md`；硬件证据为 0。
+
 ### Step 5：MSP430 Equipment Health v1 只读 profile
 
 从冻结的 MSP430 protocol 文档和 golden fixtures 创建本仓库自己的互操作样本，解析 `TEL`，可选解析 `ACK/STS/CFG/LOG`，使用 32-bit sequence，并映射为通用 Measurement/status。
@@ -203,4 +207,4 @@ MSP430 项目的两小时 soak 证明其自身固件/Dashboard 链路，不证�
 
 ## 9. 下一检查点
 
-Step 4 将把现有 AFE v1 decode/mapping 包装为独立 serial profile，由 profile 明确声明 identity、16-bit sequence、capability record 和业务错误映射。它继续使用 Step 3 内存 backend，不打开当前 MSP430 端口；任何真实 COM 或板卡访问仍留到 owner-approved Step 7。
+Step 5 将从对等 MSP430 项目已冻结的公开 UART contract 和本仓库独立互操作 fixtures 实现只读 `msp430-equipment-health.v1` profile。它使用 32-bit telemetry sequence，保留 unavailable sentinel、fault 和 raw fields，不暴露 AFE stimulus 或 `SAFE_SHUTDOWN`，不导入另一个仓库代码。它继续使用内存 backend，不打开当前 MSP430 端口；任何真实 COM 或板卡访问仍留到 owner-approved Step 7。

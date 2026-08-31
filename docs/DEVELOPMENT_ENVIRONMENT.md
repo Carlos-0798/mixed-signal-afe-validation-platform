@@ -1,7 +1,7 @@
 # 开发环境
 
 **验证日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 4 进行中（3/8）<br>
+**当前阶段：** Software Phase 4 进行中（4/8）<br>
 **硬件要求：** 无
 
 ## 已验证环境
@@ -42,11 +42,11 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m build
 ```
 
-pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式记录追溯、质量 policy、DC sweep 与方向性迟滞数学、版本化 criteria/TestRun 映射、安全门控 runners、不可变线性校准、离线幅值频响分析，以及严格 `result-export.v1` JSON/CSV。Phase 4 Steps 1–3 已增加 profile-neutral bounded stream、modular sequence tracker、token/CRC envelope、AFE compatibility wrapper、显式 channel mapping、driver-neutral serial lifecycle 和 bounded memory-only raw events；当前完整门禁为 1,218 tests、6,274/6,274 正式 package statements、全仓库 Ruff、119-file mypy、依赖检查、sdist/wheel 和仓库外无 pyserial 的 backend→raw→CRC→PARSED smoke。它们仍是 HOST_TEST 证据。旧 `dashboard/reporting/csv_export.py` 仅为指向正式 package 的 legacy placeholder。
+pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式记录追溯、质量 policy、DC sweep 与方向性迟滞数学、版本化 criteria/TestRun 映射、安全门控 runners、不可变线性校准、离线幅值频响分析，以及严格 `result-export.v1` JSON/CSV。Phase 4 Steps 1–4 已增加 profile-neutral bounded stream、modular sequence tracker、token/CRC envelope、AFE compatibility wrapper、显式 channel mapping、driver-neutral serial lifecycle、bounded memory-only raw events、通用 serial-profile port 和独立 AFE v1 serial profile；当前完整门禁为 1,277 tests、6,499/6,499 正式 package statements、全仓库 Ruff、127-file mypy、依赖检查、sdist/wheel 和仓库外无 pyserial 的 raw→AFE profile→canonical Measurement smoke。它们仍是 HOST_TEST 证据。旧 `dashboard/reporting/csv_export.py` 仅为指向正式 package 的 legacy placeholder。
 
 ## 当前边界
 
-- 当前 Step 1 不安装 `pyserial`；可选 serial dependency 与 OS backend 后置到 Software Phase 4 Step 3；
+- 当前正式核心仍不安装 `pyserial`；可选 serial dependency、具体 OS backend 与 `SerialAdapter` 后置到 Software Phase 4 Step 6；
 - 不需要 CCS、MSP430 GCC、KiCad 或实验室仪器；
 - 软件测试结果不代表任何模拟电路、控制器、接线或仪器已经验证；
 - Git 提交身份已配置为 GitHub 账号 `Carlos-0798` 及其 noreply 邮箱。
