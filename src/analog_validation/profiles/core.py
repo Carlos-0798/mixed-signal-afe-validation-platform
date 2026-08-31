@@ -185,6 +185,12 @@ class SerialProfile(Protocol[MessageT]):
 
         ...
 
+    @property
+    def initial_capabilities(self) -> DeviceCapabilities | None:
+        """Return a static capability contract or require stream negotiation."""
+
+        ...
+
     def process_record(
         self,
         event: RawRecordEvent,

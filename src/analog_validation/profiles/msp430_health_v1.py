@@ -72,6 +72,12 @@ class Msp430HealthV1SerialProfile:
         return MSP430_HEALTH_V1_READ_ONLY_CAPABILITIES
 
     @property
+    def initial_capabilities(self) -> DeviceCapabilities:
+        """Return the same static contract through the generic profile port."""
+
+        return self.capabilities
+
+    @property
     def last_telemetry_sequence(self) -> int | None:
         """Return the accepted TEL continuity high-water mark."""
 

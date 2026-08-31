@@ -73,6 +73,24 @@ def test_transport_and_profile_dependency_direction_is_one_way() -> None:
     )
 
 
+def test_serial_adapter_dependency_direction_stays_below_product_workflows() -> None:
+    imports = _absolute_imports(CORE_ROOT / "serial_adapters")
+    forbidden = (
+        "analog_validation.analysis",
+        "analog_validation.exports",
+        "analog_validation.runners",
+        "analog_validation.workflows",
+        "dashboard",
+        "serial",
+    )
+
+    assert not any(
+        imported == prefix or imported.startswith(f"{prefix}.")
+        for imported in imports
+        for prefix in forbidden
+    )
+
+
 def test_msp430_interoperability_uses_no_peer_runtime_namespace() -> None:
     modules = (
         CORE_ROOT / "protocol" / "msp430_health_v1.py",

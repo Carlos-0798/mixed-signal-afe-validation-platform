@@ -88,6 +88,12 @@ class AfeV1SerialProfile:
         return self._evidence_source
 
     @property
+    def initial_capabilities(self) -> None:
+        """Require a complete AFE capability response from the byte stream."""
+
+        return None
+
+    @property
     def last_telemetry_sequence(self) -> int | None:
         """Return the accepted telemetry high-water mark."""
 
