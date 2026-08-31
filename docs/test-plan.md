@@ -121,21 +121,29 @@ Do not power the analog assembly until the open toolchain, inventory, permission
   identities, require limitations, and reject output-capable product requests.
 - **Step 2 complete:** freeze `product-job-event.v1`, bounded event text/queue,
   seven worker states, cancellation token, public worker errors, and finite
-  join/close limits. CLI command/output contracts remain a Step 3 check.
+  join/close limits.
 - **Step 2 complete:** verify one worker owns one job and normal, cancellation,
   factory/service/cleanup failure, context close, and completion-race paths
-  clean up and never promote incomplete or cancelled evidence to PASS. Future
-  Dashboard-close and Ctrl+C subprocess wiring remain Steps 3/6 checks.
+  clean up and never promote incomplete or cancelled evidence to PASS.
 - **Step 2 complete:** bound the worker event queue/text and join wait; verify
   FIFO eviction counters, monotonic indexes, no orphan thread after cooperative
   services, and explicit timeout for a non-cooperative service. Job-specific
   duration/record bounds remain application-service responsibilities.
-- Exercise Simulator, CSV Replay, and receive-only SerialAdapter product chains
+- **Step 3 complete:** freeze the installed `version`, `profiles`, `ports`,
+  Simulator/Replay `read`/`dc`/`hysteresis`, and receive-only `observe`
+  commands; verify stable human/JSON output and exits 0/1/2/3/4/5/70/130.
+- **Step 3 complete:** exercise Simulator, CSV Replay, and receive-only
+  SerialAdapter product chains
   through the same application service. Serial tests use an in-memory backend
   unless a separate physical-HIL authorization is recorded.
-- Require explicit port, profile, duration/record bounds, and read-only review
+- **Step 3 complete:** require explicit port, profile, duration/record bounds,
+  and read-only review
   for `observe`; do not expose a write method, raw command box, automatic port
   choice, or capability inference from a USB name.
+- **Step 3 complete:** verify cooperative cancellation and cleanup in a real
+  child Python process by injecting `KeyboardInterrupt` at the interpreter
+  boundary. Interactive Windows console `Ctrl+C`/`Ctrl+Break`, real-COM worker
+  cancellation, and Dashboard-close wiring remain explicit later smoke gates.
 - Build human report and chart view models only from finalized product/core
   results. Do not refit points, recalculate thresholds, or change outcome or
   provenance in presentation code.

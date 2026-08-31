@@ -98,12 +98,15 @@ The Step 2 suite covers:
 These are deterministic host tests using injected services. No COM port,
 MSP430, AFE, instrument, Tk window, or physical wiring was used.
 
-## Next use
+## Current and next use
 
-Step 3 will inject real application services for Simulator and CSV Replay and
-drive the same worker from stable CLI commands. Later, the Dashboard main thread
-will poll the same immutable events; widgets will never call adapters directly.
+Step 3 now injects the real Simulator, CSV Replay, and receive-only serial
+application services and drives the same worker from stable CLI commands. Step 4
+will consume only finalized service results to build human reports and plots.
+Later, the Dashboard main thread will poll the same immutable events; widgets
+will never call adapters directly.
 
 See the [product layer](product-layer.md),
-[Phase 5 plan](SOFTWARE_PHASE_5_PLAN.md), and
-[Step 2 evidence report](../reports/software-phase5-step2.md).
+[Phase 5 plan](SOFTWARE_PHASE_5_PLAN.md), [CLI guide](product-cli.md),
+[Step 2 worker report](../reports/software-phase5-step2.md), and
+[Step 3 workflow report](../reports/software-phase5-step3.md).

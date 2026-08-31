@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-08-31<br>
-**Current milestone:** Software Phase 5 in progress — checkpoint 2 of 8 complete<br>
-**Release maturity:** pre-MVP / product contracts, CLI foundation, and cancellable worker complete<br>
+**Current milestone:** Software Phase 5 in progress — checkpoint 3 of 8 complete<br>
+**Release maturity:** pre-MVP / stable Simulator and Replay CLI workflows complete<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
 
@@ -10,9 +10,9 @@
 
 The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC implementation, a profile-neutral CRC envelope with a backward-compatible AFE wrapper, the versioned AFE v1 protocol, explicit AFE channel-name mapping, strict non-executable JSON configuration, frozen protocol and replay compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, a configurable deterministic read-only SimulatorAdapter, a strict immutable CSV Replay v1 parser, a read-only CsvReplayAdapter, a shared adapter-neutral read workflow, a profile-neutral bounded byte-stream/sequence foundation, a replaceable serial backend port, deterministic host-tested serial lifecycle, bounded memory-only raw-record provenance, a public serial-profile extension point, independent AFE and read-only MSP430 Equipment Health v1 profiles, a receive-only `SerialAdapter`, an optional packaged pyserial backend that leaves the formal core driver-free, and a Phase 4 machine-readable compatibility freeze.
 
-The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow remains a frozen read-only acquisition API. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, versioned structured result exports, both serial business profiles, their receive-only adapter composition, and a narrow MSP430 UART HIL are implemented. Phase 5 Steps 1–2 add immutable product request/result/event contracts, a reviewed source/profile catalog, stable user issues, an installed `analog-validation version/profiles` entry point, and a bounded single-owner cancellable worker; concrete application services, test-running CLI workflows, dashboard, human-readable reports, and a validated physical AFE are not yet implemented.
+The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow remains a frozen read-only acquisition API. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, versioned structured result exports, both serial business profiles, their receive-only adapter composition, and a narrow MSP430 UART HIL are implemented. Phase 5 Steps 1–3 add immutable product request/result/event contracts, a reviewed source/profile catalog, stable user issues, a bounded single-owner cancellable worker, explicit adapter factories, shared read/DC/hysteresis services, and stable installed Simulator/Replay/receive-only CLI workflows. Dashboard, human-readable reports, a beginner wizard, the portfolio demo, and a validated physical AFE are not yet implemented.
 
-The reviewed Software Phase 5 plan defines a separate `analog_validation_app` product layer, one `analog-validation` command, a bounded single-owner cancellable worker, deterministic HTML/SVG reporting, a local offline Tkinter/ttk Dashboard, a six-step beginner workflow, and an installed-package deterministic demo. Steps 1–2 of 8 are implemented: the product identity/contracts/catalog/issue/CLI boundary and generic owning worker are real, while concrete services, test-running commands, reports, and UI remain planned. Architecture tests enforce consumption of the frozen core without copying device/profile or engineering-analysis logic.
+The reviewed Software Phase 5 plan defines a separate `analog_validation_app` product layer, one `analog-validation` command, a bounded single-owner cancellable worker, deterministic HTML/SVG reporting, a local offline Tkinter/ttk Dashboard, a six-step beginner workflow, and an installed-package deterministic demo. Steps 1–3 of 8 are implemented: product contracts/catalog/issues, worker ownership, factories/services, and stable CLI workflows are real, while reports and UI remain planned. Architecture tests enforce consumption of the frozen core without copying device/profile or engineering-analysis logic.
 
 Software Phase 3 is complete. Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. Step 8 freezes the 84-symbol Phase 2 top level, 68 analysis exports, 10 runner exports, 28 export symbols, 12 Phase 3 schemas, public enums/signatures/errors, and exact representative DC/hysteresis results. The golden values remain HOST_TEST/SYNTHETIC software evidence.
 
@@ -80,9 +80,9 @@ port and did not repeat or broaden the Step 7 HIL.
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 1,725 passed |
-| Formal + optional + product package statement coverage | 100% of 8,098 statements |
-| Phase 5 Steps 1–2 product layer | 207 focused tests; 773/773 statements; contracts/CLI plus worker ownership, cancellation races, bounded events, cleanup and one-way dependencies passed; clean base-wheel smoke used no pyserial/display/COM |
+| Full pytest suite | 1,854 passed |
+| Formal + optional + product package statement coverage | 100% of 8,863 statements |
+| Phase 5 Steps 1–3 product layer | 336 focused tests; 1,538/1,538 statements; contracts, worker, services, Simulator/Replay analysis/export, memory-serial zero-write, subprocess cancellation, one-way dependencies, and clean base-wheel smoke passed |
 | Phase 4 golden compatibility | 13 checks; 121 exports, 3 schemas, 12 enum/flag sets, 21 signatures, 17 errors, 5 fixture hashes, and exact AFE/MSP external-backend results frozen |
 | Phase 4 optional pyserial backend and receive-only HIL | 127/127 optional-package statements covered; base/serial external installs passed; 5/5 CRC-valid continuous TEL through COM4, 25 Measurements, zero writes, exact firmware unconfirmed |
 | Phase 4 receive-only SerialAdapter | 74 new tests; 282/282 added statements covered; AFE/MSP shared contracts, workflows, bounded failure handling, reconnect invalidation, and zero-write runner degradation passed |
@@ -109,9 +109,9 @@ port and did not repeat or broaden the Step 7 HIL.
 | AFE golden compatibility | 20 valid + 9 invalid cases passed |
 | Synthetic integration | 100 frames / 400 explicit `SYNTHETIC` Measurements passed |
 | Core dependency boundary | Passed; standard library and own package only |
-| Ruff | Passed on the full repository |
-| mypy | Passed on `src`, `tools`, and `tests` — 149 source/test files |
-| Package build and external install | Passed; current sdist/wheel contain the product package and one console entry point; fresh base install ran help/version/profiles without pyserial or optional imports |
+| Ruff | Rule check passed on the full repository; Step 3 changed Python files also pass format check; 76 historical files remain formatting-only debt |
+| mypy | Passed on `src`, `tools`, and `tests` — 158 source/tool/test files |
+| Package build and external install | Passed; current sdist/wheel contain the product package and one console entry point; fresh base install without pyserial ran version, Simulator read/DC/迟滞, Replay, artifact export, and safe optional-dependency failure |
 | Physical controller UART | PASS with limitations — receive-only COM4 Protocol v1 compatibility; exact firmware, disconnect recovery, external peripherals, and AFE are unverified |
 | AFE hardware bench validation | Not performed |
 
@@ -150,7 +150,7 @@ port and did not repeat or broaden the Step 7 HIL.
 | Plan | Product-layer files, safety boundaries, workflow order, and exit gates | Complete | HOST_TEST planning record |
 | 1 | Product contracts, reviewed catalog, user issues, and installable CLI skeleton | Complete | HOST_TEST / external base-wheel install |
 | 2 | Bounded single-owner cancellable worker | Complete | HOST_TEST / external base-wheel smoke |
-| 3 | Stable test-running CLI workflows | Planned | Not run |
+| 3 | Stable test-running CLI workflows | Complete | HOST_TEST / SYNTHETIC / CSV_REPLAY / external base-wheel install |
 | 4 | Evidence-visible human reports and deterministic charts | Planned | Not run |
 | 5 | Dashboard state, presenter, and desktop shell | Planned | Not run |
 | 6 | Beginner workflow and read-only serial wiring | Planned | Not run |
@@ -214,6 +214,8 @@ Safe to claim now:
 - implemented immutable, output-denying product job/result contracts, a reviewed exact-match source/profile catalog, stable expected-error-to-user-issue mapping, and deterministic human/JSON product identity output.
 - installed the base wheel outside the repository and ran the console/module entry points without pyserial, Tkinter import, serial access, or a display; retired the obsolete root Dashboard source without changing Phase 1–4 golden behavior.
 - implemented a bounded single-owner product worker with immutable monotonic events, cooperative cancellation, finite join/close, deterministic post-factory cleanup, and fail-closed result/issue handling under injected host-side races and faults.
+- implemented installed Simulator and CSV Replay read/DC/hysteresis workflows that reuse formal analysis/criteria/export logic, expose stable JSON and exit codes, and preserve evidence limitations;
+- implemented discovery-only ports and an exact bounded receive-only observe boundary with no application write surface; Step 3 serial proof used a memory backend, not a physical port.
 
 Not safe to claim now:
 
@@ -226,13 +228,12 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 5 Step 2 is complete. The next checkpoint is Step 3 only: add
-concrete Simulator/CSV Replay application services and stable test-running CLI
-commands above the existing worker. Tests must freeze human/JSON output,
-stdout/stderr, exit codes, Ctrl+C cancellation, deterministic cleanup, and no
-promotion of cancelled, incomplete, unsupported, or failed work to PASS. Step 3
-will use an in-memory serial backend and will not implement reports or a
-Dashboard window.
+Software Phase 5 Step 3 is complete. The next checkpoint is Step 4 only: create
+presentation-only report models, human Markdown/text, self-contained local HTML,
+and deterministic SVG charts from finalized result bundles. Reports must show
+outcome, evidence, limitations, unverified items, versions, and hashes without
+refitting data or changing the engineering conclusion. Dashboard widgets and
+real-port operation remain outside Step 4.
 
 ## GitHub and LinkedIn presentation policy
 

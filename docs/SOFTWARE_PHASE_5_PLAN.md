@@ -1,7 +1,7 @@
 # Software Phase 5 文件级实施计划
 
 **阶段名称：** 产品工作流、CLI、Dashboard 与证据可见报告<br>
-**规划状态：** 已完成；实现进度 2/8<br>
+**规划状态：** 已完成；实现进度 3/8<br>
 **预计时间：** 5–8 个有效开发日；初学者兼职约 2–3 周<br>
 **前置：** Software Phase 1–4 的领域、分析、runner、导出、transport、profile 和 adapter 兼容基线完成<br>
 **默认硬件要求：** 无<br>
@@ -11,7 +11,7 @@
 
 - [x] Step 1：产品层契约、catalog、错误映射与 CLI 骨架；
 - [x] Step 2：owning/cancellable job worker；
-- [ ] Step 3：稳定 CLI 工作流；
+- [x] Step 3：稳定 CLI 工作流；
 - [ ] Step 4：证据可见的人类报告与确定性图表；
 - [ ] Step 5：Dashboard 状态模型、presenter 与桌面外壳；
 - [ ] Step 6：初学者向导、worker 接线与只读串口入口；
@@ -20,8 +20,10 @@
 
 Step 1 已新增产品契约、受控 catalog、错误解释和最小 CLI，同时清理被正式核心
 取代的 Phase 0 占位。Step 2 已新增有界事件、single-owner worker、cooperative cancel、
-有限 join 和 deterministic cleanup。两步都没有新增真实串口或硬件行为；测试执行
-工作流、Dashboard 和报告仍未实现，因此完成 2/8 不等于 Phase 5 产品已完成。
+有限 join 和 deterministic cleanup。Step 3 已将 Simulator、CSV Replay、正式
+read/DC/迟滞分析、结构化导出和显式 receive-only serial 边界接入同一 service/worker/
+CLI 链。三步都没有新增 AFE 实物证据；Dashboard 和人类报告仍未实现，因此完成 3/8
+不等于 Phase 5 产品已完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -303,6 +305,18 @@ analysis/criteria 和 exports；没有安全输出能力时不调用输出 runne
 无 traceback 默认行为有 subprocess 测试；未安装 serial extra 时给出安装指导；测试
 中的 serial 使用内存 backend，不打开物理端口。
 
+**状态：已完成（2026-08-31）。** `factories.py` 只按显式 source/profile 构造
+Simulator、投影后的 CSV Replay 或 receive-only SerialAdapter；`services.py` 通过同一
+worker 组合冻结的 read workflow、DC/迟滞 analysis、criteria 和 result export。CLI
+现提供 human/`product-cli-output.v1` JSON、稳定退出码 0/1/2/3/4/5/70/130、原子默认
+不覆盖导出、SHA-256、缺少 serial extra 指导和保留命令的诚实失败。336 项产品集中
+测试覆盖 1,538/1,538 product statements；完整回归为 1,854 tests、8,863/8,863
+statements。subprocess interpreter interrupt 验证 `CANCELLED`/cleanup/130；Windows
+desktop host 的 console-process-group signal delivery 未扩大为已验证声明。Serial
+测试只使用含 write trap 的内存 backend，未发现或打开物理 COM。详见
+[`product-cli.md`](product-cli.md) 和
+[`software-phase5-step3.md`](../reports/software-phase5-step3.md)。
+
 ### Step 4：证据可见的人类报告与确定性图表
 
 从冻结的 result bundle 建立 presentation-only view model，生成 Markdown/text 摘要、
@@ -357,7 +371,8 @@ demo/report 正常；安装 serial extra 后只做 discovery/host substitute，�
 
 ## 8. CLI 和用户体验最低合同
 
-计划命令形状如下，Step 3 才会冻结具体参数：
+Step 3 已冻结并测试以下命令族；`report`、`demo` 和 `dashboard` 目前只保留名称并
+诚实返回 capability-unavailable，分别由后续步骤实现：
 
 ```text
 analog-validation version
@@ -472,8 +487,8 @@ analog-validation dashboard
 
 ## 14. 下一检查点
 
-Phase 5 Steps 1–2 已完成，实现进度为 2/8。下一次继续时只实施 Step 3：用应用
-service 把现有 Simulator/CSV Replay/read/analysis/export 能力接入稳定 CLI 工作流，并
-冻结 stdout/stderr、JSON、退出码和 Ctrl+C 行为。Step 3 的 serial 测试仍使用内存
-backend，不主动打开真实 COM；报告和 Dashboard 窗口仍属于后续步骤。worker 的
-`SUCCEEDED` 只代表编排安全结束，不能替代产品结果中的工程 PASS/FAIL。
+Phase 5 Steps 1–3 已完成，实现进度为 3/8。下一次继续时只实施 Step 4：从 finalized
+`ResultExportBundle` 建立 presentation-only 人类报告模型、Markdown/text、自包含 HTML
+和确定性 SVG，不重新拟合或改变 PASS/FAIL。`report` 当前仍以退出码 4 明确表示保留
+功能；Dashboard 窗口和真实 COM 操作仍不属于下一步。worker 的 `SUCCEEDED` 只代表
+编排与 cleanup 安全结束，不能替代产品结果中的工程 PASS/FAIL。

@@ -1,6 +1,6 @@
-# Product layer contracts, CLI foundation, and job worker
+# Product layer contracts, services, CLI, and job worker
 
-**Implemented:** Software Phase 5 Steps 1–2, 2026-08-31<br>
+**Implemented:** Software Phase 5 Steps 1–3, 2026-08-31<br>
 **Evidence:** HOST_TEST and repository-external package installation<br>
 **Hardware claim:** none
 
@@ -23,7 +23,7 @@ user / future Dashboard
 analog-validation CLI
           |
           v
-analog_validation_app     request, catalog, issue, worker, future services
+analog_validation_app     request, catalog, factories, services, worker, CLI
           |
           v
 analog_validation         protocols, adapters, analysis, results
@@ -43,7 +43,7 @@ not import adapters, profiles, serial code, analysis, exports, or GUI modules.
 | `product-job-event.v1` | Immutable worker state/progress event | Index is positive and monotonic; text and queue are bounded; only failures carry a safe issue |
 | `product-catalog.v1` | Reviewed sources and profiles | Lookup is exact; an unknown profile is rejected rather than guessed |
 | `user-issue.v1` | Stable user-facing failure explanation | Expected errors map by type; unexpected internal details are not exposed |
-| `product-cli-output.v1` | Deterministic machine-readable CLI output | JSON identifies schema and software version; hardware claim is explicitly `NONE` where applicable |
+| `product-cli-output.v1` | Versioned machine-readable CLI output | JSON identifies schema/software, source, worker/product/engineering state, limitations, and an explicit no-hardware-performance claim |
 
 A product result is an engineering conclusion only when its finalized core
 outcome is `PASS` or `FAIL`. `CANCELLED`, `INCOMPLETE`, `UNSUPPORTED`, and `ERROR`
@@ -108,23 +108,40 @@ Two exact profile identities are reviewed:
 Catalog support states a software compatibility boundary. It does not prove that
 a physical AFE, MSP430 firmware image, sensor, fan, wiring, or instrument works.
 
-## Current CLI
+## Application services and current CLI
+
+Step 3 adds one explicit adapter factory for each source and three product
+services: bounded read, formal DC evaluation, and formal hysteresis evaluation.
+The factory validates the exact catalog request before constructing a resource;
+the worker thread then owns that resource through cleanup. A thread-safe output
+slot publishes detailed read/export data only after a safe service checkpoint.
+
+The service layer calls the frozen engineering APIs. It does not parse wire
+fields, calculate a second line fit, infer saturation, estimate another
+threshold, or reinterpret PASS/FAIL. Simulator and Replay analysis operate on
+read-only observations and never invoke an output runner.
 
 After installation:
 
 ```powershell
 analog-validation --help
-analog-validation version
 analog-validation version --json
 analog-validation profiles
-analog-validation profiles --json
-python -m analog_validation_app profiles
+analog-validation simulate read --samples 3
+analog-validation simulate dc --points 12 --json
+analog-validation simulate hysteresis
+analog-validation replay read --input .\data.csv --samples 2 --json
 ```
 
-The current CLI deliberately exposes only product identity and reviewed
-profiles. It does not yet run Simulator, replay, analysis, report, Dashboard, or
-serial jobs. Step 2 supplies the reusable worker, but concrete services and
-test-running commands belong to Step 3.
+`ports` performs discovery without opening a port. `observe` is the only real
+serial entry and requires an exact port, profile, channel, unit, record/poll
+bound, and `--confirm-read-only`. The product exposes no serial write operation.
+Tests inject a memory backend with a write trap; the connected MSP430 was not
+opened during Step 3.
+
+`report`, `dashboard`, and `demo` are stable reserved commands. They return a
+capability-unavailable issue and exit code 4 until their reviewed steps exist;
+the CLI never fabricates their output.
 
 For an unknown command the CLI exits with code `2`, writes no result to stdout,
 and explains:
@@ -133,18 +150,19 @@ and explains:
 2. a possible cause;
 3. a safe next step.
 
-The default path does not print a Python traceback. This makes expected mistakes
-actionable while keeping unexpected internal details out of normal user output.
+The default path does not print a Python traceback. Complete engineering FAIL,
+incomplete evidence, unavailable capability/dependency, operation error,
+unexpected defect, and interrupt use distinct exits 1, 3, 4, 5, 70, and 130.
+See the [CLI guide](product-cli.md) for exact commands and semantics.
 
 ## Installation and evidence boundary
 
 The current wheel was installed in a fresh directory outside the repository with
-`--no-deps`. `help`, `version`, `profiles`, and the module entry point ran while
-`pyserial` was absent; neither `serial`, `analog_validation_pyserial`, nor
-`tkinter` was imported. An installed in-memory service also ran through the
-worker, published progress, cleaned up, reached `SUCCEEDED`, and left no live
-product worker thread. No COM port was enumerated or opened, and no window was
-created.
+`--no-deps`. Version, Simulator read/DC/hysteresis, CSV Replay, structured export,
+and reserved-command behavior ran while pyserial was absent. `ports` failed
+before discovery with the documented optional-dependency exit. A subprocess
+interpreter interrupt reached `CANCELLED`, cleanup, and exit 130. No COM port was
+enumerated or opened, and no window was created.
 
 This proves packaging, dependency isolation, deterministic CLI behavior, and
 host-side product-contract logic. It does not add hardware evidence. The earlier
@@ -153,7 +171,8 @@ receive-only MSP430 UART capture remains a separate, narrowly scoped
 
 ## Next checkpoint
 
-Software Phase 5 Step 3 will implement concrete application services and stable
-test-running CLI workflows above this worker. Simulator and CSV Replay remain
-the default no-hardware paths; serial tests use an injected memory backend and
-must not open a real port without a separate explicit owner-approved action.
+Software Phase 5 Step 4 will build human-readable Markdown/text, self-contained
+HTML, and deterministic SVG from finalized result bundles. Presentation remains
+read-only: it may explain existing evidence and outcomes, but may not refit,
+re-evaluate, or promote evidence. Dashboard and any real-port action remain
+separate later gates.

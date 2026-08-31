@@ -1,7 +1,7 @@
 # 开发环境
 
 **验证日期：** 2026-08-31<br>
-**当前阶段：** Software Phase 5 Step 2 已完成（2/8）<br>
+**当前阶段：** Software Phase 5 Step 3 已完成（3/8）<br>
 **硬件要求：** 默认软件门禁无需硬件；Step 7 已单独完成一次 MSP430 receive-only HIL
 
 ## 已验证环境
@@ -10,7 +10,7 @@
 - Python 3.12.10 64-bit，来自 python.org 独立安装；
 - Git for Windows 2.55.0；
 - Visual Studio Code 1.135.0；
-- LTspice 26.0.1（未来模拟电路仿真使用，当前 Software Phase 4 不依赖）；
+- LTspice 26.0.1（未来模拟电路仿真使用，当前 Software Phase 5 不依赖）；
 - 项目虚拟环境：`.venv`；
 - pytest 8.4.2；
 - Ruff 0.16.5；
@@ -49,9 +49,9 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m build
 ```
 
-pytest、三项 package coverage、全仓库 Ruff、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式分析、runner 和导出，Software Phase 4 已完成 transport、profiles、receive-only serial adapter、可选 pyserial backend、兼容冻结和窄范围 COM4 HIL。Software Phase 5 Steps 1–2 新增独立 `analog_validation_app` 产品层、不可变 job/result/event contract、受控 catalog、面向用户的 issue 映射、`analog-validation version/profiles` 安装入口，以及 single-owner/cooperative-cancel worker。当前完整门禁为 1,725 tests、8,098/8,098 正式+可选+产品 package statements、全仓库 Ruff、149-file mypy、依赖检查、sdist/wheel 和仓库外无 pyserial 基础安装/内存 worker smoke。
+pytest、三项 package coverage、全仓库 Ruff rule check、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式分析、runner 和导出，Software Phase 4 已完成 transport、profiles、receive-only serial adapter、可选 pyserial backend、兼容冻结和窄范围 COM4 HIL。Software Phase 5 Steps 1–3 新增独立 `analog_validation_app` 产品层、不可变 job/result/event contract、受控 catalog、面向用户的 issue 映射、single-owner/cooperative-cancel worker、显式 adapter factories、共享 read/DC/迟滞 services，以及稳定 Simulator/Replay/receive-only CLI。当前完整门禁为 1,854 tests、8,863/8,863 正式+可选+产品 package statements、全仓库 Ruff rule check、158-file mypy、sdist/wheel 和仓库外无 pyserial 基础安装/工作流 smoke。
 
-当前 CLI 只提供产品身份和 reviewed profiles，并不执行测量或分析。Step 2 没有创建 Tk 窗口、没有访问串口；下一检查点是 Phase 5 Step 3 稳定 CLI 工作流。
+当前 CLI 已执行正式的软件 read/DC/迟滞工作流，但 `report`、`dashboard` 和 `demo` 仍是诚实返回退出码 4 的保留命令。Step 3 没有创建 Tk 窗口、没有发现或打开物理串口；下一检查点是 Phase 5 Step 4 人类报告与确定性图表。
 
 安装后可验证最小产品入口：
 
@@ -59,12 +59,17 @@ pytest、三项 package coverage、全仓库 Ruff、mypy、依赖检查、构建
 analog-validation --help
 analog-validation version
 analog-validation profiles
-python -m analog_validation_app profiles
+analog-validation simulate read --samples 3
+analog-validation simulate dc --points 12 --json
+analog-validation simulate hysteresis
 ```
+
+当前 Ruff 0.16.5 的 `ruff format --check .` 会建议重排 76 个历史文件；本次 Step 3
+改动文件已通过 formatter，全仓机械重排被单独保留为维护事项，避免掩盖功能 diff。
 
 ## 当前边界
 
-- 正式核心和产品 CLI 骨架仍不要求 `pyserial`；可选 backend 已完成，但 owning worker、取消/长时间运行和真实断线恢复尚未实现；
+- 正式核心和 Simulator/Replay CLI 仍不要求 `pyserial`；owning worker 与 interpreter-interrupt 取消已完成 HOST_TEST，但真实串口长时间运行、物理断线和交互式 Windows console smoke 尚未验证；
 - 不需要 CCS、MSP430 GCC、KiCad 或实验室仪器；
 - 软件测试结果不代表任何模拟电路、控制器、接线或仪器已经验证；
 - Git 提交身份已配置为 GitHub 账号 `Carlos-0798` 及其 noreply 邮箱。
