@@ -366,6 +366,7 @@ This is an **independent personal engineering project**.
 
 ## Safety and evidence policy
 
+- Current release boundary: `NO_NEW_HARDWARE_VALIDATION`.
 - Only low-voltage 0–3.3 V work is planned; mains experimentation is out of scope.
 - Numeric ranges in software fixtures are examples, not validated hardware limits.
 - `SYNTHETIC`, `SPICE_*`, and `HOST_TEST` evidence cannot support physical performance claims.
