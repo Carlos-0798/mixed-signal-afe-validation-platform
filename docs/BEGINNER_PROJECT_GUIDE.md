@@ -85,8 +85,9 @@ python -m venv .venv
 ### 4.2 暂缓安装
 
 - **Code Composer Studio**：只用于未来 MSP430 兼容 profile；软件产品核心不依赖 CCS。
-- **串口终端和 pyserial**：receive-only 内存 SerialAdapter 不需要；只有在
-  Software Phase 4 可选真实 OS-serial/HIL 门禁确认后再安装。
+- **串口终端和 pyserial**：正式核心和默认测试不需要。Step 7 已通过可选
+  `[serial]` extra 安装 pyserial 3.5，并仅用于 owner-approved、零应用写入的
+  COM4 HIL；新环境只有需要真实端口时才安装。
 - **KiCad 10**：Phase 6 再安装；现在画 PCB 会把尚未验证的接线固化。
 - **MSP430 GCC 独立工具链**：CCS 路线无法满足需求时再评估。
 - **Labrador 软件/驱动**：只有确认购买并确认 Windows 11 兼容性后安装。

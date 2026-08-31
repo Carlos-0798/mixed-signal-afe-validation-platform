@@ -1,10 +1,10 @@
 # Shared Read Workflow
 
 **Schema:** `read-workflow.v1`  
-**Current evidence:** HOST_TEST / SYNTHETIC / CSV_REPLAY  
-**Hardware validation:** none
+**Current evidence:** HOST_TEST / SYNTHETIC / CSV_REPLAY / narrow BENCH_CONTROLLER UART capture<br>
+**AFE hardware validation:** none
 
-Software Phase 2 Step 7 adds one read-only application workflow above `DeviceAdapter`. Simulator and CSV Replay receive the same immutable request and execute through the same `run_read_workflow` function. Software Phase 4 Step 6 proves that explicitly configured AFE and MSP430 serial profiles can enter the unchanged workflow through the receive-only `SerialAdapter`.
+Software Phase 2 Step 7 adds one read-only application workflow above `DeviceAdapter`. Simulator and CSV Replay receive the same immutable request and execute through the same `run_read_workflow` function. Software Phase 4 Step 6 proves that explicitly configured AFE and MSP430 serial profiles can enter the unchanged workflow through the receive-only `SerialAdapter`; Step 7 sends one physical MSP430 UART capture through that same function without changing its API.
 
 ## Why this layer exists
 

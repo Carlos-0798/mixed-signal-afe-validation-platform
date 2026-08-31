@@ -1,7 +1,7 @@
 # Software Phase 4 文件级实施计划
 
 **阶段名称：** 串口传输、对等控制器 profiles 与真实链路边界<br>
-**规划状态：** 进行中，进度 6/8<br>
+**规划状态：** 进行中，进度 7/8<br>
 **预计时间：** 5–8 个初学者开发日<br>
 **前置：** Software Phase 3 的分析、runner 与结构化结果兼容基线完成<br>
 **硬件要求：** Steps 1–6 无；Step 7 可选使用已连接的 MSP430 LaunchPad<br>
@@ -15,7 +15,7 @@
 - [x] Step 4：AFE v1 serial profile；
 - [x] Step 5：MSP430 Equipment Health v1 只读 profile；
 - [x] Step 6：SerialAdapter、共用 workflow 与异常链路集成；
-- [ ] Step 7：可选的 MSP430 只读串口 HIL；
+- [x] Step 7：可选的 MSP430 只读串口 HIL；
 - [ ] Step 8：黄金兼容、构建、文档和阶段收口。
 
 Step 1 已增加 `analog_validation.transport`，使用设备无关的有界 LF 字节流状态机处理分段、粘包、超长记录和重新同步，并使用 profile 指定的位宽跟踪首次、连续、缺帧、重复、乱序和回绕序列。
@@ -185,6 +185,20 @@ MSP430 项目的两小时 soak 证明其自身固件/Dashboard 链路，不证�
 
 验收：记录设备/固件 identity、端口、配置、连续帧、CRC、sequence/uptime、sentinel/fault、timeout 和断开/重连结果；输出 Analog-owned HIL 报告。如果设备不可用，明确标记 `NOT RUN`，不阻塞 host-compatible Phase 4 closure。
 
+**状态：已完成，但保留精确固件身份限制。** 新增可选
+`analog_validation_pyserial` package 和 `serial` extra；正式核心仍为标准库依赖。
+真实 Windows 枚举识别 COM4 Application UART 与 COM5 Debug Interface，HIL 仅显式
+打开 COM4 一次。由本仓库 `SerialAdapter`/`ReadWorkflow` 接收 5 个 CRC-valid TEL，
+sequence 27917–27921 与 uptime 均连续，形成 25 个 `BENCH_CONTROLLER`
+Measurements；打开/关闭 1/1、意外坏记录 0、断线/重连 0/0、write calls/bytes
+0/0。每个 TEL 前的无 CRC `HB` 是 peer 文档明确保留的 legacy diagnostic；核心
+parser 仍将其严格记录为 `REJECTED`，HIL 层只对 exact syntax 且与 TEL
+sequence/uptime 对齐者单独分类，malformed/unaligned 样本仍失败。板卡报告
+`FAULT 0x0015` 与 unavailable sentinels，因此外部 DS18B20/NTC/INA219 不可用，
+没有形成外设或 AFE 验证。Protocol v1 被动 TEL 不含 firmware version，当前精确
+固件仍为 `UNCONFIRMED_PASSIVE_ONLY`。证据见
+`docs/pyserial-backend.md` 与 `reports/software-phase4-step7.md`。
+
 ### Step 8：黄金兼容、构建与阶段收口
 
 冻结 Phase 4 public API、profile schemas、AFE/MSP golden records、端到端内存串口结果和错误层级。运行完整 pytest/coverage/Ruff/mypy/build/外部安装检查，更新 README、status、traceability、风险和 GitHub 展示材料。
@@ -215,4 +229,8 @@ MSP430 项目的两小时 soak 证明其自身固件/Dashboard 链路，不证�
 
 ## 9. 下一检查点
 
-Step 7 是可选、需要单独授权的 MSP430 只读串口 HIL。开始前必须确认板卡仍运行冻结的公开接口、目标 COM 端口属于该板且没有被其他程序占用，并先实现/验证最小 concrete OS backend。HIL 默认只接收设备主动 telemetry，不发送 `CMD`、不刷写、不改变 FRAM、不要求外接传感器或风扇。结果必须记录当前 identity、原始帧、CRC、sequence/uptime、sentinel/fault、timeout 和断连行为；任何前置条件不明确时标记 `NOT RUN`，不阻塞 Step 8 的 host-compatible 收口。
+Step 8 将冻结 Phase 4 public API、schemas、黄金输入和代表性复合结果，并重新执行
+完整兼容、覆盖、静态检查、隔离构建和外部安装门禁。收口材料必须把 Steps 1–6
+的 `HOST_TEST`、Step 7 的窄范围 `BENCH_CONTROLLER` UART 证据，以及仍为 0 的
+AFE 硬件性能证据分栏展示；不会因为 UART 兼容而扩大任何外部传感器、风扇或
+模拟前端声明。

@@ -1,9 +1,9 @@
 # Serial Profiles and Receive-Only Adapter Integration
 
-**Implemented:** Software Phase 4 Steps 4–6<br>
+**Implemented:** Software Phase 4 Steps 4–7<br>
 **Schema:** `serial-profile.v1`<br>
-**Evidence:** HOST_TEST<br>
-**Physical serial or AFE validation:** none
+**Evidence:** HOST_TEST plus narrow Step 7 BENCH_CONTROLLER UART compatibility<br>
+**Physical AFE validation:** none
 
 ## 1. What this layer solves
 
@@ -113,10 +113,11 @@ The unit remains a separate typed field, so removing `_mv` from the canonical
 channel name does not remove the millivolt unit. Fault-bearing telemetry remains
 `SUSPECT + DEVICE_FAULT`; the profile never turns it into valid data.
 
-The constructor requires an explicit evidence source. Step 4 uses
-`HOST_TEST`. `BENCH_CONTROLLER` is available for a future physical adapter, but
-selecting that enum does not by itself prove a physical test; the later HIL gate
-must supply the actual port/configuration/raw evidence.
+The constructor requires an explicit evidence source. Steps 4–6 use
+`HOST_TEST`. Step 7 uses `BENCH_CONTROLLER` only because its report supplies the
+actual port, configuration, raw records, CRC/sequence outcomes, lifecycle
+counters, and zero-write evidence. Selecting that enum alone never proves a
+physical test.
 
 ## 5. Why only telemetry advances the sequence tracker
 
@@ -301,15 +302,21 @@ joined.
 
 Steps 4–6 prove deterministic software parsing, mapping, aggregation, adapter
 lifecycle, shared workflow composition, failure handling, and independent
-interoperability fixtures with in-memory transport. They do not
-prove:
+interoperability fixtures with in-memory transport. Step 7 additionally proves
+one narrow physical path: the optional pyserial backend opened COM4 once and
+five CRC-valid consecutive MSP430 TEL records reached the same SerialAdapter and
+ReadWorkflow with zero application writes.
 
-- a concrete OS or pyserial backend;
-- UART baud, voltage levels, timing, grounding, cable, or EMI behavior;
+Step 7 still does not prove:
+
+- the exact firmware image, because passive Protocol v1 TEL has no version field;
+- long-duration UART timing, voltage levels, grounding, cable/EMI behavior, or
+  physical disconnect recovery;
 - any AFE circuit, ADC/DAC, gain, cutoff, threshold, saturation, or protection;
-- OS-level or physical MSP430 serial compatibility;
-- physical safe shutdown.
+- external MSP430 sensors, INA219, fan, 5 V, wiring, or physical safe shutdown.
 
-Step 7 may add a separately authorized, receive-only MSP430 HIL record after the
-current firmware/interface identity, correct port, and concrete OS backend are
-confirmed. It must send no command and cannot support any AFE hardware claim.
+The current firmware also multiplexes documented no-CRC legacy HB diagnostics
+before TEL. The core profile keeps those records rejected; only the HIL evidence
+layer classifies exact TEL-aligned HB syntax separately. See
+`pyserial-backend.md` and `reports/software-phase4-step7.md`. Step 8 will freeze
+the Phase 4 public/compatibility boundary without expanding the physical claim.

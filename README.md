@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 4 in progress — 6/8 checkpoints |
-| Release maturity | Pre-MVP; receive-only serial adapter integration host-tested |
+| Development stage | Software Phase 4 in progress — 7/8 checkpoints |
+| Release maturity | Pre-MVP; optional receive-only MSP430 UART HIL complete |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 1,472 passed |
-| Formal package coverage | 100% of 7,198 statements |
-| Highest evidence level | `HOST_TEST` |
-| Verified hardware claims | **0 — hardware has not been built or bench-validated** |
+| Automated tests | 1,513 passed |
+| Formal + optional package coverage | 100% of 7,325 statements |
+| Highest evidence level | `BENCH_CONTROLLER` — MSP430 UART compatibility only |
+| Verified AFE hardware performance claims | **0 — the AFE has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Current progress report](reports/PROJECT_PROGRESS_REPORT_2026-08-30.md) · [Phase 4 plan](docs/SOFTWARE_PHASE_4_PLAN.md) · [Step 6 report](reports/software-phase4-step6.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Current progress report](reports/PROJECT_PROGRESS_REPORT_2026-08-30.md) · [Phase 4 plan](docs/SOFTWARE_PHASE_4_PLAN.md) · [Step 7 report](reports/software-phase4-step7.md)
 
 ## Product vision
 
@@ -109,8 +109,11 @@ The separate MSP430 Equipment Health Controller is a peer product, not a subordi
 - The same eight-check `DeviceAdapter` contract passes for both AFE and MSP430 serial configurations; the shared `ReadWorkflow` consumes both without profile-specific branching.
 - Reconnect invalidates capabilities and buffered Measurements until they are reconfirmed; CRC/framing rejects remain traceable raw events and never become Measurements.
 - Read-only MSP430 serial integration returns `UNSUPPORTED` with zero writes for both DC-sweep and hysteresis output runners.
+- Optional `analog_validation_pyserial` integration with lazy dependency loading, privacy-minimal COM discovery, exact line-setting mapping, bounded reads, deterministic close, and no public `write()` method.
+- Repository-owned `msp430-receive-only-hil.v1` capture that runs the physical MSP430 UART through `SerialAdapter` and `ReadWorkflow`, retains raw/CRC/sequence/fault evidence locally, and refuses to overwrite prior captures.
+- Accepted receive-only COM4 result: 5/5 CRC-valid TEL records, continuous sequence/uptime, 25 `BENCH_CONTROLLER` Measurements, zero unexpected records, zero disconnects, and zero application writes/bytes; exact firmware and every external peripheral remain unverified.
 
-Not yet implemented: concrete OS/pyserial backend, calibration/frequency TestRun export mappings, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, accepted physical MSP430 HIL through this product, or validated physical AFE hardware.
+Not yet implemented: owning serial worker, calibration/frequency TestRun export mappings, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, long-duration physical transport testing through this product, or validated physical AFE hardware.
 
 ## Architecture
 
@@ -163,8 +166,9 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 1,472 passed |
-| Formal package statement coverage | 100% of 7,198 statements |
+| Full pytest suite | 1,513 passed |
+| Formal + optional package statement coverage | 100% of 7,325 statements |
+| Phase 4 optional pyserial backend and receive-only HIL | 127/127 optional statements covered; base and `[serial]` external installs passed; COM4 delivered 5/5 valid continuous TEL, 25 Measurements, and zero writes; exact firmware unconfirmed |
 | Phase 4 receive-only SerialAdapter and product chains | 74 new tests; 282/282 added statements covered; AFE/MSP shared contracts, workflows, reconnect, and zero-write runner degradation passed |
 | Phase 4 MSP430 Equipment Health v1 profile | 121 new tests; 416/416 new-module statements covered; 10 valid + 11 invalid independent fixtures |
 | Phase 4 AFE v1 serial profile | 59 new tests; 225/225 added statements covered; 20 valid + 9 invalid golden cases retained |
@@ -190,9 +194,10 @@ The current results are host-software evidence only:
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 140 source/test files |
-| Latest sdist/wheel build and repository-external installed SerialAdapter→ReadWorkflow smoke without pyserial | Passed — `HOST_TEST`, 25.3 °C, one raw event, zero writes |
-| Hardware bench tests | Not run |
+| mypy | Passed on 146 source/test files |
+| Latest build and repository-external installs | Passed both without pyserial and with `[serial]`; pyserial 3.5 discovered COM4/COM5 |
+| Physical controller UART | Passed with limitations — receive-only Protocol v1 compatibility only; see Step 7 report |
+| AFE hardware bench tests | Not run |
 
 Every completed software checkpoint has a report under [`reports/`](reports/). Test counts and claims are updated only after the corresponding command has actually run.
 
@@ -206,6 +211,22 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m pytest
 .\.venv\Scripts\python.exe -c "import analog_validation; print(analog_validation.__version__)"
 ```
+
+Add optional real-port support only when a serial controller is needed:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -e ".[dev,serial]"
+```
+
+The owner-approved passive MSP430 command requires an explicit port, sends no
+application bytes, and writes create-new evidence below ignored `work/`:
+
+```powershell
+.\.venv\Scripts\python.exe -m tools.msp430_read_only_hil --port COM4 --frames 5
+```
+
+See [optional pyserial and HIL safety](docs/pyserial-backend.md) before using a
+physical port.
 
 Minimal AFE v1 round trip:
 
@@ -265,12 +286,12 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Complete — 8/8 checkpoints |
-| Software Phase 4 | Serial transport and independent controller profiles | In progress — 6/8 checkpoints |
+| Software Phase 4 | Serial transport and independent controller profiles | In progress — 7/8 checkpoints |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-Software Phase 3 is complete: analysis, safety-gated runners, calibration, offline frequency response, and `result-export.v1` passed all eight checkpoints. Public namespaces and exact representative DC/hysteresis results are protected by golden compatibility tests. Software Phase 4 Steps 1–6 now provide the host-tested bounded stream/sequence foundation, profile-neutral CRC envelope, backward-compatible AFE wrapper, explicit channel mapping, driver-neutral serial lifecycle, bounded memory-only raw provenance, independent AFE/MSP430 profiles, and one receive-only `SerialAdapter` path into the frozen adapter/workflow contracts. Concrete OS serial access remains a separate boundary. Optional MSP430 HIL through this product and real AFE hardware remain separately gated work.
+Software Phase 3 is complete: analysis, safety-gated runners, calibration, offline frequency response, and `result-export.v1` passed all eight checkpoints. Public namespaces and exact representative DC/hysteresis results are protected by golden compatibility tests. Software Phase 4 Steps 1–7 now provide the bounded stream/sequence foundation, profile-neutral CRC envelope, backward-compatible AFE wrapper, explicit channel mapping, driver-neutral serial lifecycle, bounded raw provenance, independent AFE/MSP430 profiles, one receive-only `SerialAdapter`, an optional OS backend, and a narrow owner-approved physical MSP430 UART compatibility result. Step 8 compatibility closure and all real AFE hardware work remain separately gated.
 
 ## Repository guide
 
@@ -314,6 +335,7 @@ See [assumptions requiring confirmation](ASSUMPTIONS.md), [test and evidence pol
 - [AFE channel naming mapping v1](docs/afe-channel-mapping.md)
 - [Serial lifecycle and raw-event boundary](docs/serial-transport.md)
 - [Serial profiles and AFE v1 integration](docs/serial-profiles.md)
+- [Optional pyserial backend and receive-only HIL](docs/pyserial-backend.md)
 - [CSV Replay v1 format](docs/csv-replay-v1.md)
 - [Shared read workflow](docs/read-workflow.md)
 - [DC sweep analysis](docs/dc-sweep-analysis.md)

@@ -6,9 +6,10 @@
 - `SPICE_IDEAL`: result produced by the included idealized LTspice netlists.
 - `SYNTHETIC`: data generated in software to test analysis paths.
 - `HOST_TEST`: executable Python test result.
-- `BENCH`: future physical measurement with recorded wiring and instruments.
+- `BENCH_CONTROLLER`: physical controller bytes, not automatically an external-sensor or AFE measurement.
+- `BENCH_DMM` / `BENCH_SCOPE`: future physical measurements with recorded wiring and instruments.
 
-Only `BENCH` evidence may support claims about physical hardware. Phase 0 can produce the first four labels only.
+Only a specific `BENCH_*` record may support the physical behavior it directly observed. Controller UART evidence cannot support AFE voltage/gain/bandwidth claims. Phase 0 can produce the first four labels only.
 
 ## Phase 0 executable checks
 
@@ -67,6 +68,25 @@ Do not power the analog assembly until the open toolchain, inventory, permission
 - Keep real port/HIL commands `NOT RUN` until the separate owner-approved gate;
   host lifecycle tests do not prove OS timing, UART electrical behavior, or a
   physical controller link.
+
+## Software Phase 4 optional controller HIL checks
+
+- Keep the base wheel usable without pyserial; install the driver only through
+  the optional `serial` extra.
+- Discover first, require an explicit application-UART port, and never use a
+  COM number as a library default or capability inference.
+- Use a backend with no public write method; send no command bytes, flash
+  nothing, and do not change FRAM.
+- Capture through the current `SerialAdapter` and `ReadWorkflow`, not an ad hoc
+  parser; persist local create-new evidence with raw bytes/hashes, CRC,
+  sequence/uptime, sentinels/faults, timeout, open/close, disconnect/reconnect,
+  and zero-write counters.
+- Keep Protocol v1 parsing strict. A documented legacy HB line may be classified
+  only out of profile, with exact syntax and matching TEL sequence/uptime;
+  malformed, unaligned, or other no-CRC lines remain anomalies.
+- Label exact firmware `UNCONFIRMED_PASSIVE_ONLY` when passive telemetry has no
+  version field. Do not infer external sensors, fan, wiring, 5 V, or AFE status
+  from controller connectivity.
 
 ## Deferred bench acceptance
 

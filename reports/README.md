@@ -2,8 +2,9 @@
 
 No hardware validation report exists. Reports must preserve the evidence labels defined in `docs/test-plan.md`.
 
-Host-only software reports:
+Software checkpoint reports (each report states its own evidence level):
 
+- `software-phase4-step7.md` — optional pyserial backend, base/serial external installs, repository-owned receive-only COM4 HIL, CRC/sequence/uptime/fault evidence, legacy-HB classification, zero-write proof, and exact-firmware/AFE limitations. This report includes narrow `BENCH_CONTROLLER` evidence and is not a physical AFE report.
 - `software-phase4-step6.md` — receive-only SerialAdapter composition, explicit AFE capability projection, AFE/MSP shared adapter/workflow contracts, bounded failure/reconnect behavior, zero-write runner degradation, package/install evidence, and no-COM boundary.
 - `software-phase4-step5.md` — independent read-only MSP430 Equipment Health v1 profile, frozen peer-interface reference, repository-owned fixtures, sentinel/fault mapping, 32-bit continuity, build/install evidence, and no-COM boundary.
 - `software-phase4-step4.md` — generic serial-profile contract, independent AFE v1 integration, canonical telemetry, capability/sequence semantics, golden migration, build/install evidence, and hardware limits.

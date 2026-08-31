@@ -153,12 +153,13 @@ the original cause.
 
 ## Replaceable backend rule
 
-The formal package defines the `SerialBackend` port but still ships no concrete
-OS driver implementation through Step 6. The test suite supplies
+The formal core defines the `SerialBackend` port and deliberately ships no OS
+driver inside `analog_validation`. The test suite supplies
 `tests.support.MemorySerialBackend`, which can script data, timeouts,
 disconnects, and failures without hardware or sleeping.
 
-A later OS adapter may use pyserial as an optional installation extra. Core
+Step 7 adds `analog_validation_pyserial` as a separate optional installation
+extra and proves one bounded COM4 receive lifecycle. Core
 imports, simulation, replay, analysis, and report reading must continue to work
 without pyserial, a serial driver, or a COM port. A future controller can reuse
 this transport by implementing a separate profile; it must not add its business
@@ -172,16 +173,16 @@ parse/reject transitions, CRC-envelope composition, receive-only adapter
 composition, shared workflow use, package construction, and external
 installed-package use.
 
-It does not establish:
-
-- OS port enumeration, permissions, driver behavior, or timing;
-- pyserial compatibility or a real COM-port lifecycle;
-- UART baud accuracy, voltage level, grounding, EMI, cable, or board behavior;
-- a physical MSP430/AFE connection or any verified UART business behavior;
-- any physical measurement or hardware performance.
+It does not by itself establish OS port enumeration, permissions, driver
+behavior, timing, electrical behavior, or physical hardware performance. Step 7
+adds a separate optional pyserial package and one reported COM4 lifecycle; that
+narrow HIL is not retroactive evidence for the host-only transport tests in this
+document.
 
 AFE and MSP430 profiles remain independent Steps 4 and 5. Step 6 composes each
 behind the same receive-only adapter contract with an in-memory backend. Their
 compatibility is a public-interface integration between peer products, not a
-repository merge or transfer of evidence. A concrete OS backend and any
-owner-approved physical HIL remain separate later evidence gates.
+repository merge or transfer of evidence. Step 7's optional backend and
+owner-approved passive HIL are separately documented in
+`pyserial-backend.md`; exact firmware, disconnect recovery, peripherals, and
+the AFE remain later evidence gates.
