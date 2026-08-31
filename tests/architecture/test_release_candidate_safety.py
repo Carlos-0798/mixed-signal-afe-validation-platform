@@ -30,7 +30,8 @@ def test_release_verifier_uses_create_new_manifest_and_atomic_directory_rename()
     source = TOOL.read_text(encoding="utf-8")
 
     assert 'manifest_path.open("x"' in source
-    assert "candidate.rename(output)" in source
+    assert "staging_root.rename(target)" in source
+    assert 'tempfile.mkdtemp(prefix=".rc-"' in source
     assert "candidate output already exists" in source
     assert '"candidate_status": "PASS"' in source
     assert '"afe_bench_requirements_verified": 0' in source

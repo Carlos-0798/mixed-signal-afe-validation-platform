@@ -688,6 +688,55 @@ def _manifest(
     }
 
 
+def _publish_candidate(
+    output: Path,
+    source_directory: Path,
+    artifacts: Sequence[ArtifactRecord],
+    document: Mapping[str, object],
+) -> None:
+    target = output.absolute()
+    _validate_output_destination(target)
+    candidate_names = [record.filename for record in artifacts]
+    candidate_names.append("release-manifest.json")
+    if os.name == "nt" and any(
+        len(str(target / name)) >= 248 for name in candidate_names
+    ):
+        raise ReleaseCandidateDestinationError(
+            "candidate output path is too long for a default Windows installation"
+        )
+
+    staging_root = Path(tempfile.mkdtemp(prefix=".rc-", dir=target.parent))
+    published = False
+    try:
+        if os.name == "nt" and any(
+            len(str(staging_root / name)) >= 260 for name in candidate_names
+        ):
+            raise ReleaseCandidateDestinationError(
+                "candidate staging path is too long for a default Windows installation"
+            )
+        for record in artifacts:
+            shutil.copyfile(
+                source_directory / record.filename, staging_root / record.filename
+            )
+        manifest_path = staging_root / "release-manifest.json"
+        with manifest_path.open("x", encoding="utf-8", newline="\n") as handle:
+            handle.write(
+                json.dumps(document, ensure_ascii=False, sort_keys=True, indent=2)
+                + "\n"
+            )
+        staging_root.rename(target)
+        published = True
+    except ReleaseCandidateError:
+        raise
+    except OSError as error:
+        raise ReleaseCandidateError(
+            "candidate staging or atomic publication could not complete"
+        ) from error
+    finally:
+        if not published:
+            shutil.rmtree(staging_root, ignore_errors=True)
+
+
 def _quality_gates() -> None:
     commands = (
         (
@@ -752,23 +801,7 @@ def verify_release_candidate(output: Path) -> dict[str, object]:
         )
         assert_manifest_privacy(document)
 
-        with tempfile.TemporaryDirectory(
-            prefix=f".{output.name}-staging-", dir=output.parent
-        ) as staging_directory:
-            staging_root = Path(staging_directory)
-            candidate = staging_root / output.name
-            candidate.mkdir()
-            for record in first:
-                shutil.copyfile(
-                    first_directory / record.filename, candidate / record.filename
-                )
-            manifest_path = candidate / "release-manifest.json"
-            with manifest_path.open("x", encoding="utf-8", newline="\n") as handle:
-                handle.write(
-                    json.dumps(document, ensure_ascii=False, sort_keys=True, indent=2)
-                    + "\n"
-                )
-            candidate.rename(output)
+        _publish_candidate(output, first_directory, first, document)
     print(f"[PASS] release candidate created as {output.name}", flush=True)
     return document
 

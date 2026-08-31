@@ -17,6 +17,7 @@ from tools.release_candidate_check import (
     ReleaseCandidateError,
     _compare_builds,
     _manifest,
+    _publish_candidate,
     _run,
     assert_manifest_privacy,
     main,
@@ -227,3 +228,51 @@ def test_cli_refuses_to_overwrite_existing_candidate(tmp_path: Path) -> None:
     existing.mkdir()
 
     assert main(["--output", str(existing)]) == 2
+
+
+def test_candidate_publication_uses_one_create_new_atomic_directory(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "source"
+    source.mkdir()
+    wheel = source / "package.whl"
+    sdist = source / "package.tar.gz"
+    wheel.write_bytes(b"wheel")
+    sdist.write_bytes(b"sdist")
+    artifacts = (
+        ArtifactRecord("package.whl", "wheel", 5, "a" * 64),
+        ArtifactRecord("package.tar.gz", "sdist", 5, "b" * 64),
+    )
+    output = tmp_path / "candidate"
+    document = _safe_manifest()
+
+    _publish_candidate(output, source, artifacts, document)
+
+    assert {path.name for path in output.iterdir()} == {
+        "package.whl",
+        "package.tar.gz",
+        "release-manifest.json",
+    }
+    assert wheel.read_bytes() == (output / "package.whl").read_bytes()
+    assert sdist.read_bytes() == (output / "package.tar.gz").read_bytes()
+    assert not tuple(tmp_path.glob(".rc-*"))
+
+
+def test_candidate_publication_cleans_staging_after_copy_failure(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    source = tmp_path / "source"
+    source.mkdir()
+    (source / "package.whl").write_bytes(b"wheel")
+    output = tmp_path / "candidate"
+    artifacts = (ArtifactRecord("package.whl", "wheel", 5, "a" * 64),)
+
+    def fail_copy(*_args: object, **_kwargs: object) -> None:
+        raise OSError("injected copy failure")
+
+    monkeypatch.setattr(release_module.shutil, "copyfile", fail_copy)
+    with pytest.raises(ReleaseCandidateError, match="atomic publication"):
+        _publish_candidate(output, source, artifacts, _safe_manifest())
+
+    assert not output.exists()
+    assert not tuple(tmp_path.glob(".rc-*"))
