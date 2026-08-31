@@ -73,7 +73,7 @@ maintenance item rather than a hidden green claim.
 ## End-to-end results
 
 The installed final wheel was executed from
-`C:\Users\24046\AppData\Local\Temp\analog-validation-wheel-step3-20260831-c`,
+`%LOCALAPPDATA%\Temp\analog-validation-wheel-step3-20260831-c`,
 outside the repository:
 
 | Workflow | Result |
