@@ -318,5 +318,7 @@ Step 7 still does not prove:
 The current firmware also multiplexes documented no-CRC legacy HB diagnostics
 before TEL. The core profile keeps those records rejected; only the HIL evidence
 layer classifies exact TEL-aligned HB syntax separately. See
-`pyserial-backend.md` and `reports/software-phase4-step7.md`. Step 8 will freeze
-the Phase 4 public/compatibility boundary without expanding the physical claim.
+`pyserial-backend.md` and `reports/software-phase4-step7.md`. Step 8 has now
+frozen the Phase 4 public/compatibility boundary under `HOST_TEST` without
+expanding that physical claim; see `phase4-public-api.md` and
+`reports/software-phase4-step8.md`.

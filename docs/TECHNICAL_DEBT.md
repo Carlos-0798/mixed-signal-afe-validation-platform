@@ -1,6 +1,6 @@
 # 技术债与已知缺口
 
-**更新日期：** 2026-08-30<br>
+**更新日期：** 2026-08-31<br>
 **来源：** Software Phase 0–4 持续审计
 
 优先级：`P0` 阻塞安全或正确性；`P1` 阻塞下一主要里程碑；`P2` 应在 v1 前解决；`P3` 可后置。
@@ -34,9 +34,10 @@
 | TD-025 | P2 | Step 7 已完成独立可选 `analog_validation_pyserial` backend、base/serial extras 外部安装、COM 枚举和一次 receive-only MSP430 SerialAdapter→ReadWorkflow HIL；尚无 owning worker、长时间 OS timing 或 physical reconnect test | 产品可安全选择真实串口，但当前证据仅为 COM4 五帧、单次打开/关闭、零写入；不能推广为生产级 worker 或串口可靠性 | Phase 5 处理 worker/UI/cancellation，后续单独评审 long-duration 与 disconnect HIL；证据见 `docs/pyserial-backend.md` 和 `reports/software-phase4-step7.md` |
 | TD-026 | CLOSED | `protocol.envelope` 已提供不要求 namespace 的严格 token/CRC record；`framing.py` 仅保留 AFE shape wrapper | AFE 与 MSP430 形状可复用同一 envelope，旧 AFE API/bytes/errors 不变 | 证据见 `reports/software-phase4-step2.md`、三条 neutral golden records 和旧 20 valid/9 invalid 回归 |
 | TD-027 | CLOSED | `afe-channel-map.v1` 已冻结 canonical `input/output/gain/threshold` 与 legacy telemetry v1 `input_mv/output_mv/gain/threshold`，转换必须显式声明 source/target；Step 4 AFE serial profile 已实际跨越此边界 | 串口 telemetry 已对齐 Simulator/workflow，同时历史 mapper/Measurement 不被静默重命名 | 证据见 `docs/afe-channel-mapping.md`、`docs/serial-profiles.md` 和对应 tests |
-| TD-028 | CLOSED | 独立 MSP430 Equipment Health v1 parser/profile 和本仓库 10 valid/11 invalid fixtures 已实现；支持 device-output `TEL/ACK/STS/CFG/LOG`、32-bit TEL continuity、sentinel/fault mapping、typed raw outcome 和静态只读 capabilities | 不再依赖人工字段解析；Step 6 已完成 receive-only adapter 组合，真实 OS serial/HIL 仍由 TD-025 与 Phase 4 Step 7 跟踪 | 证据见 `docs/serial-profiles.md`、`reports/software-phase4-step5.md` 和 `reports/software-phase4-step6.md` |
+| TD-028 | CLOSED | 独立 MSP430 Equipment Health v1 parser/profile 和本仓库 10 valid/11 invalid fixtures 已实现；支持 device-output `TEL/ACK/STS/CFG/LOG`、32-bit TEL continuity、sentinel/fault mapping、typed raw outcome 和静态只读 capabilities | 不再依赖人工字段解析；Step 6 已完成 receive-only adapter，Step 7 已完成窄范围 OS/HIL，剩余 long-duration/physical reconnect 由 TD-025 跟踪 | 证据见 `docs/serial-profiles.md`、`reports/software-phase4-step5.md`、`reports/software-phase4-step6.md` 和 `reports/software-phase4-step7.md` |
 | TD-029 | CLOSED | `serial-profile.v1` 和独立 `AfeV1SerialProfile` 已实现显式 identity、16-bit TEL continuity、严格 capability aggregation、canonical telemetry mapping、typed raw outcome 和失败回滚；20 valid/9 invalid golden 均通过新路径 | AFE 业务字段不再由调用者临时拼接解析，且 transport/profile/高层依赖方向已有执行门禁 | 证据见 `docs/serial-profiles.md` 和 `reports/software-phase4-step4.md` |
 | TD-030 | CLOSED | Step 6 已建立显式 AFE capability projector：`adcN/dacN/pwmN/dinN` 映射为 `afe.chN.input/dac/pwm/threshold`，保留 native snapshot，并验证 identity、channel counts、numeric ranges 与 command subset | workflow channel 已与 telemetry 对齐；projector 不能增加命令或把 receive-only adapter 提升为输出设备 | 证据见 `src/analog_validation/serial_adapters/afe_v1.py`、共用/投影防御测试和 `reports/software-phase4-step6.md` |
 | TD-031 | P2 | Measurement v1 尚无 watt/milliwatt 单位；MSP430 `power_mw` 已保留在 typed telemetry 和 INA219 availability 语义中，但未伪装为 `UNITLESS` Measurement | 通用 workflow 暂时不能按正式 Measurement channel 直接读取功率；错误添加单位会漂移 Phase 2/3 冻结契约 | 在后续 schema/version 评审中增加 power unit 与迁移样本；在此之前由 typed raw message 审计，不静默换单位 |
+| TD-032 | CLOSED | `phase4_public_api.json` 已冻结 121 exports、3 schemas、12 enum/flag sets、21 signatures、17 error relationships 和 5 hashes；`phase4_composite_v1.json` 已冻结 AFE/MSP external-backend exact results | Phase 4 transport/profile/adapter 兼容性变化不再能静默发生；第三方 backend 无需继承内部类，但必须满足结构协议 | 证据见 `docs/phase4-public-api.md`、13 项 golden tests 和 `reports/software-phase4-step8.md` |
 
 关闭技术债时必须记录对应代码、测试、文档和验证报告，不能只从表格删除。

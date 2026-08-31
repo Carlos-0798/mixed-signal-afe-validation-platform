@@ -1,6 +1,6 @@
 # Risk register
 
-| Risk | Current Phase 0 state | Mitigation / gate |
+| Risk | Current state | Mitigation / gate |
 |---|---|---|
 | Input outside 0-3.3 V | No hardware connected | Series resistance, clamps, DMM check, current-limited supply |
 | Wrong IC pinout or orientation | Unconfirmed | Exact package datasheet and marked wiring review before power |
@@ -27,3 +27,5 @@
 | Known no-CRC legacy heartbeat is either accepted as production protocol or mislabeled as corruption | Exact peer behavior reviewed in Step 7 | Keep the core parser strict; classify only exact documented HB syntax in HIL evidence and require TEL sequence/uptime alignment; malformed or unaligned lines remain anomalies |
 | Passive telemetry is used to assert an exact firmware image | Protocol v1 has no version field | Record the frozen interface commit separately and label current firmware `UNCONFIRMED_PASSIVE_ONLY` until active identity or flash evidence is explicitly authorized |
 | USB driver toggles RTS/DTR despite a receive-only API | Not electrically excluded | Construct pyserial with no port, request DTR/RTS inactive before open, send no application bytes, and require separate device-specific review when control lines affect reset/boot |
+| A golden file is edited together with a regression and hides compatibility drift | Phase 4 contract frozen | Reconstruct manifests/results in tests, hash independent fixtures, require schema/version migration for breaking changes, and never regenerate expectations merely to make a failure pass |
+| Phase 5 UI duplicates profile or device business logic | Phase 4 boundaries frozen | Make CLI/worker/Dashboard consume public adapters/workflows; keep device parsing in profiles and enforce dependency/compatibility tests |

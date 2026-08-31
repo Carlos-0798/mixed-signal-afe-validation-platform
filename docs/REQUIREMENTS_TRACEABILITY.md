@@ -1,8 +1,8 @@
 # 产品需求追踪矩阵
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
-**更新日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 4 进行中（7/8）
+**更新日期：** 2026-08-31<br>
+**当前阶段：** Software Phase 4 已完成（8/8）
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。此处的 `VERIFIED_BENCH` 只覆盖表内明确写出的 controller UART 行为，不自动升级任何 AFE、外部传感器、风扇或接线需求。
 
@@ -38,7 +38,7 @@
 | SW-FR-035 | VERIFIED_HOST | `frequency-response-analysis.v1` 对显式 Hz/输入/输出幅值计算 ratio、`20 log10` dB 和 dB-vs-log10(Hz) 截止插值；无交点 incomplete，多交点拒绝 | 真实波形采集、FFT 和物理带宽仍 DEFERRED |
 | SW-FR-036 | VERIFIED_HOST | 公共质量层逐项映射缺失、非有限、饱和、超范围、时间、通信和设备故障；DC/迟滞 builders 保留逐点质量与排除原因，缺失数据不形成完整结果 | 校准/频响专用导出仍以后续 TestRun mapping 为前提 |
 | SW-FR-037 | VERIFIED_HOST | DC 与迟滞 criteria/evaluator 只对完整证据给 PASS/FAIL；bundle 强制 criteria/outcome 一致，两个 exact golden PASS 同时冻结来源、逐点证据与结论 | 新 criteria 需新版本和黄金评审 |
-| SW-FR-038 | VERIFIED_HOST | 固定 telemetry、标准 synthetic DC、exact DC/迟滞结果与 SHA-256 保持冻结；全部 20 valid/9 invalid AFE records 通过 serial profile；Step 5 又冻结 10 valid/11 invalid 独立 MSP interoperability records、32-bit wrap 和 memory backend 复合链 | Step 8 冻结完整 Phase 4 public contract |
+| SW-FR-038 | VERIFIED_HOST | 固定 telemetry、标准 synthetic DC/迟滞结果、20 valid/9 invalid AFE records、10 valid/11 invalid MSP records 均保持冻结；Step 8 的 `phase4-public-api-golden.v1` 又冻结 121 exports、3 schemas、12 enum/flag sets、21 signatures、17 errors、5 hashes 和 exact AFE/MSP external-backend composites | 未来破坏性变化必须升级 schema/profile 并增加迁移样本，不能只改 golden expectation |
 | SW-FR-040 | IMPLEMENTED | 两个工具有 argparse | Phase 5 建立统一产品 CLI |
 | SW-FR-041 | ACCEPTED | `app.py` 仅占位 | Phase 5 实现 Dashboard |
 | SW-FR-042 | ACCEPTED | 无测试向导 | Phase 5 实现 |
@@ -54,9 +54,9 @@
 | SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建、仓库外 wheel 安装和 import 均通过 | Phase 5 增加最终用户运行入口，Phase 6 再做发布候选安装测试 |
 | SW-NFR-002 | IMPLEMENTED | 正式核心使用标准 Python；可选 pyserial package 已在 Windows/Python 3.12 外部环境安装并枚举 COM4/COM5 | Phase 6 增加其他平台 release matrix，避免核心平台绑定 |
 | SW-NFR-003 | IMPLEMENTED | adapter/read workflow/runners 保持既有 cleanup；Step 3 验证 fault lifecycle，Step 7 真实端口完成 1 open/1 close 且 9 次 empty read 保持正常 timeout | 真实断线、取消和进程级 worker 退出仍待后续专门 HIL/Phase 5 |
-| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析、导出和完整 serial stack 默认无需硬件；1,513 项完整回归、7,325/7,325 正式+可选 package 覆盖及两种外部安装通过 | 保持 Step 7 HIL 为可选路径，不让无板环境阻塞软件测试 |
+| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析、导出和完整 serial stack 默认无需硬件；1,526 项完整回归、7,325/7,325 正式+可选 package 覆盖及 base/serial 两种外部安装通过 | 保持物理 HIL 为可选路径，不让无板环境阻塞软件和发布门禁 |
 | SW-NFR-005 | VERIFIED_HOST | one-way gates 要求 transport 不导入 profiles/高层，profiles 不导入 adapters/analysis/runners/workflows，`serial_adapters` 不导入 pyserial/高层；独立 `analog_validation_pyserial` 又被禁止导入 profiles/adapters/workflows/analysis/runners/exports；MSP profile 无 peer runtime namespace | owning worker 继续留在高层产品边界 |
-| SW-NFR-006 | VERIFIED_HOST | domain/protocol/transport/profiles/serial adapter/config/analysis 责任分离；profile 不打开 COM，adapter 不复制 CRC/分析；公开接口有类型、文档和完整 host tests | Step 8 冻结 Phase 4 public contract |
+| SW-NFR-006 | VERIFIED_HOST | domain/protocol/transport/profiles/serial adapter/config/analysis 责任分离；profile 不打开 COM，adapter 不复制 CRC/分析；Step 8 已冻结 Phase 4 public contract、ownership 和外部 structural backend 复合链 | Phase 5 CLI/worker/UI 必须消费这些边界，不得把设备业务移入界面层 |
 | SW-NFR-007 | ACCEPTED | 无性能基准 | Phase 5/6 建立实际数据规模基准 |
 | SW-NFR-008 | VERIFIED_HOST | Replay 与 result-export 的严格 JSON/CSV 均有版本/大小/类型/Unicode/非有限值边界；结果写入默认不覆盖并使用原子发布；无 `eval`/`exec` | Phase 5 扩展到 CLI 路径和命令入口 |
 | SW-NFR-009 | IMPLEMENTED | 当前无网络代码，文件均本地 | Phase 5 文档化并保持默认离线 |
@@ -92,4 +92,4 @@
 | VERIFIED_BENCH | 2 |
 | 总计 | 60 |
 
-Software Phase 1、2、3 均已完成各自 8/8。Software Phase 4 已完成 Steps 1–7/8：profile-neutral stream/sequence/envelope、driver-neutral lifecycle/raw events、独立 AFE/MSP profiles、receive-only `SerialAdapter`、可选 pyserial backend 和本仓库 COM4 被动 HIL 均通过对应门禁；当前完整回归 1,513 项，正式+可选 package 7,325/7,325 语句覆盖。两项 `VERIFIED_BENCH` 只属于 controller UART 与 MSP profile，被验证的 AFE 硬件需求仍为 0；下一里程碑是 Step 8 Phase 4 黄金兼容和收口。
+Software Phase 1、2、3、4 均已完成各自 8/8。Phase 4 的 transport/profile/adapter/optional-backend 接口与 exact AFE/MSP host composites 已由 machine-readable golden contracts 冻结；当前完整回归 1,526 项，正式+可选 package 7,325/7,325 语句覆盖。两项 `VERIFIED_BENCH` 仍只属于 controller UART 与 MSP profile，被验证的 AFE 硬件需求仍为 0；下一里程碑是 Software Phase 5 文件级规划。

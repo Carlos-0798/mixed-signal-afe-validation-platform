@@ -1,7 +1,7 @@
 # Software Phase 4 文件级实施计划
 
 **阶段名称：** 串口传输、对等控制器 profiles 与真实链路边界<br>
-**规划状态：** 进行中，进度 7/8<br>
+**规划状态：** 已完成，进度 8/8<br>
 **预计时间：** 5–8 个初学者开发日<br>
 **前置：** Software Phase 3 的分析、runner 与结构化结果兼容基线完成<br>
 **硬件要求：** Steps 1–6 无；Step 7 可选使用已连接的 MSP430 LaunchPad<br>
@@ -16,7 +16,7 @@
 - [x] Step 5：MSP430 Equipment Health v1 只读 profile；
 - [x] Step 6：SerialAdapter、共用 workflow 与异常链路集成；
 - [x] Step 7：可选的 MSP430 只读串口 HIL；
-- [ ] Step 8：黄金兼容、构建、文档和阶段收口。
+- [x] Step 8：黄金兼容、构建、文档和阶段收口。
 
 Step 1 已增加 `analog_validation.transport`，使用设备无关的有界 LF 字节流状态机处理分段、粘包、超长记录和重新同步，并使用 profile 指定的位宽跟踪首次、连续、缺帧、重复、乱序和回绕序列。
 
@@ -205,6 +205,18 @@ sequence/uptime 对齐者单独分类，malformed/unaligned 样本仍失败。�
 
 验收：旧 Phase 1–3 golden contracts 不变；Phase 4 新接口可由外部 adapter 使用；真实 HIL 与 host-only 结果分栏；硬件 claims 不扩大到 AFE 或 MSP 外设。
 
+**状态：已完成。** `phase4-public-api-golden.v1` 冻结七个 namespaces
+的 121 个 exports、3 个 schemas、4 个稳定 identity/privacy constants、12
+组 enum/flag members、21 个 call shapes、17 个 error relationships 和 5 个
+fixture hashes；`phase4-composite-golden.v1` 从独立 structural backend 重建
+AFE 与 MSP430 的 session→profile→receive-only adapter→ReadWorkflow exact
+结果，覆盖 16/32-bit wrap、CRC rejection、canonical mapping、unavailable
+sentinel、raw lineage、HOST_TEST provenance 和无 write surface。13 项新增
+golden tests、1,526 项完整回归、7,325/7,325 statements、Ruff、148-file
+mypy、依赖、隔离 build、base/serial 两种外部安装均通过。Step 8 未打开
+COM 端口，也未重复或扩大 Step 7 HIL；证据见
+`docs/phase4-public-api.md` 与 `reports/software-phase4-step8.md`。
+
 ## 7. 阶段出口条件
 
 - transport 不包含设备业务、Measurement 分析或 GUI；
@@ -229,8 +241,7 @@ sequence/uptime 对齐者单独分类，malformed/unaligned 样本仍失败。�
 
 ## 9. 下一检查点
 
-Step 8 将冻结 Phase 4 public API、schemas、黄金输入和代表性复合结果，并重新执行
-完整兼容、覆盖、静态检查、隔离构建和外部安装门禁。收口材料必须把 Steps 1–6
-的 `HOST_TEST`、Step 7 的窄范围 `BENCH_CONTROLLER` UART 证据，以及仍为 0 的
-AFE 硬件性能证据分栏展示；不会因为 UART 兼容而扩大任何外部传感器、风扇或
-模拟前端声明。
+Software Phase 4 已完成。下一检查点是先建立 Software Phase 5 文件级计划，明确
+CLI、owning/cancellable serial worker、Dashboard、plots、人类可读报告、初学者
+向导和端到端 demo 的模块边界与八个小步骤。Phase 5 必须消费已冻结的 core，不能
+把 profile 或设备业务逻辑复制进 UI；任何真实端口或硬件操作仍需单独授权。

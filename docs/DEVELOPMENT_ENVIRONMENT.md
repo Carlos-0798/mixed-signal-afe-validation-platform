@@ -1,7 +1,7 @@
 # 开发环境
 
-**验证日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 4 进行中（7/8）<br>
+**验证日期：** 2026-08-31<br>
+**当前阶段：** Software Phase 4 已完成（8/8）<br>
 **硬件要求：** 默认软件门禁无需硬件；Step 7 已单独完成一次 MSP430 receive-only HIL
 
 ## 已验证环境
@@ -49,7 +49,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m build
 ```
 
-pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式记录追溯、质量 policy、DC sweep 与方向性迟滞数学、版本化 criteria/TestRun 映射、安全门控 runners、不可变线性校准、离线幅值频响分析，以及严格 `result-export.v1` JSON/CSV。Phase 4 Steps 1–7 已增加 profile-neutral bounded stream、modular sequence tracker、token/CRC envelope、AFE compatibility wrapper、显式 channel mapping、driver-neutral serial lifecycle、bounded raw events、通用 serial-profile port、独立 AFE/MSP430 profiles、receive-only `SerialAdapter`、可选 pyserial backend 和一次本仓库 COM4 HIL；当前完整门禁为 1,513 tests、7,325/7,325 正式+可选 package statements、全仓库 Ruff、146-file mypy、依赖检查、sdist/wheel 和两种仓库外安装。真实 HIL 只证明窄范围 `BENCH_CONTROLLER` UART 兼容，其他结果仍按各自 `HOST_TEST/SYNTHETIC/CSV_REPLAY` 标签。旧 `dashboard/reporting/csv_export.py` 仅为指向正式 package 的 legacy placeholder。
+pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式记录追溯、质量 policy、DC sweep 与方向性迟滞数学、版本化 criteria/TestRun 映射、安全门控 runners、不可变线性校准、离线幅值频响分析，以及严格 `result-export.v1` JSON/CSV。Software Phase 4 已完成 8/8：除 bounded stream、sequence、envelope、channel mapping、serial lifecycle/raw events、独立 profiles、receive-only `SerialAdapter`、可选 pyserial backend 和窄范围 COM4 HIL 外，Step 8 又冻结 121 个 Phase 4 exports、3 个 schemas、12 组 enums/flags、21 个 signatures、17 个 errors、5 个 fixture hashes 及两个 exact external-backend composites。当前完整门禁为 1,526 tests、7,325/7,325 正式+可选 package statements、全仓库 Ruff、148-file mypy、依赖检查、sdist/wheel 和两种仓库外安装。Step 8 未打开端口；Step 7 HIL 仍只证明窄范围 `BENCH_CONTROLLER` UART 兼容，其他结果继续按各自 `HOST_TEST/SYNTHETIC/CSV_REPLAY` 标签。旧 `dashboard/reporting/csv_export.py` 仅为指向正式 package 的 legacy placeholder。
 
 ## 当前边界
 

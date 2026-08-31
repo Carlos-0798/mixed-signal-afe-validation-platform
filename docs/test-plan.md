@@ -88,6 +88,27 @@ Do not power the analog assembly until the open toolchain, inventory, permission
   version field. Do not infer external sensors, fan, wiring, 5 V, or AFE status
   from controller connectivity.
 
+## Software Phase 4 compatibility closure checks
+
+- Freeze exact `__all__` exports for transport, envelope, channel mapping,
+  MSP430 protocol, profiles, serial adapters, and optional pyserial integration.
+- Freeze new schema strings, serial-profile identities, public enum/flag
+  members, primary constructor/function parameter shapes, and owned error
+  inheritance relationships.
+- Hash prior AFE/envelope/MSP430 fixtures plus one exact Phase 4 composite; do
+  not hash the manifest itself.
+- Rebuild AFE and MSP430 product chains from an independently defined
+  structural backend using only public interfaces.
+- Preserve 16/32-bit sequence wrap, canonical channels, raw lineage, typed CRC
+  rejection, unavailable sentinel/fault mapping, `HOST_TEST` provenance,
+  deterministic close, and absence of a write method.
+- Rerun every Phase 1–3 golden contract before accepting the Phase 4 freeze.
+- Require full pytest, 100% formal+optional package coverage, Ruff, mypy,
+  dependency checks, isolated sdist/wheel build, archive-content inspection,
+  and clean base/serial wheel installations.
+- Keep the Step 7 physical UART capture separate; Step 8 discovery/build/install
+  checks must not be reported as a repeated HIL or AFE/peripheral validation.
+
 ## Deferred bench acceptance
 
 - At least ten DC points per gain setting, with raw data retained.

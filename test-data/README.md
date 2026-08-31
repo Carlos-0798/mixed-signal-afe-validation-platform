@@ -24,5 +24,12 @@ Golden compatibility data:
 - `golden/phase3_dc_sweep_input_v1.json` is a fixed `SYNTHETIC` DC input whose accepted points have gain 2 and offset 12 mV while one point is explicitly high-saturation excluded;
 - `golden/phase3_dc_sweep_result_v1.json` freezes the exact structured DC result for that input;
 - `golden/phase3_hysteresis_result_v1.json` freezes an exact `SYNTHETIC` result with 1750 mV rising threshold, 1550 mV falling threshold, and 200 mV width.
+- `golden/phase4_public_api.json` freezes seven Phase 4 namespaces, schemas,
+  profile identities, enums, signatures, error bases, and protocol/composite
+  fixture hashes.
+- `golden/phase4_composite_v1.json` freezes exact AFE and MSP430 in-memory
+  external-backend → SerialSession → profile → receive-only SerialAdapter →
+  ReadWorkflow results, including sequence wrap, CRC rejection, sentinels,
+  provenance, and no-write behavior.
 
 These files verify host-software compatibility only. They are not measurements and carry no BENCH evidence claim.
