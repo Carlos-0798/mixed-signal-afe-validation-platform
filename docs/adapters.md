@@ -148,3 +148,9 @@ software behavior over an in-memory backend, not a serial-device claim. See
 ## What this does not prove
 
 The state machine and tests prove host-software behavior only. `SAFE_SHUTDOWN` means the adapter software path completed; it does not prove that a physical relay, DAC, PWM pin, power rail, or external circuit actually reached a safe voltage. That requires later firmware and bench evidence.
+
+Software Phase 6 Step 6 additionally proves that a third-party-style read-only
+adapter can import only the installed top-level public API and pass the same
+workflow from outside the repository. See the
+[public adapter example](PUBLIC_ADAPTER_EXAMPLE.md) and its
+[verification report](../reports/software-phase6-step6.md).

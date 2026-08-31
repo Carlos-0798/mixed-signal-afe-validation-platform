@@ -30,9 +30,9 @@
 
 ## 2. 当前真实状态
 
-软件路线的 Phases 0–5 已完成，Software Phase 6 已完成 5/8：仓库、理论与理想仿真、版本化协议/数据模型、模拟器与 CSV 回放、分析与结果导出、串口 transport、独立 AFE/MSP430 profiles、receive-only adapter、可选 pyserial 边界、可安装 CLI/report/Dashboard/demo、公开接口冻结、hosted CI、beta metadata、deterministic release verifier 和初学者 tester 闭环均已有可重复测试。当前完整软件门禁基线为 2,216 项测试、0 skipped 和 11,470/11,470 package statements；Windows/Ubuntu × Python 3.10/3.12/3.14、10k Replay/event、键盘焦点、缩放、Unicode 路径、隐私、离线、fresh base/serial 安装与 hosted-wheel 外部测试者路径均已通过。Phase 4 Step 7 另有一次五帧、零应用写入的 MSP430 UART 兼容记录，但它不证明外部传感器、风扇、接线或 AFE 性能。
+软件路线的 Phases 0–5 已完成，Software Phase 6 已完成 6/8：仓库、理论与理想仿真、版本化协议/数据模型、模拟器与 CSV 回放、分析与结果导出、串口 transport、独立 AFE/MSP430 profiles、receive-only adapter、可选 pyserial 边界、可安装 CLI/report/Dashboard/demo、公开接口冻结、hosted CI、beta metadata、deterministic release verifier、初学者 tester 闭环和 public-only adapter 扩展证明均已有可重复测试。当前完整软件门禁基线为 2,222 项测试、0 skipped 和 11,470/11,470 package statements；Windows/Ubuntu × Python 3.10/3.12/3.14、10k Replay/event、键盘焦点、缩放、Unicode 路径、隐私、离线、fresh base/serial 安装、hosted-wheel 外部测试者路径与 external `python -I` adapter 均已通过。Phase 4 Step 7 另有一次五帧、零应用写入的 MSP430 UART 兼容记录，但它不证明外部传感器、风扇、接线或 AFE 性能。
 
-硬件路线仍停留在准备阶段：AFE 尚未采购、搭建或测量。因此“软件产品已达到 Beta”和“硬件仍未验证”可以同时成立，二者不是矛盾。人类可读报告、确定性图表、Dashboard、demo 和 release manifest 只是展示既有软件结论，不会把合成数据变成测量数据。Dashboard 采用“状态 → presenter → controller/application → widgets”分层：状态保存事实，presenter 把后台结果变成界面语言，application 只把复核后的请求交给 worker，widgets 只负责显示和收集意图。Run 可以执行 Simulator/Replay 或显式 receive-only 工作流，但默认仍是软件 Simulator；真实串口和硬件操作不会因为按钮可用而自动获得授权。Step 5 已把“拿到候选包—验 hash—隔离安装—跑 demo—看限制—安全反馈”写成新手可执行流程并用 hosted wheel 实测。下一步是 Software Phase 6 Step 6 public-API-only adapter proof；只有打勾并有真实测试报告的步骤才算完成。下面的 Phase 1–6 表格描述的是未来硬件路线。
+硬件路线仍停留在准备阶段：AFE 尚未采购、搭建或测量。因此“软件产品已达到 Beta”和“硬件仍未验证”可以同时成立，二者不是矛盾。人类可读报告、确定性图表、Dashboard、demo 和 release manifest 只是展示既有软件结论，不会把合成数据变成测量数据。Dashboard 采用“状态 → presenter → controller/application → widgets”分层：状态保存事实，presenter 把后台结果变成界面语言，application 只把复核后的请求交给 worker，widgets 只负责显示和收集意图。Run 可以执行 Simulator/Replay 或显式 receive-only 工作流，但默认仍是软件 Simulator；真实串口和硬件操作不会因为按钮可用而自动获得授权。Step 5 已把“拿到候选包—验 hash—隔离安装—跑 demo—看限制—安全反馈”写成新手可执行流程；Step 6 又证明第三方 adapter 可以只使用公开接口接入相同 workflow，而不把某个 MCU 绑定进产品核心。下一步是 Software Phase 6 Step 7 final candidate audit；只有打勾并有真实测试报告的步骤才算完成。下面的 Phase 1–6 表格描述的是未来硬件路线。
 
 进入 Phase 1 前，需要同时满足四个条件：
 

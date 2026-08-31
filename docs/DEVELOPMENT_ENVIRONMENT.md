@@ -43,15 +43,15 @@ python -m venv .venv
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
 .\.venv\Scripts\python.exe -m pytest --cov=analog_validation --cov=analog_validation_pyserial --cov=analog_validation_app --cov-report=term-missing
-.\.venv\Scripts\python.exe -m ruff check .
-.\.venv\Scripts\python.exe -m mypy src tools tests
+.\.venv\Scripts\python.exe -m ruff check src tools tests examples/public_adapter
+.\.venv\Scripts\python.exe -m mypy src tools tests examples/public_adapter
 .\.venv\Scripts\python.exe -m pip check
 .\.venv\Scripts\python.exe -m build
 ```
 
-pytest、三项 package coverage、全仓库 Ruff rule check、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式分析、runner 和导出，Software Phase 4 已完成 transport、profiles、receive-only serial adapter、可选 pyserial backend、兼容冻结和窄范围 COM4 HIL，Software Phase 5 已完成独立产品层、CLI/report/Dashboard/demo 和公共兼容冻结。Software Phase 6 Steps 1–5 又建立 release contract、hosted matrix、`0.1.0b1` metadata、同一本地/CI release verifier 与 beginner tester/feedback 闭环。当前完整门禁为 2,216 tests、0 skipped、11,470/11,470 package statements、全仓库 Ruff、196-file mypy、两次隔离构建、fresh base + `[serial]` 安装、普通/Unicode installed demo，以及 hosted wheel 的短路径外部 tester journey。
+pytest、三项 package coverage、全仓库 Ruff rule check、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式分析、runner 和导出，Software Phase 4 已完成 transport、profiles、receive-only serial adapter、可选 pyserial backend、兼容冻结和窄范围 COM4 HIL，Software Phase 5 已完成独立产品层、CLI/report/Dashboard/demo 和公共兼容冻结。Software Phase 6 Steps 1–6 又建立 release contract、hosted matrix、`0.1.0b1` metadata、同一本地/CI release verifier、beginner tester/feedback 闭环与 public-only adapter 扩展证明。当前完整门禁为 2,222 tests、0 skipped、11,470/11,470 package statements、全仓库 Ruff、199-file mypy、两次隔离构建、fresh base + `[serial]` 安装、普通/Unicode installed demo、hosted wheel tester journey，以及 external `python -I` adapter run。
 
-当前 CLI 已执行正式的软件 read/DC/迟滞、`report` 和 `demo` 工作流；`dashboard` 已执行 reviewed 六步 Simulator/Replay/receive-only 工作流。最终 base wheel 在仓库外短路径环境完成 headless import，并在普通与 Unicode 目录生成逐字节一致的 12 个 demo artifacts；同一安装历史上已真实启动并安全关闭 Tk Dashboard。独立 `[serial]` 安装只使用注入式 host substitute，真实端口枚举/打开/写入均为 0。Step 5 又用 hosted wheel 完成 SHA-256、`--no-deps` base install、pyserial-absent、version、双 demo、HTML limitation、create-new refusal 和 Replay 验收；本轮 Dashboard 明确为 `NOT_RUN`。10k Replay/event、键盘焦点、Tk 1.0/1.5/2.0 scaling、隐私和 no-network 验收继续有效。下一检查点是 Software Phase 6 Step 6 public-API-only adapter proof。
+当前 CLI 已执行正式的软件 read/DC/迟滞、`report` 和 `demo` 工作流；`dashboard` 已执行 reviewed 六步 Simulator/Replay/receive-only 工作流。最终 base wheel 在仓库外短路径环境完成 headless import，并在普通与 Unicode 目录生成逐字节一致的 12 个 demo artifacts；同一安装历史上已真实启动并安全关闭 Tk Dashboard。独立 `[serial]` 安装只使用注入式 host substitute，真实端口枚举/打开/写入均为 0。Step 5 用 hosted wheel 完成 beginner tester journey；Step 6 将 public adapter 单文件复制到仓库外，并以 fresh base wheel 的 isolated Python 完成 public import、capability、三次 read、cleanup 与 zero-write 验收。本地/hosted 三文件候选逐字节一致。10k Replay/event、键盘焦点、Tk 1.0/1.5/2.0 scaling、隐私和 no-network 验收继续有效。下一检查点是 Software Phase 6 Step 7 final candidate audit。
 
 安装后可验证最小产品入口：
 

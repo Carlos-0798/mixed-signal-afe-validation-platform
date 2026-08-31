@@ -30,6 +30,9 @@ First controlled private-beta candidate for Analog Validation Studio.
 - Beginner installation, private-beta testing, troubleshooting, known-limit,
   checklist, and sanitized structured-feedback workflows verified against the
   hosted wheel in a clean short-path environment.
+- A third-party-style read-only adapter example that imports only the installed
+  top-level public API and passes the shared workflow from a repository-external
+  isolated Python process with explicit SYNTHETIC provenance and zero writes.
 
 ### Safety and evidence limits
 

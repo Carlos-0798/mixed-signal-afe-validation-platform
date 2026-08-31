@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.1<br>
 **更新日期：** 2026-08-31<br>
-**当前阶段：** Software Phase 6 发布工程；实现 5/8，Private Beta Candidate Preparation
+**当前阶段：** Software Phase 6 发布工程；实现 6/8，Private Beta Candidate Preparation
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。此处的 `VERIFIED_BENCH` 只覆盖表内明确写出的 controller UART 行为，不自动升级任何 AFE、外部传感器、风扇或接线需求。
 
@@ -51,14 +51,14 @@
 
 | ID | 状态 | 当前实现/证据 | 主要缺口或下一阶段 |
 |---|---|---|---|
-| SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建和仓库外 wheel 安装通过；Phase 6 verifier 在本机与 hosted Windows/Python 3.12 从同一 commit 生成逐字节一致的 wheel/sdist/manifest，并完成 fresh base/serial installs 与 installed demo；Step 5 又按面向测试者的安装/故障排查文档对 hosted wheel 完成独立短路径 base journey | Step 6 证明 public-only extension；最终候选仍由 Step 7 审计 |
+| SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建和仓库外 wheel 安装通过；Phase 6 verifier 在本机与 hosted Windows/Python 3.12 从同一 commit 生成逐字节一致的 wheel/sdist/manifest，并完成 fresh base/serial installs 与 installed demo；Step 5 完成 hosted-wheel tester journey；Step 6 以 fresh base wheel + external `python -I` 完成 public-only adapter | 最终候选仍由 Step 7 审计 |
 | SW-NFR-002 | VERIFIED_HOST | 正式核心使用标准 Python；hosted CI 已在 Windows/Ubuntu 的 Python 3.10/3.12/3.14 完成全套 host tests；可选 pyserial package 在候选环境只使用 injected substitute，历史 COM 枚举/HIL 仍单独记账 | 不从已测矩阵推断 macOS、GUI Linux 或其他 Python minor 已验证 |
 | SW-NFR-003 | VERIFIED_HOST | adapter/workflow/runners 保持 cleanup；product worker 已验证 single owner、completion-event join、50 ms polling、cooperative cancel、有限 join、所有 post-factory 路径 cleanup、cleanup-failure 覆盖、context close 和 subprocess `KeyboardInterrupt`→130/CANCELLED；Step 6 Dashboard cooperative cancellation 也达到 `CANCELLED`、cleanup 完成且无 export | 非协作第三方 service 会明确 timeout；真实断线、长时间运行、真实 COM worker 与交互式 Windows console signal 仍待专门验证 |
-| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析、导出、serial stack、产品 CLI/report/Dashboard/demo 默认无需硬件；当前门禁完成 2,216 项回归、0 skipped、11,470/11,470 三 package 语句覆盖，fresh base/serial 安装、双 demo、hosted matrix 和 Step 5 hardware-free tester journey 同步通过 | 保持物理 HIL 为可选路径，不让无板环境阻塞软件和发布门禁 |
-| SW-NFR-005 | VERIFIED_HOST | one-way gates 继续通过；`analog_validation_app` factories/services 和共享 workflow compiler 只组合公开 core API；presentation/reporting/Dashboard state/presenter/controller/application/widgets 不反向进入 core，widgets 不导入 adapter/service/analysis，产品层不复制 CRC/protocol/analysis；Phase 5 public freeze 保护这一外部边界 | Phase 6 保持同一服务边界，不把业务下沉到 widgets |
+| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析、导出、serial stack、产品 CLI/report/Dashboard/demo 和 public adapter 默认无需硬件；当前门禁完成 2,222 项回归、0 skipped、11,470/11,470 三 package 语句覆盖，fresh base/serial 安装、双 demo、hosted matrix、tester journey 和 external adapter 同步通过 | 保持物理 HIL 为可选路径，不让无板环境阻塞软件和发布门禁 |
+| SW-NFR-005 | VERIFIED_HOST | one-way gates 继续通过；`analog_validation_app` factories/services 和共享 workflow compiler 只组合公开 core API；presentation/reporting/Dashboard 分层不反向进入 core；Phase 5 public freeze 保护边界；Step 6 第三方风格 adapter 只 import installed top-level `analog_validation`，架构门禁止私有子模块且 fresh-wheel isolated run 通过 | Step 7 审计 archive/history 不引入边界绕行 |
 | SW-NFR-006 | VERIFIED_HOST | domain/protocol/transport/profiles/serial adapter/config/analysis 责任分离；product contracts/catalog/issues/factories/services/shared workflow/CLI/worker/presentation/reporting/Dashboard 分层消费公开类型；presenter 不重算结论，widgets 不创建 adapter/service 或打开 COM | Phase 6 保持相同 ownership 与依赖方向 |
 | SW-NFR-007 | VERIFIED_HOST | 无 instrumentation 的 Windows 验收：10k strict Replay 0.823268 s/13.102 MiB traced peak；10k progress events 0.048879 s、队列保留 256、丢弃计数 9,747；12-artifact demo 0.040913 s | 这是本机交互目标，不是硬实时、跨平台性能保证或长时间 soak |
-| SW-NFR-008 | VERIFIED_HOST | Replay/result-export 的严格边界保持；product/report/Dashboard/demo/release candidate 限制字符串、事件、点、artifact、路径/数值/样本；candidate manifest 拒绝绝对路径、用户名、credential field、物理端口和 raw frame，atomic staging 失败不留下 PASS；Windows 路径预检已测试 | tester diagnostics 和最终 archive/history 隐私审计仍由 Steps 5/7 完成；深路径通用限制由 TD-036 跟踪 |
+| SW-NFR-008 | VERIFIED_HOST | Replay/result-export 的严格边界保持；product/report/Dashboard/demo/release candidate 限制字符串、事件、点、artifact、路径/数值/样本；candidate manifest 拒绝绝对路径、用户名、credential field、物理端口和 raw frame，atomic staging 失败不留下 PASS；Step 5 tester diagnostics 已收敛为受控非敏感字段 | 最终 archive/history 隐私审计由 Step 7 完成；深路径通用限制由 TD-036 跟踪 |
 | SW-NFR-009 | VERIFIED_HOST | 产品 catalog/CLI/core 均无网络代码；HTML 无 script/remote resource，Dashboard 只使用本地 Tk；demo 在 socket construction fail-fast trap 下完成，架构测试禁止 demo 导入网络/serial/Tk/subprocess/device/protocol/analysis 实现 | 不声称操作系统或第三方环境不存在其他网络活动，只证明本产品路径未请求网络 |
 | SW-NFR-010 | VERIFIED_HOST | 结构化 export、`human-report.v1`、`portfolio-demo.v1` 与 `release-candidate-manifest.v1` 显示版本、来源、限制和 SHA-256；candidate manifest 绑定 source commit、Python/platform、gate、dependency boundary、demo canonical hashes、HOST_TEST/SYNTHETIC 和零硬件声明；本机/hosted manifest 相同 | Step 7 最终候选继续以版本/迁移和审计方式演进，不能静默重写 golden expectation |
 | SW-NFR-011 | VERIFIED_HOST | 六步向导与六区域结果对 source、what/why/confirm、criteria、progress、result/evidence、issue 和硬件声明均使用可读文本；状态不是仅靠颜色表达；标准交互控件显式 takefocus，真实 Windows Tk 在 scaling 1.0/1.5/2.0 完成几何和焦点遍历 smoke | 自动化基线不是完整 WCAG 或所有 assistive-technology 认证 |
@@ -92,4 +92,4 @@
 | VERIFIED_BENCH | 2 |
 | 总计 | 60 |
 
-Software Phase 1–5 均已完成各自 8/8；Software Phase 6 已完成 5/8。Phase 5 建立统一 CLI、产品 contracts/catalog/issues、单向依赖门禁、有界 single-owner worker、显式 factories、共享 read/DC/迟滞 services、只呈现 finalized result 的确定性人类报告、可运行的六步 Dashboard workflow、12-artifact deterministic demo 和 public compatibility freeze。Phase 6 已增加 read-only hosted CI、`0.1.0b1` metadata、deterministic release verifier 与面向初学者的 install/test/troubleshooting/feedback 闭环。当前验证基线为 2,216 项完整回归、0 skipped 和 11,470/11,470 正式+可选+产品 package 语句覆盖；candidate、base/serial install、host matrix 与 hosted-wheel tester journey 通过。两项 `VERIFIED_BENCH` 仍只属于先前的 controller UART 与 MSP profile，被验证的 AFE 硬件需求仍为 0。下一里程碑是 Software Phase 6 Step 6 public-API-only adapter proof。
+Software Phase 1–5 均已完成各自 8/8；Software Phase 6 已完成 6/8。Phase 5 建立统一 CLI、产品 contracts/catalog/issues、单向依赖门禁、有界 single-owner worker、显式 factories、共享 read/DC/迟滞 services、只呈现 finalized result 的确定性人类报告、可运行的六步 Dashboard workflow、12-artifact deterministic demo 和 public compatibility freeze。Phase 6 已增加 read-only hosted CI、`0.1.0b1` metadata、deterministic release verifier、初学者 tester 闭环，以及 fresh-wheel external `python -I` public adapter proof。当前验证基线为 2,222 项完整回归、0 skipped 和 11,470/11,470 正式+可选+产品 package 语句覆盖；local/hosted candidate、base/serial install、host matrix、tester journey 与 external adapter 通过。两项 `VERIFIED_BENCH` 仍只属于先前的 controller UART 与 MSP profile，被验证的 AFE 硬件需求仍为 0。下一里程碑是 Software Phase 6 Step 7 final candidate audit。
