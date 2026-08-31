@@ -54,8 +54,8 @@ def test_ci_matrix_and_formal_quality_gates_are_explicit() -> None:
         assert version in text
     assert "python -m pytest -q" in text
     assert "--cov-fail-under=100" in text
-    assert "python -m ruff check src tools tests" in text
-    assert "python -m mypy src tools tests" in text
+    assert "python -m ruff check src tools tests examples/public_adapter" in text
+    assert "python -m mypy src tools tests examples/public_adapter" in text
     assert text.count("python -m pip check") >= 2
 
 

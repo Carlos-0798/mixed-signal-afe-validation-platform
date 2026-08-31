@@ -35,3 +35,5 @@ def test_release_verifier_uses_create_new_manifest_and_atomic_directory_rename()
     assert "candidate output already exists" in source
     assert '"candidate_status": "PASS"' in source
     assert '"afe_bench_requirements_verified": 0' in source
+    assert '"external_public_adapter": "PASS"' in source
+    assert '(str(base_python), "-I", str(external_example))' in source

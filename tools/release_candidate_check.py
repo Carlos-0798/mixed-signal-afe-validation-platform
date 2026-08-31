@@ -35,6 +35,9 @@ from analog_validation import __version__
 RELEASE_CANDIDATE_SCHEMA_VERSION = "release-candidate-manifest.v1"
 PACKAGE_NAME = "mixed-signal-afe-validation-platform"
 ROOT = Path(__file__).resolve().parents[1]
+PUBLIC_ADAPTER_EXAMPLE = (
+    ROOT / "examples" / "public_adapter" / "read_only_voltage_adapter.py"
+)
 MAX_SDIST_MEMBERS = 10_000
 MAX_SDIST_UNCOMPRESSED_BYTES = 64 * 1024 * 1024
 COMMAND_TIMEOUT_SECONDS = 1_800
@@ -471,6 +474,43 @@ def _verify_installed_demo(
     }
 
 
+def _verify_external_public_adapter(
+    base_python: Path, temporary_root: Path
+) -> dict[str, object]:
+    if not PUBLIC_ADAPTER_EXAMPLE.is_file() or PUBLIC_ADAPTER_EXAMPLE.is_symlink():
+        raise ReleaseCandidateError("public adapter example is missing or unsafe")
+    external_root = temporary_root / "external-public-adapter"
+    external_root.mkdir()
+    external_example = external_root / PUBLIC_ADAPTER_EXAMPLE.name
+    shutil.copyfile(PUBLIC_ADAPTER_EXAMPLE, external_example)
+    document = _load_json(
+        _run(
+            "external public-API-only adapter",
+            (str(base_python), "-I", str(external_example)),
+            cwd=external_root,
+            timeout=120,
+            launch_attempts=3,
+        ),
+        "external public adapter",
+    )
+    expected: dict[str, object] = {
+        "schema_version": "public-read-only-adapter-example.v1",
+        "status": "COMPLETED",
+        "evidence_source": "SYNTHETIC",
+        "capabilities_read_only": True,
+        "output_command_count": 0,
+        "measurement_count": 3,
+        "values_mv": [825.0, 830.0, 835.0],
+        "connect_count": 1,
+        "disconnect_count": 1,
+        "connected_after_run": False,
+        "application_bytes_written": 0,
+    }
+    if document != expected:
+        raise ReleaseCandidateError("external public adapter contract changed")
+    return document
+
+
 def _clean_install_checks(wheel: Path) -> dict[str, object]:
     with tempfile.TemporaryDirectory(prefix="afe-release-install-") as directory:
         temporary_root = Path(directory)
@@ -521,6 +561,7 @@ def _clean_install_checks(wheel: Path) -> dict[str, object]:
         if version_document.get("software_version") != __version__:
             raise ReleaseCandidateError("installed CLI version does not match the candidate")
         demo = _verify_installed_demo(base_cli, temporary_root)
+        public_adapter = _verify_external_public_adapter(base_python, temporary_root)
 
         _run(
             "create clean serial-extra environment",
@@ -565,6 +606,7 @@ def _clean_install_checks(wheel: Path) -> dict[str, object]:
         "physical_port_open": False,
         "application_write_surface": False,
         "demo": demo,
+        "public_adapter": public_adapter,
     }
 
 
@@ -626,6 +668,9 @@ def _manifest(
     demo = install["demo"]
     if not isinstance(demo, dict):
         raise ReleaseCandidateError("installed demo evidence is missing")
+    public_adapter = install["public_adapter"]
+    if not isinstance(public_adapter, dict):
+        raise ReleaseCandidateError("external public adapter evidence is missing")
     return {
         "schema_version": RELEASE_CANDIDATE_SCHEMA_VERSION,
         "candidate_status": "PASS",
@@ -654,6 +699,7 @@ def _manifest(
             "base_clean_install": install["base_install"],
             "serial_extra_clean_install": install["serial_extra_install"],
             "installed_demo_normal_and_unicode": "PASS",
+            "external_public_adapter": "PASS",
             "manifest_privacy": "PASS",
         },
         "artifacts": [record.to_document() for record in artifacts],
@@ -667,6 +713,7 @@ def _manifest(
             "application_write_surface": install["application_write_surface"],
         },
         "demo": demo,
+        "public_adapter": public_adapter,
         "evidence_boundary": {
             "evidence_sources": ["HOST_TEST", "SYNTHETIC"],
             "hardware_claim": "NO_NEW_HARDWARE_VALIDATION",
@@ -755,11 +802,28 @@ def _quality_gates() -> None:
         ),
         (
             "Ruff static analysis",
-            (sys.executable, "-m", "ruff", "check", "src", "tools", "tests"),
+            (
+                sys.executable,
+                "-m",
+                "ruff",
+                "check",
+                "src",
+                "tools",
+                "tests",
+                "examples/public_adapter",
+            ),
         ),
         (
             "mypy type analysis",
-            (sys.executable, "-m", "mypy", "src", "tools", "tests"),
+            (
+                sys.executable,
+                "-m",
+                "mypy",
+                "src",
+                "tools",
+                "tests",
+                "examples/public_adapter",
+            ),
         ),
         (
             "development dependency consistency",

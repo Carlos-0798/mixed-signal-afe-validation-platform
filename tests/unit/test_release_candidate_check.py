@@ -5,6 +5,7 @@ from __future__ import annotations
 import gzip
 import io
 import subprocess
+import sys
 import tarfile
 from pathlib import Path
 
@@ -19,6 +20,7 @@ from tools.release_candidate_check import (
     _manifest,
     _publish_candidate,
     _run,
+    _verify_external_public_adapter,
     assert_manifest_privacy,
     main,
     normalize_sdist,
@@ -144,6 +146,19 @@ def test_command_runner_retries_only_transient_launch_errors(
     assert delays == [0.25]
 
 
+def test_external_public_adapter_runs_isolated_with_exact_read_only_result(
+    tmp_path: Path,
+) -> None:
+    document = _verify_external_public_adapter(Path(sys.executable), tmp_path)
+
+    assert document["status"] == "COMPLETED"
+    assert document["evidence_source"] == "SYNTHETIC"
+    assert document["capabilities_read_only"] is True
+    assert document["output_command_count"] == 0
+    assert document["application_bytes_written"] == 0
+    assert document["connected_after_run"] is False
+
+
 def _safe_manifest() -> dict[str, object]:
     return {
         "schema_version": RELEASE_CANDIDATE_SCHEMA_VERSION,
@@ -190,6 +205,19 @@ def test_release_manifest_is_host_only_and_keeps_zero_hardware_claims() -> None:
         "serial_substitute": "INJECTED_HOST_ONLY",
         "physical_port_discovery": False,
         "application_write_surface": False,
+        "public_adapter": {
+            "schema_version": "public-read-only-adapter-example.v1",
+            "status": "COMPLETED",
+            "evidence_source": "SYNTHETIC",
+            "capabilities_read_only": True,
+            "output_command_count": 0,
+            "measurement_count": 3,
+            "values_mv": [825.0, 830.0, 835.0],
+            "connect_count": 1,
+            "disconnect_count": 1,
+            "connected_after_run": False,
+            "application_bytes_written": 0,
+        },
         "demo": {
             "outcome": "PASS",
             "evidence_source": "SYNTHETIC",
@@ -212,6 +240,10 @@ def test_release_manifest_is_host_only_and_keeps_zero_hardware_claims() -> None:
     )
 
     assert document["candidate_status"] == "PASS"
+    gates = document["gates"]
+    assert isinstance(gates, dict)
+    assert gates["external_public_adapter"] == "PASS"
+    assert document["public_adapter"] == install["public_adapter"]
     evidence = document["evidence_boundary"]
     assert isinstance(evidence, dict)
     assert evidence["evidence_sources"] == ["HOST_TEST", "SYNTHETIC"]

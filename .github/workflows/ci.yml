@@ -80,9 +80,9 @@ jobs:
           --cov-report=term-missing
           --cov-fail-under=100
       - name: Run Ruff
-        run: python -m ruff check src tools tests
+        run: python -m ruff check src tools tests examples/public_adapter
       - name: Run mypy
-        run: python -m mypy src tools tests
+        run: python -m mypy src tools tests examples/public_adapter
 
   package:
     name: Deterministic release-candidate verification
