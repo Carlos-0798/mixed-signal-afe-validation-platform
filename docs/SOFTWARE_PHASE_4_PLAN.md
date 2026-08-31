@@ -1,7 +1,7 @@
 # Software Phase 4 文件级实施计划
 
 **阶段名称：** 串口传输、对等控制器 profiles 与真实链路边界<br>
-**规划状态：** 进行中，进度 2/8<br>
+**规划状态：** 进行中，进度 3/8<br>
 **预计时间：** 5–8 个初学者开发日<br>
 **前置：** Software Phase 3 的分析、runner 与结构化结果兼容基线完成<br>
 **硬件要求：** Steps 1–6 无；Step 7 可选使用已连接的 MSP430 LaunchPad<br>
@@ -11,7 +11,7 @@
 
 - [x] Step 1：profile-neutral 有界字节流与序列连续性；
 - [x] Step 2：profile-neutral CRC envelope 与 AFE v1 兼容迁移；
-- [ ] Step 3：串口发现、连接、超时、重连与原始帧日志；
+- [x] Step 3：串口发现、连接、超时、重连与原始帧日志；
 - [ ] Step 4：AFE v1 serial profile；
 - [ ] Step 5：MSP430 Equipment Health v1 只读 profile；
 - [ ] Step 6：SerialAdapter、共用 workflow 与异常链路集成；
@@ -21,6 +21,8 @@
 Step 1 已增加 `analog_validation.transport`，使用设备无关的有界 LF 字节流状态机处理分段、粘包、超长记录和重新同步，并使用 profile 指定的位宽跟踪首次、连续、缺帧、重复、乱序和回绕序列。
 
 Step 2 已把 ASCII token、terminator、长度和 CRC 规则拆到 `protocol.envelope`，原 `framing.py` 成为完全兼容的 AFE wrapper；新增三个 profile-neutral 黄金形状、Step 1→2 分段复合链和 `afe-channel-map.v1` 显式 legacy/canonical mapping。51 项新增测试、1,130 项完整回归和 5,846/5,846 正式 package statements 通过。它仍未打开串口、解释 MSP430 业务字段、实现设备 profile 或验证物理链路。
+
+Step 3 已新增 replaceable `SerialBackend` port、`SerialSession` 生命周期和 `BoundedRawEventLog`。发现、打开、bounded read、正常 timeout、断线清半帧、每次断线有限重连、确定性逻辑关闭、超长恢复和 raw event 的 `PENDING_PROFILE/PARSED/REJECTED` 状态都由故障可注入的内存 backend 验证。日志默认 1,024 条/256 KiB，仅驻留内存且不自动持久化或上传。88 项新增测试、1,218 项完整回归和 6,274/6,274 正式 package statements 通过；没有 OS backend、pyserial、COM I/O 或硬件证据。
 
 ## 1. 本阶段解决什么
 
@@ -143,6 +145,8 @@ MSP430 项目的两小时 soak 证明其自身固件/Dashboard 链路，不证�
 
 验收：使用内存 backend 覆盖 partial read、multiple records、timeout、open/read/close failure、disconnect/reconnect 和 overlong recovery；无真实 COM 依赖。
 
+**状态：已完成。** 正式核心保持标准库依赖，新增 428 个正式 package statements 全覆盖。故障可注入内存 backend 覆盖发现契约、生命周期状态、bytes-like/size 违规、partial/coalesced input、timeout、打开/读取/关闭故障、断线清半帧、0/1/2 次有限重连、超长恢复、UTC clock、raw log eviction/privacy 和 CRC envelope→sequence→parse/reject 复合链。完整 1,218 项回归、静态检查、隔离构建和仓库外 wheel smoke 通过。实际 COM、pyserial 和 MSP430 均未访问。
+
 ### Step 4：AFE v1 serial profile
 
 把现有 AFE v1 encode/decode/mapping 包装为 serial profile，实现 profile identity、16-bit sequence、capability exchange 和 record/error mapping。保持 AFE 是独立业务 profile，不把 MSP 字段加入其消息。
@@ -199,4 +203,4 @@ MSP430 项目的两小时 soak 证明其自身固件/Dashboard 链路，不证�
 
 ## 9. 下一检查点
 
-Step 3 将定义可替换的 serial backend port、发现/打开/读取/timeout/有限重连/确定性关闭，以及有界 raw-frame event model。实现和验收优先使用内存 backend，不打开当前 MSP430 端口；任何真实 COM 或板卡访问仍留到 owner-approved Step 7。
+Step 4 将把现有 AFE v1 decode/mapping 包装为独立 serial profile，由 profile 明确声明 identity、16-bit sequence、capability record 和业务错误映射。它继续使用 Step 3 内存 backend，不打开当前 MSP430 端口；任何真实 COM 或板卡访问仍留到 owner-approved Step 7。

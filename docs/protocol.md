@@ -55,7 +55,7 @@ The synthetic stream is labeled `SYNTHETIC`; its derived Measurements are explic
 
 A complete record is rejected for non-ASCII data, excessive length, invalid namespace/version/type, missing or extra fields, invalid tokens, malformed CRC/fault fields, CRC mismatch, unknown enum/command/capability bits, or out-of-range values.
 
-Software Phase 4 Steps 1–2 now provide a profile-neutral bounded byte-stream state machine plus a namespace-neutral ASCII token/CRC envelope. The existing AFE framing API is a compatibility wrapper over that envelope, and all 20 valid plus 9 invalid AFE golden cases remain unchanged. Neutral-envelope acceptance of MSP430-shaped fixtures does not interpret their fields or prove device interoperability. Real serial streaming still requires the later OS backend, timeout/reconnect lifecycle, profile integration, and raw-event logging.
+Software Phase 4 Steps 1–3 now provide a profile-neutral bounded byte-stream state machine, a namespace-neutral ASCII token/CRC envelope, a driver-neutral host-tested serial lifecycle, and bounded memory-only raw events. The existing AFE framing API is a compatibility wrapper over that envelope, and all 20 valid plus 9 invalid AFE golden cases remain unchanged. Neutral-envelope acceptance of MSP430-shaped fixtures does not interpret their fields or prove device interoperability. Real serial streaming still requires a concrete OS backend, profile integration, SerialAdapter, and separate HIL evidence.
 
 ## Independence boundary
 

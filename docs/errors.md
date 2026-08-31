@@ -85,3 +85,36 @@ Software Phase 2 Step 5 adds a separate replay family so malformed local dataset
 Software Phase 2 Step 6 adds `ReplayEndOfData` so normal replay completion is distinguishable from a malformed file, adapter state error, or unexpected I/O failure. Pause remains an `AdapterStateError` because data still exists but reads are temporarily disallowed.
 
 These error types describe software behavior only. They do not certify hardware ranges, wiring safety, communication reliability, or physical measurements.
+
+## Phase 4 transport-local errors
+
+Software Phase 4 Step 3 adds a separate family exported from
+`analog_validation.transport`. Keeping it in the transport namespace preserves
+the frozen Phase 1–3 top-level API while still making every error a subclass of
+`AnalogValidationError`:
+
+```text
+AnalogValidationError
+├── SerialTransportError
+│   ├── SerialStateError
+│   ├── SerialDiscoveryError
+│   ├── SerialOpenError
+│   ├── SerialReadError
+│   ├── SerialCloseError
+│   ├── SerialReconnectError
+│   ├── SerialBackendTimeout
+│   └── SerialBackendDisconnected
+└── RawEventError
+    ├── RawEventLimitError
+    └── RawEventNotFound
+```
+
+`SerialBackendTimeout` is handled as a normal no-data poll outcome;
+`SerialBackendDisconnected` triggers bounded reconnect processing. They are
+control signals from a replaceable backend, not evidence that a physical port
+was tested. Backend exception details remain available through Python exception
+chaining but are not copied automatically into persistent or user-visible raw
+records.
+
+See [serial transport and raw-event boundary](serial-transport.md) for the
+lifecycle, retry, privacy, and resource-limit contract.
