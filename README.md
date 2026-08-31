@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 5 complete — 8/8 checkpoints |
-| Release maturity | Software Beta; v1.0 release engineering remains Phase 6 |
-| Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
+| Development stage | Software Phase 6 release engineering — Step 3 candidate under verification |
+| Release maturity | Private beta candidate preparation; no tag or Release published |
+| Current package | `mixed-signal-afe-validation-platform 0.1.0b1` |
 | Automated tests | 2,189 passed; 0 skipped |
 | Formal + optional + product package coverage | 100% of 11,470 statements |
 | Highest evidence level | `BENCH_CONTROLLER` — MSP430 UART compatibility only |
 | Verified AFE hardware performance claims | **0 — the AFE has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [CLI guide](docs/product-cli.md) · [Dashboard guide](docs/dashboard.md) · [Human-report guide](docs/human-reports.md) · [Phase 5 compatibility contract](docs/phase5-public-api.md) · [Phase 5 closure report](reports/software-phase5-step8.md) · [Phase 4 closure report](reports/software-phase4-step8.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 6 plan](docs/SOFTWARE_PHASE_6_PLAN.md) · [CI verification](reports/software-phase6-step2.md) · [Changelog](CHANGELOG.md) · [CLI guide](docs/product-cli.md) · [Dashboard guide](docs/dashboard.md) · [Phase 5 compatibility contract](docs/phase5-public-api.md)
 
 ## Product vision
 

@@ -5,7 +5,7 @@
   "demo_schema_version": "portfolio-demo.v1",
   "outcome": "PASS",
   "evidence_source": "SYNTHETIC",
-  "canonical_result_sha256": "4d5692709d185bf5fbfa1bbe62d7a86e0564af1ff3cd45669482b738a76a128c",
+  "canonical_result_sha256": "0760fc55f71b04c8fc97b4730f35d82039566f5ca7db337214e91411ed51f9c9",
   "artifacts": {
     "README.md": {
       "size_bytes": 1207,
@@ -25,35 +25,35 @@
     },
     "report/chart.svg": {
       "size_bytes": 5838,
-      "sha256": "51f4dc1373b4d0d02fcaca5ce5c6d60475c2efc32ee46b8ed3c1b77ebeeb77c5"
+      "sha256": "944e0ca65b7a30325fdf9f98116389b2aac0d055121b44620c5c4238f6ef1c45"
     },
     "report/manifest.json": {
       "size_bytes": 1157,
-      "sha256": "784fcab85e3c8a7b546004abe8603463900df38574e6e53f066a1594795d16d0"
+      "sha256": "dca49e0432c4055968960e60595d937792529bbb9a2228d87f48727fd06a1108"
     },
     "report/report.html": {
-      "size_bytes": 16158,
-      "sha256": "258bb1069daeb3fcd0e09a9ab9867d0f60ed1a7eb12c9f5e7454d299db83a0ab"
+      "size_bytes": 16152,
+      "sha256": "ba88d5b3f3a108ac47d90bc68bee207c7e07541a60e07c8d7fcc75473799aa8a"
     },
     "report/report.md": {
-      "size_bytes": 6544,
-      "sha256": "d4fc3ec88f21bd0b1e2f76f9380aeefaaa45d1094dd4ced3fced617c649cefed"
+      "size_bytes": 6538,
+      "sha256": "20155d0ddeb197bf3a893d8a2922c4043fb1067fe26e45906646f5e9b6deffc9"
     },
     "report/report.txt": {
-      "size_bytes": 6347,
-      "sha256": "9bf7ce58748936cc987c72ff901cf9240a5441514aaecb092bf517ace41ecba6"
+      "size_bytes": 6341,
+      "sha256": "b52dffddc152c7b88f26958f5de2c7caa5612d3b9874154ec303f0afe2c81f65"
     },
     "result.csv": {
-      "size_bytes": 24969,
-      "sha256": "ebe91716b261b1fab660be003ac7b29bad64240ec697f25739f3e2e00e035241"
+      "size_bytes": 24966,
+      "sha256": "46d0ce29501327e9d216e7e3dfcd7fba2cc193ca57e790446024881724657bdf"
     },
     "result.json": {
-      "size_bytes": 33510,
-      "sha256": "4d5692709d185bf5fbfa1bbe62d7a86e0564af1ff3cd45669482b738a76a128c"
+      "size_bytes": 33507,
+      "sha256": "0760fc55f71b04c8fc97b4730f35d82039566f5ca7db337214e91411ed51f9c9"
     },
     "manifest.json": {
-      "size_bytes": 3863,
-      "sha256": "46ba85be8abc69ff1e5682c97ad903a883652480dceb6706bf4e0d7c897505d9"
+      "size_bytes": 3860,
+      "sha256": "3cc905c2df3ac9b1c2d12b0d2c68a644244ceb69db7c968c843d7f4180ec41b5"
     }
   }
 }

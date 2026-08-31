@@ -8,7 +8,35 @@ dynamic = ["version"]
 description = "Controller-neutral analog front-end validation and test automation software"
 readme = "README.md"
 requires-python = ">=3.10"
+authors = [
+    {name = "Carlos-0798"},
+]
+keywords = [
+    "analog-front-end",
+    "automated-testing",
+    "data-acquisition",
+    "hardware-validation",
+    "mixed-signal",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering",
+    "Typing :: Typed",
+]
 dependencies = []
+
+[project.urls]
+Repository = "https://github.com/Carlos-0798/mixed-signal-afe-validation-platform"
+Documentation = "https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/tree/main/docs"
+Issues = "https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/issues"
 
 [project.scripts]
 analog-validation = "analog_validation_app.cli:main"
