@@ -1,6 +1,6 @@
 # Error Handling Contract
 
-Analog Validation Studio exposes expected product-domain failures through `analog_validation.errors`. These exceptions let adapters, CLI commands, and the future Dashboard choose an appropriate response without parsing English error-message text.
+Analog Validation Studio exposes expected product-domain failures through `analog_validation.errors`. These exceptions let adapters, CLI commands, and the local Dashboard choose an appropriate response without parsing English error-message text.
 
 ## Hierarchy
 
@@ -61,7 +61,7 @@ except ProtocolError as error:
     reject_record(str(error))
 ```
 
-The future CLI/Dashboard may catch `AnalogValidationError` at its outer boundary and convert it into a concise user-facing message. Unexpected exceptions such as programming bugs must not be silently relabeled as user errors.
+The CLI/Dashboard may catch `AnalogValidationError` at its outer boundary and convert it into a concise user-facing message. Unexpected exceptions such as programming bugs must not be silently relabeled as user errors.
 
 When wrapping a lower-level failure, use Python exception chaining:
 
@@ -76,7 +76,7 @@ This preserves a readable product message and the original diagnostic cause.
 
 ## Migration boundary
 
-Software Phase 1 completed the one-time migration to `analog_validation.errors`. The retired `dashboard.protocol` and `dashboard.models` files no longer provide a second error or model surface. New adapters, profiles, runners, CLI commands, and the future Dashboard must use the formal exception hierarchy.
+Software Phase 1 completed the one-time migration to `analog_validation.errors`. The retired `dashboard.protocol` and `dashboard.models` files no longer provide a second error or model surface. New adapters, profiles, runners, CLI commands, and the local Dashboard must use the formal exception hierarchy.
 
 Software Phase 2 Step 1 adds stable adapter error families. The base adapter preserves known `AnalogValidationError` subclasses and wraps unexpected hook failures with exception chaining, so callers receive a stable product error without losing the original diagnostic cause.
 
@@ -164,11 +164,15 @@ in-memory backend, not OS/UART reliability claims.
 ## Phase 5 product and report errors
 
 The upward-only `analog_validation_app.errors` namespace owns expected product
-orchestration failures without changing the core hierarchy. Step 4 adds this
-report branch:
+orchestration failures without changing the core hierarchy. Step 4 adds the
+report branch below; Step 5 adds `ProductDashboardUnavailableError` under
+`ProductDependencyError` for an explicitly requested local window that cannot
+import Tk or create a display:
 
 ```text
 ProductAppError
+├── ProductDependencyError
+│   └── ProductDashboardUnavailableError
 └── ProductReportError
     ├── ProductReportFormatError
     ├── ProductReportLimitError
@@ -185,4 +189,6 @@ specific no-overwrite guidance.
 Unexpected renderer defects are not relabelled as malformed user data. Normal
 CLI mode emits a bounded `user-issue.v1`; `--debug` remains the explicit path to
 developer diagnostics. See [human reports](human-reports.md) and
-[product CLI](product-cli.md).
+[product CLI](product-cli.md). A Dashboard dependency failure maps to the stable
+`OPTIONAL_DEPENDENCY` issue with a safe CLI/Tcl-Tk recovery path; worker-close
+timeouts remain expected guarded product failures rather than successful exits.

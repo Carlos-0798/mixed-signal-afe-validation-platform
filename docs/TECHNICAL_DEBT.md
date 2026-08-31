@@ -1,7 +1,7 @@
 # 技术债与已知缺口
 
 **更新日期：** 2026-08-31<br>
-**来源：** Software Phase 0–5 Step 4 持续审计
+**来源：** Software Phase 0–5 Step 5 持续审计
 
 优先级：`P0` 阻塞安全或正确性；`P1` 阻塞下一主要里程碑；`P2` 应在 v1 前解决；`P3` 可后置。
 
@@ -20,7 +20,7 @@
 | TD-011 | CLOSED | 独立 Python `.venv`、setuptools 和隔离 wheel 安装已于 2026-08-29 验证 | 原环境依赖 Codex 运行时的问题已解除 | 证据见 `reports/environment-setup-2026-08-29.md` |
 | TD-012 | CLOSED | 冻结的 100 帧生成器已迁入正式 package，并由 CLI、集成测试和确定性 SimulatorAdapter 共同复用；stream SHA-256 保持不变；非理想和受控故障已在 Step 4 配置化 | 合成基础流水线不再存在第二份公式，增益/噪声/饱和/迟滞/故障均有确定性回归 | 证据见 `reports/software-phase2-step3.md` 和 `reports/software-phase2-step4.md` |
 | TD-013 | P2 | 本地 mypy、Ruff、coverage、golden compatibility、隔离构建和外部 wheel smoke 已成为阶段门禁，但尚无 CI | 开发者可手动完整验证，远程变更仍不会自动执行质量门 | Phase 6 建立 CI |
-| TD-014 | CLOSED | 单一 `analog-validation` 已安装并提供稳定 human/JSON 的 version/profiles/ports、Simulator/Replay read/DC/迟滞、显式 receive-only observe 及确定性 `report`；`dashboard`/`demo` 作为尚未实现的独立功能诚实返回退出码 4 | 用户可从已安装基础包运行正式软件验证和报告流程；未实现功能不会伪装成功 | 证据见 Phase 5 Steps 3–4 reports 和 `docs/product-cli.md` |
+| TD-014 | CLOSED | 单一 `analog-validation` 已安装并提供稳定 human/JSON 的 version/profiles/ports、Simulator/Replay read/DC/迟滞、显式 receive-only observe、确定性 `report` 和安全本地 `dashboard`；仅 `demo` 作为尚未实现功能诚实返回退出码 4 | 用户可从已安装基础包运行正式软件验证、报告和 Dashboard 外壳；Step 5 Run 保持禁用，不会伪装成可执行工作流 | 证据见 Phase 5 Steps 3–5 reports、`docs/product-cli.md` 和 `docs/dashboard.md` |
 | TD-015 | CLOSED | CRC vectors、AFE wire records、预期 model JSON 和非法输入错误家族均已冻结 | 文件兼容性已有 host regression 保护 | 未来 schema 变化必须添加迁移样本 |
 | TD-016 | CLOSED | 正式包已建立 Validation、Protocol、Framing、CRC、版本、Capability、Configuration 和 Adapter 错误层级；旧协议入口已删除 | UI/CLI 已有稳定捕获边界 | 证据见 `reports/software-phase1-step2.md`、Step 8 closure 和 `reports/software-phase2-step1.md` |
 | TD-017 | P3 | 采购和控制器选择文档仍包含软件转向前候选 | 可能误读为立即采购指令 | 保留历史；采购前由新规划重新冻结 |
@@ -31,7 +31,7 @@
 | TD-022 | CLOSED | `read-workflow.v1` 已用不可变请求/结果和同一函数驱动 Simulator/CSV；全量能力预检发生在读取前，明确区分 `COMPLETED`、`UNSUPPORTED` 与 `INCOMPLETE`，所有路径释放 workflow 自己拥有的 adapter | 上层采集不再根据来源写分支，也不会把缺能力、数据耗尽或执行错误混成一种状态 | 证据见 `docs/read-workflow.md` 和 `reports/software-phase2-step7.md` |
 | TD-023 | CLOSED | `phase2_public_api.json` 冻结公开 imports/schema/enum/signature/error/replay hash，`phase2_workflow_v1.json` 冻结 Simulator/CSV/UNSUPPORTED 端到端含义；隔离构建和仓库外 wheel 验证纳入阶段出口 | Phase 2 兼容性变化不再能静默发生；未来破坏性变更必须升级版本并记录迁移 | 证据见 `docs/phase2-public-api.md` 和 `reports/software-phase2-step8.md` |
 | TD-024 | CLOSED | `phase3_public_api.json` 冻结公开 imports/schema/enum/signature/error/constants 与三份结果文件哈希；exact `SYNTHETIC` DC/迟滞结果冻结拟合、饱和排除、阈值、迟滞宽度及来源语义 | Phase 3 调用和结果兼容性变化不再能静默发生；这些基准不构成实物性能声明 | 证据见 `docs/phase3-public-api.md` 和 `reports/software-phase3-step8.md` |
-| TD-025 | P2 | Step 7 已完成独立可选 `analog_validation_pyserial` backend、base/serial extras 外部安装、COM 枚举和一次 receive-only MSP430 SerialAdapter→ReadWorkflow HIL；Step 3 已验证通用 owning/cancellable worker、50 ms completion polling 和子进程 interpreter `KeyboardInterrupt`→130/CANCELLED，但交互式 Windows console event、GUI-close、long-duration timing、physical reconnect 和真实 COM worker lifecycle 仍未测试 | 产品已有安全的 owner/cancel/cleanup 与 CLI 中断边界，但当前物理证据仍仅为先前 COM4 五帧、单次打开/关闭、零写入；不能推广为生产级串口可靠性 | Phase 5 Step 6 处理 GUI-close；console/long-duration/disconnect/real-COM worker 仍需单独评审；见 `docs/product-worker.md`、Steps 2–3 和 Phase 4 Step 7 reports |
+| TD-025 | P2 | Step 7 已完成独立可选 `analog_validation_pyserial` backend、base/serial extras 外部安装、COM 枚举和一次 receive-only MSP430 SerialAdapter→ReadWorkflow HIL；Step 3 已验证通用 owning/cancellable worker、50 ms completion polling 和子进程 interpreter `KeyboardInterrupt`→130/CANCELLED；Step 5 又以真实 Tk lifecycle 和实际 `ProductJobWorker` 验证 GUI-close→cancel→bounded join→`CANCELLED`，但交互式 Windows console event、long-duration timing、physical reconnect 和真实 COM worker lifecycle 仍未测试 | 产品已有安全的 owner/cancel/cleanup、CLI 中断和 GUI 关闭边界，但当前物理证据仍仅为先前 COM4 五帧、单次打开/关闭、零写入；不能推广为生产级串口可靠性 | Step 6 继续验证真实 workflow UI wiring；console/long-duration/disconnect/real-COM worker 仍需单独评审；见 `docs/product-worker.md`、`docs/dashboard.md`、Phase 5 Steps 2–5 和 Phase 4 Step 7 reports |
 | TD-026 | CLOSED | `protocol.envelope` 已提供不要求 namespace 的严格 token/CRC record；`framing.py` 仅保留 AFE shape wrapper | AFE 与 MSP430 形状可复用同一 envelope，旧 AFE API/bytes/errors 不变 | 证据见 `reports/software-phase4-step2.md`、三条 neutral golden records 和旧 20 valid/9 invalid 回归 |
 | TD-027 | CLOSED | `afe-channel-map.v1` 已冻结 canonical `input/output/gain/threshold` 与 legacy telemetry v1 `input_mv/output_mv/gain/threshold`，转换必须显式声明 source/target；Step 4 AFE serial profile 已实际跨越此边界 | 串口 telemetry 已对齐 Simulator/workflow，同时历史 mapper/Measurement 不被静默重命名 | 证据见 `docs/afe-channel-mapping.md`、`docs/serial-profiles.md` 和对应 tests |
 | TD-028 | CLOSED | 独立 MSP430 Equipment Health v1 parser/profile 和本仓库 10 valid/11 invalid fixtures 已实现；支持 device-output `TEL/ACK/STS/CFG/LOG`、32-bit TEL continuity、sentinel/fault mapping、typed raw outcome 和静态只读 capabilities | 不再依赖人工字段解析；Step 6 已完成 receive-only adapter，Step 7 已完成窄范围 OS/HIL，剩余 long-duration/physical reconnect 由 TD-025 跟踪 | 证据见 `docs/serial-profiles.md`、`reports/software-phase4-step5.md`、`reports/software-phase4-step6.md` 和 `reports/software-phase4-step7.md` |
@@ -39,7 +39,7 @@
 | TD-030 | CLOSED | Step 6 已建立显式 AFE capability projector：`adcN/dacN/pwmN/dinN` 映射为 `afe.chN.input/dac/pwm/threshold`，保留 native snapshot，并验证 identity、channel counts、numeric ranges 与 command subset | workflow channel 已与 telemetry 对齐；projector 不能增加命令或把 receive-only adapter 提升为输出设备 | 证据见 `src/analog_validation/serial_adapters/afe_v1.py`、共用/投影防御测试和 `reports/software-phase4-step6.md` |
 | TD-031 | P2 | Measurement v1 尚无 watt/milliwatt 单位；MSP430 `power_mw` 已保留在 typed telemetry 和 INA219 availability 语义中，但未伪装为 `UNITLESS` Measurement | 通用 workflow 暂时不能按正式 Measurement channel 直接读取功率；错误添加单位会漂移 Phase 2/3 冻结契约 | 在后续 schema/version 评审中增加 power unit 与迁移样本；在此之前由 typed raw message 审计，不静默换单位 |
 | TD-032 | CLOSED | `phase4_public_api.json` 已冻结 121 exports、3 schemas、12 enum/flag sets、21 signatures、17 error relationships 和 5 hashes；`phase4_composite_v1.json` 已冻结 AFE/MSP external-backend exact results | Phase 4 transport/profile/adapter 兼容性变化不再能静默发生；第三方 backend 无需继承内部类，但必须满足结构协议 | 证据见 `docs/phase4-public-api.md`、13 项 golden tests 和 `reports/software-phase4-step8.md` |
-| TD-033 | CLOSED | Phase 5 Step 1 已建立 `analog_validation_app`，删除根 `dashboard/` Python 占位与两个 legacy-only analysis tests；Steps 2–4 worker/factories/services/CLI/presentation/reporting 继续通过单向架构门禁 | 用户不会再把占位误认为完成的 Dashboard，产品层、呈现层与正式 core 边界明确 | 1,949 项完整回归、9,521/9,521 package statements 与 Phase 1–4 goldens 继续通过；见 Phase 5 Steps 1–4 reports |
-| TD-034 | P3 | Ruff 0.16.5 的规则检查已通过，但全仓库 formatter 仍建议重排历史 Python 文件；Step 4 新增/修改 Python 文件自身已通过格式检查 | 不影响当前行为或 lint 正确性，但未来全仓统一格式会产生较大、低信号 diff | 在独立 formatting-only 变更中处理，先冻结工具版本并重新跑完整测试；不得混入功能提交 |
+| TD-033 | CLOSED | Phase 5 Step 1 已建立 `analog_validation_app`，删除根 `dashboard/` Python 占位与两个 legacy-only analysis tests；Steps 2–5 worker/factories/services/CLI/presentation/reporting/Dashboard 继续通过单向架构门禁 | 用户不会再把旧占位误认为完成的 Dashboard；当前可启动外壳与尚未接线的 Step 6 workflow 也被明确区分 | 2,018 项完整回归、10,273/10,273 package statements 与 Phase 1–4 goldens 继续通过；见 Phase 5 Steps 1–5 reports |
+| TD-034 | P3 | Ruff 0.16.5 的规则检查已通过，但全仓库 formatter 仍建议重排历史 Python 文件；Step 5 的 19 个新增/修改 Python 文件自身已通过格式检查 | 不影响当前行为或 lint 正确性，但未来全仓统一格式会产生较大、低信号 diff | 在独立 formatting-only 变更中处理，先冻结工具版本并重新跑完整测试；不得混入功能提交 |
 
 关闭技术债时必须记录对应代码、测试、文档和验证报告，不能只从表格删除。

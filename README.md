@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 5 in progress — 4/8 checkpoints complete |
-| Release maturity | Pre-MVP; stable CLI workflows and deterministic human reports complete |
+| Development stage | Software Phase 5 in progress — 5/8 checkpoints complete |
+| Release maturity | Pre-MVP; stable CLI, deterministic reports, and safe local Dashboard shell complete |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated tests | 1,949 passed |
-| Formal + optional + product package coverage | 100% of 9,521 statements |
+| Automated tests | 2,018 passed |
+| Formal + optional + product package coverage | 100% of 10,273 statements |
 | Highest evidence level | `BENCH_CONTROLLER` — MSP430 UART compatibility only |
 | Verified AFE hardware performance claims | **0 — the AFE has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [CLI guide](docs/product-cli.md) · [Human-report guide](docs/human-reports.md) · [Phase 5 implementation plan](docs/SOFTWARE_PHASE_5_PLAN.md) · [Phase 5 Step 4 report](reports/software-phase5-step4.md) · [Phase 4 closure report](reports/software-phase4-step8.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [CLI guide](docs/product-cli.md) · [Dashboard guide](docs/dashboard.md) · [Human-report guide](docs/human-reports.md) · [Phase 5 implementation plan](docs/SOFTWARE_PHASE_5_PLAN.md) · [Phase 5 Step 5 report](reports/software-phase5-step5.md) · [Phase 4 closure report](reports/software-phase4-step8.md)
 
 ## Product vision
 
@@ -129,8 +129,12 @@ The separate MSP430 Equipment Health Controller is a peer product, not a subordi
 - Deterministic plain-text, Markdown, self-contained HTML, and SVG reports for DC and hysteresis, with visible evidence, limitations, not-verified items, versions, record lineage, and canonical input hash.
 - Atomic create-new five-file report publication and exact DC/hysteresis golden hashes; HTML contains inline CSS and the exact generated SVG but no scripts or remote resources.
 - Installed `analog-validation report` support for strict JSON/CSV result exports with stable user issues and exit codes that preserve the finalized engineering outcome.
+- Immutable `dashboard-state.v1` panels and explicit actions, plus an owner-thread presenter that copies reviewed catalog selections, bounded worker events, structured issues, finalized product results, report points, and path-free artifact identities.
+- A headless Dashboard controller that polls the existing single-owner worker, maps cooperative cancel/close into bounded cleanup, and never creates adapters or jobs itself.
+- A lazy local Tkinter/ttk six-region shell for Source/Profile, Configuration/Safe Review, Progress, Plot/Point Table, Result/Evidence, and Artifacts; every state and evidence class is expressed in text rather than color alone.
+- Stable `analog-validation dashboard` launch/close behavior. The Step 5 shell defaults to Simulator, keeps Run disabled until Step 6 workflow wiring, imports no Tk during base-package/headless use, opens no COM port, and creates no files or network listener.
 
-Not yet implemented: dashboard, beginner wizard, reproducible portfolio demo, calibration/frequency TestRun export mappings, firmware, real-time runner deadlines, long-duration physical transport testing through this product, or validated physical AFE hardware.
+Not yet implemented: Dashboard workflow/run wiring and beginner wizard, reproducible portfolio demo, calibration/frequency TestRun export mappings, firmware, real-time runner deadlines, long-duration physical transport testing through this product, or validated physical AFE hardware.
 
 ## Architecture
 
@@ -184,9 +188,9 @@ row is separately limited to the Step 7 five-record `BENCH_CONTROLLER` capture.
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 1,949 passed |
-| Formal + optional + product package statement coverage | 100% of 9,521 statements |
-| Phase 5 product layer, worker, services, CLI, and reports | 431 focused tests; 2,196/2,196 product-package statements covered; Simulator/Replay analysis/export, memory-serial zero-write, cancellation, deterministic report goldens, architecture, and installed base-wheel report smoke passed |
+| Full pytest suite | 2,018 passed |
+| Formal + optional + product package statement coverage | 100% of 10,273 statements |
+| Phase 5 product layer, worker, services, CLI, reports, and Dashboard shell | 500 focused tests; 2,948/2,948 product-package statements covered; Simulator/Replay analysis/export, memory-serial zero-write, cancellation, deterministic report goldens, headless Dashboard state/controller, architecture, and Windows launch/close smoke passed |
 | Phase 4 public API and composite golden compatibility | 13 checks; 121 exports, 3 schemas, 12 enum/flag sets, 21 signatures, 17 errors, 5 fixture hashes, and exact AFE/MSP external-backend results frozen |
 | Phase 4 optional pyserial backend and receive-only HIL | 127/127 optional statements covered; base and `[serial]` external installs passed; COM4 delivered 5/5 valid continuous TEL, 25 Measurements, and zero writes; exact firmware unconfirmed |
 | Phase 4 receive-only SerialAdapter and product chains | 74 new tests; 282/282 added statements covered; AFE/MSP shared contracts, workflows, reconnect, and zero-write runner degradation passed |
@@ -214,8 +218,8 @@ row is separately limited to the Step 7 five-record `BENCH_CONTROLLER` capture.
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 164 source/tool/test files |
-| Latest build and repository-external installs | Isolated sdist/wheel passed; a fresh base-wheel install outside the repository ran version, Simulator read/DC/hysteresis, CSV Replay, artifact export, and safe missing-serial behavior without opening a port |
+| mypy | Passed on 176 source/tool/test files |
+| Latest build and repository-external installs | Isolated sdist/wheel passed; a fresh base-wheel install outside the repository imported headless Dashboard contracts without Tk/pyserial, then explicitly opened and safely closed a real Windows Tk window without loading pyserial or opening a port |
 | Physical controller UART | Passed with limitations — receive-only Protocol v1 compatibility only; see Step 7 report |
 | AFE hardware bench tests | Not run |
 
@@ -235,12 +239,15 @@ python -m venv .venv
 .\.venv\Scripts\analog-validation.exe simulate read --samples 3
 .\.venv\Scripts\analog-validation.exe simulate dc --points 12 --json
 .\.venv\Scripts\analog-validation.exe simulate hysteresis
+.\.venv\Scripts\analog-validation.exe dashboard
 ```
 
 The three Simulator workflows run real product services and formal software
-analysis, but use only deterministic synthetic observations. A software PASS is
-not a physical AFE result. See the [CLI guide](docs/product-cli.md) for Replay,
-exports, exit codes, cancellation, and the explicit serial safety gate.
+analysis, but use only deterministic synthetic observations. The Dashboard is a
+safe Step 5 shell whose Run action remains disabled until Step 6 workflow wiring.
+A software PASS or an opened window is not a physical AFE result. See the
+[CLI guide](docs/product-cli.md) for Replay, exports, exit codes, cancellation,
+and the explicit serial safety gate.
 
 Add optional real-port support only when a serial controller is needed:
 
@@ -317,17 +324,17 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Complete — 8/8 checkpoints |
 | Software Phase 4 | Serial transport and independent controller profiles | Complete — 8/8 checkpoints |
-| Software Phase 5 | CLI, dashboard, and evidence-aware reports | In progress — Steps 1–4 complete, implementation 4/8 |
+| Software Phase 5 | CLI, dashboard, and evidence-aware reports | In progress — Steps 1–5 complete, implementation 5/8 |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-Software Phases 1–4 are complete. Phase 5 Steps 1–4 have established the `analog_validation_app` contracts/catalog, bounded single-owner worker, explicit factories, shared services, stable Simulator/Replay/receive-only CLI, and presentation-only deterministic human reports. Implementation is 4/8; the next checkpoint is the headless Dashboard state/presenter followed by a lazy local desktop shell. The earlier Phase 4 Step 7 physical result remains a separate narrow controller-UART claim, and all real AFE hardware work remains gated.
+Software Phases 1–4 are complete. Phase 5 Steps 1–5 have established the `analog_validation_app` contracts/catalog, bounded single-owner worker, explicit factories, shared services, stable Simulator/Replay/receive-only CLI, presentation-only deterministic reports, and a headless-first local Dashboard shell. Implementation is 5/8; Step 6 will wire the six-step beginner workflow and reviewed worker services while preserving Simulator-first and receive-only boundaries. The earlier Phase 4 Step 7 physical result remains a separate narrow controller-UART claim, and all real AFE hardware work remains gated.
 
 ## Repository guide
 
 ```text
 src/analog_validation/    installable controller-neutral product core
-src/analog_validation_app/ product contracts, factories, services, worker, and CLI entry point
+src/analog_validation_app/ product contracts, services, reports, Dashboard, worker, and CLI entry point
 tools/                    repository-local synthetic data and developer utilities
 tests/                    unit, golden, integration, and architecture regression tests
 test-data/golden/         frozen compatibility vectors

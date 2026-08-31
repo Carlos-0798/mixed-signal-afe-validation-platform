@@ -142,8 +142,8 @@ Do not power the analog assembly until the open toolchain, inventory, permission
   choice, or capability inference from a USB name.
 - **Step 3 complete:** verify cooperative cancellation and cleanup in a real
   child Python process by injecting `KeyboardInterrupt` at the interpreter
-  boundary. Interactive Windows console `Ctrl+C`/`Ctrl+Break`, real-COM worker
-  cancellation, and Dashboard-close wiring remain explicit later smoke gates.
+  boundary. Interactive Windows console `Ctrl+C`/`Ctrl+Break` and real-COM
+  worker cancellation remain explicit later smoke gates.
 - **Step 4 complete:** build bounded immutable report/chart views only from
   finalized result bundles; DC uses frozen predicted values and hysteresis uses
   exported adjacent transitions/final threshold metrics, with no refit,
@@ -156,9 +156,16 @@ Do not power the analog assembly until the open toolchain, inventory, permission
   hostile text and substituted-SVG rejection, create-new atomic directory
   publication, staging cleanup, path races, five artifact hashes, installed base
   wheel execution, and preserved PASS/FAIL/INCOMPLETE/UNSUPPORTED/ABORTED exits.
-- Test Dashboard state/presenter headlessly. Keep Tk imports inside the widget
-  boundary and route all UI updates through main-thread polling of immutable
-  bounded events.
+- **Step 5 complete:** test immutable bounded Dashboard state/actions and the
+  presenter headlessly; reject cross-thread presenter use and preserve catalog,
+  worker event, issue, finalized result, report point, and path-free artifact
+  identity without recomputing engineering conclusions.
+- **Step 5 complete:** keep Tk imports inside the explicit app/widget boundary;
+  route updates through owner-thread polling, verify rendering-only widgets,
+  cooperative cancel, finite close/join, and actual worker cleanup.
+- **Step 5 complete:** launch and safely auto-close a real Windows Tk window,
+  verify Simulator/AFE defaults and textual status, and confirm no pyserial
+  import, port access, file creation, network listener, or hardware claim.
 - Keep create-new output, hostile path/text/Unicode, sensitive raw-data
   exclusion, and no-network checks when the report is later embedded in the
   Dashboard and demo. Phase 5 reports deliberately provide no overwrite mode.
@@ -166,8 +173,8 @@ Do not power the analog assembly until the open toolchain, inventory, permission
   exact machine/result/report/plot manifest hashes.
 - Before Phase 5 closure, require full pytest and coverage, Ruff, mypy,
   dependency checks, sdist/wheel inspection, base/serial external installs,
-  CLI/demo smoke, and a real Windows Dashboard launch/close smoke or an honest
-  `NOT RUN` record.
+  CLI/demo smoke, and repeat the real Windows Dashboard launch/close smoke or
+  record an honest `NOT RUN` result when the environment cannot display it.
 - Keep the earlier controller UART HIL in its own report. Product UI tests and
   screenshots are not AFE, peripheral, electrical-safety, timing, or long-run
   hardware evidence.

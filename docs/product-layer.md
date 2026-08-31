@@ -1,6 +1,6 @@
 # Product layer contracts, services, CLI, worker, and reports
 
-**Implemented:** Software Phase 5 Steps 1–4, 2026-08-31<br>
+**Implemented:** Software Phase 5 Steps 1–5, 2026-08-31<br>
 **Evidence:** HOST_TEST and repository-external package installation<br>
 **Hardware claim:** none
 
@@ -20,7 +20,7 @@ replaceable user interfaces above it.
 user intent
    |--------------------|
    v                    v
-analog-validation CLI   future Dashboard
+analog-validation CLI   local Dashboard
    |--------------------|
              v
 analog_validation_app   request, catalog, services, worker, presentation
@@ -145,8 +145,17 @@ Step 4 implements `report`. It loads one strict finalized JSON/CSV result, build
 an immutable display view, and creates text, Markdown, HTML, SVG, and manifest
 files in a new directory. The DC line uses exported predicted values, and the
 hysteresis chart uses exported direction/transition data and copied threshold
-metrics; neither path calls an analysis or evaluator. `dashboard` and `demo`
-remain stable reserved commands that fail honestly with exit code 4.
+metrics; neither path calls an analysis or evaluator. `demo` remains a stable
+reserved command that fails honestly with exit code 4.
+
+Step 5 adds `analog_validation_app.dashboard` as a headless-first presentation
+boundary. Immutable state/actions and the owner-thread presenter copy only the
+reviewed catalog, product request/result/event, structured issue, and finalized
+human-report view. The controller polls the existing bounded worker and performs
+cooperative cancel/close; it does not start a service. Widgets render the six
+text/table regions and emit callbacks only. `app.py` imports Tk lazily after the
+explicit `dashboard` command and defaults to an idle Simulator/AFE shell with Run
+disabled until Step 6.
 
 For an unknown command the CLI exits with code `2`, writes no result to stdout,
 and explains:
@@ -164,10 +173,13 @@ See the [CLI guide](product-cli.md) for exact commands and semantics.
 
 The current wheel was installed in a fresh directory outside the repository with
 `--no-deps`. Version, Simulator read/DC/hysteresis, CSV Replay, structured export,
-and five-file report publication ran while pyserial was absent and Tk was not
-imported. `ports` failed before discovery with the documented optional-dependency
-exit. A subprocess interpreter interrupt reached `CANCELLED`, cleanup, and exit
-130. No COM port was enumerated or opened, and no window was created.
+five-file report publication, and headless Dashboard import ran while pyserial
+was absent. The same external install then explicitly created a real Windows Tk
+window and closed it automatically with the idle Simulator state; pyserial
+remained unloaded and no port was accessed.
+`ports` still fails before discovery when the optional serial dependency is
+absent. A subprocess interpreter interrupt reached `CANCELLED`, cleanup, and exit
+130. No COM port was enumerated or opened in Step 5.
 
 This proves packaging, dependency isolation, deterministic CLI behavior, and
 host-side product-contract logic. It does not add hardware evidence. The earlier
@@ -176,9 +188,8 @@ receive-only MSP430 UART capture remains a separate, narrowly scoped
 
 ## Next checkpoint
 
-Software Phase 5 Step 5 will build the immutable, headless Dashboard state and
-presenter before connecting a lazy local Tkinter/ttk shell. Widgets may render
-worker events, product results, and the existing report view, but may not open
-devices, parse profiles, refit data, re-evaluate criteria, or promote evidence.
-Real-port action remains a separate later gate. See the
-[human-report guide](human-reports.md) for the completed Step 4 boundary.
+Software Phase 5 Step 6 will connect the six-step beginner workflow to the same
+reviewed factories, services, worker, and presentation semantics. Simulator
+remains the default. CSV Replay must validate before run, and Serial remains an
+explicit bounded receive-only choice with no command surface. See the
+[Dashboard guide](dashboard.md) and [human-report guide](human-reports.md).

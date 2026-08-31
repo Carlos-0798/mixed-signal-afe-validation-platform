@@ -1,7 +1,7 @@
 # Software Phase 5 文件级实施计划
 
 **阶段名称：** 产品工作流、CLI、Dashboard 与证据可见报告<br>
-**规划状态：** 已完成；实现进度 4/8<br>
+**规划状态：** 已完成；实现进度 5/8<br>
 **预计时间：** 5–8 个有效开发日；初学者兼职约 2–3 周<br>
 **前置：** Software Phase 1–4 的领域、分析、runner、导出、transport、profile 和 adapter 兼容基线完成<br>
 **默认硬件要求：** 无<br>
@@ -13,7 +13,7 @@
 - [x] Step 2：owning/cancellable job worker；
 - [x] Step 3：稳定 CLI 工作流；
 - [x] Step 4：证据可见的人类报告与确定性图表；
-- [ ] Step 5：Dashboard 状态模型、presenter 与桌面外壳；
+- [x] Step 5：Dashboard 状态模型、presenter 与桌面外壳；
 - [ ] Step 6：初学者向导、worker 接线与只读串口入口；
 - [ ] Step 7：可复现演示、性能/可访问性/隐私验收；
 - [ ] Step 8：公共兼容性冻结、构建、外部安装和阶段收口。
@@ -24,8 +24,10 @@ Step 1 已新增产品契约、受控 catalog、错误解释和最小 CLI，同�
 read/DC/迟滞分析、结构化导出和显式 receive-only serial 边界接入同一 service/worker/
 CLI 链。Step 4 已从 finalized result bundle 建立只呈现不重算的报告 view，生成
 text/Markdown、自包含 HTML、确定性 SVG 与 hash manifest，并接通正式 `report` 命令。
-四步都没有新增 AFE 实物证据；Dashboard 仍未实现，因此完成 4/8 不等于 Phase 5
-产品已完成。
+Step 5 已建立不可变 `dashboard-state.v1`、owner-thread presenter、headless controller、
+render-only widgets 和延迟导入 Tk 的本地桌面外壳，并真实验证 Windows 启动/关闭。
+五步都没有新增 AFE 实物证据；Run 在 Step 6 接线前保持禁用，因此完成 5/8 不等于
+Phase 5 产品已完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -349,6 +351,17 @@ statements；完整回归为 1,949 tests、9,521/9,521 statements。基础 wheel
 窗口关闭触发 cancel/join；状态不用颜色单独表达；Windows 实际窗口 smoke 单独记录，
 不得称为硬件验证。
 
+**状态：已完成（2026-08-31）。** `dashboard/state.py` 定义有界不可变面板、动作和
+显式 `NO_NEW_HARDWARE_VALIDATION`；`presenter.py` 只复制 reviewed catalog、worker
+event/result/issue 和 finalized report view；`controller.py` 在 owner thread 轮询同一
+single-owner worker，并把取消/关闭映射为有限 join；`widgets.py` 只渲染六个区域；
+`app.py` 只在显式启动时加载 Tk。Run 在 Step 6 前保持禁用。500 项产品集中测试覆盖
+`analog_validation_app` 2,948/2,948 statements；完整回归为 2,018 tests、
+10,273/10,273 statements。真实 Windows Tk 窗口完成 Simulator/AFE 默认展示和安全
+自动关闭，`tkinter` 只在显式启动后加载，`pyserial` 未加载且未打开串口。详见
+[`dashboard.md`](dashboard.md) 和
+[`software-phase5-step5.md`](../reports/software-phase5-step5.md)。
+
 ### Step 6：初学者向导、worker 接线与只读串口入口
 
 向导固定为六步：选择来源 → 选择测试 → 配置 → 证据/安全复核 → 运行 → 查看/导出。
@@ -383,8 +396,8 @@ demo/report 正常；安装 serial extra 后只做 discovery/host substitute，�
 
 ## 8. CLI 和用户体验最低合同
 
-Steps 3–4 已冻结并测试以下命令族；`report` 已实现，`demo` 和 `dashboard` 目前只
-保留名称并诚实返回 capability-unavailable，分别由后续步骤实现：
+Steps 3–5 已冻结并测试以下命令族；`report` 和安全 `dashboard` 外壳已实现，`demo`
+目前只保留名称并诚实返回 capability-unavailable，由后续步骤实现：
 
 ```text
 analog-validation version
@@ -499,8 +512,9 @@ analog-validation dashboard
 
 ## 14. 下一检查点
 
-Phase 5 Steps 1–4 已完成，实现进度为 4/8。下一次继续时只实施 Step 5：先建立不导入
-Tk 的不可变 Dashboard state/action 和 presenter，再接入延迟导入的本地 Tkinter/ttk
-桌面外壳。widgets 只能显示既有 worker event、product result 和 report view，不能解析
-profile、打开设备或计算 PASS/FAIL。真实 COM、向导接线和硬件操作仍不属于下一步；
-先前的窄范围 MSP430 HIL 也不会因打开软件窗口而被重复或扩大。
+Phase 5 Steps 1–5 已完成，实现进度为 5/8。下一次继续时只实施 Step 6：把固定六步
+流程（来源 → 测试 → 配置 → 证据/安全复核 → 运行 → 查看/导出）接到现有 reviewed
+services 和 single-owner worker。Simulator 继续默认选中；Serial 入口必须显式选择
+port/profile、设置时间/记录上限并确认 receive-only，不能增加 command console 或写
+按钮。真实 COM 和硬件操作仍不属于默认 Step 6；若需要新的 controller smoke，必须
+另行授权并单独记录，先前的窄范围 MSP430 HIL 不会因 UI 接线而被重复或扩大。

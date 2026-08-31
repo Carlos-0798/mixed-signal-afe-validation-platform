@@ -1,6 +1,6 @@
 # Analog Validation Studio CLI
 
-**Implemented:** Software Phase 5 Steps 3–4, 2026-08-31<br>
+**Implemented:** Software Phase 5 Steps 3–5, 2026-08-31<br>
 **Schema:** `product-cli-output.v1`<br>
 **Default source:** deterministic software-only Simulator<br>
 **Physical AFE claim:** none
@@ -37,6 +37,7 @@ analog-validation profiles
 analog-validation simulate read --samples 3
 analog-validation simulate dc --points 12 --json
 analog-validation simulate hysteresis
+analog-validation dashboard
 ```
 
 These Simulator commands are the safest beginner starting point. They use
@@ -60,12 +61,26 @@ saturation level, or threshold.
 | `replay hysteresis` | Project explicit analog/state channels and direction counts | File evidence only |
 | `observe` | Run one bounded receive-only serial read | Exact port/profile/channel plus `--confirm-read-only`; no write API |
 | `report` | Turn one finalized JSON/CSV result export into five deterministic human-report files | No adapter, serial port, analysis, or hardware operation |
-| `dashboard` | Reserved for Step 5 | Returns exit code 4 without creating a window |
+| `dashboard` | Launch the local headless-first Tkinter/ttk shell | Defaults to Simulator; Step 5 opens no adapter, file, COM port, network listener, or output path |
 | `demo` | Reserved for Step 7 | Returns exit code 4 without fabricating demo artifacts |
 
 Run any command with `--help` to see its exact options. Sample and record counts
 are bounded at the parser boundary, numeric values must be finite, and profile
 identity is exact rather than guessed from a filename or USB description.
+
+## Dashboard command
+
+`analog-validation dashboard` lazily imports Tk and opens the six-region local
+shell described in the [Dashboard guide](dashboard.md). Closing the window first
+closes its bounded worker owner. After safe closure, the optional `--json` view
+reports the selected source/profile, final worker state, session schema, and
+`NO_NEW_HARDWARE_VALIDATION`.
+
+Step 5 deliberately keeps Run disabled. The window proves state/presenter/widget
+separation and safe lifecycle behavior; it does not yet execute the Step 6
+beginner workflow. If Tk is unavailable, the CLI gives a structured explanation
+and suggests using the existing terminal workflows rather than printing a
+traceback.
 
 ## CSV Replay example
 
@@ -189,7 +204,7 @@ on open; that physical behavior requires its own device-specific review.
 Step 3 serial integration tests used a memory backend with a write trap. They
 proved the product path made zero write calls, but they did not open a real port.
 The MSP430 connected during development was deliberately left untouched in
-Steps 3–4.
+Steps 3–5.
 
 ## Cancellation and current evidence limit
 
@@ -202,4 +217,4 @@ claim; a normal interactive-terminal smoke remains a later release check.
 
 See the [product layer](product-layer.md),
 [worker design](product-worker.md), and
-[Step 4 evidence report](../reports/software-phase5-step4.md).
+[Step 5 evidence report](../reports/software-phase5-step5.md).
