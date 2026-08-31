@@ -1,0 +1,131 @@
+{
+  "schema_version": "msp430-equipment-health-interoperability.v1",
+  "evidence_source": "HOST_TEST",
+  "scope": "Independent byte-level interoperability fixtures only; no peer runtime code, serial I/O, firmware execution, external hardware, or inherited MSP430 project evidence",
+  "interface_reference": {
+    "repository": "https://github.com/Carlos-0798/msp430-equipment-health-controller",
+    "commit": "151fdcfa60661bce1ba04af13c1d3509706f7d4a",
+    "document": "docs/protocol.md",
+    "protocol": "UART Protocol v1"
+  },
+  "valid_records": [
+    {
+      "name": "normal_telemetry",
+      "message_type": "Msp430Telemetry",
+      "record": "TEL,1042,582300,421,418,5012,186,932,650,COOLING_HIGH,0000,0712\n"
+    },
+    {
+      "name": "unavailable_telemetry",
+      "message_type": "Msp430Telemetry",
+      "record": "TEL,1,1000,-32768,-32768,0,0,0,0,FAULT,0015,80FC\n"
+    },
+    {
+      "name": "uint32_max_telemetry",
+      "message_type": "Msp430Telemetry",
+      "record": "TEL,4294967295,4294967295,32767,-32768,65535,-32768,4294967295,1000,FAULT,FFFF,8B40\n"
+    },
+    {
+      "name": "wrapped_zero_telemetry",
+      "message_type": "Msp430Telemetry",
+      "record": "TEL,0,0,0,0,0,0,0,0,BOOT,0000,30CF\n"
+    },
+    {
+      "name": "ack_ok",
+      "message_type": "Msp430Ack",
+      "record": "ACK,42,OK,6996\n"
+    },
+    {
+      "name": "ack_error",
+      "message_type": "Msp430Ack",
+      "record": "ACK,43,ERR,BAD_CRC,D3DD\n"
+    },
+    {
+      "name": "status",
+      "message_type": "Msp430Status",
+      "record": "STS,42,9000,AUTO,0,NORMAL,0000,7836\n"
+    },
+    {
+      "name": "config",
+      "message_type": "Msp430Config",
+      "record": "CFG,7,3,350,420,500,600,30,400,700,750,300,0,08FD\n"
+    },
+    {
+      "name": "log",
+      "message_type": "Msp430LogRecord",
+      "record": "LOG,9,2,17,4,2,16,421,180,5000,EA8A\n"
+    },
+    {
+      "name": "log_unknown_numeric_state_preserved",
+      "message_type": "Msp430LogRecord",
+      "record": "LOG,9,3,18,5,255,80,-32768,-32768,65535,3D69\n"
+    }
+  ],
+  "invalid_records": [
+    {
+      "name": "bad_crc",
+      "record_base64": "VEVMLDEsMTAwMCwtMzI3NjgsLTMyNzY4LDAsMCwwLDAsRkFVTFQsMDAxNSw4MEZECg==",
+      "error_type": "CrcMismatch",
+      "error_match": "CRC mismatch"
+    },
+    {
+      "name": "bad_field_count",
+      "record_base64": "VEVMLDEsMixCNkJFCg==",
+      "error_type": "ProtocolError",
+      "error_match": "TEL requires 11 payload fields"
+    },
+    {
+      "name": "bad_decimal",
+      "record_base64": "VEVMLE5PUEUsMTAwMCwwLDAsMCwwLDAsMCxOT1JNQUwsMDAwMCwzOTkxCg==",
+      "error_type": "ProtocolError",
+      "error_match": "sequence is not a decimal integer"
+    },
+    {
+      "name": "bad_pwm_range",
+      "record_base64": "VEVMLDEsMTAwMCwwLDAsMCwwLDAsMTAwMSxOT1JNQUwsMDAwMCxBRDE5Cg==",
+      "error_type": "ProtocolError",
+      "error_match": "pwm_permille is outside"
+    },
+    {
+      "name": "bad_fault_width",
+      "record_base64": "VEVMLDEsMTAwMCwwLDAsMCwwLDAsMCxOT1JNQUwsMDE1LDlEMjcK",
+      "error_type": "ProtocolError",
+      "error_match": "fault_flags must contain exactly 4 hexadecimal digits"
+    },
+    {
+      "name": "unknown_telemetry_state",
+      "record_base64": "VEVMLDEsMTAwMCwwLDAsMCwwLDAsMCxOT1RfQV9TVEFURSwwMDAwLDczREMK",
+      "error_type": "ProtocolError",
+      "error_match": "unknown device state"
+    },
+    {
+      "name": "unsupported_command_input",
+      "record_base64": "Q01ELDEsR0VULFNUQVRVUyw1RDA1Cg==",
+      "error_type": "ProtocolError",
+      "error_match": "unsupported MSP430 device record type"
+    },
+    {
+      "name": "bad_ack_result",
+      "record_base64": "QUNLLDEsTUFZQkUsRkU1Ngo=",
+      "error_type": "ProtocolError",
+      "error_match": "ACK result is invalid"
+    },
+    {
+      "name": "missing_lf",
+      "record_base64": "QUNLLDQyLE9LLDY5OTY=",
+      "error_type": "FramingError",
+      "error_match": "LF-terminated"
+    },
+    {
+      "name": "non_ascii",
+      "record_base64": "VEVMLDEs/ywwMDAwCg==",
+      "error_type": "FramingError",
+      "error_match": "ASCII"
+    },
+    {
+      "name": "overlong",
+      "record_base64": "WFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFgK",
+      "error_type": "FrameTooLong",
+      "error_match": "exceeds 128 bytes"
+    }
+  ]
+}

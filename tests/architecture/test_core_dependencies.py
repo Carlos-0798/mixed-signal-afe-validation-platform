@@ -71,3 +71,18 @@ def test_transport_and_profile_dependency_direction_is_one_way() -> None:
         for imported in profile_imports
         for prefix in forbidden_profiles
     )
+
+
+def test_msp430_interoperability_uses_no_peer_runtime_namespace() -> None:
+    modules = (
+        CORE_ROOT / "protocol" / "msp430_health_v1.py",
+        CORE_ROOT / "profiles" / "msp430_health_v1.py",
+    )
+    imports = set().union(*(_absolute_imports(path.parent) for path in modules))
+    peer_roots = ("dashboard", "firmware", "tools")
+
+    assert all(
+        imported != root and not imported.startswith(f"{root}.")
+        for imported in imports
+        for root in peer_roots
+    )
