@@ -1,0 +1,138 @@
+# Private beta testing guide
+
+## Goal
+
+This 20–30 minute session checks whether a new user can install and understand
+Analog Validation Studio without repository knowledge or hardware. It tests the
+delivered software experience, not analog performance.
+
+Use the matching [installation guide](INSTALLATION.md),
+[checklist](BETA_TEST_CHECKLIST.md), [known limitations](KNOWN_LIMITATIONS.md),
+and [troubleshooting guide](TROUBLESHOOTING.md).
+
+## Before starting
+
+Record only these non-sensitive facts:
+
+- operating-system family/version;
+- Python version and architecture;
+- `analog-validation version --json` output;
+- wheel filename and SHA-256;
+- whether the required CLI path and optional Dashboard path were attempted.
+
+Do not include a username, home directory, full local path, email address,
+token, private repository URL, USB identifier, physical port name, or raw
+serial frame in feedback. Replace local paths with placeholders such as
+`<beta-root>`.
+
+## Required base test
+
+### 1. Candidate integrity
+
+- The directory has one wheel, one sdist, and `release-manifest.json`.
+- The manifest says `candidate_status: PASS`.
+- Both artifact size/SHA-256 values match the local files.
+- The manifest says `NO_NEW_HARDWARE_VALIDATION` and zero physical-port
+  operations.
+
+Stop if any identity differs. Do not try to repair or rename the package.
+
+### 2. Clean installation
+
+- Create a new short-path virtual environment.
+- Install the wheel with `--no-deps`.
+- Confirm `pip check` reports no broken requirements.
+- Confirm version JSON reports `0.1.0b1` without a traceback.
+
+This proves the base product has no required third-party runtime package. It
+does not prove optional serial or GUI behavior.
+
+### 3. Deterministic demo
+
+Run one create-new demo directory. Expected results:
+
+| Observation | Expected value |
+|---|---|
+| CLI exit | `0` |
+| outcome | `PASS` |
+| evidence source | `SYNTHETIC` |
+| hardware claim | `NO_NEW_HARDWARE_VALIDATION` |
+| top-level artifacts | 12 |
+| serial ports opened | 0 |
+| application bytes written | 0 |
+| network access declared by demo | `NONE` |
+
+Verify that the result contains JSON/CSV, a text/Markdown/HTML report, SVG,
+two replay examples, and manifests. Open the local HTML report and answer:
+
+1. Can you find the engineering outcome?
+2. Can you identify that the source is synthetic?
+3. Can you find what has not been physically verified?
+4. Can you find the gain/offset/fit criteria without reading source code?
+
+If the software says PASS but the evidence limitation is hard to find, submit
+usability feedback even though the command technically succeeded.
+
+### 4. Create-new safety
+
+Run the same demo command against the already existing demo directory. Expected:
+
+- the command refuses to overwrite it;
+- the original files remain available;
+- the error explains that a new path is required;
+- no Python traceback appears in normal mode.
+
+This is an intentional evidence-preservation feature, not a defect.
+
+### 5. Optional desktop check
+
+If a graphical Windows desktop and Tk are available, launch the Dashboard with
+the default Simulator. Review the six steps, criteria, Run/Cancel controls,
+result/evidence panel, and close behavior. Do not select Serial. Record
+`NOT_RUN` when no suitable display exists; never convert a skipped GUI test
+into PASS.
+
+## Optional Replay check
+
+The generated clean replay file can be consumed without hardware:
+
+```powershell
+& $Cli replay dc `
+  --input (Join-Path $Demo "examples\replay-dc.csv") `
+  --points 24 `
+  --json
+```
+
+Expected evidence is `CSV_REPLAY`, not `SYNTHETIC` or `BENCH_*`. Replaying a
+file creates a new software observation context; it cannot authenticate a past
+physical measurement.
+
+## Stop conditions
+
+Stop the test and submit a sanitized bug report when:
+
+- a candidate hash or version does not match;
+- installation modifies an unrelated Python environment;
+- the base install unexpectedly requires pyserial;
+- a normal Simulator/demo command attempts port access;
+- an existing artifact is overwritten;
+- an expected error exposes a traceback without `--debug`;
+- outcome/evidence/hardware-claim fields contradict each other;
+- a process does not terminate after normal close/cancel.
+
+Do not investigate by connecting hardware, changing execution policy, running
+as administrator, disabling security software, or deleting existing evidence.
+
+## Feedback outcome
+
+Choose one overall result:
+
+- `PASS`: every required base item matched and no blocking issue occurred;
+- `PARTIAL`: the CLI path passed but an optional path was unavailable or a
+  non-blocking usability issue was found;
+- `BLOCKED`: integrity, install, required command, evidence, privacy, or cleanup
+  did not meet the checklist.
+
+Use the repository's **Private beta test feedback** issue form. Use **Bug
+report** for one reproducible defect. Attach no candidate package, raw capture,
+or private diagnostic archive to an issue.
