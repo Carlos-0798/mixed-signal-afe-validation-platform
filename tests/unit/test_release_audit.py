@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from tools.release_audit import (
+    LICENSE_POLICY_TEXT,
     RELEASE_AUDIT_SCHEMA_VERSION,
     ReleaseAuditDestinationError,
     ReleaseAuditError,
@@ -53,6 +54,12 @@ def _workbook(*, creator: str = "", hidden: bool = False) -> bytes:
 
 def test_release_audit_schema_is_explicit() -> None:
     assert RELEASE_AUDIT_SCHEMA_VERSION == "release-audit.v1"
+
+
+def test_license_placeholder_matches_the_reviewed_exact_text() -> None:
+    license_path = Path(__file__).resolve().parents[2] / "LICENSE"
+
+    assert license_path.read_text(encoding="utf-8") == LICENSE_POLICY_TEXT
 
 
 def test_sensitive_scan_returns_only_rule_and_relative_path() -> None:
