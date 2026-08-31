@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import FrozenInstanceError
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -11,18 +12,26 @@ from analog_validation import EvidenceSource
 from analog_validation import TestRunOutcome as RunOutcome
 from analog_validation import __version__ as core_version
 from analog_validation_app import (
+    MAX_PRODUCT_EVENT_TEXT_CHARS,
     MAX_PRODUCT_IDENTIFIER_CHARS,
     MAX_PRODUCT_LIMITATION_CHARS,
     MAX_PRODUCT_LIMITATIONS,
+    PRODUCT_JOB_EVENT_SCHEMA_VERSION,
     PRODUCT_JOB_SCHEMA_VERSION,
     PRODUCT_RESULT_SCHEMA_VERSION,
+    ProductJobEvent,
     ProductJobRequest,
     ProductJobResult,
     ProductJobType,
     ProductRequestError,
     ProductResultStatus,
     ProductSourceMode,
+    ProductWorkerError,
+    ProductWorkerState,
+    issue_from_exception,
 )
+
+NOW = datetime(2026, 8, 31, 12, 0, tzinfo=timezone.utc)
 
 
 def make_request(**overrides: Any) -> ProductJobRequest:
@@ -49,6 +58,18 @@ def make_result(**overrides: Any) -> ProductJobResult:
     return ProductJobResult(**values)
 
 
+def make_event(**overrides: Any) -> ProductJobEvent:
+    values: dict[str, Any] = {
+        "job_id": "job-001",
+        "index": 1,
+        "created_at": NOW,
+        "state": ProductWorkerState.STARTING,
+        "message": "Job accepted.",
+    }
+    values.update(overrides)
+    return ProductJobEvent(**values)
+
+
 def test_product_enums_and_schema_values_are_explicit() -> None:
     assert [item.value for item in ProductSourceMode] == [
         "SIMULATOR",
@@ -67,6 +88,34 @@ def test_product_enums_and_schema_values_are_explicit() -> None:
         "CANCELLED",
         "ERROR",
     ]
+    assert [item.value for item in ProductWorkerState] == [
+        "IDLE",
+        "STARTING",
+        "RUNNING",
+        "CANCELLING",
+        "SUCCEEDED",
+        "FAILED",
+        "CANCELLED",
+    ]
+    assert all(
+        state.is_active
+        for state in (
+            ProductWorkerState.STARTING,
+            ProductWorkerState.RUNNING,
+            ProductWorkerState.CANCELLING,
+        )
+    )
+    assert all(
+        state.is_terminal
+        for state in (
+            ProductWorkerState.SUCCEEDED,
+            ProductWorkerState.FAILED,
+            ProductWorkerState.CANCELLED,
+        )
+    )
+    assert not ProductWorkerState.IDLE.is_active
+    assert not ProductWorkerState.IDLE.is_terminal
+    assert PRODUCT_JOB_EVENT_SCHEMA_VERSION == "product-job-event.v1"
     assert PRODUCT_JOB_SCHEMA_VERSION == "product-job.v1"
     assert PRODUCT_RESULT_SCHEMA_VERSION == "product-result.v1"
 
@@ -77,7 +126,9 @@ def test_product_package_has_one_version_and_typed_public_exports() -> None:
     assert analog_validation_app.__version__ == core_version
     assert (package_root / "py.typed").is_file()
     assert len(analog_validation_app.__all__) == len(set(analog_validation_app.__all__))
-    assert all(hasattr(analog_validation_app, name) for name in analog_validation_app.__all__)
+    assert all(
+        hasattr(analog_validation_app, name) for name in analog_validation_app.__all__
+    )
 
 
 def test_product_request_is_immutable_read_only_and_explicit() -> None:
@@ -88,6 +139,100 @@ def test_product_request_is_immutable_read_only_and_explicit() -> None:
     assert request.schema_version == PRODUCT_JOB_SCHEMA_VERSION
     with pytest.raises(FrozenInstanceError):
         request.job_id = "changed"  # type: ignore[misc]
+
+
+def test_product_job_event_is_immutable_bounded_and_normalizes_utc() -> None:
+    eastern = timezone(timedelta(hours=-4))
+    event = make_event(
+        created_at=datetime(2026, 8, 31, 8, 0, tzinfo=eastern),
+        state=ProductWorkerState.RUNNING,
+        completed=2,
+        total=3,
+    )
+
+    assert event.created_at == NOW
+    assert event.created_at.tzinfo is timezone.utc
+    assert event.completed == 2
+    assert event.total == 3
+    assert event.schema_version == PRODUCT_JOB_EVENT_SCHEMA_VERSION
+    with pytest.raises(FrozenInstanceError):
+        event.index = 2  # type: ignore[misc]
+
+
+def test_failed_job_event_carries_one_safe_user_issue() -> None:
+    issue = issue_from_exception(ProductWorkerError("expected worker failure"))
+    event = make_event(
+        state=ProductWorkerState.FAILED,
+        message="Job failed.",
+        issue=issue,
+    )
+
+    assert event.issue is issue
+
+
+@pytest.mark.parametrize(
+    ("overrides", "message"),
+    [
+        ({"job_id": ""}, "job_id"),
+        ({"index": True}, "integer"),
+        ({"index": 0}, "positive"),
+        ({"created_at": "now"}, "datetime"),
+        ({"created_at": datetime(2026, 8, 31, 12)}, "timezone-aware"),  # noqa: DTZ001
+        ({"state": "RUNNING"}, "ProductWorkerState"),
+        ({"message": ""}, "non-empty"),
+        ({"message": " padded "}, "non-empty"),
+        ({"message": "line\nbreak"}, "printable"),
+        ({"message": "x" * (MAX_PRODUCT_EVENT_TEXT_CHARS + 1)}, "exceeds"),
+        ({"completed": 1}, "provided together"),
+        ({"total": 1}, "provided together"),
+        (
+            {
+                "state": ProductWorkerState.RUNNING,
+                "completed": True,
+                "total": 1,
+            },
+            "integers",
+        ),
+        (
+            {
+                "state": ProductWorkerState.RUNNING,
+                "completed": -1,
+                "total": 1,
+            },
+            "0 <= completed",
+        ),
+        (
+            {
+                "state": ProductWorkerState.RUNNING,
+                "completed": 0,
+                "total": 0,
+            },
+            "0 <= completed",
+        ),
+        (
+            {
+                "state": ProductWorkerState.RUNNING,
+                "completed": 2,
+                "total": 1,
+            },
+            "0 <= completed",
+        ),
+        ({"completed": 0, "total": 1}, "RUNNING"),
+        ({"issue": object()}, "UserIssue"),
+        ({"state": ProductWorkerState.FAILED}, "require"),
+        (
+            {"issue": issue_from_exception(ProductWorkerError("failure"))},
+            "only FAILED",
+        ),
+        ({"schema_version": "product-job-event.v2"}, "unsupported"),
+    ],
+)
+def test_product_job_event_rejects_invalid_or_ambiguous_values(
+    overrides: dict[str, Any],
+    message: str,
+) -> None:
+    with pytest.raises(ProductRequestError, match=message):
+        make_event(**overrides)
 
 
 @pytest.mark.parametrize(

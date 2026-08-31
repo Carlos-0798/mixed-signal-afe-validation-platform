@@ -21,10 +21,40 @@ class CliUsageError(ProductCliError):
     """Command syntax or options are invalid."""
 
 
+class ProductWorkerError(ProductAppError):
+    """Base class for expected product-worker failures."""
+
+
+class ProductWorkerBusyError(ProductWorkerError):
+    """A second job was requested while one worker already owns a job."""
+
+
+class ProductWorkerClosedError(ProductWorkerError):
+    """A closed worker cannot accept more jobs."""
+
+
+class ProductWorkerContractError(ProductWorkerError):
+    """An injected job service violated the product-worker contract."""
+
+
+class ProductWorkerTimeoutError(ProductWorkerError):
+    """A bounded join expired before the worker released its job."""
+
+
+class ProductJobCancelled(ProductWorkerError):
+    """Cooperative cancellation was observed at a bounded job checkpoint."""
+
+
 __all__ = [
     "CliUsageError",
     "ProductAppError",
     "ProductCatalogError",
     "ProductCliError",
+    "ProductJobCancelled",
     "ProductRequestError",
+    "ProductWorkerBusyError",
+    "ProductWorkerClosedError",
+    "ProductWorkerContractError",
+    "ProductWorkerError",
+    "ProductWorkerTimeoutError",
 ]

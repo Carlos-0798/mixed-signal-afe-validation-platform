@@ -66,6 +66,26 @@ def test_product_shell_does_not_own_protocol_or_analysis_implementations() -> No
     assert not {path.name for path in APP_ROOT.rglob("*.py")} & forbidden_files
 
 
+def test_product_worker_is_generic_orchestration_not_device_or_analysis_code() -> None:
+    imports = _absolute_imports(APP_ROOT / "worker.py")
+    forbidden = (
+        "analog_validation.adapters",
+        "analog_validation.analysis",
+        "analog_validation.exports",
+        "analog_validation.profiles",
+        "analog_validation.protocol",
+        "analog_validation.replay",
+        "analog_validation.runners",
+        "analog_validation.serial_adapters",
+        "analog_validation.transport",
+        "analog_validation.workflows",
+        "analog_validation_pyserial",
+        "tkinter",
+    )
+
+    assert all(not _imports_prefix(imports, prefix) for prefix in forbidden)
+
+
 def test_superseded_phase0_dashboard_and_legacy_tests_are_absent() -> None:
     assert not tuple((ROOT / "dashboard").rglob("*.py"))
     assert not (ROOT / "tests" / "test_dc_sweep.py").exists()

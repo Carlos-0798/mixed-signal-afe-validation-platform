@@ -4,14 +4,18 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import Enum
 
 from analog_validation import EvidenceSource, TestRunOutcome
 
 from .errors import ProductRequestError
+from .issues import UserIssue
 
+PRODUCT_JOB_EVENT_SCHEMA_VERSION = "product-job-event.v1"
 PRODUCT_JOB_SCHEMA_VERSION = "product-job.v1"
 PRODUCT_RESULT_SCHEMA_VERSION = "product-result.v1"
+MAX_PRODUCT_EVENT_TEXT_CHARS = 512
 MAX_PRODUCT_IDENTIFIER_CHARS = 128
 MAX_PRODUCT_LIMITATIONS = 64
 MAX_PRODUCT_LIMITATION_CHARS = 1024
@@ -41,6 +45,38 @@ class ProductResultStatus(str, Enum):
     UNSUPPORTED = "UNSUPPORTED"
     CANCELLED = "CANCELLED"
     ERROR = "ERROR"
+
+
+class ProductWorkerState(str, Enum):
+    """Stable lifecycle values shared by workers and future presenters."""
+
+    IDLE = "IDLE"
+    STARTING = "STARTING"
+    RUNNING = "RUNNING"
+    CANCELLING = "CANCELLING"
+    SUCCEEDED = "SUCCEEDED"
+    FAILED = "FAILED"
+    CANCELLED = "CANCELLED"
+
+    @property
+    def is_active(self) -> bool:
+        """Return whether one worker still owns an active job."""
+
+        return self in {
+            ProductWorkerState.STARTING,
+            ProductWorkerState.RUNNING,
+            ProductWorkerState.CANCELLING,
+        }
+
+    @property
+    def is_terminal(self) -> bool:
+        """Return whether the worker published a terminal job state."""
+
+        return self in {
+            ProductWorkerState.SUCCEEDED,
+            ProductWorkerState.FAILED,
+            ProductWorkerState.CANCELLED,
+        }
 
 
 def _identifier(name: str, value: object) -> str:
@@ -85,6 +121,89 @@ def _limitations(values: object) -> tuple[str, ...]:
     return tuple(checked)
 
 
+def _event_text(value: object) -> str:
+    if not isinstance(value, str) or not value or value != value.strip():
+        raise ProductRequestError("event message must be a non-empty stripped string")
+    if len(value) > MAX_PRODUCT_EVENT_TEXT_CHARS:
+        raise ProductRequestError(
+            f"event message exceeds {MAX_PRODUCT_EVENT_TEXT_CHARS} characters"
+        )
+    if not value.isprintable():
+        raise ProductRequestError(
+            "event message must contain only printable characters"
+        )
+    return value
+
+
+def _event_time(value: object) -> datetime:
+    if not isinstance(value, datetime):
+        raise ProductRequestError("event created_at must be a datetime")
+    if value.tzinfo is None or value.utcoffset() is None:
+        raise ProductRequestError("event created_at must be timezone-aware")
+    return value.astimezone(timezone.utc)
+
+
+def _event_progress(
+    completed: object,
+    total: object,
+) -> tuple[int | None, int | None]:
+    if (completed is None) != (total is None):
+        raise ProductRequestError("event completed and total must be provided together")
+    if completed is None:
+        return None, None
+    if (
+        isinstance(completed, bool)
+        or not isinstance(completed, int)
+        or isinstance(total, bool)
+        or not isinstance(total, int)
+    ):
+        raise ProductRequestError("event completed and total must be integers")
+    if total <= 0 or completed < 0 or completed > total:
+        raise ProductRequestError("event progress must satisfy 0 <= completed <= total")
+    return completed, total
+
+
+@dataclass(frozen=True, slots=True)
+class ProductJobEvent:
+    """One immutable bounded worker event for future CLI/UI polling."""
+
+    job_id: str
+    index: int
+    created_at: datetime
+    state: ProductWorkerState
+    message: str
+    completed: int | None = None
+    total: int | None = None
+    issue: UserIssue | None = None
+    schema_version: str = PRODUCT_JOB_EVENT_SCHEMA_VERSION
+
+    def __post_init__(self) -> None:
+        _identifier("job_id", self.job_id)
+        if isinstance(self.index, bool) or not isinstance(self.index, int):
+            raise ProductRequestError("event index must be an integer")
+        if self.index <= 0:
+            raise ProductRequestError("event index must be positive")
+        object.__setattr__(self, "created_at", _event_time(self.created_at))
+        if not isinstance(self.state, ProductWorkerState):
+            raise ProductRequestError("event state must be a ProductWorkerState")
+        _event_text(self.message)
+        completed, total = _event_progress(self.completed, self.total)
+        if completed is not None and self.state is not ProductWorkerState.RUNNING:
+            raise ProductRequestError("event progress is only valid in RUNNING state")
+        object.__setattr__(self, "completed", completed)
+        object.__setattr__(self, "total", total)
+        if self.issue is not None and not isinstance(self.issue, UserIssue):
+            raise ProductRequestError("event issue must be a UserIssue or None")
+        if self.state is ProductWorkerState.FAILED and self.issue is None:
+            raise ProductRequestError("FAILED events require a user issue")
+        if self.state is not ProductWorkerState.FAILED and self.issue is not None:
+            raise ProductRequestError("only FAILED events may carry a user issue")
+        if self.schema_version != PRODUCT_JOB_EVENT_SCHEMA_VERSION:
+            raise ProductRequestError(
+                f"unsupported product job event schema: {self.schema_version}"
+            )
+
+
 @dataclass(frozen=True, slots=True)
 class ProductJobRequest:
     """One reviewed product intent before any adapter or resource is created."""
@@ -127,12 +246,8 @@ _STATUS_OUTCOMES: dict[ProductResultStatus, frozenset[TestRunOutcome | None]] = 
     ProductResultStatus.COMPLETED: frozenset(
         {None, TestRunOutcome.PASS, TestRunOutcome.FAIL}
     ),
-    ProductResultStatus.INCOMPLETE: frozenset(
-        {None, TestRunOutcome.INCOMPLETE}
-    ),
-    ProductResultStatus.UNSUPPORTED: frozenset(
-        {None, TestRunOutcome.UNSUPPORTED}
-    ),
+    ProductResultStatus.INCOMPLETE: frozenset({None, TestRunOutcome.INCOMPLETE}),
+    ProductResultStatus.UNSUPPORTED: frozenset({None, TestRunOutcome.UNSUPPORTED}),
     ProductResultStatus.CANCELLED: frozenset({None, TestRunOutcome.ABORTED}),
     ProductResultStatus.ERROR: frozenset({None, TestRunOutcome.ERROR}),
 }
@@ -195,14 +310,18 @@ class ProductJobResult:
 
 
 __all__ = [
+    "MAX_PRODUCT_EVENT_TEXT_CHARS",
     "MAX_PRODUCT_IDENTIFIER_CHARS",
     "MAX_PRODUCT_LIMITATIONS",
     "MAX_PRODUCT_LIMITATION_CHARS",
+    "PRODUCT_JOB_EVENT_SCHEMA_VERSION",
     "PRODUCT_JOB_SCHEMA_VERSION",
     "PRODUCT_RESULT_SCHEMA_VERSION",
+    "ProductJobEvent",
     "ProductJobRequest",
     "ProductJobResult",
     "ProductJobType",
     "ProductResultStatus",
     "ProductSourceMode",
+    "ProductWorkerState",
 ]
