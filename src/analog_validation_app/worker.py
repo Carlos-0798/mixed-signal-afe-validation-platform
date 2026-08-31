@@ -8,7 +8,7 @@ from collections.abc import Callable
 from datetime import datetime, timezone
 from threading import Event, RLock, Thread, current_thread
 from time import monotonic
-from typing import Protocol, Self, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from analog_validation import TestRunOutcome
 
@@ -345,7 +345,7 @@ class ProductJobWorker:
             self._closed = True
         self.cancel_and_join(timeout_s)
 
-    def __enter__(self) -> Self:
+    def __enter__(self) -> ProductJobWorker:  # noqa: PYI034 - Python 3.10 support
         with self._lock:
             if self._closed:
                 raise ProductWorkerClosedError("the product worker is closed")

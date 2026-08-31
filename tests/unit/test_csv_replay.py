@@ -58,6 +58,55 @@ def replace_once(old: str, new: str) -> str:
     return text.replace(old, new, 1)
 
 
+def assert_replay_semantically_equal(
+    actual: CsvReplayDataset, expected: CsvReplayDataset
+) -> None:
+    """Compare replay meaning without relying on ``NaN == NaN``.
+
+    IEEE 754 deliberately makes NaN unequal to every value, including itself.
+    Python 3.14 also stopped an older dataclass comparison implementation from
+    accidentally hiding that rule through object identity.  Replay equivalence
+    therefore compares every ordinary field directly and handles NaN explicitly.
+    """
+
+    assert actual.dataset_id == expected.dataset_id
+    assert actual.declared_record_count == expected.declared_record_count
+    assert actual.schema_version == expected.schema_version
+    assert len(actual.records) == len(expected.records)
+    for actual_record, expected_record in zip(
+        actual.records, expected.records, strict=True
+    ):
+        assert (
+            actual_record.record_id,
+            actual_record.raw_record_id,
+            actual_record.timestamp,
+            actual_record.channel,
+            actual_record.unit,
+            actual_record.status,
+            actual_record.declared_source,
+            actual_record.quality_flags,
+        ) == (
+            expected_record.record_id,
+            expected_record.raw_record_id,
+            expected_record.timestamp,
+            expected_record.channel,
+            expected_record.unit,
+            expected_record.status,
+            expected_record.declared_source,
+            expected_record.quality_flags,
+        )
+        actual_value = actual_record.value
+        expected_value = expected_record.value
+        if (
+            isinstance(actual_value, float)
+            and isinstance(expected_value, float)
+            and math.isnan(actual_value)
+            and math.isnan(expected_value)
+        ):
+            continue
+        assert actual_value == expected_value
+
+
 def test_public_constants_and_valid_fixture_parse_from_text_and_bytes() -> None:
     assert CSV_REPLAY_SCHEMA_VERSION == "csv-replay.v1"
     assert CSV_REPLAY_COLUMNS == (
@@ -78,7 +127,7 @@ def test_public_constants_and_valid_fixture_parse_from_text_and_bytes() -> None:
     text = valid_text()
     dataset = parse_csv_replay(text)
 
-    assert parse_csv_replay(text.encode("utf-8")) == dataset
+    assert_replay_semantically_equal(parse_csv_replay(text.encode("utf-8")), dataset)
     assert dataset.dataset_id == "afe-demo-001"
     assert dataset.schema_version == CSV_REPLAY_SCHEMA_VERSION
     assert dataset.declared_record_count == 5
@@ -239,7 +288,7 @@ def test_parser_accepts_crlf_without_changing_meaning() -> None:
     lf = parse_csv_replay(valid_text())
     crlf = parse_csv_replay(valid_text().replace("\n", "\r\n"))
 
-    assert crlf == lf
+    assert_replay_semantically_equal(crlf, lf)
 
 
 @pytest.mark.parametrize(
