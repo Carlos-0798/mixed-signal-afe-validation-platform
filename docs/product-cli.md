@@ -240,4 +240,4 @@ claim; a normal interactive-terminal smoke remains a later release check.
 See the [product layer](product-layer.md),
 [worker design](product-worker.md),
 [Dashboard guide](dashboard.md), and
-[Step 7 evidence report](../reports/software-phase5-step7.md).
+[Step 8 closure report](../reports/software-phase5-step8.md).

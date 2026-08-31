@@ -1,6 +1,6 @@
 # Product layer contracts, services, CLI, worker, and reports
 
-**Implemented:** Software Phase 5 Steps 1–7, 2026-08-31<br>
+**Implemented:** Software Phase 5 Steps 1–8, 2026-08-31<br>
 **Evidence:** HOST_TEST and repository-external package installation<br>
 **Hardware claim:** none
 
@@ -197,11 +197,17 @@ host-side product-contract logic. It does not add hardware evidence. The earlier
 receive-only MSP430 UART capture remains a separate, narrowly scoped
 `BENCH_CONTROLLER` result.
 
-## Next checkpoint
+## Phase closure and next checkpoint
 
-Software Phase 5 Step 8 will freeze the product public exports, schemas, CLI and
+Software Phase 5 Step 8 freezes the product public exports, schemas, CLI and
 exit-code surface, worker states, report fields, demo manifest, and issue
-families; then it will repeat the base/serial installation matrix and close the
-phase as a software Beta. Hardware is not required by default. See the
+families. The isolated build, repository-external base/serial installation
+matrix, installed deterministic demos, and real Windows Dashboard launch/close
+passed without operating a physical port. The phase is closed as Software Beta.
+
+Software Phase 6 now owns hosted CI, supported-environment testing,
+release-candidate versioning, documentation/publication audit, and any
+owner-approved GitHub release. Hardware is not required by default. See the
+[Phase 5 compatibility contract](phase5-public-api.md),
 [software demo](software-demo.md), [product-quality acceptance](product-quality-acceptance.md),
-and [Step 7 report](../reports/software-phase5-step7.md).
+and [Step 8 closure report](../reports/software-phase5-step8.md).

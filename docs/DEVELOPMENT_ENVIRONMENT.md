@@ -1,7 +1,7 @@
 # 开发环境
 
 **验证日期：** 2026-08-31<br>
-**当前阶段：** Software Phase 5 Step 7 已完成（7/8）<br>
+**当前阶段：** Software Phase 5 已完成（8/8，Software Beta）<br>
 **硬件要求：** 默认软件门禁无需硬件；Phase 4 Step 7 已单独完成一次 MSP430 receive-only HIL
 
 ## 已验证环境
@@ -49,9 +49,9 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m build
 ```
 
-pytest、三项 package coverage、全仓库 Ruff rule check、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式分析、runner 和导出，Software Phase 4 已完成 transport、profiles、receive-only serial adapter、可选 pyserial backend、兼容冻结和窄范围 COM4 HIL。Software Phase 5 Steps 1–7 新增独立 `analog_validation_app` 产品层、不可变 job/result/event contract、受控 catalog、面向用户的 issue 映射、single-owner/cooperative-cancel worker、显式 adapter factories、共享 read/DC/迟滞 services 与 CLI/Dashboard workflow compiler、稳定 Simulator/Replay/receive-only CLI、只呈现 finalized result 的确定性人类报告、reviewed 六步 Dashboard，以及 12-artifact deterministic demo 和产品质量验收。当前完整门禁为 2,175 tests、11,474/11,474 正式+可选+产品 package statements、全仓库 Ruff rule check、190-file mypy、sdist/wheel、仓库外 headless import、两次逐字节一致的 installed demo 和真实 Windows Tk scaling/focus smoke。
+pytest、三项 package coverage、全仓库 Ruff rule check、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式分析、runner 和导出，Software Phase 4 已完成 transport、profiles、receive-only serial adapter、可选 pyserial backend、兼容冻结和窄范围 COM4 HIL。Software Phase 5 已完成独立 `analog_validation_app` 产品层、不可变 job/result/event contract、受控 catalog、面向用户的 issue 映射、single-owner/cooperative-cancel worker、显式 adapter factories、共享 read/DC/迟滞 services 与 CLI/Dashboard workflow compiler、稳定 Simulator/Replay/receive-only CLI、只呈现 finalized result 的确定性人类报告、reviewed 六步 Dashboard、12-artifact deterministic demo、产品质量验收和公共兼容冻结。当前完整门禁为 2,189 tests、0 skipped、11,470/11,470 正式+可选+产品 package statements、全仓库 Ruff rule check、191-file mypy、sdist/wheel、仓库外 base + `[serial]` 安装、两次逐字节一致的 installed demo 和真实 Windows Tk scaling/focus/launch-close smoke。
 
-当前 CLI 已执行正式的软件 read/DC/迟滞、`report` 和 `demo` 工作流；`dashboard` 已执行 reviewed 六步 Simulator/Replay/receive-only 工作流。Step 7 的 base wheel 在仓库外短路径环境完成 headless import，并在普通与 Unicode 目录生成逐字节一致的 12 个 demo artifacts。10k Replay/event、键盘焦点、Tk 1.0/1.5/2.0 scaling、隐私和 no-network 验收通过；它没有发现或打开物理串口。下一检查点是 Phase 5 Step 8 公共兼容性冻结和软件 Beta 收口。
+当前 CLI 已执行正式的软件 read/DC/迟滞、`report` 和 `demo` 工作流；`dashboard` 已执行 reviewed 六步 Simulator/Replay/receive-only 工作流。最终 base wheel 在仓库外短路径环境完成 headless import，并在普通与 Unicode 目录生成逐字节一致的 12 个 demo artifacts；同一安装真实启动并安全关闭 Tk Dashboard。独立 `[serial]` 安装只使用注入式 host substitute，真实端口枚举/打开/写入均为 0。10k Replay/event、键盘焦点、Tk 1.0/1.5/2.0 scaling、隐私和 no-network 验收继续有效。下一检查点属于 Software Phase 6 release engineering，而不是追加 Phase 5 功能。
 
 安装后可验证最小产品入口：
 
@@ -73,7 +73,7 @@ analog-validation dashboard
 ## 当前边界
 
 - 正式核心和 Simulator/Replay CLI 仍不要求 `pyserial`；owning worker 与 interpreter-interrupt 取消已完成 HOST_TEST，但真实串口长时间运行、物理断线和交互式 Windows console smoke 尚未验证；
-- Windows 默认旧式路径长度限制会影响过深的虚拟环境路径：本次在仓库深层 `work/` 下安装遇到 `WinError 206`，改到短的仓库外目录后同一 wheel 安装、`pip check` 和 demo 均通过；在 Step 8/release 文档中继续保留短安装路径建议；
+- Windows 默认旧式路径长度限制会影响过深的虚拟环境路径：Step 7 在仓库深层 `work/` 下安装遇到 `WinError 206`；Step 8 的同一发行布局在两个短的仓库外 base/serial 环境完成安装、`pip check`、demo 和 Dashboard smoke。Phase 6/release 文档继续保留短安装路径建议；
 - 不需要 CCS、MSP430 GCC、KiCad 或实验室仪器；
 - 软件测试结果不代表任何模拟电路、控制器、接线或仪器已经验证；
 - Git 提交身份已配置为 GitHub 账号 `Carlos-0798` 及其 noreply 邮箱。

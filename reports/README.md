@@ -4,6 +4,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Software checkpoint reports (each report states its own evidence level):
 
+- `software-phase5-step8.md` — Phase 5 Software Beta closure: product public-contract freeze, 2,189-test/100%-statement gate, isolated build, repository-external base/serial installations, installed byte-identical demos, real Tk launch/close, serial host substitute, and explicit zero-new-hardware-evidence boundary.
 - `software-phase5-step7.md` — installed one-command synthetic demo, 12 exact artifacts, Replay/fault examples, bounded 10k record/event acceptance, real Tk focus/scaling smoke, privacy/offline/path gates, repository-external wheel proof, and explicit no-new-hardware-validation boundary.
 - `software-phase5-step6.md` — shared CLI/Dashboard workflow compiler, fixed six-step beginner wizard, reviewed worker Run/Cancel/result/export wiring, Replay preflight, memory-serial zero-write proof, installed-package smoke, and explicit no-new-hardware-validation boundary.
 - `software-phase5-step5.md` — immutable headless Dashboard state/presenter/controller, rendering-only Tk widgets, bounded cancel/close, actual Windows launch/close smoke, isolated-wheel verification, and no-new-hardware-validation boundary.

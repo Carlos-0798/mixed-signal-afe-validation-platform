@@ -1,9 +1,9 @@
 # Frozen Software Phase 5 Product Compatibility
 
-**Freeze schema:** `phase5-public-api-golden.v1`  
-**Package version at freeze:** `0.1.0.dev0`  
-**Software evidence:** `HOST_TEST`  
-**New physical hardware validation in this step:** no  
+**Freeze schema:** `phase5-public-api-golden.v1`<br>
+**Package version at freeze:** `0.1.0.dev0`<br>
+**Software evidence:** `HOST_TEST`<br>
+**New physical hardware validation in this step:** no<br>
 **Verified AFE bench-performance claims:** 0
 
 ## Why this freeze exists

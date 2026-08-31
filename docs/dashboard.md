@@ -125,8 +125,9 @@ write JSON or CSV. The Dashboard does not recompute that bundle.
 - Step 7 made actionable controls explicit keyboard-focus targets. Real Windows
   Tk smoke at scaling 1.0, 1.5, and 2.0 verified focus traversal and successful
   layout creation.
-- The full repository passed 2,175 tests and covered 11,474/11,474 executable
-  statements.
+- The final Phase 5 gate passed 2,189 tests with zero skips and covered
+  11,470/11,470 executable package statements. A fresh repository-external
+  base-wheel installation also launched and safely closed the real Dashboard.
 
 ## Current limitations
 
@@ -144,4 +145,4 @@ write JSON or CSV. The Dashboard does not recompute that bundle.
 See the [CLI guide](product-cli.md), [human-report guide](human-reports.md),
 [product-quality acceptance](product-quality-acceptance.md),
 [Phase 5 plan](SOFTWARE_PHASE_5_PLAN.md), and
-[Step 7 evidence report](../reports/software-phase5-step7.md).
+[Step 8 closure report](../reports/software-phase5-step8.md).

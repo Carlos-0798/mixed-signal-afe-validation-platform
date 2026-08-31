@@ -1,7 +1,7 @@
 # Software Phase 5 文件级实施计划
 
 **阶段名称：** 产品工作流、CLI、Dashboard 与证据可见报告<br>
-**规划状态：** 已完成；实现进度 7/8<br>
+**规划状态：** 已完成；实现进度 8/8，Software Beta 阶段收口<br>
 **预计时间：** 5–8 个有效开发日；初学者兼职约 2–3 周<br>
 **前置：** Software Phase 1–4 的领域、分析、runner、导出、transport、profile 和 adapter 兼容基线完成<br>
 **默认硬件要求：** 无<br>
@@ -16,7 +16,7 @@
 - [x] Step 5：Dashboard 状态模型、presenter 与桌面外壳；
 - [x] Step 6：初学者向导、worker 接线与只读串口入口；
 - [x] Step 7：可复现演示、性能/可访问性/隐私验收；
-- [ ] Step 8：公共兼容性冻结、构建、外部安装和阶段收口。
+- [x] Step 8：公共兼容性冻结、构建、外部安装和阶段收口。
 
 Step 1 已新增产品契约、受控 catalog、错误解释和最小 CLI，同时清理被正式核心
 取代的 Phase 0 占位。Step 2 已新增有界事件、single-owner worker、cooperative cancel、
@@ -31,8 +31,10 @@ Step 6 已把固定六步向导、同一套 reviewed product workflow、single-o
 Serial 仍需显式 port/profile/bounds/receive-only 确认，且产品接口没有 write surface。
 Step 7 已实现一条命令的固定 synthetic DC demo、双格式机器结果、自包含报告、
 replay/fault 示例和 exact hash manifest，并完成 10k 数据/事件、Unicode 路径、
-键盘焦点、常用 Tk scaling、隐私和无网络验收。七步都没有新增 AFE 实物证据，因此
-完成 7/8 不等于 Phase 5 产品已完成。
+键盘焦点、常用 Tk scaling、隐私和无网络验收。Step 8 又冻结四个产品 namespace、
+14 个 schema、CLI/退出码、公开调用形状、序列化字段、错误/issue 与既有 manifest，
+并完成隔离构建、仓库外 base/serial 安装、installed demo 和真实 Tk smoke。八步都没有
+新增 AFE 实物证据；Phase 5 现在以 Software Beta 收口，而不是 v1.0 或硬件验收。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -427,6 +429,16 @@ exact demo manifest 和 error/issue families。运行完整 pytest/coverage/Ruff
 demo/report 正常；安装 serial extra 后只做 discovery/host substitute，除非另行授权；
 软件 Beta 与硬件验证声明分开，AFE BENCH claims 仍为 0。
 
+**完成记录（2026-08-31）：** `phase5-public-api-golden.v1` 已冻结 4 个 namespace、
+14 schemas、10 enum sets、36 dataclass contracts、35 signatures、24 error relationships、
+25 issue mappings、16 CLI paths、8 exit codes、13 serialized field groups 和 6 个 golden
+hashes。完整门禁为 2,189 tests、0 skipped、11,470/11,470 package statements、Ruff、
+191-file mypy 和依赖检查。隔离 sdist/wheel、仓库外 base 与 `[serial]` 安装、普通/Unicode
+逐字节一致 demo、installed real-Tk launch/close 和注入式 serial host substitute 均通过；
+真实端口枚举/打开/写入均为 0。详见
+[`phase5-public-api.md`](phase5-public-api.md) 与
+[`software-phase5-step8.md`](../reports/software-phase5-step8.md)。
+
 ## 8. CLI 和用户体验最低合同
 
 Steps 3–7 已实现并测试以下命令族；`demo` 现在执行固定、只读、软件-only 产品链并
@@ -545,8 +557,8 @@ analog-validation dashboard
 
 ## 14. 下一检查点
 
-Phase 5 Steps 1–7 已完成，实现进度为 7/8。下一次继续时只实施 Step 8：冻结 product
-public exports、schemas、CLI/exit codes、report fields、worker states、exact demo manifest
-和 issue families，执行最终构建/仓库外 base + serial 安装矩阵并完成阶段收口与 GitHub
-展示更新。Step 7 没有扩大先前的窄范围 MSP430 HIL，也不构成 AFE 实物验证。真实
-COM、物理板或仪器操作仍需单独授权、单独停止条件和单独证据记录。
+Phase 5 Steps 1–8 已完成，实现进度为 8/8，当前成熟度为 Software Beta。下一次继续
+应先规划 Software Phase 6：hosted CI、clean-environment/supported-Python matrix、release
+candidate、安装/隐私/许可证/公开展示审计和 owner-approved GitHub release。Phase 5
+没有扩大先前的窄范围 MSP430 HIL，也不构成 AFE 实物验证。真实 COM、物理板或仪器
+操作仍需单独授权、单独停止条件和单独证据记录。
