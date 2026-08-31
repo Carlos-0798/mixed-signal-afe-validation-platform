@@ -65,6 +65,11 @@ def test_ci_package_job_preserves_optional_and_hardware_boundaries() -> None:
     assert 'python -m pip install ".[dev,serial]"' in text
     assert "python tools/release_candidate_check.py" in text
     assert '--output "${{ runner.temp }}/release-candidate"' in text
+    assert "python tools/release_audit.py" in text
+    assert '--candidate "${{ runner.temp }}/release-candidate"' in text
+    assert '--output "${{ runner.temp }}/release-candidate/release-audit.json"' in text
+    assert "fetch-depth: 0" in text
+    assert text.count("fetch-depth: 0") == 1
     assert "private-beta-release-candidate" in text
     assert "${{ runner.temp }}/release-candidate/*" in text
     assert "retention-days: 7" in text

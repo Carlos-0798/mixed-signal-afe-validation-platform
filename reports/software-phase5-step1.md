@@ -87,8 +87,8 @@ The inspected wheel entry point is exactly:
 analog-validation = analog_validation_app.cli:main
 ```
 
-The final external verification environment was
-`C:\Users\24046\afe-p5s1-base-20260831-01`. It was created outside the
+The final verification used a short repository-external environment; its
+personal absolute path is intentionally omitted. It was created outside the
 repository, installed the wheel with `--no-deps`, and confirmed the imported
 package path was its own `site-packages`. `importlib` found no `serial` package,
 and the product commands did not load optional serial or Tk modules.

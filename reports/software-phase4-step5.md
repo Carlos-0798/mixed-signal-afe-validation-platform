@@ -90,9 +90,9 @@ safety limits, calibrated sensor limits, or detected hardware.
 | Installed smoke without pyserial | PASS — `serial` module absent |
 | COM port, MSP430 board, command, firmware, FRAM, or BENCH operation | NOT RUN |
 
-The authoritative external import path was
-`C:\Users\24046\afe-p4s5-external-20260830\Lib\site-packages\analog_validation\__init__.py`,
-outside the repository. The smoke generated two records through the installed
+The authoritative import resolved to the external environment's
+`site-packages/analog_validation/__init__.py`, outside the repository; the
+personal absolute path is intentionally omitted. The smoke generated two records through the installed
 encoder, crossed `4294967295 -> 0`, verified four unavailable Measurements plus
 valid zero PWM, and confirmed read-only/no-safe-shutdown capabilities.
 

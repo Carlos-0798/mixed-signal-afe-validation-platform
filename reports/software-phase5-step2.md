@@ -117,8 +117,8 @@ The inspected wheel still exposes exactly one console entry point:
 analog-validation = analog_validation_app.cli:main
 ```
 
-The final external environment was
-`C:\Users\24046\afe-p5s2-base-20260831-01`. The wheel was installed outside the
+The final wheel was installed in a short repository-external environment; its
+personal absolute path is intentionally omitted. The installation remained outside the
 repository with `--no-deps`. Its in-memory worker smoke checked progress/event
 indexes, terminal state, cleanup, and absence of remaining product-named
 threads. CLI help/version/profiles and unknown-command behavior also passed.
