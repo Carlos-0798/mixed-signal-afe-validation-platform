@@ -9,6 +9,9 @@ TOOL = ROOT / "tools" / "release_audit.py"
 NOTICE = ROOT / "THIRD_PARTY_NOTICES.md"
 RELEASE_NOTES = ROOT / "docs" / "RELEASE_NOTES_DRAFT.md"
 HANDOFF = ROOT / "docs" / "PRIVATE_BETA_HANDOFF.md"
+PLAN = ROOT / "docs" / "SOFTWARE_PHASE_6_PLAN.md"
+STATUS = ROOT / "docs" / "PROJECT_STATUS.md"
+REPORT = ROOT / "reports" / "software-phase6-step7.md"
 
 
 def test_release_audit_is_create_new_privacy_minimal_and_host_only() -> None:
@@ -70,3 +73,22 @@ def test_packaging_carries_rights_and_third_party_notices() -> None:
     assert "recursive-include docs *.md" in manifest
     assert "recursive-include examples *.json *.md *.py" in manifest
     assert "License ::" not in pyproject
+
+
+def test_step7_status_and_report_preserve_review_not_publication() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    plan = PLAN.read_text(encoding="utf-8")
+    status = STATUS.read_text(encoding="utf-8")
+    report = REPORT.read_text(encoding="utf-8")
+
+    assert "7/8 checkpoints" in readme
+    assert "2,235 passed" in readme
+    assert "- [x] Step 7" in plan
+    assert "7 of 8 checkpoints" in status
+    for text in (readme, plan, status, report):
+        assert "PASS_WITH_REVIEW" in text
+        assert "NO_NEW_HARDWARE_VALIDATION" in text
+    assert "private-beta binary candidate is `READY`" in report
+    assert "high-confidence credential findings | 0" in report
+    assert "No history rewrite" in report
+    assert "No serial port was enumerated or opened" in report

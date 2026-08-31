@@ -4,6 +4,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Software checkpoint reports (each report states its own evidence level):
 
+- `software-phase6-step7.md` — deterministic candidate/history/privacy/license/workbook/project-boundary audit, four-file local/hosted identity, private-beta readiness, explicit historical owner-review items, and no-publication/no-hardware boundary.
 - `software-phase6-step6.md` — public-API-only read adapter, architecture/import/no-output gates, fresh-wheel repository-external isolated execution, local/hosted candidate identity, deterministic provenance/cleanup, and zero-hardware boundary.
 - `software-phase6-step5.md` — beginner installation/testing/troubleshooting/known-limit workflow, sanitized feedback forms, hosted-wheel short-path installation, deterministic demo/report/create-new/Replay acceptance, and explicit Dashboard/Serial/hardware NOT_RUN boundaries.
 - `software-phase6-step4.md` — deterministic clean-commit verifier, repeated wheel/sdist build, metadata normalization, base/serial clean installs, installed demo hashes, privacy-minimal candidate manifest, local/hosted byte identity, failure diagnostics, and zero-new-hardware boundary.

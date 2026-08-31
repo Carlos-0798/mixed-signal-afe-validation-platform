@@ -1,7 +1,7 @@
 # Software Phase 6 文件级实施计划
 
 **阶段名称：** 发布工程、外部测试与 v1.0 准备<br>
-**规划状态：** 已完成；实现进度 6/8<br>
+**规划状态：** 已完成；实现进度 7/8<br>
 **首个交付目标：** 私有测试版 `0.1.0b1`（展示名 `v0.1.0-beta.1`）<br>
 **最终阶段目标：** owner-approved Analog Validation Studio v1.0<br>
 **预计时间：** 4–7 个有效开发日；初学者兼职约 1–2 周<br>
@@ -16,7 +16,7 @@
 - [x] Step 4：确定性构建、clean-install 和 release manifest；
 - [x] Step 5：安装、测试、故障排查和反馈文档；
 - [x] Step 6：仅依赖公开 API 的第三方 adapter 示例；
-- [ ] Step 7：隐私、许可证、历史、claims 和候选包审计；
+- [x] Step 7：隐私、许可证、历史、claims 和候选包审计；
 - [ ] Step 8：owner review、合并、tag/Release 与 v1.0 决策。
 
 Step 8 包含不可逆或对外可见的操作。本计划不会自动合并 PR、创建 tag、发布
@@ -192,10 +192,11 @@ Steps 1–7 通过后，可称：
 
 ## 8. 下一检查点
 
-Step 6 已完成：第三方风格的 read-only voltage adapter 只 import 安装包顶层公开 API，
-架构门禁止私有子模块、product/serial/GUI/network/subprocess 依赖和输出 hooks。Release
-verifier 将单文件复制到仓库外，在 fresh base wheel 环境用 `python -I` 执行，确认
-`COMPLETED`、`SYNTHETIC`、read-only、3 Measurements、connect/disconnect 各一次、cleanup
-完成和 0 写入。本地/hosted run `33449339560` 对 commit `2c01e7d` 生成的 wheel、sdist、
-manifest 逐字节一致；完整本地门为 2,222 tests、11,470/11,470 statements、Ruff、
-199-file mypy 和 dependency check。下一次实施 Step 7 final candidate audit。
+Step 7 已完成：`release-audit.v1` 检查候选 archives/metadata、当前 tracked tree、完整
+Git history、commit identities、唯一工作簿、third-party notices、LICENSE、claims 和独立
+项目边界。Commit `f6721b5` 的本地与 hosted run `33451305940` 四文件逐字节一致；完整
+本地门为 2,234 tests、11,470/11,470 statements、Ruff、202-file mypy 和 dependency
+check。审计结果为 `PASS_WITH_REVIEW`：private binary beta `READY`；8 条历史路径/邮箱类
+记录需要 owner 决定是否重写历史；高可信 credential findings 为 0；未选择 project
+license，因此 open-source distribution 与 v1.0 仍 blocked。下一步只准备 Step 8 精确
+owner preview，不自动 merge、tag、Release、改 visibility、选 license 或发布 LinkedIn。
