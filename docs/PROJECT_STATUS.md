@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-08-31<br>
-**Current milestone:** Software Phase 5 in progress — checkpoint 6 of 8 complete<br>
-**Release maturity:** pre-MVP / stable CLI, reports, and reviewed six-step Dashboard workflow complete<br>
+**Current milestone:** Software Phase 5 in progress — checkpoint 7 of 8 complete<br>
+**Release maturity:** pre-MVP / deterministic installed demo and product-quality acceptance complete<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
 
@@ -10,9 +10,9 @@
 
 The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC implementation, a profile-neutral CRC envelope with a backward-compatible AFE wrapper, the versioned AFE v1 protocol, explicit AFE channel-name mapping, strict non-executable JSON configuration, frozen protocol and replay compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, a configurable deterministic read-only SimulatorAdapter, a strict immutable CSV Replay v1 parser, a read-only CsvReplayAdapter, a shared adapter-neutral read workflow, a profile-neutral bounded byte-stream/sequence foundation, a replaceable serial backend port, deterministic host-tested serial lifecycle, bounded memory-only raw-record provenance, a public serial-profile extension point, independent AFE and read-only MSP430 Equipment Health v1 profiles, a receive-only `SerialAdapter`, an optional packaged pyserial backend that leaves the formal core driver-free, and a Phase 4 machine-readable compatibility freeze.
 
-The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow remains a frozen read-only acquisition API. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, versioned structured result exports, both serial business profiles, their receive-only adapter composition, and a narrow MSP430 UART HIL are implemented. Phase 5 Steps 1–6 add immutable product request/result/event contracts, a reviewed source/profile catalog, stable user issues, a bounded single-owner cancellable worker, explicit adapter factories, shared read/DC/hysteresis services and workflow compilation, stable installed Simulator/Replay/receive-only CLI workflows, deterministic human reports that only present finalized results, and a runnable six-step local Dashboard. The portfolio demo, full product-quality acceptance, and a validated physical AFE are not yet implemented.
+The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow remains a frozen read-only acquisition API. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, versioned structured result exports, both serial business profiles, their receive-only adapter composition, and a narrow MSP430 UART HIL are implemented. Phase 5 Steps 1–7 add immutable product request/result/event contracts, a reviewed source/profile catalog, stable user issues, a bounded single-owner cancellable worker, explicit adapter factories, shared read/DC/hysteresis services and workflow compilation, stable installed Simulator/Replay/receive-only CLI workflows, deterministic human reports that only present finalized results, a runnable six-step local Dashboard, and a one-command reproducible synthetic demo with bounded performance/accessibility/privacy acceptance. A validated physical AFE is not yet implemented.
 
-The reviewed Software Phase 5 plan defines a separate `analog_validation_app` product layer, one `analog-validation` command, a bounded single-owner cancellable worker, deterministic HTML/SVG reporting, a local offline Tkinter/ttk Dashboard, a six-step beginner workflow, and an installed-package deterministic demo. Steps 1–6 of 8 are implemented: product contracts/catalog/issues, worker ownership, factories/services, stable CLI workflows, presentation-only reports, and the reviewed six-step Dashboard are real. The workflow defaults to Simulator/AFE, expresses status and criteria in text, prevalidates Replay, and gates Serial behind exact receive-only settings. Architecture tests enforce consumption of the frozen core without copying device/profile or engineering-analysis logic.
+The reviewed Software Phase 5 plan defines a separate `analog_validation_app` product layer, one `analog-validation` command, a bounded single-owner cancellable worker, deterministic HTML/SVG reporting, a local offline Tkinter/ttk Dashboard, a six-step beginner workflow, and an installed-package deterministic demo. Steps 1–7 of 8 are implemented: product contracts/catalog/issues, worker ownership, factories/services, stable CLI workflows, presentation-only reports, the reviewed six-step Dashboard, and the fixed 12-artifact demo are real. The workflow defaults to Simulator/AFE, expresses status and criteria in text, prevalidates Replay, and gates Serial behind exact receive-only settings. Architecture tests enforce consumption of the frozen core without copying device/profile or engineering-analysis logic.
 
 Software Phase 3 is complete. Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. Step 8 freezes the 84-symbol Phase 2 top level, 68 analysis exports, 10 runner exports, 28 export symbols, 12 Phase 3 schemas, public enums/signatures/errors, and exact representative DC/hysteresis results. The golden values remain HOST_TEST/SYNTHETIC software evidence.
 
@@ -80,9 +80,9 @@ port and did not repeat or broaden the Step 7 HIL.
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 2,131 passed |
-| Formal + optional + product package statement coverage | 100% of 11,219 statements; separate branch diagnostic 99.91% |
-| Phase 5 Step 6 shared workflow and Dashboard | 181 focused tests plus 19 architecture/composite checks; CLI/Dashboard equivalence, Replay preflight, memory-serial zero-write, cancellation/cleanup, widget callbacks, one-way dependencies, and Windows launch/close smoke passed |
+| Full pytest suite | 2,175 passed |
+| Formal + optional + product package statement coverage | 100% of 11,474 statements |
+| Phase 5 Step 7 reproducible demo and product quality | 186 focused tests; two installed demos in normal/Unicode paths were byte-identical; 10,000-record Replay, 10,000-event bounded queue, privacy/offline, and real Tk scaling/focus smoke passed |
 | Phase 4 golden compatibility | 13 checks; 121 exports, 3 schemas, 12 enum/flag sets, 21 signatures, 17 errors, 5 fixture hashes, and exact AFE/MSP external-backend results frozen |
 | Phase 4 optional pyserial backend and receive-only HIL | 127/127 optional-package statements covered; base/serial external installs passed; 5/5 CRC-valid continuous TEL through COM4, 25 Measurements, zero writes, exact firmware unconfirmed |
 | Phase 4 receive-only SerialAdapter | 74 new tests; 282/282 added statements covered; AFE/MSP shared contracts, workflows, bounded failure handling, reconnect invalidation, and zero-write runner degradation passed |
@@ -154,7 +154,7 @@ port and did not repeat or broaden the Step 7 HIL.
 | 4 | Evidence-visible human reports and deterministic charts | Complete | HOST_TEST / SYNTHETIC / external base-wheel install |
 | 5 | Dashboard state, presenter, and desktop shell | Complete | HOST_TEST / external base-wheel install / real Windows Tk smoke |
 | 6 | Beginner workflow and read-only serial wiring | Complete | HOST_TEST / SYNTHETIC / CSV_REPLAY / memory-serial zero-write / external base-wheel install |
-| 7 | Reproducible demo and product-quality acceptance | Planned | Not run |
+| 7 | Reproducible demo and product-quality acceptance | Complete | HOST_TEST / SYNTHETIC / repository-external base-wheel install / real Windows Tk smoke |
 | 8 | Public compatibility freeze and software Beta closure | Planned | Not run |
 
 ## Public claim boundary
@@ -225,6 +225,9 @@ Safe to claim now:
 - implemented the fixed six-step beginner workflow with what/why/confirm guidance, strict typed configuration, visible DC/hysteresis acceptance criteria, reviewed Run, cooperative Cancel, finalized results, and create-new JSON/CSV export;
 - made CLI and Dashboard share `product-workflow-config.v1` compilation and verified equivalent finalized output for the same 24-point Simulator DC request;
 - prevalidated Replay before worker start and exercised an MSP430-shaped memory-serial Dashboard run with one open, one close, and zero writes; the connected physical board was not accessed.
+- implemented `analog-validation demo --output <new-directory>` through the same reviewed product workflow, worker, formal DC analysis/criteria, result export, and presentation-only reporting path;
+- froze 12 exact demo artifacts, including replay/fault examples and a top-level SHA-256 manifest, and reproduced them byte-for-byte from a clean base-wheel install in normal and Unicode destinations;
+- passed host-only 10,000-record Replay and 10,000-event bounded performance acceptance, real Windows Tk focus/scaling smoke, no-network trapping, privacy checks, and fail-closed path/output tests.
 
 Not safe to claim now:
 
@@ -233,17 +236,16 @@ Not safe to claim now:
 - verified any 0–3.3 V hardware range;
 - identified the exact current MSP430 firmware image from passive telemetry;
 - validated MSP430 external sensors, INA219, fan, or wiring;
-- completed the one-command portfolio demo or full performance/accessibility/privacy acceptance;
 - released a software MVP or production-ready product.
 
 ## Next checkpoint
 
-Software Phase 5 Step 6 is complete. The next checkpoint is Step 7 only: create
-the installed one-command deterministic software demo and run product-quality
-acceptance for bounded performance, keyboard/accessibility behavior, path and
-Unicode handling, privacy, no-network operation, and reproducible artifacts.
-Simulator remains the default. Real-port operation remains separately gated and
-is not required for Step 7.
+Software Phase 5 Step 7 is complete. The next checkpoint is Step 8 only: freeze
+the product public exports, schemas, CLI commands/exit codes, worker states,
+error/issue families, report fields, and exact demo manifest; then repeat the
+release-style build and repository-external base/serial installation matrix to
+close Phase 5 as a software Beta. Simulator remains the default. Real-port
+operation remains separately gated and is not required for Step 8.
 
 ## GitHub and LinkedIn presentation policy
 

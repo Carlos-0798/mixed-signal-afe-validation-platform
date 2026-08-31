@@ -1,6 +1,6 @@
 # Product layer contracts, services, CLI, worker, and reports
 
-**Implemented:** Software Phase 5 Steps 1–6, 2026-08-31<br>
+**Implemented:** Software Phase 5 Steps 1–7, 2026-08-31<br>
 **Evidence:** HOST_TEST and repository-external package installation<br>
 **Hardware claim:** none
 
@@ -180,15 +180,17 @@ See the [CLI guide](product-cli.md) for exact commands and semantics.
 
 ## Installation and evidence boundary
 
-The current wheel was installed in a fresh directory outside the repository with
-`--no-deps`. Base import left both Tk and pyserial unloaded; the installed CLI
-then ran a 24-point `SYNTHETIC` DC PASS with an explicit
-`NO_PERFORMANCE_VALIDATION` claim. The same external install explicitly created
-a real Windows Tk window and closed it automatically with the Simulator state;
-no port was accessed.
+The current wheel was installed in a fresh short-path directory outside the
+repository with `--no-deps`. Base import left both Tk and pyserial unloaded; the
+installed CLI generated two byte-identical 12-artifact `SYNTHETIC` demos in
+normal and Unicode destinations. The same code also passed real Windows Tk
+focus/scaling smoke at 1.0, 1.5, and 2.0; no port was accessed.
 `ports` still fails before discovery when the optional serial dependency is
 absent. A subprocess interpreter interrupt reached `CANCELLED`, cleanup, and exit
-130. No COM port was enumerated or opened in Step 6.
+130. No COM port was enumerated or opened in Step 7. A first installation under
+the repository's unusually deep `work/` path hit Windows `WinError 206`; the
+same wheel passed from the shorter repository-external path, so the path-length
+condition is documented rather than hidden.
 
 This proves packaging, dependency isolation, deterministic CLI behavior, and
 host-side product-contract logic. It does not add hardware evidence. The earlier
@@ -197,9 +199,9 @@ receive-only MSP430 UART capture remains a separate, narrowly scoped
 
 ## Next checkpoint
 
-Software Phase 5 Step 7 will add the installed one-command deterministic demo
-and product-quality acceptance for bounded performance, accessibility,
-path/Unicode handling, privacy, no-network operation, and reproducible
-artifacts. Hardware is not required by default. See the
-[Dashboard guide](dashboard.md), [human-report guide](human-reports.md), and
-[Step 6 report](../reports/software-phase5-step6.md).
+Software Phase 5 Step 8 will freeze the product public exports, schemas, CLI and
+exit-code surface, worker states, report fields, demo manifest, and issue
+families; then it will repeat the base/serial installation matrix and close the
+phase as a software Beta. Hardware is not required by default. See the
+[software demo](software-demo.md), [product-quality acceptance](product-quality-acceptance.md),
+and [Step 7 report](../reports/software-phase5-step7.md).

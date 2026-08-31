@@ -30,9 +30,9 @@
 
 ## 2. 当前真实状态
 
-软件路线的 Phases 0–4 已完成：仓库、理论与理想仿真、版本化协议/数据模型、模拟器与 CSV 回放、分析与结果导出、串口 transport、独立 AFE/MSP430 profiles、receive-only adapter、可选 pyserial 边界，以及公开接口/复合结果冻结均已有可重复测试。Software Phase 5 已完成 Steps 1–6（6/8）：现在真正存在可安装的 `analog-validation` 产品入口、不可变 job/result/event contract、reviewed profile catalog、面向初学者的错误解释、可安全取消/清理的单任务后台 worker、能运行 Simulator/CSV Replay read、DC sweep、迟滞和显式只读 observe 的稳定 CLI、从 finalized JSON/CSV 结果生成 text/Markdown/HTML/SVG/manifest 的确定性 `report`，以及已接通 reviewed service/worker 的六步本地 Dashboard。当前完整软件门禁基线为 2,131 项测试和 11,219/11,219 package statements。Phase 4 Step 7 另有一次五帧、零应用写入的 MSP430 UART 兼容记录，但它不证明外部传感器、风扇、接线或 AFE 性能。
+软件路线的 Phases 0–4 已完成：仓库、理论与理想仿真、版本化协议/数据模型、模拟器与 CSV 回放、分析与结果导出、串口 transport、独立 AFE/MSP430 profiles、receive-only adapter、可选 pyserial 边界，以及公开接口/复合结果冻结均已有可重复测试。Software Phase 5 已完成 Steps 1–7（7/8）：现在真正存在可安装的 `analog-validation` 产品入口、不可变 job/result/event contract、reviewed profile catalog、面向初学者的错误解释、可安全取消/清理的单任务后台 worker、能运行 Simulator/CSV Replay read、DC sweep、迟滞和显式只读 observe 的稳定 CLI、从 finalized JSON/CSV 结果生成 text/Markdown/HTML/SVG/manifest 的确定性 `report`、已接通 reviewed service/worker 的六步本地 Dashboard，以及一条命令生成 12 个可复现文件的软件 demo。当前完整软件门禁基线为 2,175 项测试和 11,474/11,474 package statements；10k Replay/event、键盘焦点、缩放、Unicode 路径、隐私和离线验收已通过。Phase 4 Step 7 另有一次五帧、零应用写入的 MSP430 UART 兼容记录，但它不证明外部传感器、风扇、接线或 AFE 性能。
 
-硬件路线仍停留在准备阶段：AFE 尚未采购、搭建或测量。因此“软件产品持续推进”和“硬件仍未验证”可以同时成立，二者不是矛盾。人类可读报告、确定性图表和 Dashboard 只是展示既有软件结论，不会把合成数据变成测量数据。Dashboard 采用“状态 → presenter → controller/application → widgets”分层：状态保存事实，presenter 把后台结果变成界面语言，application 只把复核后的请求交给 worker，widgets 只负责显示和收集意图。Run 现在可以执行 Simulator/Replay 或显式 receive-only 工作流，但默认仍是软件 Simulator；真实串口和硬件操作不会因为按钮可用而自动获得授权。之后再完成 demo 和兼容性收口；只有打勾并有真实测试报告的步骤才算完成。下面的 Phase 1–6 表格描述的是未来硬件路线。
+硬件路线仍停留在准备阶段：AFE 尚未采购、搭建或测量。因此“软件产品持续推进”和“硬件仍未验证”可以同时成立，二者不是矛盾。人类可读报告、确定性图表、Dashboard 和 demo 只是展示既有软件结论，不会把合成数据变成测量数据。Dashboard 采用“状态 → presenter → controller/application → widgets”分层：状态保存事实，presenter 把后台结果变成界面语言，application 只把复核后的请求交给 worker，widgets 只负责显示和收集意图。Run 现在可以执行 Simulator/Replay 或显式 receive-only 工作流，但默认仍是软件 Simulator；真实串口和硬件操作不会因为按钮可用而自动获得授权。下一步只做产品兼容性冻结和 Phase 5 收口；只有打勾并有真实测试报告的步骤才算完成。下面的 Phase 1–6 表格描述的是未来硬件路线。
 
 进入 Phase 1 前，需要同时满足四个条件：
 

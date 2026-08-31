@@ -115,9 +115,10 @@ CLI format detection, and outcome-preserving exit codes.
 
 Specialized charts currently cover DC sweep and hysteresis result bundles.
 Calibration and frequency-response analyses still need dedicated TestRun/export
-mappings before they can receive specialized human reports. PDF generation,
-Dashboard display, the beginner wizard, and the one-command portfolio demo are
-later checkpoints.
+mappings before they can receive specialized human reports. PDF generation
+remains later work. Dashboard display, the beginner wizard, and the one-command
+portfolio demo now reuse this presentation-only report boundary; none of them
+promotes synthetic evidence into a hardware claim.
 
 See the [result export contract](result-exports.md),
 [product CLI](product-cli.md), and
