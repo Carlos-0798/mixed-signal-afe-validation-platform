@@ -27,6 +27,7 @@ from analog_validation import (
     ReplayChannelKind,
     SafeRange,
     SimulatorConfig,
+    TestRunOutcome,
     __version__,
 )
 from analog_validation.analysis import (
@@ -36,6 +37,9 @@ from analog_validation.analysis import (
     HysteresisAnalysisConfig,
 )
 from analog_validation.exports import (
+    ResultExportBundle,
+    load_result_export_csv,
+    load_result_export_json,
     result_export_to_dict,
     write_result_export_csv,
     write_result_export_json,
@@ -66,6 +70,12 @@ from .models import (
     ProductSourceMode,
     ProductWorkerState,
 )
+from .presentation import (
+    REPORT_HARDWARE_CLAIM,
+    HumanReportView,
+    build_human_report_view,
+)
+from .reporting import HumanReportPublication, publish_human_report
 from .services import (
     ProductJobExecution,
     ProductServiceOutputSlot,
@@ -449,8 +459,25 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_machine_view(observe_parser)
 
+    report_parser = commands.add_parser(
+        "report", help="build deterministic human reports from a result export"
+    )
+    report_parser.add_argument("--input", required=True, type=Path)
+    report_parser.add_argument(
+        "--input-format",
+        choices=("auto", "json", "csv"),
+        default="auto",
+        help="result-export format; auto accepts .json or .csv",
+    )
+    report_parser.add_argument(
+        "--output",
+        required=True,
+        type=Path,
+        help="new report directory; an existing path is never overwritten",
+    )
+    _add_machine_view(report_parser)
+
     for name, help_text in (
-        ("report", "build a human report from a result export (Step 4)"),
         ("demo", "generate the reproducible portfolio demo (Step 7)"),
         ("dashboard", "launch the local desktop dashboard (Step 5)"),
     ):
@@ -974,6 +1001,79 @@ def _write_artifact(
     }
 
 
+def _load_report_input(arguments: argparse.Namespace) -> ResultExportBundle:
+    selected = arguments.input_format
+    if selected == "auto":
+        suffix = arguments.input.suffix.lower()
+        if suffix == ".json":
+            selected = "json"
+        elif suffix == ".csv":
+            selected = "csv"
+        else:
+            raise CliUsageError(
+                "report --input-format auto requires a .json or .csv input suffix"
+            )
+    if selected == "json":
+        return load_result_export_json(arguments.input)
+    if selected == "csv":
+        return load_result_export_csv(arguments.input)
+    raise CliUsageError("report input format is unsupported")
+
+
+def _report_document(
+    view: HumanReportView,
+    publication: HumanReportPublication,
+) -> dict[str, object]:
+    return {
+        "schema_version": CLI_OUTPUT_SCHEMA_VERSION,
+        "command": "report",
+        "product": PRODUCT_DISPLAY_NAME,
+        "software_version": __version__,
+        "report_schema_version": view.schema_version,
+        "canonical_result_sha256": view.canonical_result_sha256,
+        "outcome": view.outcome.value,
+        "evidence_source": view.evidence_source.value,
+        "hardware_claim": REPORT_HARDWARE_CLAIM,
+        "output_directory": str(publication.output_directory),
+        "artifacts": [
+            {
+                "name": artifact.name,
+                "media_type": artifact.media_type,
+                "size_bytes": artifact.size_bytes,
+                "sha256": artifact.sha256,
+            }
+            for artifact in publication.artifacts
+        ],
+    }
+
+
+def _write_report_publication(
+    view: HumanReportView,
+    publication: HumanReportPublication,
+    stream: TextIO,
+) -> None:
+    stream.write(f"Report outcome: {view.outcome.value}\n")
+    stream.write(f"Evidence source: {view.evidence_source.value}\n")
+    stream.write(f"Canonical result SHA-256: {view.canonical_result_sha256}\n")
+    stream.write(f"Report directory: {publication.output_directory}\n")
+    stream.writelines(
+        f"Artifact: {artifact.name} | {artifact.size_bytes} bytes | SHA-256 {artifact.sha256}\n"
+        for artifact in publication.artifacts
+    )
+    stream.write("New hardware performance validation: NOT CLAIMED\n")
+
+
+def _report_exit_code(outcome: TestRunOutcome) -> int:
+    return {
+        TestRunOutcome.PASS: 0,
+        TestRunOutcome.FAIL: CLI_ENGINEERING_FAIL_EXIT_CODE,
+        TestRunOutcome.INCOMPLETE: CLI_INCOMPLETE_EXIT_CODE,
+        TestRunOutcome.UNSUPPORTED: CLI_UNSUPPORTED_EXIT_CODE,
+        TestRunOutcome.ABORTED: CLI_CANCELLED_EXIT_CODE,
+        TestRunOutcome.ERROR: CLI_OPERATION_ERROR_EXIT_CODE,
+    }[outcome]
+
+
 def _execution_exit_code(execution: ProductJobExecution) -> int:
     if execution.interrupted or execution.worker_state is ProductWorkerState.CANCELLED:
         return CLI_CANCELLED_EXIT_CODE
@@ -1071,7 +1171,15 @@ def main(
                 if not ports:
                     output.write("- none\n")
             return 0
-        if arguments.command in {"report", "demo", "dashboard"}:
+        if arguments.command == "report":
+            report_view = build_human_report_view(_load_report_input(arguments))
+            publication = publish_human_report(arguments.output, report_view)
+            if arguments.as_json:
+                _write_json(_report_document(report_view, publication), output)
+            else:
+                _write_report_publication(report_view, publication, output)
+            return _report_exit_code(report_view.outcome)
+        if arguments.command in {"demo", "dashboard"}:
             raise ProductFeatureUnavailableError(
                 f"{arguments.command} is reserved for a later reviewed Phase 5 step"
             )

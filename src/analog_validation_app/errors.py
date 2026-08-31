@@ -33,6 +33,26 @@ class ProductServiceError(ProductAppError):
     """A product application service cannot safely complete its operation."""
 
 
+class ProductReportError(ProductAppError):
+    """Base class for expected human-report failures."""
+
+
+class ProductReportFormatError(ProductReportError):
+    """A finalized result cannot be represented by the report contract."""
+
+
+class ProductReportLimitError(ProductReportError):
+    """A report input or output exceeds a bounded product limit."""
+
+
+class ProductReportPathError(ProductReportError):
+    """A report destination cannot be prepared or published safely."""
+
+
+class ProductReportExistsError(ProductReportPathError):
+    """A report destination exists while replacement is disabled."""
+
+
 class ProductWorkerError(ProductAppError):
     """Base class for expected product-worker failures."""
 
@@ -65,6 +85,11 @@ __all__ = [
     "ProductDependencyError",
     "ProductFeatureUnavailableError",
     "ProductJobCancelled",
+    "ProductReportError",
+    "ProductReportExistsError",
+    "ProductReportFormatError",
+    "ProductReportLimitError",
+    "ProductReportPathError",
     "ProductRequestError",
     "ProductServiceError",
     "ProductWorkerBusyError",

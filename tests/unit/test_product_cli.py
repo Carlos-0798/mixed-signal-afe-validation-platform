@@ -542,7 +542,7 @@ def test_observe_msp430_memory_stream_is_bounded_receive_only() -> None:
     assert not hasattr(backend, "write_calls")
 
 
-@pytest.mark.parametrize("command", ["report", "demo", "dashboard"])
+@pytest.mark.parametrize("command", ["demo", "dashboard"])
 def test_reserved_commands_are_stable_but_honestly_unavailable(command: str) -> None:
     errors = io.StringIO()
     assert (

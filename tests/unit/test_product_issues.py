@@ -14,7 +14,12 @@ from analog_validation import (
     ReplayError,
     ValidationError,
 )
-from analog_validation.exports import ResultExportExistsError
+from analog_validation.exports import (
+    ResultExportExistsError,
+    ResultExportFormatError,
+    ResultExportLimitError,
+    ResultExportPathError,
+)
 from analog_validation_app import (
     MAX_USER_ISSUE_TEXT_CHARS,
     USER_ISSUE_SCHEMA_VERSION,
@@ -23,6 +28,10 @@ from analog_validation_app import (
     ProductCatalogError,
     ProductDependencyError,
     ProductFeatureUnavailableError,
+    ProductReportExistsError,
+    ProductReportFormatError,
+    ProductReportLimitError,
+    ProductReportPathError,
     ProductRequestError,
     ProductServiceError,
     UserIssue,
@@ -128,6 +137,41 @@ def test_user_issue_rejects_invalid_presentation_contracts(
             ResultExportExistsError("destination exists"),
             UserIssueCode.OUTPUT_EXISTS,
             UserIssueSeverity.WARNING,
+        ),
+        (
+            ProductReportExistsError("report exists"),
+            UserIssueCode.OUTPUT_EXISTS,
+            UserIssueSeverity.WARNING,
+        ),
+        (
+            ProductReportPathError("bad output parent"),
+            UserIssueCode.OUTPUT_PATH,
+            UserIssueSeverity.ERROR,
+        ),
+        (
+            ProductReportFormatError("bad report input"),
+            UserIssueCode.INPUT_DATA,
+            UserIssueSeverity.ERROR,
+        ),
+        (
+            ProductReportLimitError("too many points"),
+            UserIssueCode.INPUT_DATA,
+            UserIssueSeverity.ERROR,
+        ),
+        (
+            ResultExportFormatError("bad JSON"),
+            UserIssueCode.INPUT_DATA,
+            UserIssueSeverity.ERROR,
+        ),
+        (
+            ResultExportLimitError("too large"),
+            UserIssueCode.INPUT_DATA,
+            UserIssueSeverity.ERROR,
+        ),
+        (
+            ResultExportPathError("missing input"),
+            UserIssueCode.INPUT_DATA,
+            UserIssueSeverity.ERROR,
         ),
         (
             AdapterConnectionError("port busy"),

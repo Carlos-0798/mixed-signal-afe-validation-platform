@@ -28,8 +28,7 @@ def _absolute_imports(root: Path) -> set[str]:
 
 def _imports_prefix(imports: set[str], prefix: str) -> bool:
     return any(
-        imported == prefix or imported.startswith(f"{prefix}.")
-        for imported in imports
+        imported == prefix or imported.startswith(f"{prefix}.") for imported in imports
     )
 
 
@@ -81,6 +80,32 @@ def test_product_worker_is_generic_orchestration_not_device_or_analysis_code() -
         "analog_validation.workflows",
         "analog_validation_pyserial",
         "tkinter",
+    )
+
+    assert all(not _imports_prefix(imports, prefix) for prefix in forbidden)
+
+
+def test_reporting_is_presentation_only_and_has_no_network_or_analysis_imports() -> (
+    None
+):
+    imports = _absolute_imports(APP_ROOT / "reporting.py") | _absolute_imports(
+        APP_ROOT / "presentation.py"
+    )
+    forbidden = (
+        "analog_validation.adapters",
+        "analog_validation.analysis",
+        "analog_validation.profiles",
+        "analog_validation.protocol",
+        "analog_validation.runners",
+        "analog_validation.serial_adapters",
+        "analog_validation.transport",
+        "analog_validation.workflows",
+        "analog_validation_pyserial",
+        "http",
+        "requests",
+        "socket",
+        "tkinter",
+        "urllib",
     )
 
     assert all(not _imports_prefix(imports, prefix) for prefix in forbidden)

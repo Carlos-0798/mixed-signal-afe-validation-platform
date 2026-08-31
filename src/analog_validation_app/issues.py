@@ -15,7 +15,12 @@ from analog_validation import (
     ReplayError,
     ValidationError,
 )
-from analog_validation.exports import ResultExportExistsError
+from analog_validation.exports import (
+    ResultExportExistsError,
+    ResultExportFormatError,
+    ResultExportLimitError,
+    ResultExportPathError,
+)
 
 from .errors import (
     CliUsageError,
@@ -23,6 +28,10 @@ from .errors import (
     ProductCatalogError,
     ProductDependencyError,
     ProductFeatureUnavailableError,
+    ProductReportExistsError,
+    ProductReportFormatError,
+    ProductReportLimitError,
+    ProductReportPathError,
     ProductRequestError,
 )
 
@@ -40,6 +49,7 @@ class UserIssueCode(str, Enum):
     DEVICE_CONNECTION = "DEVICE_CONNECTION"
     INPUT_DATA = "INPUT_DATA"
     OUTPUT_EXISTS = "OUTPUT_EXISTS"
+    OUTPUT_PATH = "OUTPUT_PATH"
     OPTIONAL_DEPENDENCY = "OPTIONAL_DEPENDENCY"
     OPERATION_FAILED = "OPERATION_FAILED"
     INTERNAL_ERROR = "INTERNAL_ERROR"
@@ -166,13 +176,40 @@ def issue_from_exception(error: BaseException) -> UserIssue:
             "Choose a supported read-only workflow or a reviewed compatible adapter.",
             technical_type,
         )
-    if isinstance(error, ResultExportExistsError):
+    if isinstance(error, (ResultExportExistsError, ProductReportExistsError)):
         return UserIssue(
             UserIssueCode.OUTPUT_EXISTS,
             UserIssueSeverity.WARNING,
             detail,
             "The destination already exists and replacement is disabled by default.",
             "Choose a new output path or explicitly review overwrite later.",
+            technical_type,
+        )
+    if isinstance(error, ProductReportPathError):
+        return UserIssue(
+            UserIssueCode.OUTPUT_PATH,
+            UserIssueSeverity.ERROR,
+            detail,
+            "The selected report destination is missing, invalid, or could not be published atomically.",
+            "Choose a new directory name inside an existing writable parent directory.",
+            technical_type,
+        )
+    if isinstance(
+        error,
+        (
+            ProductReportFormatError,
+            ProductReportLimitError,
+            ResultExportFormatError,
+            ResultExportLimitError,
+            ResultExportPathError,
+        ),
+    ):
+        return UserIssue(
+            UserIssueCode.INPUT_DATA,
+            UserIssueSeverity.ERROR,
+            detail,
+            "The result file or report view failed a strict format or size contract.",
+            "Keep the original file and verify its declared result-export schema and limits.",
             technical_type,
         )
     if isinstance(error, AdapterConnectionError):

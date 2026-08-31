@@ -49,6 +49,51 @@ def test_installed_module_invalid_command_has_stable_usage_exit(
     assert "Traceback" not in completed.stderr
 
 
+def test_installed_module_builds_self_contained_report_outside_repository(
+    tmp_path: Path,
+) -> None:
+    result_path = tmp_path / "result.json"
+    report_path = tmp_path / "human-report"
+    generated = run_module(
+        "simulate",
+        "dc",
+        "--points",
+        "6",
+        "--output",
+        str(result_path),
+        "--json",
+        cwd=tmp_path,
+    )
+    assert generated.returncode == 0
+
+    completed = run_module(
+        "report",
+        "--input",
+        str(result_path),
+        "--output",
+        str(report_path),
+        "--json",
+        cwd=tmp_path,
+    )
+
+    assert completed.returncode == 0
+    assert completed.stderr == ""
+    document = json.loads(completed.stdout)
+    assert document["command"] == "report"
+    assert document["evidence_source"] == "SYNTHETIC"
+    assert document["hardware_claim"] == "NO_NEW_HARDWARE_VALIDATION"
+    assert {path.name for path in report_path.iterdir()} == {
+        "report.txt",
+        "report.md",
+        "report.html",
+        "chart.svg",
+        "manifest.json",
+    }
+    html = (report_path / "report.html").read_text(encoding="utf-8")
+    assert "<script" not in html.lower()
+    assert "src=" not in html.lower()
+
+
 @pytest.mark.skipif(
     sys.platform != "win32" or not CONSOLE_SCRIPT.is_file(),
     reason="Windows console script is verified after an installed build",
