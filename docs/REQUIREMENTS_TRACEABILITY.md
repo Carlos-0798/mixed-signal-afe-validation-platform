@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.1<br>
 **更新日期：** 2026-08-31<br>
-**当前阶段：** Software Phase 5 Step 1 完成；实现 1/8
+**当前阶段：** Software Phase 5 Step 2 完成；实现 2/8
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。此处的 `VERIFIED_BENCH` 只覆盖表内明确写出的 controller UART 行为，不自动升级任何 AFE、外部传感器、风扇或接线需求。
 
@@ -45,7 +45,7 @@
 | SW-FR-043 | VERIFIED_HOST | `result-export.v1` 四列行式 CSV 已实现固定 row type/order/index、严格 JSON payload、100,000 行/2 MB 限制、精确往返和原子默认不覆盖写入；公开列/限制已冻结 | Phase 5 CLI/报告消费 |
 | SW-FR-044 | VERIFIED_HOST | `result-export.v1` 严格 JSON 已实现稳定字段顺序、UTC、finite-only、重复键/坏 Unicode/坏版本拒绝和精确往返；两个 exact JSON golden 已冻结 | Phase 5 CLI/报告消费 |
 | SW-FR-045 | ACCEPTED | 旧 `summary.py` 占位已删除；`human-report.v1`、HTML/SVG 和必需 evidence/limitations/not-verified 内容已规划 | Phase 5 Step 4 实现，不重新计算 core 结论 |
-| SW-FR-046 | IMPLEMENTED | `user-issue.v1` 已按异常类型映射受控 issue code、what happened、possible cause 和 safe next step；内部错误不泄露原始细节，CLI 默认无 traceback | Step 2/3 将 worker/service 的预期失败接入同一映射并保留 debug-only 开发路径 |
+| SW-FR-046 | IMPLEMENTED | `user-issue.v1` 已按异常类型映射受控 issue code、what happened、possible cause 和 safe next step；worker 已把预期/意外 service 与 cleanup 失败接入安全 issue，同时把详细异常限制在 developer-only 字段；CLI 默认无 traceback | Step 3 把 application-service/CLI 失败接入同一映射 |
 
 ## 软件非功能需求
 
@@ -53,10 +53,10 @@
 |---|---|---|---|
 | SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建和仓库外 wheel 安装通过；基础 wheel 在无 pyserial 环境运行 console/module 的 help/version/profiles | Step 3 增加实际工作流入口；Phase 6 再做发布候选安装矩阵 |
 | SW-NFR-002 | IMPLEMENTED | 正式核心使用标准 Python；可选 pyserial package 已在 Windows/Python 3.12 外部环境安装并枚举 COM4/COM5 | Phase 6 增加其他平台 release matrix，避免核心平台绑定 |
-| SW-NFR-003 | IMPLEMENTED | adapter/read workflow/runners 保持既有 cleanup；Step 3 验证 fault lifecycle，Step 7 真实端口完成 1 open/1 close 且 9 次 empty read 保持正常 timeout | 真实断线、取消和进程级 worker 退出仍待后续专门 HIL/Phase 5 |
-| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析、导出、serial stack 和产品骨架默认无需硬件；1,645 项完整回归、7,714/7,714 三 package 覆盖及外部基础安装通过 | 保持物理 HIL 为可选路径，不让无板环境阻塞软件和发布门禁 |
-| SW-NFR-005 | VERIFIED_HOST | 既有 one-way gates 继续通过；新架构测试要求 `analog_validation_app` 只向下组合 core，禁止 core/optional backend 反向导入产品层，并检查产品层没有复制 CRC/protocol/analysis | Step 2 worker 继续留在高层产品边界且不得导入 GUI |
-| SW-NFR-006 | VERIFIED_HOST | domain/protocol/transport/profiles/serial adapter/config/analysis 责任分离；新 product contracts/catalog/issues/CLI 消费公开身份与 evidence 类型，不打开 COM、不复制 CRC/分析 | 后续 worker/service/UI 继续消费这些边界，不得把设备业务移入界面层 |
+| SW-NFR-003 | IMPLEMENTED | adapter/read workflow/runners 保持既有 cleanup；通用 product worker 已验证 single owner、cooperative cancel、有限 join、所有 post-factory 路径 cleanup、cleanup-failure 覆盖成功、context close 和无 orphan thread；Step 7 真实端口完成 1 open/1 close | 非协作第三方 service 会明确 timeout；真实断线、长时间运行及 process-signal/GUI-close/CLI Ctrl+C 接线仍待后续专门 HIL/Phase 5 |
+| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析、导出、serial stack 和产品 worker 默认无需硬件；1,725 项完整回归、8,098/8,098 三 package 覆盖及外部基础安装/内存 worker smoke 通过 | 保持物理 HIL 为可选路径，不让无板环境阻塞软件和发布门禁 |
+| SW-NFR-005 | VERIFIED_HOST | 既有 one-way gates 继续通过；架构测试要求 `analog_validation_app` 只向下组合 core，禁止 core/optional backend 反向导入，并检查产品层不复制 CRC/protocol/analysis；worker 另禁 adapters/profiles/serial/exports/GUI 直接导入 | Step 3 application services 继续经公开 API 组合，widgets 不拥有 service |
+| SW-NFR-006 | VERIFIED_HOST | domain/protocol/transport/profiles/serial adapter/config/analysis 责任分离；product contracts/catalog/issues/CLI/worker 消费公开类型；worker 只管理 lifecycle/event，不打开 COM、不解析 profile、不复制分析 | 后续 service/UI 继续消费这些边界，不得把设备业务移入界面层 |
 | SW-NFR-007 | ACCEPTED | 无性能基准 | Phase 5/6 建立实际数据规模基准 |
 | SW-NFR-008 | VERIFIED_HOST | Replay/result-export 的严格边界保持；product model 的字符串、limitations 和 metadata 数量/长度有界，CLI JSON 确定且未知命令无 traceback；无 `eval`/`exec` | Step 3/4 扩展到输入/输出路径和报告入口 |
 | SW-NFR-009 | IMPLEMENTED | 产品 catalog/CLI 与现有 core 均无网络代码；基础安装和命令完全本地 | 后续 Dashboard、报告和 demo 继续默认离线 |
@@ -92,4 +92,4 @@
 | VERIFIED_BENCH | 2 |
 | 总计 | 60 |
 
-Software Phase 1、2、3、4 均已完成各自 8/8。Phase 5 Step 1 已建立统一 CLI 的身份/profile 骨架、产品 contracts/catalog/issues 和单向依赖门禁，实现进度 1/8；worker、实际测试命令、Dashboard 和报告仍未实现。当前验证基线为 1,645 项完整回归和 7,714/7,714 正式+可选+产品 package 语句覆盖。状态计数未因计划或占位删除而虚增；两项 `VERIFIED_BENCH` 仍只属于 controller UART 与 MSP profile，被验证的 AFE 硬件需求仍为 0。下一里程碑是 Phase 5 Step 2。
+Software Phase 1、2、3、4 均已完成各自 8/8。Phase 5 Steps 1–2 已建立统一 CLI 的身份/profile 骨架、产品 contracts/catalog/issues、单向依赖门禁和有界 single-owner cancellable worker，实现进度 2/8；实际测试命令、Dashboard 和报告仍未实现。当前验证基线为 1,725 项完整回归和 8,098/8,098 正式+可选+产品 package 语句覆盖。状态计数未因新增 host evidence 虚增；两项 `VERIFIED_BENCH` 仍只属于 controller UART 与 MSP profile，被验证的 AFE 硬件需求仍为 0。下一里程碑是 Phase 5 Step 3。

@@ -3,7 +3,7 @@
 **所属项目：** Configurable Analog Front-End & Validation Platform  
 **产品策略：** 软件优先，硬件后置，接口先行，证据分级  
 **文档版本：** 1.1<br>
-**状态：** 当前执行基准（Software Phase 5：1/8）<br>
+**状态：** 当前执行基准（Software Phase 5：2/8）<br>
 **日期：** 2026-08-31<br>
 **项目性质：** 独立个人项目  
 
@@ -460,10 +460,11 @@ DISCONNECTED
 **预计：** 5–8 天  
 **目标：** 让非开发者也能运行和理解测试。
 
-**规划状态：** 文件级实施计划已完成，实现进度 1/8。Step 1 已建立不可变产品
+**规划状态：** 文件级实施计划已完成，实现进度 2/8。Step 1 已建立不可变产品
 request/result、受控 catalog、稳定 user issue 和可安装 CLI 骨架，并删除旧 Dashboard
-占位；worker、测试工作流、离线 Tkinter 界面和 HTML/SVG 报告仍待后续步骤。正式边界、
-安全/隐私门禁和八个小步骤见 `docs/SOFTWARE_PHASE_5_PLAN.md`。
+占位；Step 2 已实现不可变有界 event、single-owner/cooperative-cancel worker、有限 join
+与确定性 cleanup。测试工作流、离线 Tkinter 界面和 HTML/SVG 报告仍待后续步骤。正式
+边界、安全/隐私门禁和八个小步骤见 `docs/SOFTWARE_PHASE_5_PLAN.md`。
 
 交付物：
 
@@ -814,4 +815,4 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/adr/`；
 - `docs/TECHNICAL_DEBT.md`。
 
-Software Phase 1、2、3、4 均已完成各自 8/8。Phase 4 的 bounded stream、16/32-bit sequence、neutral CRC envelope、AFE wrapper/channel map、serial lifecycle/raw events、独立 AFE/MSP430 profiles、receive-only `SerialAdapter`、可选 pyserial backend 和本仓库 COM4 passive HIL 均已实现并冻结兼容边界。Phase 5 Step 1 现已完成：`analog_validation_app` 提供 output-denying product contracts、exact reviewed catalog、what/why/safe-next-step issue mapping 以及安装后的 `analog-validation version/profiles`；根 `dashboard/` 占位和 legacy-only 分析 tests 已删除，核心 golden 未改变。当前验证基线为 1,645 项完整回归和 7,714/7,714 正式+可选+产品 package 覆盖，基础 wheel 已在仓库外无 pyserial 环境运行。Phase 4 Step 7 HIL 的 5/5 CRC-valid TEL、25 个 `BENCH_CONTROLLER` Measurements 和 0 发送字节仍只说明窄范围 UART/Profile 兼容，无法被动确认 exact firmware，也没有验证外部 sensors/fan/wiring 或任何 AFE 性能。下一步只实施 Phase 5 Step 2 owning/cancellable worker；当前仍不采购或搭建 AFE 硬件。
+Software Phase 1、2、3、4 均已完成各自 8/8。Phase 4 的 bounded stream、16/32-bit sequence、neutral CRC envelope、AFE wrapper/channel map、serial lifecycle/raw events、独立 AFE/MSP430 profiles、receive-only `SerialAdapter`、可选 pyserial backend 和本仓库 COM4 passive HIL 均已实现并冻结兼容边界。Phase 5 Steps 1–2 现已完成：`analog_validation_app` 提供 output-denying product contracts、exact reviewed catalog、what/why/safe-next-step issue mapping、安装后的 `analog-validation version/profiles`，以及有界 single-owner/cooperative-cancel worker；根 `dashboard/` 占位和 legacy-only 分析 tests 已删除，核心 golden 未改变。当前验证基线为 1,725 项完整回归和 8,098/8,098 正式+可选+产品 package 覆盖，基础 wheel 已在仓库外无 pyserial 环境运行并完成内存 worker smoke。Phase 4 Step 7 HIL 的 5/5 CRC-valid TEL、25 个 `BENCH_CONTROLLER` Measurements 和 0 发送字节仍只说明窄范围 UART/Profile 兼容，无法被动确认 exact firmware，也没有验证外部 sensors/fan/wiring 或任何 AFE 性能。下一步只实施 Phase 5 Step 3 稳定 CLI 工作流；当前仍不采购或搭建 AFE 硬件。

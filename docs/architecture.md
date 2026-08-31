@@ -73,8 +73,12 @@ requests/results, exact-match source/profile catalog entries, stable user issues
 and the installed `analog-validation version/profiles` identity surface. It also
 retires the Phase 0 root `dashboard/` source and enforces that no CRC, protocol,
 profile, or engineering-analysis implementation is copied into the product layer.
-Later steps will add product events, factories, application services, a bounded
-single-owner worker, test-running CLI commands, presentation-only reports, and a
+Step 2 adds immutable bounded events and a generic single-owner worker. One
+non-daemon thread creates, runs, and cleans one injected service; cooperative
+cancellation, bounded joins, terminal result/issue capture, and cleanup-failure
+override are host-tested. The worker imports no device, protocol, analysis,
+serial, export, or GUI implementation. Later steps will add application services,
+test-running CLI commands, presentation-only reports, and a
 local Tkinter/ttk Dashboard. CLI and Dashboard must consume the same services;
 neither may parse device records, recalculate engineering results, or open a
 serial backend directly. Tk imports remain isolated and delayed, and pyserial

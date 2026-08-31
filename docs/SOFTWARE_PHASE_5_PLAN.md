@@ -1,7 +1,7 @@
 # Software Phase 5 文件级实施计划
 
 **阶段名称：** 产品工作流、CLI、Dashboard 与证据可见报告<br>
-**规划状态：** 已完成；实现进度 1/8<br>
+**规划状态：** 已完成；实现进度 2/8<br>
 **预计时间：** 5–8 个有效开发日；初学者兼职约 2–3 周<br>
 **前置：** Software Phase 1–4 的领域、分析、runner、导出、transport、profile 和 adapter 兼容基线完成<br>
 **默认硬件要求：** 无<br>
@@ -10,7 +10,7 @@
 ## 当前进度
 
 - [x] Step 1：产品层契约、catalog、错误映射与 CLI 骨架；
-- [ ] Step 2：owning/cancellable job worker；
+- [x] Step 2：owning/cancellable job worker；
 - [ ] Step 3：稳定 CLI 工作流；
 - [ ] Step 4：证据可见的人类报告与确定性图表；
 - [ ] Step 5：Dashboard 状态模型、presenter 与桌面外壳；
@@ -19,8 +19,9 @@
 - [ ] Step 8：公共兼容性冻结、构建、外部安装和阶段收口。
 
 Step 1 已新增产品契约、受控 catalog、错误解释和最小 CLI，同时清理被正式核心
-取代的 Phase 0 占位。它没有新增 worker、测试执行工作流、Dashboard、报告或硬件
-行为，也没有打开串口；因此完成 Step 1 不等于 Phase 5 产品已完成。
+取代的 Phase 0 占位。Step 2 已新增有界事件、single-owner worker、cooperative cancel、
+有限 join 和 deterministic cleanup。两步都没有新增真实串口或硬件行为；测试执行
+工作流、Dashboard 和报告仍未实现，因此完成 2/8 不等于 Phase 5 产品已完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -282,6 +283,15 @@ join timeout、result/error capture 和 deterministic cleanup。用故障注入 
 验收：没有 orphan thread 或 adapter；cancel 不产生 PASS；事件 index 单调且队列
 有界；worker 不包含 profile 字段解析、分析公式或 GUI import；不访问真实 COM。
 
+**状态：已完成（2026-08-31）。** `product-job-event.v1`、七态 worker lifecycle、
+有界 FIFO event snapshot、single-job ownership、线程内 service ownership、cooperative
+cancel、有限 join/close 和每条路径 cleanup 已实现。56 项 worker tests 覆盖正常、重复
+启动、启动/运行/清理异常、取消竞态、队列丢弃、超时、自关闭和防御性 contract 失败；
+207 项产品层集中测试、1,725 项全量测试及 8,098/8,098 statements 通过。仓库外基础
+wheel smoke 验证线程结束且未导入 pyserial/Tk；未枚举或打开 COM。详见
+[`product-worker.md`](product-worker.md) 和
+[`software-phase5-step2.md`](../reports/software-phase5-step2.md)。
+
 ### Step 3：稳定 CLI 工作流
 
 实现 `profiles`、`ports`、`simulate`、`replay`、`observe`、`report`、`demo` 和
@@ -462,7 +472,8 @@ analog-validation dashboard
 
 ## 14. 下一检查点
 
-Phase 5 Step 1 已完成，实现进度为 1/8。下一次继续时只实施 Step 2：建立有界事件
-队列和 single-owner、cooperative-cancel worker，验证启动、完成、重复启动、取消竞态、
-异常和 deterministic cleanup。Step 2 不接入真实 COM、不实现报告或 Dashboard 窗口，
-也不能把取消、失败、`INCOMPLETE` 或 `UNSUPPORTED` 提升为 PASS。
+Phase 5 Steps 1–2 已完成，实现进度为 2/8。下一次继续时只实施 Step 3：用应用
+service 把现有 Simulator/CSV Replay/read/analysis/export 能力接入稳定 CLI 工作流，并
+冻结 stdout/stderr、JSON、退出码和 Ctrl+C 行为。Step 3 的 serial 测试仍使用内存
+backend，不主动打开真实 COM；报告和 Dashboard 窗口仍属于后续步骤。worker 的
+`SUCCEEDED` 只代表编排安全结束，不能替代产品结果中的工程 PASS/FAIL。

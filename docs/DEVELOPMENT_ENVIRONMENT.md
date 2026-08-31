@@ -1,7 +1,7 @@
 # 开发环境
 
 **验证日期：** 2026-08-31<br>
-**当前阶段：** Software Phase 5 Step 1 已完成（1/8）<br>
+**当前阶段：** Software Phase 5 Step 2 已完成（2/8）<br>
 **硬件要求：** 默认软件门禁无需硬件；Step 7 已单独完成一次 MSP430 receive-only HIL
 
 ## 已验证环境
@@ -49,9 +49,9 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m build
 ```
 
-pytest、三项 package coverage、全仓库 Ruff、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式分析、runner 和导出，Software Phase 4 已完成 transport、profiles、receive-only serial adapter、可选 pyserial backend、兼容冻结和窄范围 COM4 HIL。Software Phase 5 Step 1 新增独立 `analog_validation_app` 产品层、不可变 job/result contract、受控 catalog、面向用户的 issue 映射和 `analog-validation version/profiles` 安装入口；根 `dashboard/` 占位与 legacy-only 分析 tests 已删除。当前完整门禁为 1,645 tests、7,714/7,714 正式+可选+产品 package statements、全仓库 Ruff、147-file mypy、依赖检查、sdist/wheel 和仓库外无 pyserial 基础安装。
+pytest、三项 package coverage、全仓库 Ruff、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式分析、runner 和导出，Software Phase 4 已完成 transport、profiles、receive-only serial adapter、可选 pyserial backend、兼容冻结和窄范围 COM4 HIL。Software Phase 5 Steps 1–2 新增独立 `analog_validation_app` 产品层、不可变 job/result/event contract、受控 catalog、面向用户的 issue 映射、`analog-validation version/profiles` 安装入口，以及 single-owner/cooperative-cancel worker。当前完整门禁为 1,725 tests、8,098/8,098 正式+可选+产品 package statements、全仓库 Ruff、149-file mypy、依赖检查、sdist/wheel 和仓库外无 pyserial 基础安装/内存 worker smoke。
 
-当前 CLI 只提供产品身份和 reviewed profiles，并不执行测量或分析。Step 1 没有创建 Tk 窗口、没有访问串口；下一检查点是 Phase 5 Step 2 owning/cancellable worker。
+当前 CLI 只提供产品身份和 reviewed profiles，并不执行测量或分析。Step 2 没有创建 Tk 窗口、没有访问串口；下一检查点是 Phase 5 Step 3 稳定 CLI 工作流。
 
 安装后可验证最小产品入口：
 

@@ -119,15 +119,17 @@ Do not power the analog assembly until the open toolchain, inventory, permission
   verify unknown-command exit/output behavior and the module entry point.
 - **Step 1 complete:** freeze bounded job/result/catalog/issue/CLI-output schema
   identities, require limitations, and reject output-capable product requests.
-- Freeze versioned product request/result/event contracts, bounded field sizes,
-  worker states, public errors, CLI commands, stdout/stderr rules, and exit
-  codes before calling the complete CLI stable. Event/worker and workflow
-  commands remain future checks.
-- Verify one worker owns one job and all success, cancellation, service-failure,
-  cleanup-failure, window-close, and Ctrl+C paths release resources and never
-  promote incomplete evidence to PASS.
-- Bound the worker event queue, event text, job duration/record count, and join
-  wait; a slow Dashboard must not cause unbounded memory or an orphan thread.
+- **Step 2 complete:** freeze `product-job-event.v1`, bounded event text/queue,
+  seven worker states, cancellation token, public worker errors, and finite
+  join/close limits. CLI command/output contracts remain a Step 3 check.
+- **Step 2 complete:** verify one worker owns one job and normal, cancellation,
+  factory/service/cleanup failure, context close, and completion-race paths
+  clean up and never promote incomplete or cancelled evidence to PASS. Future
+  Dashboard-close and Ctrl+C subprocess wiring remain Steps 3/6 checks.
+- **Step 2 complete:** bound the worker event queue/text and join wait; verify
+  FIFO eviction counters, monotonic indexes, no orphan thread after cooperative
+  services, and explicit timeout for a non-cooperative service. Job-specific
+  duration/record bounds remain application-service responsibilities.
 - Exercise Simulator, CSV Replay, and receive-only SerialAdapter product chains
   through the same application service. Serial tests use an in-memory backend
   unless a separate physical-HIL authorization is recorded.
