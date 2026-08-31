@@ -283,7 +283,12 @@ def test_phase4_public_implementation_stays_in_owned_packages() -> None:
         )
         for name in module.__all__:
             value = getattr(module, name)
-            if inspect.isfunction(value) or inspect.isclass(value):
+            # Python 3.10 reports parameterized collections.abc.Callable aliases
+            # as classes.  Their public names are frozen above, but they are type
+            # aliases rather than package-owned implementations.
+            if (inspect.isfunction(value) or inspect.isclass(value)) and not hasattr(
+                value, "__origin__"
+            ):
                 assert value.__module__.startswith(expected_prefix)
 
 
