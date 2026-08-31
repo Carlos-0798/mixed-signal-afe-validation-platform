@@ -30,3 +30,44 @@ def test_formal_core_uses_only_stdlib_and_its_own_package() -> None:
 def test_retired_phase0_protocol_and_shared_models_are_absent() -> None:
     assert not (REPOSITORY_ROOT / "dashboard" / "protocol.py").exists()
     assert not (REPOSITORY_ROOT / "dashboard" / "models.py").exists()
+
+
+def _absolute_imports(root: Path) -> set[str]:
+    imports: set[str] = set()
+    for path in sorted(root.rglob("*.py")):
+        tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                imports.update(item.name for item in node.names)
+            elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                imports.add(node.module)
+    return imports
+
+
+def test_transport_and_profile_dependency_direction_is_one_way() -> None:
+    transport_imports = _absolute_imports(CORE_ROOT / "transport")
+    profile_imports = _absolute_imports(CORE_ROOT / "profiles")
+    forbidden_transport = (
+        "analog_validation.profiles",
+        "analog_validation.adapters",
+        "analog_validation.analysis",
+        "analog_validation.runners",
+        "analog_validation.workflows",
+    )
+    forbidden_profiles = (
+        "analog_validation.adapters",
+        "analog_validation.analysis",
+        "analog_validation.runners",
+        "analog_validation.workflows",
+    )
+
+    assert not any(
+        imported == prefix or imported.startswith(f"{prefix}.")
+        for imported in transport_imports
+        for prefix in forbidden_transport
+    )
+    assert not any(
+        imported == prefix or imported.startswith(f"{prefix}.")
+        for imported in profile_imports
+        for prefix in forbidden_profiles
+    )
