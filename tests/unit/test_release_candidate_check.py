@@ -4,17 +4,20 @@ from __future__ import annotations
 
 import gzip
 import io
+import subprocess
 import tarfile
 from pathlib import Path
 
 import pytest
 
+import tools.release_candidate_check as release_module
 from tools.release_candidate_check import (
     RELEASE_CANDIDATE_SCHEMA_VERSION,
     ArtifactRecord,
     ReleaseCandidateError,
     _compare_builds,
     _manifest,
+    _run,
     assert_manifest_privacy,
     main,
     normalize_sdist,
@@ -117,6 +120,27 @@ def test_independent_build_comparison_requires_exact_artifact_identity() -> None
     )
     with pytest.raises(ReleaseCandidateError, match="not byte-identical"):
         _compare_builds(passing, changed)
+
+
+def test_command_runner_retries_only_transient_launch_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = 0
+    delays: list[float] = []
+
+    def fake_run(*_args: object, **_kwargs: object) -> subprocess.CompletedProcess[str]:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            raise OSError("temporary launch block")
+        return subprocess.CompletedProcess(["probe"], 0, "ready\n", "")
+
+    monkeypatch.setattr(release_module.subprocess, "run", fake_run)
+    monkeypatch.setattr(release_module.time, "sleep", delays.append)
+
+    assert _run("transient probe", ("probe",), launch_attempts=2) == "ready\n"
+    assert calls == 2
+    assert delays == [0.25]
 
 
 def _safe_manifest() -> dict[str, object]:

@@ -20,6 +20,7 @@ import subprocess
 import sys
 import tarfile
 import tempfile
+import time
 import zipfile
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -80,25 +81,41 @@ def _run(
     cwd: Path = ROOT,
     environment: Mapping[str, str] | None = None,
     timeout: int = COMMAND_TIMEOUT_SECONDS,
+    launch_attempts: int = 1,
 ) -> str:
+    if launch_attempts < 1:
+        raise ValueError("launch_attempts must be at least one")
     print(f"[RUN] {label}", flush=True)
     selected_environment = os.environ.copy()
     if environment is not None:
         selected_environment.update(environment)
-    try:
-        completed = subprocess.run(
-            list(arguments),
-            cwd=cwd,
-            env=selected_environment,
-            text=True,
-            encoding="utf-8",
-            errors="replace",
-            capture_output=True,
-            check=False,
-            timeout=timeout,
-        )
-    except (OSError, subprocess.TimeoutExpired) as error:
-        raise ReleaseCandidateError(f"{label} could not complete") from error
+    completed: subprocess.CompletedProcess[str] | None = None
+    for attempt in range(1, launch_attempts + 1):
+        try:
+            completed = subprocess.run(
+                list(arguments),
+                cwd=cwd,
+                env=selected_environment,
+                text=True,
+                encoding="utf-8",
+                errors="replace",
+                capture_output=True,
+                check=False,
+                timeout=timeout,
+            )
+            break
+        except subprocess.TimeoutExpired as error:
+            raise ReleaseCandidateError(f"{label} timed out") from error
+        except OSError as error:
+            if attempt == launch_attempts:
+                error_name = type(error).__name__
+                error_number = getattr(error, "winerror", None)
+                suffix = f" ({error_name} {error_number})" if error_number else f" ({error_name})"
+                raise ReleaseCandidateError(f"{label} could not start{suffix}") from error
+            print(f"[RETRY] {label} after a transient launch error", flush=True)
+            time.sleep(0.25)
+    if completed is None:  # pragma: no cover - loop invariant
+        raise ReleaseCandidateError(f"{label} did not start")
     if completed.returncode != 0:
         raise ReleaseCandidateError(
             f"{label} failed with exit code {completed.returncode}"
@@ -398,6 +415,7 @@ def _verify_installed_demo(
             (str(cli), "demo", "--output", str(first_path), "--json"),
             cwd=temporary_root,
             timeout=120,
+            launch_attempts=3,
         ),
         "installed demo",
     )
@@ -407,6 +425,7 @@ def _verify_installed_demo(
             (str(cli), "demo", "--output", str(second_path), "--json"),
             cwd=temporary_root,
             timeout=120,
+            launch_attempts=3,
         ),
         "installed Unicode demo",
     )
@@ -495,6 +514,7 @@ def _clean_install_checks(wheel: Path) -> dict[str, object]:
                 "installed CLI version",
                 (str(base_cli), "version", "--json"),
                 cwd=temporary_root,
+                launch_attempts=3,
             ),
             "installed version",
         )
