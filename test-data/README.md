@@ -11,6 +11,11 @@ Golden compatibility data:
 - `golden/profile_neutral_envelope_v1.json` freezes AFE-shaped and MSP430-shaped
   token/CRC records at the envelope layer only. It does not claim MSP430 business
   parsing, serial I/O, or hardware validation.
+- `golden/msp430_equipment_health_v1.json` freezes 10 valid and 11 invalid
+  repository-owned business-profile records derived from the peer product's
+  public UART Protocol v1 contract at commit `151fdcfa60661bce1ba04af13c1d3509706f7d4a`;
+  its scope explicitly excludes peer runtime code, serial I/O, and inherited
+  hardware evidence.
 - `golden/csv_replay_v1_valid.csv` freezes five complete Replay v1 records and an explicit END count;
 - `golden/csv_replay_v1_invalid.json` freezes rejected schema/semantic mutations and their stable error families.
 - `golden/phase2_public_api.json` freezes Phase 2 imports, schemas, enums, signature shapes, error bases, and replay hashes;

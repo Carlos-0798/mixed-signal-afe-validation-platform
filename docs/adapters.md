@@ -1,6 +1,6 @@
 # Device Adapter Contract
 
-Software Phase 2 introduces one public device port for every future data source. The upper application layer calls `DeviceAdapter`; a concrete adapter decides whether the data comes from a simulator, CSV file, serial controller, MSP430 compatibility profile, or instrument.
+Software Phase 2 introduces one public device port for every data source. The upper application layer calls `DeviceAdapter`; a concrete adapter decides whether the data comes from a simulator, CSV file, future profile-backed serial controller, or instrument. A serial profile parses a device protocol; it is not itself a connected adapter.
 
 ## Why the boundary exists
 
@@ -10,9 +10,11 @@ Without this boundary, a DC sweep or report could accidentally depend on a COM p
 same application workflow
           |
           v
-    DeviceAdapter
-      /   |    \
-Simulator CSV  future Serial/MSP430/instrument
+       DeviceAdapter
+      /     |       \
+Simulator  CSV  future Serial/instrument
+                    |
+             AFE or MSP430 profile
 ```
 
 ## Lifecycle

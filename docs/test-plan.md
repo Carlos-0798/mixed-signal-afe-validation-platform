@@ -40,9 +40,15 @@ Do not power the analog assembly until the open toolchain, inventory, permission
 - Verify telemetry-only 16-bit continuity, explicit legacy-to-canonical
   Measurement mapping, strict capability transaction aggregation, and state
   rollback if a final raw outcome cannot be retained.
+- Drive every repository-owned MSP430 valid/invalid fixture through the
+  independent read-only profile; verify `TEL/ACK/STS/CFG/LOG`, 32-bit TEL wrap,
+  unknown state rejection, raw sentinel/fault retention, and unavailable-safe
+  Measurement mapping.
+- Confirm the MSP430 profile has no command encoder, output capability, or
+  `SAFE_SHUTDOWN`, and imports no peer-project runtime namespace.
 - Keep real port/HIL commands `NOT RUN` until the separate owner-approved gate;
   host lifecycle tests do not prove OS timing, UART electrical behavior, or a
-  controller business profile.
+  physical controller link.
 
 ## Deferred bench acceptance
 

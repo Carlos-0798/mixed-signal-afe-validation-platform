@@ -1,6 +1,6 @@
 # Serial Profiles and AFE v1 Integration
 
-**Implemented:** Software Phase 4 Step 4<br>
+**Implemented:** Software Phase 4 Steps 4–5<br>
 **Schema:** `serial-profile.v1`<br>
 **Evidence:** HOST_TEST<br>
 **Physical serial or AFE validation:** none
@@ -27,7 +27,7 @@ explicit SerialProfile selection
        +------+------+
        |             |
        v             v
- AFE v1 profile   future MSP430 profile
+ AFE v1 profile   MSP430 Health v1 profile
        |
        v
 typed message + canonical Measurements + profile-native capabilities
@@ -187,18 +187,82 @@ All 20 historical valid AFE golden records also cross the new path and re-encode
 to the exact same bytes. All 9 invalid records retain their original error
 families and matching error meaning.
 
-## 9. Evidence boundary and next step
+## 9. Independent MSP430 Equipment Health v1 profile
 
-Step 4 proves deterministic software parsing, mapping, aggregation, state
-recovery, package content, and in-memory transport composition. It does not
+Step 5 adds a second business profile without putting MSP430 fields into AFE
+messages. Its selected identity is:
+
+| Field | Value |
+|---|---|
+| Profile name | `msp430-equipment-health` |
+| Interface version | `1` |
+| Sequence width | 32 bits |
+| Maximum record | 128 bytes including LF |
+| Interface source | peer `docs/protocol.md` at `151fdcfa60661bce1ba04af13c1d3509706f7d4a` |
+
+Unlike AFE records, the MSP430 wire record does not carry a version token.
+The caller must therefore select this exact profile/version explicitly; a
+`TEL` prefix, COM number, USB identity, or board name is not version discovery.
+
+The independent parser accepts device-output `TEL`, `ACK`, `STS`, `CFG`, and
+`LOG` records. It deliberately supplies no `CMD` encoder and exposes no control
+operation. Only `TEL.sequence` enters continuity tracking; request sequences in
+responses remain correlation values. A `4294967295 -> 0` transition is therefore
+an in-order 32-bit wrap.
+
+### Availability mapping
+
+The typed `Msp430Telemetry` always preserves the raw integer fields and all 16
+fault bits. Mapping then applies availability rules:
+
+| Wire condition | Product Measurement meaning |
+|---|---|
+| temperature `-32768` | `value=None`, `INVALID`, `MISSING` |
+| DS18B20 missing/CRC fault | DS value unavailable; raw deci-degree value retained in the message |
+| NTC range fault | NTC value unavailable with `OUT_OF_RANGE`; raw value retained |
+| sensor disagreement | otherwise available temperature values are `SUSPECT + DEVICE_FAULT` |
+| INA219 communication fault | bus voltage and current are `None + INVALID + MISSING + COMMUNICATION_ERROR`; raw zero fields remain in the message |
+| zero electrical fields without INA219 fault | valid numeric zero, not automatically missing |
+| fan PWM | read-only ratio from 0 to 1; never treated as an AFE stimulus |
+
+`power_mw` is preserved on the typed message and participates in the same
+`ina219_available` decision. Measurement v1 has no watt/milliwatt unit, so Step
+5 does not mislabel power as `UNITLESS`. A future controlled Measurement-schema
+extension may add it without changing the frozen wire profile.
+
+The static capability descriptor contains only `READ_MEASUREMENT`, no DAC/PWM
+output channels, and `supports_safe_shutdown=False`. Its numeric input ranges
+describe the Protocol v1 representable software envelope; they are not detected
+sensor specifications, calibrated limits, or safe electrical input ratings.
+
+### Independent fixtures
+
+`test-data/golden/msp430_equipment_health_v1.json` belongs to this repository.
+It records its public interface source and explicitly excludes peer runtime
+code, serial I/O, hardware behavior, and inherited test evidence. Ten valid
+records cover every device-output family, sentinels, uint32 boundaries, and a
+numeric LOG state that must be preserved. Eleven invalid records freeze bad
+CRC, framing, field count/type/range, unknown TEL state, unsupported CMD, and
+resource-limit behavior.
+
+The in-memory composite proof performs fragmented/coalesced bytes ->
+`SerialSession` -> exact raw events -> MSP430 profile -> Measurements -> typed
+CRC rejection. It does not import the peer `dashboard`, firmware, or tools.
+
+## 10. Evidence boundary and next step
+
+Steps 4–5 prove deterministic software parsing, mapping, aggregation, state
+recovery, independent interoperability fixtures, and in-memory transport
+composition. They do not
 prove:
 
 - an OS or pyserial backend;
 - UART baud, voltage levels, timing, grounding, cable, or EMI behavior;
 - any AFE circuit, ADC/DAC, gain, cutoff, threshold, saturation, or protection;
-- MSP430 protocol compatibility;
+- OS-level or physical MSP430 serial compatibility;
 - physical safe shutdown.
 
-Step 5 will add the peer, read-only `msp430-equipment-health.v1` profile from its
-published interface contract and independent fixtures. It will not import the
-MSP430 repository or merge either product.
+Step 6 will wrap the transport and either selected profile in one
+`SerialAdapter`, project profile-native capabilities explicitly, and exercise
+the existing `DeviceAdapter`/`ReadWorkflow` contracts with an in-memory backend.
+It will not access a physical port; owner-approved read-only HIL remains Step 7.

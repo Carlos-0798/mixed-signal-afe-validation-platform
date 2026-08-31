@@ -19,3 +19,6 @@
 | Host serial tests are presented as hardware proof | HOST_TEST only | Real OS backend and owner-approved HIL have separate later gates; `VERIFIED_BENCH` remains zero |
 | Repeated capability transaction sequence is mislabeled as duplicate telemetry | Separate semantics implemented | Track continuity only for AFE `TEL`; validate repeated capability sequence inside the transaction aggregator |
 | Profile-native capability names disagree with adapter/workflow channel names | Explicit Step 6 debt | Keep frozen wire safety vocabulary now; require a reviewed, tested adapter projection instead of string guessing |
+| MSP430 unavailable sentinels or fault-time zeros become false measurements | Host mapping implemented | Preserve raw fields; map `-32768` and INA219 communication-fault voltage/current to `None + INVALID + MISSING`; freeze fault fixtures |
+| MSP430 command surface leaks into a read-only integration | Default-deny profile | Parse only device outputs, provide no command encoder, advertise no output or `SAFE_SHUTDOWN`, and prove output runners remain zero-write in Step 6 |
+| Peer tests or hardware evidence are inherited by this repository | Separate fixture provenance | Record only the frozen public interface source; use repository-owned tests/reports and separate any future Analog-owned HIL evidence |

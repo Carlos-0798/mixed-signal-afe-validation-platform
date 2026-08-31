@@ -130,4 +130,11 @@ problems propagate instead of being mislabeled as bad device input. If raw-log
 finalization fails, prior profile state is restored and the raw-log error
 propagates.
 
-See [serial profiles and AFE v1 integration](serial-profiles.md).
+Step 5 reuses the same split for the independent MSP430 profile. CRC, framing,
+field count/type/range, unknown TEL state, and unsupported device-record family
+are `ProtocolError` outcomes retained as raw `REJECTED` events. Wrong profile,
+stale event/log, mapping-contract failure, and outcome-storage failure remain
+profile/program state errors and are not presented as device faults. The wire
+`fault_flags` field is device telemetry data, not a Python exception family.
+
+See [serial profiles and independent AFE/MSP430 integrations](serial-profiles.md).

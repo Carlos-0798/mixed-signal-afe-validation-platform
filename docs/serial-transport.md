@@ -32,7 +32,7 @@ flowchart LR
   reconnect attempts, and deterministic logical closure.
 - `BoundedLineFramer` turns arbitrary chunks into complete LF-delimited bytes.
 - `BoundedRawEventLog` retains bounded receive provenance in memory.
-- the Step 4 AFE profile and future MSP430 profile own device fields, versions, CRC interpretation,
+- the independent Step 4 AFE and Step 5 MSP430 profiles own device fields, versions, CRC interpretation,
   capabilities, Measurements, and sequence widths.
 
 Receiving bytes is therefore not the same as understanding or validating them.

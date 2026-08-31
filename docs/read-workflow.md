@@ -10,7 +10,7 @@ Software Phase 2 Step 7 adds one read-only application workflow above `DeviceAda
 
 An analysis runner should ask for “two mV samples from this analog channel” rather than contain branches such as “if Simulator do this, if CSV do that, if MSP430 do something else.” The adapter handles where data comes from; the workflow handles a complete acquisition attempt.
 
-This separation lets future Serial, MSP430, and instrument adapters join the product by satisfying the public adapter contract. The upper workflow and later analysis do not need board registers, file columns, COM-port details, or vendor SDK calls.
+This separation lets future serial and instrument adapters join the product by satisfying the public adapter contract. A serial adapter may use the existing AFE or MSP430 profile without exposing device fields to the workflow. The upper workflow and later analysis do not need board registers, file columns, COM-port details, or vendor SDK calls.
 
 ## Versioned request
 
