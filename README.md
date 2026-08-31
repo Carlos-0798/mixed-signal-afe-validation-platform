@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 4 complete — 8/8 checkpoints |
-| Release maturity | Pre-MVP; serial/profile compatibility contract frozen |
+| Development stage | Software Phase 5 planned — implementation 0/8 checkpoints |
+| Release maturity | Pre-MVP; Phase 4 compatibility frozen and Phase 5 file-level plan reviewed |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
 | Automated tests | 1,526 passed |
 | Formal + optional package coverage | 100% of 7,325 statements |
 | Highest evidence level | `BENCH_CONTROLLER` — MSP430 UART compatibility only |
 | Verified AFE hardware performance claims | **0 — the AFE has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 4 closure report](reports/software-phase4-step8.md) · [Frozen Phase 4 compatibility](docs/phase4-public-api.md) · [Current progress report](reports/PROJECT_PROGRESS_REPORT_2026-08-30.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 5 implementation plan](docs/SOFTWARE_PHASE_5_PLAN.md) · [Phase 5 planning report](reports/software-phase5-planning.md) · [Phase 4 closure report](reports/software-phase4-step8.md)
 
 ## Product vision
 
@@ -291,17 +291,17 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Complete — 8/8 checkpoints |
 | Software Phase 4 | Serial transport and independent controller profiles | Complete — 8/8 checkpoints |
-| Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
+| Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned — file-level plan complete, implementation 0/8 |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-Software Phases 1–4 are complete. Phase 4 now freezes its transport/profile/adapter public surface and exact AFE/MSP430 host composites after passing full regression, isolated build, and two clean external-install paths. The Step 7 physical result remains a separate narrow controller-UART claim; all real AFE hardware work remains gated. The next milestone is a reviewed Software Phase 5 file-level plan for CLI, an owning serial worker, Dashboard, plots, human-readable reports, beginner workflow, and one reproducible end-to-end demo.
+Software Phases 1–4 are complete. The separately reviewed Phase 5 file-level plan now defines an `analog_validation_app` product layer, one `analog-validation` command, a bounded owning/cancellable worker, offline Tkinter Dashboard, deterministic HTML/SVG reports, beginner workflow, and one reproducible software demo. Implementation remains 0/8; the next checkpoint is Step 1 product contracts/catalog/error mapping and CLI skeleton. The Step 7 physical result remains a separate narrow controller-UART claim, and all real AFE hardware work remains gated.
 
 ## Repository guide
 
 ```text
 src/analog_validation/    installable controller-neutral product core
-dashboard/                legacy analysis/UI placeholders awaiting later phases
+dashboard/                legacy Phase 0 placeholders scheduled for retirement in Phase 5 Step 1
 tools/                    repository-local synthetic data and developer utilities
 tests/                    unit, golden, integration, architecture, and legacy-analysis regression tests
 test-data/golden/         frozen compatibility vectors

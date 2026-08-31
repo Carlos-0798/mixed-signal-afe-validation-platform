@@ -109,6 +109,47 @@ Do not power the analog assembly until the open toolchain, inventory, permission
 - Keep the Step 7 physical UART capture separate; Step 8 discovery/build/install
   checks must not be reported as a repeated HIL or AFE/peripheral validation.
 
+## Software Phase 5 product-layer checks
+
+- Keep `analog_validation_app` above the frozen core and optional OS backend;
+  reject imports from the core back into the product layer.
+- Run CLI help/version/profile commands from an installed base wheel without
+  pyserial and without importing Tk or opening a display.
+- Freeze versioned product request/result/event contracts, bounded field sizes,
+  worker states, public errors, CLI commands, stdout/stderr rules, and exit
+  codes before calling the CLI stable.
+- Verify one worker owns one job and all success, cancellation, service-failure,
+  cleanup-failure, window-close, and Ctrl+C paths release resources and never
+  promote incomplete evidence to PASS.
+- Bound the worker event queue, event text, job duration/record count, and join
+  wait; a slow Dashboard must not cause unbounded memory or an orphan thread.
+- Exercise Simulator, CSV Replay, and receive-only SerialAdapter product chains
+  through the same application service. Serial tests use an in-memory backend
+  unless a separate physical-HIL authorization is recorded.
+- Require explicit port, profile, duration/record bounds, and read-only review
+  for `observe`; do not expose a write method, raw command box, automatic port
+  choice, or capability inference from a USB name.
+- Build human report and chart view models only from finalized product/core
+  results. Do not refit points, recalculate thresholds, or change outcome or
+  provenance in presentation code.
+- Freeze self-contained local HTML/SVG output with no remote resources; display
+  evidence, limitations, not-verified items, versions, input identifiers, and
+  artifact hashes using text as well as visual status.
+- Test Dashboard state/presenter headlessly. Keep Tk imports inside the widget
+  boundary and route all UI updates through main-thread polling of immutable
+  bounded events.
+- Verify create-new output by default, explicit overwrite behavior, hostile
+  paths/text/Unicode, sensitive raw-data exclusion, and no network activity.
+- Run the deterministic installed-package demo in a new directory and compare
+  exact machine/result/report/plot manifest hashes.
+- Before Phase 5 closure, require full pytest and coverage, Ruff, mypy,
+  dependency checks, sdist/wheel inspection, base/serial external installs,
+  CLI/demo smoke, and a real Windows Dashboard launch/close smoke or an honest
+  `NOT RUN` record.
+- Keep the earlier controller UART HIL in its own report. Product UI tests and
+  screenshots are not AFE, peripheral, electrical-safety, timing, or long-run
+  hardware evidence.
+
 ## Deferred bench acceptance
 
 - At least ten DC points per gain setting, with raw data retained.

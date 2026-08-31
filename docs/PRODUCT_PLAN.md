@@ -460,6 +460,10 @@ DISCONNECTED
 **预计：** 5–8 天  
 **目标：** 让非开发者也能运行和理解测试。
 
+**规划状态：** 文件级实施计划已完成，实现进度 0/8。正式边界、目标目录、
+worker 状态机、CLI/Dashboard 共用服务、离线 Tkinter 界面、人类 HTML/SVG 报告、
+安全/隐私门禁和八个小步骤见 `docs/SOFTWARE_PHASE_5_PLAN.md`。
+
 交付物：
 
 - 稳定 CLI；
@@ -809,4 +813,4 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/adr/`；
 - `docs/TECHNICAL_DEBT.md`。
 
-Software Phase 1、2、3、4 均已完成各自 8/8。Phase 4 的 bounded stream、16/32-bit sequence、neutral CRC envelope、AFE wrapper/channel map、serial lifecycle/raw events、独立 AFE/MSP430 profiles、receive-only `SerialAdapter`、可选 pyserial backend 和本仓库 COM4 passive HIL 均已实现；Step 8 又冻结 121 个 exports、3 个 schemas、12 组 enums/flags、21 个 signatures、17 个 errors、5 个 fixture hashes 及 exact AFE/MSP external-backend composites。当前 1,526 项完整回归和 7,325/7,325 正式+可选 package 覆盖通过。Step 7 HIL 的 5/5 CRC-valid TEL、25 个 `BENCH_CONTROLLER` Measurements 和 0 发送字节仍只说明窄范围 UART/Profile 兼容，无法被动确认 exact firmware，也没有验证外部 sensors/fan/wiring 或任何 AFE 性能。下一步是 Software Phase 5 文件级规划；当前仍不采购或搭建 AFE 硬件。
+Software Phase 1、2、3、4 均已完成各自 8/8。Phase 4 的 bounded stream、16/32-bit sequence、neutral CRC envelope、AFE wrapper/channel map、serial lifecycle/raw events、独立 AFE/MSP430 profiles、receive-only `SerialAdapter`、可选 pyserial backend 和本仓库 COM4 passive HIL 均已实现；Step 8 又冻结 121 个 exports、3 个 schemas、12 组 enums/flags、21 个 signatures、17 个 errors、5 个 fixture hashes 及 exact AFE/MSP external-backend composites。Phase 5 文件级计划现已完成，实现仍为 0/8；它将新增独立 product layer、统一 CLI、owning/cancellable worker、离线 Tkinter Dashboard、HTML/SVG 报告、初学者向导和可复现 demo，但不复制 core 业务逻辑。当前 Software Phase 4 验证基线仍为 1,526 项完整回归和 7,325/7,325 正式+可选 package 覆盖。Step 7 HIL 的 5/5 CRC-valid TEL、25 个 `BENCH_CONTROLLER` Measurements 和 0 发送字节仍只说明窄范围 UART/Profile 兼容，无法被动确认 exact firmware，也没有验证外部 sensors/fan/wiring 或任何 AFE 性能。下一步只实施 Phase 5 Step 1；当前仍不采购或搭建 AFE 硬件。

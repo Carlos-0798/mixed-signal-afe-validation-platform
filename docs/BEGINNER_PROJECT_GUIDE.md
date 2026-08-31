@@ -30,9 +30,9 @@
 
 ## 2. 当前真实状态
 
-软件路线的 Phases 0–4 已完成：仓库、理论与理想仿真、版本化协议/数据模型、模拟器与 CSV 回放、分析与结果导出、串口 transport、独立 AFE/MSP430 profiles、receive-only adapter、可选 pyserial 边界，以及公开接口/复合结果冻结均已有可重复测试。当前完整软件门禁为 1,526 项测试和 7,325/7,325 package statements。Step 7 另有一次五帧、零应用写入的 MSP430 UART 兼容记录，但它不证明外部传感器、风扇、接线或 AFE 性能。
+软件路线的 Phases 0–4 已完成：仓库、理论与理想仿真、版本化协议/数据模型、模拟器与 CSV 回放、分析与结果导出、串口 transport、独立 AFE/MSP430 profiles、receive-only adapter、可选 pyserial 边界，以及公开接口/复合结果冻结均已有可重复测试。Software Phase 5 的文件级计划也已经完成，但功能实现仍为 0/8；下一步才会建立统一 CLI 的产品层骨架。当前完整软件门禁基线为 1,526 项测试和 7,325/7,325 package statements。Step 7 另有一次五帧、零应用写入的 MSP430 UART 兼容记录，但它不证明外部传感器、风扇、接线或 AFE 性能。
 
-硬件路线仍停留在准备阶段：AFE 尚未采购、搭建或测量。因此“软件 Phase 4 完成”和“硬件仍未验证”可以同时成立，二者不是矛盾。下一软件阶段将先规划 CLI、serial worker、Dashboard、图表和人类可读报告；下面的 Phase 1–6 表格描述的是未来硬件路线。
+硬件路线仍停留在准备阶段：AFE 尚未采购、搭建或测量。因此“软件 Phase 4 完成”和“硬件仍未验证”可以同时成立，二者不是矛盾。Phase 5 将按已经评审的八步计划依次实现产品契约、serial worker、CLI、报告、离线 Tkinter Dashboard、初学者向导、demo 和兼容性收口；规划本身并不表示这些功能已经存在。下面的 Phase 1–6 表格描述的是未来硬件路线。
 
 进入 Phase 1 前，需要同时满足四个条件：
 

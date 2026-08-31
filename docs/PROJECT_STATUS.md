@@ -1,8 +1,8 @@
 # Project Status
 
 **Last updated:** 2026-08-31<br>
-**Current milestone:** Software Phase 4 complete — 8 of 8 checkpoints<br>
-**Release maturity:** pre-MVP / serial-profile compatibility contract frozen<br>
+**Current milestone:** Software Phase 5 planned — implementation 0 of 8 checkpoints<br>
+**Release maturity:** pre-MVP / Phase 4 compatibility frozen / Phase 5 file-level plan complete<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
 
@@ -11,6 +11,8 @@
 The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC implementation, a profile-neutral CRC envelope with a backward-compatible AFE wrapper, the versioned AFE v1 protocol, explicit AFE channel-name mapping, strict non-executable JSON configuration, frozen protocol and replay compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, a configurable deterministic read-only SimulatorAdapter, a strict immutable CSV Replay v1 parser, a read-only CsvReplayAdapter, a shared adapter-neutral read workflow, a profile-neutral bounded byte-stream/sequence foundation, a replaceable serial backend port, deterministic host-tested serial lifecycle, bounded memory-only raw-record provenance, a public serial-profile extension point, independent AFE and read-only MSP430 Equipment Health v1 profiles, a receive-only `SerialAdapter`, an optional packaged pyserial backend that leaves the formal core driver-free, and a Phase 4 machine-readable compatibility freeze.
 
 The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow remains a frozen read-only acquisition API. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, versioned structured result exports, both serial business profiles, their receive-only adapter composition, and a narrow MSP430 UART HIL are implemented; an owning serial worker, product CLI, dashboard, human-readable reports, and a validated physical AFE are not yet implemented.
+
+The reviewed Software Phase 5 plan now defines a separate `analog_validation_app` product layer, one `analog-validation` command, a bounded single-owner cancellable worker, deterministic HTML/SVG reporting, a local offline Tkinter/ttk Dashboard, a six-step beginner workflow, and an installed-package deterministic demo. These are planned contracts rather than implemented features; Phase 5 remains 0/8. The product layer must consume the frozen core and optional receive-only backend without copying device/profile or engineering-analysis logic.
 
 Software Phase 3 is complete. Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. Step 8 freezes the 84-symbol Phase 2 top level, 68 analysis exports, 10 runner exports, 28 export symbols, 12 Phase 3 schemas, public enums/signatures/errors, and exact representative DC/hysteresis results. The golden values remain HOST_TEST/SYNTHETIC software evidence.
 
@@ -206,11 +208,11 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 4 is complete. The next checkpoint is a separately reviewed
-Software Phase 5 file-level plan for a stable CLI, owning/cancellable serial
-worker, evidence-visible Dashboard, plots, human-readable reports, beginner
-workflow, and one reproducible end-to-end demonstration. It must consume the
-frozen core without moving device-specific business logic into the UI.
+Software Phase 4 is complete and the separate Software Phase 5 file-level plan
+has passed its planning checkpoint. The next checkpoint is Phase 5 Step 1 only:
+create the product-layer request/result/catalog/error contracts and installable
+CLI skeleton, then retire the superseded Phase 0 Dashboard placeholders. Step 1
+does not implement the worker, reports, Dashboard window, or physical-port I/O.
 
 ## GitHub and LinkedIn presentation policy
 

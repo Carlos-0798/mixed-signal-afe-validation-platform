@@ -176,6 +176,12 @@ Complete, 8/8. The transport/profile/adapter surface and representative external
 
 Estimated 5–8 effective development days. Deliver a stable CLI, Dashboard, beginner test wizard, charts, human-readable reports, example projects, and at least one reproducible end-to-end demonstration.
 
+The file-level Phase 5 plan is now complete and implementation remains 0/8.
+It selects a separate `analog_validation_app` product layer, one
+`analog-validation` entry point, a bounded single-owner worker, deterministic
+HTML/SVG reports, and an offline Tkinter/ttk Dashboard. Step 1 is the next
+implementation gate; no planned feature is counted as implemented here.
+
 ### Software Phase 6 — product release
 
 Estimated 4–7 effective development days. Deliver clean-environment installation, CI, user/developer adapter documentation, examples, changelog/version/license review, privacy/evidence audit, and a release candidate suitable for GitHub presentation.
@@ -211,12 +217,11 @@ A complete breadboard/BENCH program is expected to require roughly 8–14 weeks 
 
 ## 12. Immediate next checkpoint
 
-The immediate checkpoint is a Software Phase 5 file-level plan. It must define
-a stable CLI, owning/cancellable serial worker, evidence-visible Dashboard,
-plots, human-readable reports, beginner workflow, and at least one reproducible
-end-to-end demonstration while consuming the frozen Phase 1–4 interfaces. No
-physical port or hardware operation is implied by planning and any later HIL
-must remain separately authorized.
+The Software Phase 5 file-level planning checkpoint is complete. The immediate
+next checkpoint is Phase 5 Step 1 only: add the product request/result/catalog/
+issue contracts and installable CLI skeleton, retire the superseded Phase 0
+Dashboard placeholders, and prove the frozen core remains unchanged. Worker,
+report, window, and physical-port behavior remain outside Step 1.
 
 ## 13. Portfolio presentation plan
 

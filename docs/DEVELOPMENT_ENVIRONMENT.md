@@ -51,6 +51,11 @@ python -m venv .venv
 
 pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式记录追溯、质量 policy、DC sweep 与方向性迟滞数学、版本化 criteria/TestRun 映射、安全门控 runners、不可变线性校准、离线幅值频响分析，以及严格 `result-export.v1` JSON/CSV。Software Phase 4 已完成 8/8：除 bounded stream、sequence、envelope、channel mapping、serial lifecycle/raw events、独立 profiles、receive-only `SerialAdapter`、可选 pyserial backend 和窄范围 COM4 HIL 外，Step 8 又冻结 121 个 Phase 4 exports、3 个 schemas、12 组 enums/flags、21 个 signatures、17 个 errors、5 个 fixture hashes 及两个 exact external-backend composites。当前完整门禁为 1,526 tests、7,325/7,325 正式+可选 package statements、全仓库 Ruff、148-file mypy、依赖检查、sdist/wheel 和两种仓库外安装。Step 8 未打开端口；Step 7 HIL 仍只证明窄范围 `BENCH_CONTROLLER` UART 兼容，其他结果继续按各自 `HOST_TEST/SYNTHETIC/CSV_REPLAY` 标签。旧 `dashboard/reporting/csv_export.py` 仅为指向正式 package 的 legacy placeholder。
 
+Software Phase 5 文件级计划已经完成，实现仍为 0/8。它计划新增独立
+`analog_validation_app` 产品层、统一 CLI、bounded owning/cancellable worker、
+HTML/SVG 报告和离线 Tkinter/ttk Dashboard；当前尚无这些可执行入口。规划时只验证
+本环境可导入 Tk/Tcl 8.6，没有创建窗口或访问串口。下一检查点是 Phase 5 Step 1。
+
 ## 当前边界
 
 - 正式核心仍不要求 `pyserial`；可选 backend 已完成，但 owning worker、取消/长时间运行和真实断线恢复尚未实现；

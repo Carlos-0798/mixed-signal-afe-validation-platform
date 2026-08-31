@@ -2,7 +2,7 @@
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
 **更新日期：** 2026-08-31<br>
-**当前阶段：** Software Phase 4 已完成（8/8）
+**当前阶段：** Software Phase 5 文件级计划完成；实现 0/8
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。此处的 `VERIFIED_BENCH` 只覆盖表内明确写出的 controller UART 行为，不自动升级任何 AFE、外部传感器、风扇或接线需求。
 
@@ -39,12 +39,12 @@
 | SW-FR-036 | VERIFIED_HOST | 公共质量层逐项映射缺失、非有限、饱和、超范围、时间、通信和设备故障；DC/迟滞 builders 保留逐点质量与排除原因，缺失数据不形成完整结果 | 校准/频响专用导出仍以后续 TestRun mapping 为前提 |
 | SW-FR-037 | VERIFIED_HOST | DC 与迟滞 criteria/evaluator 只对完整证据给 PASS/FAIL；bundle 强制 criteria/outcome 一致，两个 exact golden PASS 同时冻结来源、逐点证据与结论 | 新 criteria 需新版本和黄金评审 |
 | SW-FR-038 | VERIFIED_HOST | 固定 telemetry、标准 synthetic DC/迟滞结果、20 valid/9 invalid AFE records、10 valid/11 invalid MSP records 均保持冻结；Step 8 的 `phase4-public-api-golden.v1` 又冻结 121 exports、3 schemas、12 enum/flag sets、21 signatures、17 errors、5 hashes 和 exact AFE/MSP external-backend composites | 未来破坏性变化必须升级 schema/profile 并增加迁移样本，不能只改 golden expectation |
-| SW-FR-040 | IMPLEMENTED | 两个工具有 argparse | Phase 5 建立统一产品 CLI |
-| SW-FR-041 | ACCEPTED | `app.py` 仅占位 | Phase 5 实现 Dashboard |
-| SW-FR-042 | ACCEPTED | 无测试向导 | Phase 5 实现 |
+| SW-FR-040 | IMPLEMENTED | 两个开发工具有 argparse；统一入口尚不存在 | Phase 5 Steps 1/3 按已评审计划建立 `analog-validation` 产品 CLI |
+| SW-FR-041 | ACCEPTED | `app.py` 仅为 Phase 0 占位；已选择默认离线的 Tkinter/ttk 产品边界 | Phase 5 Steps 5/6 实现 headless presenter 后再接 widgets |
+| SW-FR-042 | ACCEPTED | 无测试向导；六步初学者流程已完成文件级规划 | Phase 5 Step 6 实现并验证 source→test→config→review→run→export |
 | SW-FR-043 | VERIFIED_HOST | `result-export.v1` 四列行式 CSV 已实现固定 row type/order/index、严格 JSON payload、100,000 行/2 MB 限制、精确往返和原子默认不覆盖写入；公开列/限制已冻结 | Phase 5 CLI/报告消费 |
 | SW-FR-044 | VERIFIED_HOST | `result-export.v1` 严格 JSON 已实现稳定字段顺序、UTC、finite-only、重复键/坏 Unicode/坏版本拒绝和精确往返；两个 exact JSON golden 已冻结 | Phase 5 CLI/报告消费 |
-| SW-FR-045 | ACCEPTED | `summary.py` 占位 | Phase 5 实现证据和限制说明 |
+| SW-FR-045 | ACCEPTED | `summary.py` 仍为占位；`human-report.v1`、HTML/SVG 和必需 evidence/limitations/not-verified 内容已规划 | Phase 5 Step 4 实现，不重新计算 core 结论 |
 | SW-FR-046 | IMPLEMENTED | 正式包公开稳定领域/协议/配置/adapter/replay 错误；黄金坏消息冻结 CRC、长度、framing、协议版本、业务协议和 replay 格式/版本错误家族；回放 EOF 使用独立 `ReplayEndOfData` | Phase 5 增加面向用户的操作指导 |
 
 ## 软件非功能需求
@@ -60,7 +60,7 @@
 | SW-NFR-007 | ACCEPTED | 无性能基准 | Phase 5/6 建立实际数据规模基准 |
 | SW-NFR-008 | VERIFIED_HOST | Replay 与 result-export 的严格 JSON/CSV 均有版本/大小/类型/Unicode/非有限值边界；结果写入默认不覆盖并使用原子发布；无 `eval`/`exec` | Phase 5 扩展到 CLI 路径和命令入口 |
 | SW-NFR-009 | IMPLEMENTED | 当前无网络代码，文件均本地 | Phase 5 文档化并保持默认离线 |
-| SW-NFR-010 | ACCEPTED | 报告未实现 | Phase 1 定义版本字段，Phase 3/5 写入结果 |
+| SW-NFR-010 | ACCEPTED | 结构化 export 已保留软件/schema/config/source lineage；人类报告未实现 | Phase 5 Step 4 按 `human-report.v1` 显示版本、输入标识、来源、限制和 artifact hashes |
 | SW-NFR-011 | ACCEPTED | 无 UI | Phase 5 验证文本与颜色双重表达 |
 | SW-NFR-012 | VERIFIED_HOST | Measurement、capability、TestRun、AFE、配置、analysis、criteria、evaluation、runners 和 `result-export.v1` 均显式版本化；Phase 2/3 公开 API 与 exact 结果均由黄金文件冻结 | 破坏性变化必须升级版本并记录迁移 |
 
@@ -92,4 +92,4 @@
 | VERIFIED_BENCH | 2 |
 | 总计 | 60 |
 
-Software Phase 1、2、3、4 均已完成各自 8/8。Phase 4 的 transport/profile/adapter/optional-backend 接口与 exact AFE/MSP host composites 已由 machine-readable golden contracts 冻结；当前完整回归 1,526 项，正式+可选 package 7,325/7,325 语句覆盖。两项 `VERIFIED_BENCH` 仍只属于 controller UART 与 MSP profile，被验证的 AFE 硬件需求仍为 0；下一里程碑是 Software Phase 5 文件级规划。
+Software Phase 1、2、3、4 均已完成各自 8/8。Phase 4 的 transport/profile/adapter/optional-backend 接口与 exact AFE/MSP host composites 已由 machine-readable golden contracts 冻结；Phase 5 文件级计划已完成，实现仍为 0/8。该计划把统一 CLI、worker、Tkinter Dashboard 和报告放入独立 product layer，并保持 core 单向依赖。当前实现验证基线仍为 1,526 项完整回归和 7,325/7,325 正式+可选 package 语句覆盖。两项 `VERIFIED_BENCH` 仍只属于 controller UART 与 MSP profile，被验证的 AFE 硬件需求仍为 0；下一里程碑是 Phase 5 Step 1。

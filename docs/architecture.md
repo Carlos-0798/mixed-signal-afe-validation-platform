@@ -67,4 +67,16 @@ an internal backend class. This protects extension points while keeping the
 Step 7 physical UART evidence separate from deterministic HOST_TEST results.
 See `phase4-public-api.md`.
 
+Software Phase 5 is planned as a separate upward-only product package,
+`analog_validation_app`. It will own immutable product requests/results/events,
+the explicit source/profile catalog, adapter factories, application services,
+a bounded single-owner worker, the `analog-validation` CLI, presentation-only
+reports, and a local Tkinter/ttk Dashboard. The CLI and Dashboard consume the
+same services; neither may parse device records, recalculate engineering
+results, or open a serial backend directly. Tk imports remain isolated in
+`analog_validation_app.dashboard`, and pyserial remains optional. The Phase 0
+root `dashboard/` placeholders are scheduled for retirement in Phase 5 Step 1
+after their superseded legacy-only regression is removed. See
+`SOFTWARE_PHASE_5_PLAN.md`.
+
 Hardware, reference-controller firmware, integration profiles, and host tools are separate boundaries. Firmware remains a later-phase placeholder. Public integration with the independent MSP430 project now includes one host-tested read-only profile/adapter and one narrow Analog-owned passive UART HIL through the optional OS backend. Exact firmware, long-duration transport, physical disconnect recovery, external peripherals, the AFE electrical interface, application code, ownership, and product identity are not shared or inferred. See `PRODUCT_ARCHITECTURE.md`.
