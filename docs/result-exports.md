@@ -101,10 +101,10 @@ Both writers:
 - remove their temporary file after success or failure;
 - return typed export format, limit, path, existence, or version errors.
 
-These rules protect result history, but explicit overwrite is still destructive. A future product CLI should require a visible user choice before enabling it.
+These rules protect result history, but explicit overwrite is still destructive. The current product CLI leaves overwrite disabled; enabling it later would require a visible, reviewed user choice.
 
 ## Current boundary
 
-Step 7 provides structured interchange, not an end-user report. It does not provide charts, PDF/HTML, narrative interpretation, a CLI command, a dashboard, serial transport, digital signatures, or long-term database storage. Those are later product layers that will consume this stable result bundle.
+Phase 3 Step 7 itself provides structured interchange, not an end-user report. Software Phase 5 Step 4 now consumes this stable bundle through `analog-validation report` and creates text, Markdown, self-contained HTML, deterministic SVG, and a hash manifest without changing the bundle's conclusion. PDF, Dashboard, digital signatures, and long-term database storage remain outside this layer. See `human-reports.md`.
 
 All Step 7 tests use software fixtures. No AFE, MSP430, ADC, DAC, UART, wire, power supply, DMM, oscilloscope, or laboratory instrument was connected.

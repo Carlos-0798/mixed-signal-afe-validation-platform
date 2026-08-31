@@ -3,7 +3,7 @@
 **所属项目：** Configurable Analog Front-End & Validation Platform  
 **产品策略：** 软件优先，硬件后置，接口先行，证据分级  
 **文档版本：** 1.1<br>
-**状态：** 当前执行基准（Software Phase 5：3/8）<br>
+**状态：** 当前执行基准（Software Phase 5：4/8）<br>
 **日期：** 2026-08-31<br>
 **项目性质：** 独立个人项目  
 
@@ -460,12 +460,14 @@ DISCONNECTED
 **预计：** 5–8 天  
 **目标：** 让非开发者也能运行和理解测试。
 
-**规划状态：** 文件级实施计划已完成，实现进度 3/8。Step 1 已建立不可变产品
+**规划状态：** 文件级实施计划已完成，实现进度 4/8。Step 1 已建立不可变产品
 request/result、受控 catalog、稳定 user issue 和可安装 CLI 骨架，并删除旧 Dashboard
 占位；Step 2 已实现不可变有界 event、single-owner/cooperative-cancel worker、有限 join
 与确定性 cleanup；Step 3 已把 Simulator/CSV Replay 的 read/DC/迟滞、显式 receive-only
-observe、稳定输出/退出码和安全 artifact 写入接入同一 service/worker。离线 Tkinter 界面、
-HTML/SVG 人类报告和 demo 仍待后续步骤。正式
+observe、稳定输出/退出码和安全 artifact 写入接入同一 service/worker；Step 4 已从
+finalized result 建立不重算的 `human-report.v1`，生成 text/Markdown、自包含 HTML、
+确定性 SVG 和 hash manifest，并接通 create-new `report` CLI。离线 Tkinter 界面和 demo
+仍待后续步骤。正式
 边界、安全/隐私门禁和八个小步骤见 `docs/SOFTWARE_PHASE_5_PLAN.md`。
 
 交付物：
@@ -817,4 +819,4 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/adr/`；
 - `docs/TECHNICAL_DEBT.md`。
 
-Software Phase 1、2、3、4 均已完成各自 8/8。Phase 4 的 bounded stream、16/32-bit sequence、neutral CRC envelope、AFE wrapper/channel map、serial lifecycle/raw events、独立 AFE/MSP430 profiles、receive-only `SerialAdapter`、可选 pyserial backend 和本仓库 COM4 passive HIL 均已实现并冻结兼容边界。Phase 5 Steps 1–3 现已完成：`analog_validation_app` 提供 output-denying product contracts、exact reviewed catalog、what/why/safe-next-step issue mapping、有界 single-owner/cooperative-cancel worker，以及安装后的 `analog-validation` Simulator/Replay read/DC/迟滞和显式 receive-only observe 工作流；根 `dashboard/` 占位和 legacy-only 分析 tests 已删除，核心 golden 未改变。当前验证基线为 1,854 项完整回归和 8,863/8,863 正式+可选+产品 package 覆盖，基础 wheel 已在仓库外无 pyserial 环境运行正式工作流与 artifact smoke。Phase 4 Step 7 HIL 的 5/5 CRC-valid TEL、25 个 `BENCH_CONTROLLER` Measurements 和 0 发送字节仍只说明窄范围 UART/Profile 兼容，无法被动确认 exact firmware，也没有验证外部 sensors/fan/wiring 或任何 AFE 性能。下一步只实施 Phase 5 Step 4 人类报告和确定性图表；当前仍不采购或搭建 AFE 硬件。
+Software Phase 1、2、3、4 均已完成各自 8/8。Phase 4 的 bounded stream、16/32-bit sequence、neutral CRC envelope、AFE wrapper/channel map、serial lifecycle/raw events、独立 AFE/MSP430 profiles、receive-only `SerialAdapter`、可选 pyserial backend 和本仓库 COM4 passive HIL 均已实现并冻结兼容边界。Phase 5 Steps 1–4 现已完成：`analog_validation_app` 提供 output-denying product contracts、exact reviewed catalog、what/why/safe-next-step issue mapping、有界 single-owner/cooperative-cancel worker、安装后的 `analog-validation` Simulator/Replay read/DC/迟滞和显式 receive-only observe 工作流，以及从 finalized JSON/CSV 结果生成五件确定性人类报告的 `report`；根 `dashboard/` 占位和 legacy-only 分析 tests 已删除，核心 golden 未改变。当前验证基线为 1,949 项完整回归和 9,521/9,521 正式+可选+产品 package 覆盖，基础 wheel 已在仓库外无 pyserial/Tk import 环境运行正式工作流、report publication 与 HTML/SVG parse smoke。Phase 4 Step 7 HIL 的 5/5 CRC-valid TEL、25 个 `BENCH_CONTROLLER` Measurements 和 0 发送字节仍只说明窄范围 UART/Profile 兼容，无法被动确认 exact firmware，也没有验证外部 sensors/fan/wiring 或任何 AFE 性能。下一步只实施 Phase 5 Step 5 Dashboard state/presenter 与桌面外壳；当前仍不采购或搭建 AFE 硬件。

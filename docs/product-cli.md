@@ -1,6 +1,6 @@
 # Analog Validation Studio CLI
 
-**Implemented:** Software Phase 5 Step 3, 2026-08-31<br>
+**Implemented:** Software Phase 5 Steps 3–4, 2026-08-31<br>
 **Schema:** `product-cli-output.v1`<br>
 **Default source:** deterministic software-only Simulator<br>
 **Physical AFE claim:** none
@@ -18,9 +18,9 @@ layers.
 CLI request
    -> explicit source/profile factory
    -> owning cancellable worker
-   -> DeviceAdapter + ReadWorkflow
-   -> formal analysis + criteria + ResultExportBundle
-   -> human text or product-cli-output.v1 JSON
+    -> DeviceAdapter + ReadWorkflow
+    -> formal analysis + criteria + ResultExportBundle
+    -> CLI result and optional presentation-only human report
 ```
 
 This separation is important: changing the UI must not change the engineering
@@ -59,7 +59,7 @@ saturation level, or threshold.
 | `replay dc` | Project two explicit analog channels and run formal DC analysis | File evidence only |
 | `replay hysteresis` | Project explicit analog/state channels and direction counts | File evidence only |
 | `observe` | Run one bounded receive-only serial read | Exact port/profile/channel plus `--confirm-read-only`; no write API |
-| `report` | Reserved for Step 4 | Returns exit code 4 without fabricating a report |
+| `report` | Turn one finalized JSON/CSV result export into five deterministic human-report files | No adapter, serial port, analysis, or hardware operation |
 | `dashboard` | Reserved for Step 5 | Returns exit code 4 without creating a window |
 | `demo` | Reserved for Step 7 | Returns exit code 4 without fabricating demo artifacts |
 
@@ -102,6 +102,27 @@ It reports the absolute artifact path, byte count, and SHA-256 after successful
 publication. A failed or data-insufficient job cannot be hidden by an artifact
 error; the original job state remains visible.
 
+## Human report example
+
+After creating a DC or hysteresis result export, build a readable report:
+
+```powershell
+analog-validation report `
+  --input .\dc-result.json `
+  --output .\dc-report `
+  --json
+```
+
+`--input-format auto` accepts only `.json` or `.csv`; an explicit `json` or
+`csv` value can be used when a valid file has a different suffix. The output
+must be a new directory and contains `report.txt`, `report.md`, `report.html`,
+`chart.svg`, and `manifest.json`.
+
+The report renderer only copies finalized values. It does not refit a DC line,
+redetect a hysteresis transition, evaluate criteria, or change evidence. The
+command returns the finalized outcome's exit code, so a successfully written
+FAIL report still exits `1`. See the [human-report guide](human-reports.md).
+
 ## Understanding the three result levels
 
 The output intentionally separates three ideas:
@@ -124,7 +145,7 @@ also emits `hardware_claim=NO_PERFORMANCE_VALIDATION`.
 | `1` | A complete engineering evaluation produced `FAIL` |
 | `2` | Invalid command, option, or request |
 | `3` | Valid operation, but evidence was incomplete |
-| `4` | Unsupported/reserved feature or missing optional dependency |
+| `4` | `UNSUPPORTED`, a still-reserved feature, or missing optional dependency |
 | `5` | Expected operation/adapter/data failure |
 | `70` | Unexpected internal software defect |
 | `130` | User/interpreter interrupt produced cooperative cancellation |
@@ -167,7 +188,8 @@ on open; that physical behavior requires its own device-specific review.
 
 Step 3 serial integration tests used a memory backend with a write trap. They
 proved the product path made zero write calls, but they did not open a real port.
-The MSP430 connected during development was deliberately left untouched.
+The MSP430 connected during development was deliberately left untouched in
+Steps 3–4.
 
 ## Cancellation and current evidence limit
 
@@ -180,4 +202,4 @@ claim; a normal interactive-terminal smoke remains a later release check.
 
 See the [product layer](product-layer.md),
 [worker design](product-worker.md), and
-[Step 3 evidence report](../reports/software-phase5-step3.md).
+[Step 4 evidence report](../reports/software-phase5-step4.md).

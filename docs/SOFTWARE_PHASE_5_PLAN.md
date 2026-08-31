@@ -1,7 +1,7 @@
 # Software Phase 5 文件级实施计划
 
 **阶段名称：** 产品工作流、CLI、Dashboard 与证据可见报告<br>
-**规划状态：** 已完成；实现进度 3/8<br>
+**规划状态：** 已完成；实现进度 4/8<br>
 **预计时间：** 5–8 个有效开发日；初学者兼职约 2–3 周<br>
 **前置：** Software Phase 1–4 的领域、分析、runner、导出、transport、profile 和 adapter 兼容基线完成<br>
 **默认硬件要求：** 无<br>
@@ -12,7 +12,7 @@
 - [x] Step 1：产品层契约、catalog、错误映射与 CLI 骨架；
 - [x] Step 2：owning/cancellable job worker；
 - [x] Step 3：稳定 CLI 工作流；
-- [ ] Step 4：证据可见的人类报告与确定性图表；
+- [x] Step 4：证据可见的人类报告与确定性图表；
 - [ ] Step 5：Dashboard 状态模型、presenter 与桌面外壳；
 - [ ] Step 6：初学者向导、worker 接线与只读串口入口；
 - [ ] Step 7：可复现演示、性能/可访问性/隐私验收；
@@ -22,8 +22,10 @@ Step 1 已新增产品契约、受控 catalog、错误解释和最小 CLI，同�
 取代的 Phase 0 占位。Step 2 已新增有界事件、single-owner worker、cooperative cancel、
 有限 join 和 deterministic cleanup。Step 3 已将 Simulator、CSV Replay、正式
 read/DC/迟滞分析、结构化导出和显式 receive-only serial 边界接入同一 service/worker/
-CLI 链。三步都没有新增 AFE 实物证据；Dashboard 和人类报告仍未实现，因此完成 3/8
-不等于 Phase 5 产品已完成。
+CLI 链。Step 4 已从 finalized result bundle 建立只呈现不重算的报告 view，生成
+text/Markdown、自包含 HTML、确定性 SVG 与 hash manifest，并接通正式 `report` 命令。
+四步都没有新增 AFE 实物证据；Dashboard 仍未实现，因此完成 4/8 不等于 Phase 5
+产品已完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -156,8 +158,10 @@ token；底层 I/O 必须有 timeout；结束后执行既有 runner/workflow cle
 
 人类报告和图表从 `ResultExportBundle` 或明确的 product result view 构建，不重新拟合、
 重算 threshold 或改变 TestRun outcome。报告必须显示 EvidenceSource、软件/schema
-版本、输入标识、限制、未验证项和生成时间。原始串口 bytes 默认不嵌入报告，只保留
-有界摘要/哈希；显式导出也必须经过隐私提示。
+版本、输入标识、源 run 开始/结束时间、限制和未验证项。为保持同一 finalized input 的
+exact deterministic artifacts，Step 4 不把当前墙钟“报告生成时间”写入内容；artifact
+身份由 generator version、canonical input SHA-256 和文件 hash 确定。原始串口 bytes
+默认不嵌入报告，只保留有界摘要/哈希；显式导出也必须经过隐私提示。
 
 ## 5. 目标文件结构
 
@@ -174,15 +178,11 @@ src/
     ├── issues.py                      user-facing what/why/next-step mapping
     ├── models.py                      immutable product request/result/event
     ├── factories.py                   explicit adapter/profile construction
-    ├── services.py                    core workflow/report orchestration
+    ├── services.py                    core workflow orchestration
     ├── worker.py                      single-owner cancellable worker
     ├── cli.py                         one stable command entrypoint
-    ├── reports/
-    │   ├── __init__.py
-    │   ├── models.py                  presentation-only report view models
-    │   ├── summary.py                 human-readable text/Markdown
-    │   ├── charts.py                  deterministic chart series + SVG
-    │   └── html.py                    self-contained local HTML
+    ├── presentation.py                presentation-only report view models
+    ├── reporting.py                   text/Markdown/SVG/HTML + atomic publisher
     └── dashboard/
         ├── __init__.py
         ├── state.py                   immutable UI state and actions
@@ -199,8 +199,9 @@ tests/
 │   ├── test_product_services.py
 │   ├── test_product_worker.py
 │   ├── test_product_cli.py
-│   ├── test_human_reports.py
-│   ├── test_report_charts.py
+│   ├── test_product_presentation.py
+│   ├── test_product_reporting.py
+│   ├── test_product_report_cli.py
 │   ├── test_dashboard_state.py
 │   └── test_dashboard_presenter.py
 ├── integration/
@@ -211,7 +212,7 @@ tests/
 │   └── test_phase5_dashboard_controller.py
 ├── golden/
 │   ├── test_phase5_cli_golden.py
-│   ├── test_phase5_report_golden.py
+│   ├── test_phase5_human_reports_golden.py
 │   ├── test_phase5_demo_golden.py
 │   └── test_phase5_public_api_golden.py
 └── architecture/
@@ -219,7 +220,7 @@ tests/
 
 test-data/golden/
 ├── phase5_cli_v1.json
-├── phase5_human_report_v1.json
+├── phase5_human_reports_v1.json
 ├── phase5_demo_v1.json
 └── phase5_public_api.json
 
@@ -327,6 +328,17 @@ desktop host 的 console-process-group signal delivery 未扩大为已验证声�
 PASS/FAIL、来源、limitations、not verified、版本和 hash 始终可见；输出原子写入且
 默认拒绝覆盖；golden 报告确定性通过。
 
+**状态：已完成（2026-08-31）。** `presentation.py` 只复制 finalized
+`ResultExportBundle`，建立有界不可变 `human-report.v1`，不导入分析、adapter、serial、
+GUI 或网络代码。`reporting.py` 生成完整 text/Markdown、自包含 HTML 与确定性 SVG；DC
+图使用导出点的 frozen `predicted_output`，迟滞图使用导出方向/相邻转换区间和最终阈值
+metric。五文件目录采用 staging + create-new rename，严格拒绝覆盖。`report` 支持 JSON/
+CSV 自动或显式格式，保留工程 outcome 退出码。431 项产品集中测试覆盖 2,196/2,196
+statements；完整回归为 1,949 tests、9,521/9,521 statements。基础 wheel 在仓库外生成
+并解析五件报告，未加载 pyserial/Tk、未访问 COM。详见
+[`human-reports.md`](human-reports.md) 和
+[`software-phase5-step4.md`](../reports/software-phase5-step4.md)。
+
 ### Step 5：Dashboard 状态模型、presenter 与桌面外壳
 
 实现 headless state/actions/presenter，再实现延迟导入的 Tkinter/ttk widgets。第一版
@@ -371,8 +383,8 @@ demo/report 正常；安装 serial extra 后只做 discovery/host substitute，�
 
 ## 8. CLI 和用户体验最低合同
 
-Step 3 已冻结并测试以下命令族；`report`、`demo` 和 `dashboard` 目前只保留名称并
-诚实返回 capability-unavailable，分别由后续步骤实现：
+Steps 3–4 已冻结并测试以下命令族；`report` 已实现，`demo` 和 `dashboard` 目前只
+保留名称并诚实返回 capability-unavailable，分别由后续步骤实现：
 
 ```text
 analog-validation version
@@ -487,8 +499,8 @@ analog-validation dashboard
 
 ## 14. 下一检查点
 
-Phase 5 Steps 1–3 已完成，实现进度为 3/8。下一次继续时只实施 Step 4：从 finalized
-`ResultExportBundle` 建立 presentation-only 人类报告模型、Markdown/text、自包含 HTML
-和确定性 SVG，不重新拟合或改变 PASS/FAIL。`report` 当前仍以退出码 4 明确表示保留
-功能；Dashboard 窗口和真实 COM 操作仍不属于下一步。worker 的 `SUCCEEDED` 只代表
-编排与 cleanup 安全结束，不能替代产品结果中的工程 PASS/FAIL。
+Phase 5 Steps 1–4 已完成，实现进度为 4/8。下一次继续时只实施 Step 5：先建立不导入
+Tk 的不可变 Dashboard state/action 和 presenter，再接入延迟导入的本地 Tkinter/ttk
+桌面外壳。widgets 只能显示既有 worker event、product result 和 report view，不能解析
+profile、打开设备或计算 PASS/FAIL。真实 COM、向导接线和硬件操作仍不属于下一步；
+先前的窄范围 MSP430 HIL 也不会因打开软件窗口而被重复或扩大。

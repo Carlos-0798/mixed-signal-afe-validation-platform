@@ -160,3 +160,29 @@ adapter clears buffered Measurements and capability trust, returns to
 `CONNECTED_READ_ONLY`, and raises a visible connection error so the caller must
 confirm capabilities again. These behaviors are HOST_TEST results from an
 in-memory backend, not OS/UART reliability claims.
+
+## Phase 5 product and report errors
+
+The upward-only `analog_validation_app.errors` namespace owns expected product
+orchestration failures without changing the core hierarchy. Step 4 adds this
+report branch:
+
+```text
+ProductAppError
+└── ProductReportError
+    ├── ProductReportFormatError
+    ├── ProductReportLimitError
+    └── ProductReportPathError
+        └── ProductReportExistsError
+```
+
+Format/limit and result-loader errors map to the stable `INPUT_DATA` user issue.
+An unusable publication parent or atomic-write failure maps to `OUTPUT_PATH`,
+while an existing destination maps to `OUTPUT_EXISTS`. The ordering matters
+because `ProductReportExistsError` is also a path error; it must retain the more
+specific no-overwrite guidance.
+
+Unexpected renderer defects are not relabelled as malformed user data. Normal
+CLI mode emits a bounded `user-issue.v1`; `--debug` remains the explicit path to
+developer diagnostics. See [human reports](human-reports.md) and
+[product CLI](product-cli.md).

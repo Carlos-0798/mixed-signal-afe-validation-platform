@@ -77,11 +77,15 @@ Step 2 adds immutable bounded events and a generic single-owner worker. One
 non-daemon thread creates, runs, and cleans one injected service; cooperative
 cancellation, bounded joins, terminal result/issue capture, and cleanup-failure
 override are host-tested. The worker imports no device, protocol, analysis,
-serial, export, or GUI implementation. Later steps will add application services,
-test-running CLI commands, presentation-only reports, and a
-local Tkinter/ttk Dashboard. CLI and Dashboard must consume the same services;
+serial, export, or GUI implementation. Step 3 adds explicit factories, shared
+read/DC/hysteresis services, and stable installed CLI workflows. Step 4 adds a
+bounded presentation-only view and deterministic text/Markdown/HTML/SVG/manifest
+publisher from finalized result bundles; it imports no analysis, adapter,
+serial, GUI, or network code. Step 5 will add the local Tkinter/ttk Dashboard.
+CLI and Dashboard must consume the same services and presentation semantics;
 neither may parse device records, recalculate engineering results, or open a
 serial backend directly. Tk imports remain isolated and delayed, and pyserial
-remains optional. See `product-layer.md` and `SOFTWARE_PHASE_5_PLAN.md`.
+remains optional. See `product-layer.md`, `human-reports.md`, and
+`SOFTWARE_PHASE_5_PLAN.md`.
 
 Hardware, reference-controller firmware, integration profiles, and host tools are separate boundaries. Firmware remains a later-phase placeholder. Public integration with the independent MSP430 project now includes one host-tested read-only profile/adapter and one narrow Analog-owned passive UART HIL through the optional OS backend. Exact firmware, long-duration transport, physical disconnect recovery, external peripherals, the AFE electrical interface, application code, ownership, and product identity are not shared or inferred. See `PRODUCT_ARCHITECTURE.md`.

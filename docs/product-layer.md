@@ -1,6 +1,6 @@
-# Product layer contracts, services, CLI, and job worker
+# Product layer contracts, services, CLI, worker, and reports
 
-**Implemented:** Software Phase 5 Steps 1–3, 2026-08-31<br>
+**Implemented:** Software Phase 5 Steps 1–4, 2026-08-31<br>
 **Evidence:** HOST_TEST and repository-external package installation<br>
 **Hardware claim:** none
 
@@ -17,16 +17,16 @@ exclusion, or hysteresis math. There must be one engineering truth, with multipl
 replaceable user interfaces above it.
 
 ```text
-user / future Dashboard
-          |
-          v
-analog-validation CLI
-          |
-          v
-analog_validation_app     request, catalog, factories, services, worker, CLI
-          |
-          v
-analog_validation         protocols, adapters, analysis, results
+user intent
+   |--------------------|
+   v                    v
+analog-validation CLI   future Dashboard
+   |--------------------|
+             v
+analog_validation_app   request, catalog, services, worker, presentation
+             |
+             v
+analog_validation       protocols, adapters, analysis, results
 ```
 
 The dependency is one-way. The core and optional pyserial backend may not import
@@ -44,6 +44,8 @@ not import adapters, profiles, serial code, analysis, exports, or GUI modules.
 | `product-catalog.v1` | Reviewed sources and profiles | Lookup is exact; an unknown profile is rejected rather than guessed |
 | `user-issue.v1` | Stable user-facing failure explanation | Expected errors map by type; unexpected internal details are not exposed |
 | `product-cli-output.v1` | Versioned machine-readable CLI output | JSON identifies schema/software, source, worker/product/engineering state, limitations, and an explicit no-hardware-performance claim |
+| `human-report.v1` | Immutable presentation-only copy of a finalized result | No analysis methods; evidence/outcome/limitations remain unchanged |
+| `human-report-manifest.v1` | Identity of one five-file report publication | Canonical input hash and rendered artifact hashes; explicit no-new-hardware-validation claim |
 
 A product result is an engineering conclusion only when its finalized core
 outcome is `PASS` or `FAIL`. `CANCELLED`, `INCOMPLETE`, `UNSUPPORTED`, and `ERROR`
@@ -139,9 +141,12 @@ bound, and `--confirm-read-only`. The product exposes no serial write operation.
 Tests inject a memory backend with a write trap; the connected MSP430 was not
 opened during Step 3.
 
-`report`, `dashboard`, and `demo` are stable reserved commands. They return a
-capability-unavailable issue and exit code 4 until their reviewed steps exist;
-the CLI never fabricates their output.
+Step 4 implements `report`. It loads one strict finalized JSON/CSV result, builds
+an immutable display view, and creates text, Markdown, HTML, SVG, and manifest
+files in a new directory. The DC line uses exported predicted values, and the
+hysteresis chart uses exported direction/transition data and copied threshold
+metrics; neither path calls an analysis or evaluator. `dashboard` and `demo`
+remain stable reserved commands that fail honestly with exit code 4.
 
 For an unknown command the CLI exits with code `2`, writes no result to stdout,
 and explains:
@@ -159,10 +164,10 @@ See the [CLI guide](product-cli.md) for exact commands and semantics.
 
 The current wheel was installed in a fresh directory outside the repository with
 `--no-deps`. Version, Simulator read/DC/hysteresis, CSV Replay, structured export,
-and reserved-command behavior ran while pyserial was absent. `ports` failed
-before discovery with the documented optional-dependency exit. A subprocess
-interpreter interrupt reached `CANCELLED`, cleanup, and exit 130. No COM port was
-enumerated or opened, and no window was created.
+and five-file report publication ran while pyserial was absent and Tk was not
+imported. `ports` failed before discovery with the documented optional-dependency
+exit. A subprocess interpreter interrupt reached `CANCELLED`, cleanup, and exit
+130. No COM port was enumerated or opened, and no window was created.
 
 This proves packaging, dependency isolation, deterministic CLI behavior, and
 host-side product-contract logic. It does not add hardware evidence. The earlier
@@ -171,8 +176,9 @@ receive-only MSP430 UART capture remains a separate, narrowly scoped
 
 ## Next checkpoint
 
-Software Phase 5 Step 4 will build human-readable Markdown/text, self-contained
-HTML, and deterministic SVG from finalized result bundles. Presentation remains
-read-only: it may explain existing evidence and outcomes, but may not refit,
-re-evaluate, or promote evidence. Dashboard and any real-port action remain
-separate later gates.
+Software Phase 5 Step 5 will build the immutable, headless Dashboard state and
+presenter before connecting a lazy local Tkinter/ttk shell. Widgets may render
+worker events, product results, and the existing report view, but may not open
+devices, parse profiles, refit data, re-evaluate criteria, or promote evidence.
+Real-port action remains a separate later gate. See the
+[human-report guide](human-reports.md) for the completed Step 4 boundary.

@@ -144,17 +144,24 @@ Do not power the analog assembly until the open toolchain, inventory, permission
   child Python process by injecting `KeyboardInterrupt` at the interpreter
   boundary. Interactive Windows console `Ctrl+C`/`Ctrl+Break`, real-COM worker
   cancellation, and Dashboard-close wiring remain explicit later smoke gates.
-- Build human report and chart view models only from finalized product/core
-  results. Do not refit points, recalculate thresholds, or change outcome or
-  provenance in presentation code.
-- Freeze self-contained local HTML/SVG output with no remote resources; display
-  evidence, limitations, not-verified items, versions, input identifiers, and
-  artifact hashes using text as well as visual status.
+- **Step 4 complete:** build bounded immutable report/chart views only from
+  finalized result bundles; DC uses frozen predicted values and hysteresis uses
+  exported adjacent transitions/final threshold metrics, with no refit,
+  recalculation, outcome change, or provenance promotion.
+- **Step 4 complete:** freeze text/Markdown/self-contained HTML/SVG plus manifest
+  output with no script or remote resource; display evidence, limitations,
+  not-verified items, versions, input identity, lineage, and hashes using text as
+  well as visual status.
+- **Step 4 complete:** verify strict JSON/CSV loading, 10,000-point bound,
+  hostile text and substituted-SVG rejection, create-new atomic directory
+  publication, staging cleanup, path races, five artifact hashes, installed base
+  wheel execution, and preserved PASS/FAIL/INCOMPLETE/UNSUPPORTED/ABORTED exits.
 - Test Dashboard state/presenter headlessly. Keep Tk imports inside the widget
   boundary and route all UI updates through main-thread polling of immutable
   bounded events.
-- Verify create-new output by default, explicit overwrite behavior, hostile
-  paths/text/Unicode, sensitive raw-data exclusion, and no network activity.
+- Keep create-new output, hostile path/text/Unicode, sensitive raw-data
+  exclusion, and no-network checks when the report is later embedded in the
+  Dashboard and demo. Phase 5 reports deliberately provide no overwrite mode.
 - Run the deterministic installed-package demo in a new directory and compare
   exact machine/result/report/plot manifest hashes.
 - Before Phase 5 closure, require full pytest and coverage, Ruff, mypy,

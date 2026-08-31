@@ -1,7 +1,7 @@
 # 开发环境
 
 **验证日期：** 2026-08-31<br>
-**当前阶段：** Software Phase 5 Step 3 已完成（3/8）<br>
+**当前阶段：** Software Phase 5 Step 4 已完成（4/8）<br>
 **硬件要求：** 默认软件门禁无需硬件；Step 7 已单独完成一次 MSP430 receive-only HIL
 
 ## 已验证环境
@@ -49,9 +49,9 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m build
 ```
 
-pytest、三项 package coverage、全仓库 Ruff rule check、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式分析、runner 和导出，Software Phase 4 已完成 transport、profiles、receive-only serial adapter、可选 pyserial backend、兼容冻结和窄范围 COM4 HIL。Software Phase 5 Steps 1–3 新增独立 `analog_validation_app` 产品层、不可变 job/result/event contract、受控 catalog、面向用户的 issue 映射、single-owner/cooperative-cancel worker、显式 adapter factories、共享 read/DC/迟滞 services，以及稳定 Simulator/Replay/receive-only CLI。当前完整门禁为 1,854 tests、8,863/8,863 正式+可选+产品 package statements、全仓库 Ruff rule check、158-file mypy、sdist/wheel 和仓库外无 pyserial 基础安装/工作流 smoke。
+pytest、三项 package coverage、全仓库 Ruff rule check、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式分析、runner 和导出，Software Phase 4 已完成 transport、profiles、receive-only serial adapter、可选 pyserial backend、兼容冻结和窄范围 COM4 HIL。Software Phase 5 Steps 1–4 新增独立 `analog_validation_app` 产品层、不可变 job/result/event contract、受控 catalog、面向用户的 issue 映射、single-owner/cooperative-cancel worker、显式 adapter factories、共享 read/DC/迟滞 services、稳定 Simulator/Replay/receive-only CLI，以及只呈现 finalized result 的确定性人类报告。当前完整门禁为 1,949 tests、9,521/9,521 正式+可选+产品 package statements、全仓库 Ruff rule check、164-file mypy、sdist/wheel 和仓库外无 pyserial/Tk import 的基础安装/报告 smoke。
 
-当前 CLI 已执行正式的软件 read/DC/迟滞工作流，但 `report`、`dashboard` 和 `demo` 仍是诚实返回退出码 4 的保留命令。Step 3 没有创建 Tk 窗口、没有发现或打开物理串口；下一检查点是 Phase 5 Step 4 人类报告与确定性图表。
+当前 CLI 已执行正式的软件 read/DC/迟滞与 `report` 工作流；`dashboard` 和 `demo` 仍是诚实返回退出码 4 的保留命令。Steps 3–4 没有创建 Tk 窗口、没有发现或打开物理串口；下一检查点是 Phase 5 Step 5 Dashboard state/presenter 与桌面外壳。
 
 安装后可验证最小产品入口：
 
@@ -60,11 +60,12 @@ analog-validation --help
 analog-validation version
 analog-validation profiles
 analog-validation simulate read --samples 3
-analog-validation simulate dc --points 12 --json
+analog-validation simulate dc --points 6 --output work\dc-result.json --json
+analog-validation report --input work\dc-result.json --output work\dc-report --json
 analog-validation simulate hysteresis
 ```
 
-当前 Ruff 0.16.5 的 `ruff format --check .` 会建议重排 76 个历史文件；本次 Step 3
+当前 Ruff 0.16.5 的全仓 formatter 仍会建议重排历史文件；本次 Step 4
 改动文件已通过 formatter，全仓机械重排被单独保留为维护事项，避免掩盖功能 diff。
 
 ## 当前边界

@@ -4,6 +4,8 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Software checkpoint reports (each report states its own evidence level):
 
+- `software-phase5-step4.md` — presentation-only human-report contract, deterministic text/Markdown/HTML/SVG, atomic five-file publication, exact report goldens, installed-wheel report smoke, and no-new-hardware-validation boundary.
+- `software-phase5-step3.md` — explicit factories/services, installed Simulator/Replay/receive-only CLI workflows, stable output/exit semantics, cancellation, artifact publication, external installation, and no-COM/no-display boundary.
 - `software-phase5-step2.md` — bounded single-owner worker, immutable events, cooperative cancellation, failure/cleanup precedence, race tests, build/external worker smoke, and no-COM/no-hardware boundary.
 - `software-phase5-step1.md` — product request/result contracts, reviewed catalog, stable user issues, installable CLI skeleton, legacy placeholder retirement, full regression, clean base-wheel install, and hardware-evidence limits.
 - `software-phase5-planning.md` — Software Phase 5 file-level product-layer plan, eight implementation checkpoints, CLI/worker/Tkinter/report decisions, baseline regression, and hardware evidence limits.
