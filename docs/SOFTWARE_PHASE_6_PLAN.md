@@ -1,7 +1,7 @@
 # Software Phase 6 文件级实施计划
 
 **阶段名称：** 发布工程、外部测试与 v1.0 准备<br>
-**规划状态：** 已完成；实现进度 4/8<br>
+**规划状态：** 已完成；实现进度 5/8<br>
 **首个交付目标：** 私有测试版 `0.1.0b1`（展示名 `v0.1.0-beta.1`）<br>
 **最终阶段目标：** owner-approved Analog Validation Studio v1.0<br>
 **预计时间：** 4–7 个有效开发日；初学者兼职约 1–2 周<br>
@@ -14,7 +14,7 @@
 - [x] Step 2：GitHub Actions 持续集成；
 - [x] Step 3：beta 版本与 package/release metadata；
 - [x] Step 4：确定性构建、clean-install 和 release manifest；
-- [ ] Step 5：安装、测试、故障排查和反馈文档；
+- [x] Step 5：安装、测试、故障排查和反馈文档；
 - [ ] Step 6：仅依赖公开 API 的第三方 adapter 示例；
 - [ ] Step 7：隐私、许可证、历史、claims 和候选包审计；
 - [ ] Step 8：owner review、合并、tag/Release 与 v1.0 决策。
@@ -192,8 +192,9 @@ Steps 1–7 通过后，可称：
 
 ## 8. 下一检查点
 
-Step 4 已完成：create-new verifier 在干净提交上执行 2,211 项测试、100% package
-statement coverage、Ruff、mypy、依赖检查、两次独立构建、base/serial clean-install 与
-双路径 synthetic demo；本机与 hosted run `33447031789` 对 commit `0c04aee` 生成的
-wheel、规范化 sdist 和 privacy-minimal manifest 逐字节一致。没有创建 tag、Release、
-公开上传或操作硬件。下一次实施 Step 5 的安装、测试、故障排查、已知限制和反馈闭环文档。
+Step 5 已完成：安装、用户测试、故障排查、已知限制、checklist 和两个结构化反馈表单均有
+静态契约；完整本地门为 2,216 tests、11,470/11,470 statements、Ruff、196-file mypy
+与 dependency check。Hosted run `33448157429` 对 commit `5dc10db` 全部通过，且其 wheel
+在仓库外短路径 Python 3.12 环境完成 hash、base install、version、双份 byte-identical
+demo、HTML limitation、create-new refusal 和可选 Replay 验收。Dashboard 本轮记为
+`NOT_RUN`，Serial/硬件保持 `NOT_RUN`。下一次实施 Step 6 public-API-only adapter proof。

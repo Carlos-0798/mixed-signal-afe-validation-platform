@@ -27,6 +27,9 @@ First controlled private-beta candidate for Analog Validation Studio.
 - A deterministic, create-new release-candidate verifier with repeated builds,
   fresh base/serial installs, installed synthetic-demo reproduction, SHA-256
   identities, and a privacy-minimal host-evidence manifest.
+- Beginner installation, private-beta testing, troubleshooting, known-limit,
+  checklist, and sanitized structured-feedback workflows verified against the
+  hosted wheel in a clean short-path environment.
 
 ### Safety and evidence limits
 

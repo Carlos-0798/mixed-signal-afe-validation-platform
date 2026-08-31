@@ -3,7 +3,7 @@
 **所属项目：** Configurable Analog Front-End & Validation Platform  
 **产品策略：** 软件优先，硬件后置，接口先行，证据分级  
 **文档版本：** 1.1<br>
-**状态：** Software Phase 6 发布工程进行中（4/8，Private Beta Candidate Preparation）<br>
+**状态：** Software Phase 6 发布工程进行中（5/8，Private Beta Candidate Preparation）<br>
 **日期：** 2026-08-31<br>
 **项目性质：** 独立个人项目  
 
@@ -826,4 +826,4 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/adr/`；
 - `docs/TECHNICAL_DEBT.md`。
 
-Software Phase 1–5 均已完成各自 8/8，Software Phase 6 已完成 4/8。Phase 4 的 bounded stream、16/32-bit sequence、neutral CRC envelope、AFE wrapper/channel map、serial lifecycle/raw events、独立 AFE/MSP430 profiles、receive-only `SerialAdapter`、可选 pyserial backend 和本仓库 COM4 passive HIL 均已实现并冻结兼容边界。Phase 5 的 `analog_validation_app` 提供 output-denying product contracts、exact reviewed catalog、what/why/safe-next-step issue mapping、有界 single-owner/cooperative-cancel worker、安装后的 `analog-validation` Simulator/Replay read/DC/迟滞和显式 receive-only observe 工作流、确定性人类报告、共享同一 reviewed workflow/service/worker 的六步本地 Dashboard、12-artifact synthetic demo，以及最终公开兼容冻结。Phase 6 已完成 release contract、Windows/Ubuntu × Python 3.10/3.12/3.14 hosted CI、`0.1.0b1` metadata 和 deterministic release verifier；本机与 hosted Windows 对同一 commit 的 wheel/sdist/manifest 逐字节一致。当前验证基线为 2,211 项完整回归、0 skipped 和 11,470/11,470 package 语句覆盖。Phase 4 Step 7 HIL 的 5/5 CRC-valid TEL、25 个 `BENCH_CONTROLLER` Measurements 和 0 发送字节仍只说明窄范围 UART/Profile 兼容，无法被动确认 exact firmware，也没有验证 external sensors/fan/wiring 或任何 AFE 性能。下一步是 Software Phase 6 Step 5 tester documentation；当前仍不采购或搭建 AFE 硬件。
+Software Phase 1–5 均已完成各自 8/8，Software Phase 6 已完成 5/8。Phase 4 的 bounded stream、16/32-bit sequence、neutral CRC envelope、AFE wrapper/channel map、serial lifecycle/raw events、独立 AFE/MSP430 profiles、receive-only `SerialAdapter`、可选 pyserial backend 和本仓库 COM4 passive HIL 均已实现并冻结兼容边界。Phase 5 的 `analog_validation_app` 提供 output-denying product contracts、exact reviewed catalog、what/why/safe-next-step issue mapping、有界 single-owner/cooperative-cancel worker、安装后的 `analog-validation` Simulator/Replay read/DC/迟滞和显式 receive-only observe 工作流、确定性人类报告、共享同一 reviewed workflow/service/worker 的六步本地 Dashboard、12-artifact synthetic demo，以及最终公开兼容冻结。Phase 6 已完成 release contract、Windows/Ubuntu × Python 3.10/3.12/3.14 hosted CI、`0.1.0b1` metadata、deterministic release verifier，以及经 hosted wheel 仓库外安装实测的 beginner tester/feedback 闭环。当前验证基线为 2,216 项完整回归、0 skipped 和 11,470/11,470 package 语句覆盖。Phase 4 Step 7 HIL 的 5/5 CRC-valid TEL、25 个 `BENCH_CONTROLLER` Measurements 和 0 发送字节仍只说明窄范围 UART/Profile 兼容，无法被动确认 exact firmware，也没有验证 external sensors/fan/wiring 或任何 AFE 性能。下一步是 Software Phase 6 Step 6 public-API-only adapter proof；当前仍不采购或搭建 AFE 硬件。

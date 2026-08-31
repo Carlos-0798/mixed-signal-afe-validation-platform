@@ -4,6 +4,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Software checkpoint reports (each report states its own evidence level):
 
+- `software-phase6-step5.md` — beginner installation/testing/troubleshooting/known-limit workflow, sanitized feedback forms, hosted-wheel short-path installation, deterministic demo/report/create-new/Replay acceptance, and explicit Dashboard/Serial/hardware NOT_RUN boundaries.
 - `software-phase6-step4.md` — deterministic clean-commit verifier, repeated wheel/sdist build, metadata normalization, base/serial clean installs, installed demo hashes, privacy-minimal candidate manifest, local/hosted byte identity, failure diagnostics, and zero-new-hardware boundary.
 - `software-phase6-step3.md` — `0.1.0b1` package/import/CLI/golden alignment, privacy-safe metadata, changelog/license status, isolated build, hosted matrix, and no-tag/no-Release boundary.
 - `software-phase6-step2.md` — read-only hosted Windows/Ubuntu and Python 3.10/3.12/3.14 CI, quality/package jobs, portability diagnostics, pinned actions, and no-hardware/no-publish boundary.
