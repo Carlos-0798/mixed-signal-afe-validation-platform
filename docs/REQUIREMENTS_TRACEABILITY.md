@@ -1,8 +1,8 @@
 # 产品需求追踪矩阵
 
-**基准：** `docs/PRODUCT_PLAN.md` v1.0  
+**基准：** `docs/PRODUCT_PLAN.md` v1.1<br>
 **更新日期：** 2026-08-31<br>
-**当前阶段：** Software Phase 5 文件级计划完成；实现 0/8
+**当前阶段：** Software Phase 5 Step 1 完成；实现 1/8
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。此处的 `VERIFIED_BENCH` 只覆盖表内明确写出的 controller UART 行为，不自动升级任何 AFE、外部传感器、风扇或接线需求。
 
@@ -39,27 +39,27 @@
 | SW-FR-036 | VERIFIED_HOST | 公共质量层逐项映射缺失、非有限、饱和、超范围、时间、通信和设备故障；DC/迟滞 builders 保留逐点质量与排除原因，缺失数据不形成完整结果 | 校准/频响专用导出仍以后续 TestRun mapping 为前提 |
 | SW-FR-037 | VERIFIED_HOST | DC 与迟滞 criteria/evaluator 只对完整证据给 PASS/FAIL；bundle 强制 criteria/outcome 一致，两个 exact golden PASS 同时冻结来源、逐点证据与结论 | 新 criteria 需新版本和黄金评审 |
 | SW-FR-038 | VERIFIED_HOST | 固定 telemetry、标准 synthetic DC/迟滞结果、20 valid/9 invalid AFE records、10 valid/11 invalid MSP records 均保持冻结；Step 8 的 `phase4-public-api-golden.v1` 又冻结 121 exports、3 schemas、12 enum/flag sets、21 signatures、17 errors、5 hashes 和 exact AFE/MSP external-backend composites | 未来破坏性变化必须升级 schema/profile 并增加迁移样本，不能只改 golden expectation |
-| SW-FR-040 | IMPLEMENTED | 两个开发工具有 argparse；统一入口尚不存在 | Phase 5 Steps 1/3 按已评审计划建立 `analog-validation` 产品 CLI |
-| SW-FR-041 | ACCEPTED | `app.py` 仅为 Phase 0 占位；已选择默认离线的 Tkinter/ttk 产品边界 | Phase 5 Steps 5/6 实现 headless presenter 后再接 widgets |
+| SW-FR-040 | IMPLEMENTED | 已安装单一 `analog-validation` 入口；`version`/`profiles` 具有人类与 `product-cli-output.v1` JSON 输出，未知命令返回稳定退出码与指导 | Phase 5 Step 3 接入 simulate/replay/observe/report/demo 等实际工作流 |
+| SW-FR-041 | ACCEPTED | Phase 0 根 `dashboard/` 占位已删除；默认离线 Tkinter/ttk 边界和延迟导入规则已确定 | Phase 5 Steps 5/6 实现 headless presenter 后再接 widgets；尚未创建窗口 |
 | SW-FR-042 | ACCEPTED | 无测试向导；六步初学者流程已完成文件级规划 | Phase 5 Step 6 实现并验证 source→test→config→review→run→export |
 | SW-FR-043 | VERIFIED_HOST | `result-export.v1` 四列行式 CSV 已实现固定 row type/order/index、严格 JSON payload、100,000 行/2 MB 限制、精确往返和原子默认不覆盖写入；公开列/限制已冻结 | Phase 5 CLI/报告消费 |
 | SW-FR-044 | VERIFIED_HOST | `result-export.v1` 严格 JSON 已实现稳定字段顺序、UTC、finite-only、重复键/坏 Unicode/坏版本拒绝和精确往返；两个 exact JSON golden 已冻结 | Phase 5 CLI/报告消费 |
-| SW-FR-045 | ACCEPTED | `summary.py` 仍为占位；`human-report.v1`、HTML/SVG 和必需 evidence/limitations/not-verified 内容已规划 | Phase 5 Step 4 实现，不重新计算 core 结论 |
-| SW-FR-046 | IMPLEMENTED | 正式包公开稳定领域/协议/配置/adapter/replay 错误；黄金坏消息冻结 CRC、长度、framing、协议版本、业务协议和 replay 格式/版本错误家族；回放 EOF 使用独立 `ReplayEndOfData` | Phase 5 增加面向用户的操作指导 |
+| SW-FR-045 | ACCEPTED | 旧 `summary.py` 占位已删除；`human-report.v1`、HTML/SVG 和必需 evidence/limitations/not-verified 内容已规划 | Phase 5 Step 4 实现，不重新计算 core 结论 |
+| SW-FR-046 | IMPLEMENTED | `user-issue.v1` 已按异常类型映射受控 issue code、what happened、possible cause 和 safe next step；内部错误不泄露原始细节，CLI 默认无 traceback | Step 2/3 将 worker/service 的预期失败接入同一映射并保留 debug-only 开发路径 |
 
 ## 软件非功能需求
 
 | ID | 状态 | 当前实现/证据 | 主要缺口或下一阶段 |
 |---|---|---|---|
-| SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建、仓库外 wheel 安装和 import 均通过 | Phase 5 增加最终用户运行入口，Phase 6 再做发布候选安装测试 |
+| SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建和仓库外 wheel 安装通过；基础 wheel 在无 pyserial 环境运行 console/module 的 help/version/profiles | Step 3 增加实际工作流入口；Phase 6 再做发布候选安装矩阵 |
 | SW-NFR-002 | IMPLEMENTED | 正式核心使用标准 Python；可选 pyserial package 已在 Windows/Python 3.12 外部环境安装并枚举 COM4/COM5 | Phase 6 增加其他平台 release matrix，避免核心平台绑定 |
 | SW-NFR-003 | IMPLEMENTED | adapter/read workflow/runners 保持既有 cleanup；Step 3 验证 fault lifecycle，Step 7 真实端口完成 1 open/1 close 且 9 次 empty read 保持正常 timeout | 真实断线、取消和进程级 worker 退出仍待后续专门 HIL/Phase 5 |
-| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析、导出和完整 serial stack 默认无需硬件；1,526 项完整回归、7,325/7,325 正式+可选 package 覆盖及 base/serial 两种外部安装通过 | 保持物理 HIL 为可选路径，不让无板环境阻塞软件和发布门禁 |
-| SW-NFR-005 | VERIFIED_HOST | one-way gates 要求 transport 不导入 profiles/高层，profiles 不导入 adapters/analysis/runners/workflows，`serial_adapters` 不导入 pyserial/高层；独立 `analog_validation_pyserial` 又被禁止导入 profiles/adapters/workflows/analysis/runners/exports；MSP profile 无 peer runtime namespace | owning worker 继续留在高层产品边界 |
-| SW-NFR-006 | VERIFIED_HOST | domain/protocol/transport/profiles/serial adapter/config/analysis 责任分离；profile 不打开 COM，adapter 不复制 CRC/分析；Step 8 已冻结 Phase 4 public contract、ownership 和外部 structural backend 复合链 | Phase 5 CLI/worker/UI 必须消费这些边界，不得把设备业务移入界面层 |
+| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析、导出、serial stack 和产品骨架默认无需硬件；1,645 项完整回归、7,714/7,714 三 package 覆盖及外部基础安装通过 | 保持物理 HIL 为可选路径，不让无板环境阻塞软件和发布门禁 |
+| SW-NFR-005 | VERIFIED_HOST | 既有 one-way gates 继续通过；新架构测试要求 `analog_validation_app` 只向下组合 core，禁止 core/optional backend 反向导入产品层，并检查产品层没有复制 CRC/protocol/analysis | Step 2 worker 继续留在高层产品边界且不得导入 GUI |
+| SW-NFR-006 | VERIFIED_HOST | domain/protocol/transport/profiles/serial adapter/config/analysis 责任分离；新 product contracts/catalog/issues/CLI 消费公开身份与 evidence 类型，不打开 COM、不复制 CRC/分析 | 后续 worker/service/UI 继续消费这些边界，不得把设备业务移入界面层 |
 | SW-NFR-007 | ACCEPTED | 无性能基准 | Phase 5/6 建立实际数据规模基准 |
-| SW-NFR-008 | VERIFIED_HOST | Replay 与 result-export 的严格 JSON/CSV 均有版本/大小/类型/Unicode/非有限值边界；结果写入默认不覆盖并使用原子发布；无 `eval`/`exec` | Phase 5 扩展到 CLI 路径和命令入口 |
-| SW-NFR-009 | IMPLEMENTED | 当前无网络代码，文件均本地 | Phase 5 文档化并保持默认离线 |
+| SW-NFR-008 | VERIFIED_HOST | Replay/result-export 的严格边界保持；product model 的字符串、limitations 和 metadata 数量/长度有界，CLI JSON 确定且未知命令无 traceback；无 `eval`/`exec` | Step 3/4 扩展到输入/输出路径和报告入口 |
+| SW-NFR-009 | IMPLEMENTED | 产品 catalog/CLI 与现有 core 均无网络代码；基础安装和命令完全本地 | 后续 Dashboard、报告和 demo 继续默认离线 |
 | SW-NFR-010 | ACCEPTED | 结构化 export 已保留软件/schema/config/source lineage；人类报告未实现 | Phase 5 Step 4 按 `human-report.v1` 显示版本、输入标识、来源、限制和 artifact hashes |
 | SW-NFR-011 | ACCEPTED | 无 UI | Phase 5 验证文本与颜色双重表达 |
 | SW-NFR-012 | VERIFIED_HOST | Measurement、capability、TestRun、AFE、配置、analysis、criteria、evaluation、runners 和 `result-export.v1` 均显式版本化；Phase 2/3 公开 API 与 exact 结果均由黄金文件冻结 | 破坏性变化必须升级版本并记录迁移 |
@@ -92,4 +92,4 @@
 | VERIFIED_BENCH | 2 |
 | 总计 | 60 |
 
-Software Phase 1、2、3、4 均已完成各自 8/8。Phase 4 的 transport/profile/adapter/optional-backend 接口与 exact AFE/MSP host composites 已由 machine-readable golden contracts 冻结；Phase 5 文件级计划已完成，实现仍为 0/8。该计划把统一 CLI、worker、Tkinter Dashboard 和报告放入独立 product layer，并保持 core 单向依赖。当前实现验证基线仍为 1,526 项完整回归和 7,325/7,325 正式+可选 package 语句覆盖。两项 `VERIFIED_BENCH` 仍只属于 controller UART 与 MSP profile，被验证的 AFE 硬件需求仍为 0；下一里程碑是 Phase 5 Step 1。
+Software Phase 1、2、3、4 均已完成各自 8/8。Phase 5 Step 1 已建立统一 CLI 的身份/profile 骨架、产品 contracts/catalog/issues 和单向依赖门禁，实现进度 1/8；worker、实际测试命令、Dashboard 和报告仍未实现。当前验证基线为 1,645 项完整回归和 7,714/7,714 正式+可选+产品 package 语句覆盖。状态计数未因计划或占位删除而虚增；两项 `VERIFIED_BENCH` 仍只属于 controller UART 与 MSP profile，被验证的 AFE 硬件需求仍为 0。下一里程碑是 Phase 5 Step 2。

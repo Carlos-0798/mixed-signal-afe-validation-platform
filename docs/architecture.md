@@ -30,10 +30,10 @@ Simulator / CSV Replay / receive-only Serial / future Instrument
 
  adapters + config + analysis ---> analog_validation.runners
                                       |
-                                      +----> future CLI / Dashboard / reports
+                                      +----> analog_validation_app / future workflows
 ```
 
-`src/analog_validation/` is the only formal product core. An executable architecture test rejects third-party, serial, GUI, board-SDK, `dashboard`, or `tools` imports from that package. Software Phase 3 Step 1 adds `analog_validation.analysis.common` for lineage, quality policy, disposition/reasons, one-source batches, and explicit voltage normalization. Step 2 adds `analysis.dc_sweep` for traceable pairing, inclusive saturation decisions, completeness gaps, and ordinary least-squares metrics. It consumes domain Measurements and does not import adapters or control output. The remaining `dashboard/measurements/` files are legacy Phase 0 comparison paths; they are not dependencies of the formal core.
+`src/analog_validation/` is the only formal product core. An executable architecture test rejects third-party, serial, GUI, board-SDK, product-layer, or tools imports from that package. Software Phase 3 Step 1 adds `analog_validation.analysis.common` for lineage, quality policy, disposition/reasons, one-source batches, and explicit voltage normalization. Step 2 adds `analysis.dc_sweep` for traceable pairing, inclusive saturation decisions, completeness gaps, and ordinary least-squares metrics. It consumes domain Measurements and does not import adapters or control output. The superseded root `dashboard/measurements/` comparison path was removed in Phase 5 Step 1 after formal goldens confirmed that the core replacement remained intact.
 
 Software Phase 3 Step 3 adds `analysis.dc_criteria`. Criteria remain immutable and versioned separately from the analysis. The evaluator verifies TestRun metadata/source/raw IDs, records five inclusive numeric checks, and maps only complete evidence to PASS/FAIL; missing criteria or data remains INCOMPLETE. This pure decision layer still does not import adapters or perform I/O. See `dc-sweep-criteria.md`.
 
@@ -45,7 +45,7 @@ Software Phase 3 Step 6 adds pure `analysis.calibration` and `analysis.frequency
 
 Software Phase 3 Step 7 adds `analog_validation.exports` after the finalized TestRun boundary. Its typed DC and hysteresis builders copy existing conclusions into the immutable `result-export.v1` bundle; JSON and row-oriented CSV are deterministic representations of the same bundle. The layer preserves source and record lineage, requires limitation text, rejects non-finite or structurally inconsistent documents, and uses atomic local writes with no overwrite by default. It never recalculates metrics or promotes evidence. See `result-exports.md`.
 
-Software Phase 3 Step 8 freezes the explicit `analysis`, `runners`, and `exports` namespaces plus representative exact DC/hysteresis result meaning. The existing 84-symbol Phase 2 top level remains unchanged. Golden tests also assert that public Phase 3 implementations originate in `analog_validation.*`, keeping the legacy dashboard outside the formal product core. See `phase3-public-api.md`.
+Software Phase 3 Step 8 freezes the explicit `analysis`, `runners`, and `exports` namespaces plus representative exact DC/hysteresis result meaning. The existing 84-symbol Phase 2 top level remains unchanged. Golden tests assert that public Phase 3 implementations originate in `analog_validation.*`; Phase 5 architecture checks additionally reject copied protocol or analysis code in the product package. See `phase3-public-api.md`.
 
 `DeviceAdapter` uses template methods: public methods own lifecycle, capability, configuration, unit, provenance, and output-safety checks; concrete adapters implement protected source-specific hooks. `connect()` reaches only `CONNECTED_READ_ONLY`. Output remains impossible until capabilities are confirmed and a matching `allow_output=true` configuration passes both configured and device safe ranges. See `adapters.md`.
 
@@ -67,16 +67,17 @@ an internal backend class. This protects extension points while keeping the
 Step 7 physical UART evidence separate from deterministic HOST_TEST results.
 See `phase4-public-api.md`.
 
-Software Phase 5 is planned as a separate upward-only product package,
-`analog_validation_app`. It will own immutable product requests/results/events,
-the explicit source/profile catalog, adapter factories, application services,
-a bounded single-owner worker, the `analog-validation` CLI, presentation-only
-reports, and a local Tkinter/ttk Dashboard. The CLI and Dashboard consume the
-same services; neither may parse device records, recalculate engineering
-results, or open a serial backend directly. Tk imports remain isolated in
-`analog_validation_app.dashboard`, and pyserial remains optional. The Phase 0
-root `dashboard/` placeholders are scheduled for retirement in Phase 5 Step 1
-after their superseded legacy-only regression is removed. See
-`SOFTWARE_PHASE_5_PLAN.md`.
+Software Phase 5 uses a separate upward-only product package,
+`analog_validation_app`. Step 1 implements immutable output-denying product
+requests/results, exact-match source/profile catalog entries, stable user issues,
+and the installed `analog-validation version/profiles` identity surface. It also
+retires the Phase 0 root `dashboard/` source and enforces that no CRC, protocol,
+profile, or engineering-analysis implementation is copied into the product layer.
+Later steps will add product events, factories, application services, a bounded
+single-owner worker, test-running CLI commands, presentation-only reports, and a
+local Tkinter/ttk Dashboard. CLI and Dashboard must consume the same services;
+neither may parse device records, recalculate engineering results, or open a
+serial backend directly. Tk imports remain isolated and delayed, and pyserial
+remains optional. See `product-layer.md` and `SOFTWARE_PHASE_5_PLAN.md`.
 
 Hardware, reference-controller firmware, integration profiles, and host tools are separate boundaries. Firmware remains a later-phase placeholder. Public integration with the independent MSP430 project now includes one host-tested read-only profile/adapter and one narrow Analog-owned passive UART HIL through the optional OS backend. Exact firmware, long-duration transport, physical disconnect recovery, external peripherals, the AFE electrical interface, application code, ownership, and product identity are not shared or inferred. See `PRODUCT_ARCHITECTURE.md`.

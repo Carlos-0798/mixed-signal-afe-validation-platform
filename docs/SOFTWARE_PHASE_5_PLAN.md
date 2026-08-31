@@ -1,7 +1,7 @@
 # Software Phase 5 文件级实施计划
 
 **阶段名称：** 产品工作流、CLI、Dashboard 与证据可见报告<br>
-**规划状态：** 已完成；实现进度 0/8<br>
+**规划状态：** 已完成；实现进度 1/8<br>
 **预计时间：** 5–8 个有效开发日；初学者兼职约 2–3 周<br>
 **前置：** Software Phase 1–4 的领域、分析、runner、导出、transport、profile 和 adapter 兼容基线完成<br>
 **默认硬件要求：** 无<br>
@@ -9,7 +9,7 @@
 
 ## 当前进度
 
-- [ ] Step 1：产品层契约、catalog、错误映射与 CLI 骨架；
+- [x] Step 1：产品层契约、catalog、错误映射与 CLI 骨架；
 - [ ] Step 2：owning/cancellable job worker；
 - [ ] Step 3：稳定 CLI 工作流；
 - [ ] Step 4：证据可见的人类报告与确定性图表；
@@ -18,8 +18,9 @@
 - [ ] Step 7：可复现演示、性能/可访问性/隐私验收；
 - [ ] Step 8：公共兼容性冻结、构建、外部安装和阶段收口。
 
-本规划检查点只定义边界、文件和验收标准。它没有新增 CLI、worker、
-Dashboard、报告或硬件行为，也没有打开串口。完成规划不等于 Phase 5 功能完成。
+Step 1 已新增产品契约、受控 catalog、错误解释和最小 CLI，同时清理被正式核心
+取代的 Phase 0 占位。它没有新增 worker、测试执行工作流、Dashboard、报告或硬件
+行为，也没有打开串口；因此完成 Step 1 不等于 Phase 5 产品已完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -100,12 +101,12 @@ Tkinter Dashboard        analog-validation CLI
 
 正式核心保持在 `src/analog_validation/`。Phase 5 新增
 `src/analog_validation_app/`，承担用户入口和应用编排。Phase 0 的根目录
-`dashboard/` 只是未发布占位和旧分析迁移对照；Step 1 会在已有正式分析回归确认后
-删除这些占位及其 legacy-only tests，不把旧实现复制到新产品层。
+`dashboard/` 曾是未发布占位和旧分析迁移对照；Step 1 已在正式 Phase 3 分析 golden
+继续通过后删除这些占位及 legacy-only tests，没有把旧实现复制到新产品层。
 
 ### 4.2 只有一个命令入口
 
-`pyproject.toml` 计划新增：
+`pyproject.toml` 已新增：
 
 ```toml
 [project.scripts]
@@ -263,6 +264,14 @@ catalog、expected-error 到 `UserIssue` 的映射、`__main__` 和
 
 验收：基础 wheel 无 pyserial、无显示器也能运行 `--help`、`version` 和 `profiles`；
 未知命令/配置得到稳定退出码与 what/why/next-step 文本；core public goldens 不变。
+
+**状态：已完成（2026-08-31）。** `product-job.v1`、`product-result.v1`、
+`product-catalog.v1`、`user-issue.v1` 和 `product-cli-output.v1` 已实现；两项 reviewed
+profile 与三种 source mode 均显式只读。基础 wheel 已在仓库外、无 pyserial 环境安装，
+`--help`、`version`、`profiles` 和模块入口均通过；未知命令返回退出码 2 和稳定的
+what/why/safe-next-step 文本。完整回归为 1,645 tests、7,714/7,714 statements，未访问
+串口、未创建窗口、未产生新的硬件证据。详见
+[`software-phase5-step1.md`](../reports/software-phase5-step1.md)。
 
 ### Step 2：owning/cancellable job worker
 
@@ -453,7 +462,7 @@ analog-validation dashboard
 
 ## 14. 下一检查点
 
-规划已完成，Phase 5 实现仍为 0/8。下一次继续时只实施 Step 1：建立
-`analog_validation_app` 产品契约、catalog、错误解释和 CLI 骨架，并清理已经由正式
-核心替代的 Phase 0 `dashboard/` 占位。Step 1 不实现 worker、报告、Dashboard 窗口，
-也不打开任何物理端口。
+Phase 5 Step 1 已完成，实现进度为 1/8。下一次继续时只实施 Step 2：建立有界事件
+队列和 single-owner、cooperative-cancel worker，验证启动、完成、重复启动、取消竞态、
+异常和 deterministic cleanup。Step 2 不接入真实 COM、不实现报告或 Dashboard 窗口，
+也不能把取消、失败、`INCOMPLETE` 或 `UNSUPPORTED` 提升为 PASS。

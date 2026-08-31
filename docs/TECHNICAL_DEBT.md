@@ -1,26 +1,26 @@
 # 技术债与已知缺口
 
 **更新日期：** 2026-08-31<br>
-**来源：** Software Phase 0–4 持续审计
+**来源：** Software Phase 0–5 Step 1 持续审计
 
 优先级：`P0` 阻塞安全或正确性；`P1` 阻塞下一主要里程碑；`P2` 应在 v1 前解决；`P3` 可后置。
 
 | ID | 优先级 | 技术债/缺口 | 影响 | 计划处理 |
 |---|---|---|---|---|
 | TD-001 | CLOSED | Git 身份和首个 Phase 0 基线于 2026-08-29 建立 | 已具有可恢复基线和历史差异 | 后续阶段保持小步提交 |
-| TD-002 | CLOSED | 正式核心已迁入 `src/analog_validation/`，旧 protocol/shared-model files 已删除；根 `dashboard/measurements` 仅保留历史迁移对照，不属于正式产品 | UI、领域和协议依赖方向已分离 | 正式迁移证据见 Phase 1/3 reports；历史占位清理由 TD-033 跟踪 |
+| TD-002 | CLOSED | 正式核心已迁入 `src/analog_validation/`，旧 protocol/shared-model files 与根 `dashboard/measurements` 均已删除；产品层位于独立 `src/analog_validation_app/` | UI/产品、领域和协议依赖方向已分离，正式算法只有一份 | 正式迁移见 Phase 1/3 reports；最终占位清理见 Phase 5 Step 1 report |
 | TD-003 | CLOSED | 正式 Measurement 强制来源、状态、质量、单位、UTC 时间和原始引用 | 合成、仿真、回放与 BENCH 标签不再依赖文件名 | 证据见 `reports/software-phase1-step3.md` |
 | TD-004 | CLOSED | Measurement、CRC、framing、AFE v1 profile 和 validation config 已版本化；20 条合法与 9 类非法 AFE 黄金消息已冻结 | 字段、CRC、模型意义和错误家族的意外漂移可由 pytest 发现 | 证据见 `reports/software-phase1-step8.md` |
 | TD-005 | CLOSED | `DeviceCapabilities` 已要求显式通道、安全范围、命令和 safe-shutdown 一致性 | 软件领域层不再需要根据板名猜测功能；线上协商仍属后续实现 | 证据见 `reports/software-phase1-step4.md` |
 | TD-006 | CLOSED | Phase 4 Step 1 已实现 profile-neutral 有界 LF 字节流、超长恢复和 profile-configurable modular sequence tracking | 分段、粘包、超长、16/32-bit 回绕、缺帧、重复和乱序已有 HOST_TEST；真实 serial lifecycle 由 TD-025 跟踪 | 证据见 `reports/software-phase4-step1.md` |
-| TD-007 | CLOSED | 正式 DC 与迟滞算法已迁入 `analog_validation.analysis`，具备有限值/单位/来源/质量/方向/可追溯约束；旧 dashboard 函数只剩历史迁移回归 | 正式产品分析不再依赖裸 tuple 迟滞入口 | 证据见 `reports/software-phase3-step2.md` 和 `reports/software-phase3-step5.md`；旧文件清理由 TD-033 跟踪 |
+| TD-007 | CLOSED | 正式 DC 与迟滞算法位于 `analog_validation.analysis`，具备有限值/单位/来源/质量/方向/可追溯约束；旧 dashboard 函数与 legacy-only tests 已删除 | 正式产品分析不再依赖裸 tuple 入口，也没有第二份较弱公式 | 证据见 Phase 3 Step 2/5 和 Phase 5 Step 1 reports |
 | TD-008 | CLOSED | `dc-sweep-analysis.v1` 保留所有点、输入/输出双引用、组件质量决定、逐点 `LOW/HIGH_SATURATION` 和 DC 排除原因 | 正式 DC 结果可解释具体使用或排除的每个点；旧函数不属于正式核心 | 证据见 `docs/dc-sweep-analysis.md` 和 `reports/software-phase3-step2.md` |
 | TD-009 | P2 | Step 7 已实现 `result-export.v1`、DC/迟滞 typed builders、稳定 JSON/CSV 和安全文件写入；人类报告及校准/频响的专用 TestRun/export mapping 尚未实现 | 已有稳定机器结果文件，但最终用户仍缺少叙述、图表和完整分析类型覆盖 | Phase 5；结构化导出证据见 `reports/software-phase3-step7.md` |
 | TD-010 | CLOSED | 正式 `src/analog_validation/` 包、单一版本来源、隔离构建和仓库外 wheel 导入已于 2026-08-29 验证 | 包装基础问题已解除；CLI 仍由 TD-014 跟踪 | 证据见 `reports/software-phase1-step1.md` |
 | TD-011 | CLOSED | 独立 Python `.venv`、setuptools 和隔离 wheel 安装已于 2026-08-29 验证 | 原环境依赖 Codex 运行时的问题已解除 | 证据见 `reports/environment-setup-2026-08-29.md` |
 | TD-012 | CLOSED | 冻结的 100 帧生成器已迁入正式 package，并由 CLI、集成测试和确定性 SimulatorAdapter 共同复用；stream SHA-256 保持不变；非理想和受控故障已在 Step 4 配置化 | 合成基础流水线不再存在第二份公式，增益/噪声/饱和/迟滞/故障均有确定性回归 | 证据见 `reports/software-phase2-step3.md` 和 `reports/software-phase2-step4.md` |
 | TD-013 | P2 | 本地 mypy、Ruff、coverage、golden compatibility、隔离构建和外部 wheel smoke 已成为阶段门禁，但尚无 CI | 开发者可手动完整验证，远程变更仍不会自动执行质量门 | Phase 6 建立 CI |
-| TD-014 | P2 | 无统一 CLI，`app.py` 仅打印 Phase 0 状态；Phase 5 已完成单一 `analog-validation` 入口的文件级规划 | 用户仍无法运行正式产品流程 | Phase 5 Steps 1/3；见 `docs/SOFTWARE_PHASE_5_PLAN.md` |
+| TD-014 | P2 | 单一 `analog-validation` 已安装并提供稳定 `version`/`profiles` 人类与 JSON 输出，但尚未接入 simulate/replay/observe/report/demo 工作流 | 用户可识别产品和 reviewed profiles，仍不能从 CLI 运行正式验证流程 | Phase 5 Step 3；Step 1 证据见 `reports/software-phase5-step1.md` |
 | TD-015 | CLOSED | CRC vectors、AFE wire records、预期 model JSON 和非法输入错误家族均已冻结 | 文件兼容性已有 host regression 保护 | 未来 schema 变化必须添加迁移样本 |
 | TD-016 | CLOSED | 正式包已建立 Validation、Protocol、Framing、CRC、版本、Capability、Configuration 和 Adapter 错误层级；旧协议入口已删除 | UI/CLI 已有稳定捕获边界 | 证据见 `reports/software-phase1-step2.md`、Step 8 closure 和 `reports/software-phase2-step1.md` |
 | TD-017 | P3 | 采购和控制器选择文档仍包含软件转向前候选 | 可能误读为立即采购指令 | 保留历史；采购前由新规划重新冻结 |
@@ -39,6 +39,6 @@
 | TD-030 | CLOSED | Step 6 已建立显式 AFE capability projector：`adcN/dacN/pwmN/dinN` 映射为 `afe.chN.input/dac/pwm/threshold`，保留 native snapshot，并验证 identity、channel counts、numeric ranges 与 command subset | workflow channel 已与 telemetry 对齐；projector 不能增加命令或把 receive-only adapter 提升为输出设备 | 证据见 `src/analog_validation/serial_adapters/afe_v1.py`、共用/投影防御测试和 `reports/software-phase4-step6.md` |
 | TD-031 | P2 | Measurement v1 尚无 watt/milliwatt 单位；MSP430 `power_mw` 已保留在 typed telemetry 和 INA219 availability 语义中，但未伪装为 `UNITLESS` Measurement | 通用 workflow 暂时不能按正式 Measurement channel 直接读取功率；错误添加单位会漂移 Phase 2/3 冻结契约 | 在后续 schema/version 评审中增加 power unit 与迁移样本；在此之前由 typed raw message 审计，不静默换单位 |
 | TD-032 | CLOSED | `phase4_public_api.json` 已冻结 121 exports、3 schemas、12 enum/flag sets、21 signatures、17 error relationships 和 5 hashes；`phase4_composite_v1.json` 已冻结 AFE/MSP external-backend exact results | Phase 4 transport/profile/adapter 兼容性变化不再能静默发生；第三方 backend 无需继承内部类，但必须满足结构协议 | 证据见 `docs/phase4-public-api.md`、13 项 golden tests 和 `reports/software-phase4-step8.md` |
-| TD-033 | P1 | 根 `dashboard/` 与两个 legacy-only tests 仍保留 Phase 0 占位/迁移对照，新的正式产品层尚不存在 | 文件名会让用户误以为 Dashboard 已完成，并保留第二套较弱分析入口 | Phase 5 Step 1 建立 `analog_validation_app` 后删除占位与 legacy-only tests；正式 Phase 3 goldens 必须继续通过 |
+| TD-033 | CLOSED | Phase 5 Step 1 已建立 `analog_validation_app`，删除根 `dashboard/` Python 占位与两个 legacy-only analysis tests；架构门禁检查没有复制 protocol/analysis | 用户不会再把占位误认为完成的 Dashboard，产品层与正式 core 边界明确 | 1,645 项完整回归与 Phase 1–4 goldens 继续通过；见 `reports/software-phase5-step1.md` |
 
 关闭技术债时必须记录对应代码、测试、文档和验证报告，不能只从表格删除。

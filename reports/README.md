@@ -4,6 +4,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Software checkpoint reports (each report states its own evidence level):
 
+- `software-phase5-step1.md` — product request/result contracts, reviewed catalog, stable user issues, installable CLI skeleton, legacy placeholder retirement, full regression, clean base-wheel install, and hardware-evidence limits.
 - `software-phase5-planning.md` — Software Phase 5 file-level product-layer plan, eight implementation checkpoints, CLI/worker/Tkinter/report decisions, baseline regression, and hardware evidence limits.
 - `software-phase4-step8.md` — Software Phase 4 closure: public API/composite golden freeze, full regression, isolated build, base/serial external installs, phase exit criteria, and strict separation of Step 7 UART evidence from AFE/peripheral claims.
 - `software-phase4-step7.md` — optional pyserial backend, base/serial external installs, repository-owned receive-only COM4 HIL, CRC/sequence/uptime/fault evidence, legacy-HB classification, zero-write proof, and exact-firmware/AFE limitations. This report includes narrow `BENCH_CONTROLLER` evidence and is not a physical AFE report.

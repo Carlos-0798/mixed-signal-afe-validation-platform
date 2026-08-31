@@ -111,13 +111,18 @@ Do not power the analog assembly until the open toolchain, inventory, permission
 
 ## Software Phase 5 product-layer checks
 
-- Keep `analog_validation_app` above the frozen core and optional OS backend;
-  reject imports from the core back into the product layer.
-- Run CLI help/version/profile commands from an installed base wheel without
-  pyserial and without importing Tk or opening a display.
+- **Step 1 complete:** keep `analog_validation_app` above the frozen core and
+  optional OS backend; reject imports from the core back into the product layer
+  and copied protocol/analysis implementations in the product package.
+- **Step 1 complete:** run CLI help/version/profile commands from an installed
+  base wheel without pyserial and without importing Tk or opening a display;
+  verify unknown-command exit/output behavior and the module entry point.
+- **Step 1 complete:** freeze bounded job/result/catalog/issue/CLI-output schema
+  identities, require limitations, and reject output-capable product requests.
 - Freeze versioned product request/result/event contracts, bounded field sizes,
   worker states, public errors, CLI commands, stdout/stderr rules, and exit
-  codes before calling the CLI stable.
+  codes before calling the complete CLI stable. Event/worker and workflow
+  commands remain future checks.
 - Verify one worker owns one job and all success, cancellation, service-failure,
   cleanup-failure, window-close, and Ctrl+C paths release resources and never
   promote incomplete evidence to PASS.
