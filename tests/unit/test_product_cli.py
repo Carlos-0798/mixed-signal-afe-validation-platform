@@ -7,6 +7,7 @@ import runpy
 import sys
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any, cast
 
 import pytest
 
@@ -21,6 +22,7 @@ from analog_validation.protocol.msp430_health_v1 import (
 )
 from analog_validation.transport import SerialPortInfo
 from analog_validation_app import (
+    ProductDashboardUnavailableError,
     ProductDependencyError,
     ProductJobExecution,
     ProductJobRequest,
@@ -43,6 +45,7 @@ from analog_validation_app.cli import (
     build_parser,
     main,
 )
+from analog_validation_app.dashboard.app import DashboardSessionResult
 from tests.support import MemorySerialBackend
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -542,16 +545,87 @@ def test_observe_msp430_memory_stream_is_bounded_receive_only() -> None:
     assert not hasattr(backend, "write_calls")
 
 
-@pytest.mark.parametrize("command", ["demo", "dashboard"])
-def test_reserved_commands_are_stable_but_honestly_unavailable(command: str) -> None:
+def test_demo_command_is_stable_but_honestly_unavailable() -> None:
     errors = io.StringIO()
     assert (
-        main([command, "--json"], stderr=errors, dependencies=dependencies())
+        main(["demo", "--json"], stderr=errors, dependencies=dependencies())
         == CLI_UNSUPPORTED_EXIT_CODE
     )
     document = json.loads(errors.getvalue())
     assert document["issue"]["code"] == "CAPABILITY_UNAVAILABLE"
     assert "later reviewed" in document["issue"]["what_happened"]
+
+
+def test_dashboard_command_has_human_and_machine_safe_close_views() -> None:
+    session = DashboardSessionResult(
+        ProductSourceMode.SIMULATOR,
+        "afe/1",
+        ProductWorkerState.IDLE,
+        True,
+    )
+    selected = dependencies()
+    injected = CliDependencies(
+        selected.serial_backend_factory,
+        selected.job_id_factory,
+        selected.event_id_factory,
+        dashboard_launcher=lambda: session,
+    )
+    human = io.StringIO()
+    machine = io.StringIO()
+
+    assert main(["dashboard"], stdout=human, dependencies=injected) == 0
+    assert "Dashboard closed safely" in human.getvalue()
+    assert "NO_NEW_HARDWARE_VALIDATION" in human.getvalue()
+    assert main(["dashboard", "--json"], stdout=machine, dependencies=injected) == 0
+    document = json.loads(machine.getvalue())
+    assert document["dashboard_schema_version"] == "dashboard-session.v1"
+    assert document["source_mode"] == "SIMULATOR"
+    assert document["profile_identity"] == "afe/1"
+    assert document["closed_safely"] is True
+    assert document["hardware_claim"] == "NO_NEW_HARDWARE_VALIDATION"
+
+
+def test_dashboard_unavailable_and_invalid_launcher_results_are_structured() -> None:
+    def unavailable() -> object:
+        raise ProductDashboardUnavailableError("no local Tk display")
+
+    selected = dependencies()
+    unavailable_dependencies = CliDependencies(
+        selected.serial_backend_factory,
+        selected.job_id_factory,
+        selected.event_id_factory,
+        dashboard_launcher=unavailable,  # type: ignore[arg-type]
+    )
+    errors = io.StringIO()
+    assert (
+        main(
+            ["dashboard", "--json"],
+            stderr=errors,
+            dependencies=unavailable_dependencies,
+        )
+        == CLI_UNSUPPORTED_EXIT_CODE
+    )
+    assert json.loads(errors.getvalue())["issue"]["code"] == "OPTIONAL_DEPENDENCY"
+
+    invalid_dependencies = CliDependencies(
+        selected.serial_backend_factory,
+        selected.job_id_factory,
+        selected.event_id_factory,
+        dashboard_launcher=cast(Any, lambda: object()),
+    )
+    invalid = io.StringIO()
+    assert (
+        main(
+            ["dashboard", "--json"],
+            stderr=invalid,
+            dependencies=invalid_dependencies,
+        )
+        == CLI_USAGE_EXIT_CODE
+    )
+    assert json.loads(invalid.getvalue())["issue"]["code"] == "INVALID_REQUEST"
+
+    with pytest.raises(cli_module.ProductRequestError, match="DashboardSessionResult"):
+        cli_module._dashboard_document(object())  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(
@@ -631,6 +705,11 @@ def test_cli_dependencies_reject_noncallable_factories(field: str) -> None:
     values[field] = object()
     with pytest.raises(cli_module.CliUsageError, match=field):
         CliDependencies(**values)  # type: ignore[arg-type]
+
+
+def test_cli_dependencies_reject_noncallable_dashboard_launcher() -> None:
+    with pytest.raises(cli_module.CliUsageError, match="dashboard_launcher"):
+        CliDependencies(dashboard_launcher=object())  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize(

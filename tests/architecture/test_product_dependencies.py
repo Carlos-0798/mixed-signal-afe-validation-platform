@@ -39,10 +39,11 @@ def test_lower_layers_do_not_import_the_product_shell() -> None:
     )
 
 
-def test_step1_product_shell_has_no_gui_driver_or_legacy_runtime_imports() -> None:
-    imports = _absolute_imports(APP_ROOT)
+def test_base_product_shell_has_no_gui_driver_or_legacy_runtime_imports() -> None:
+    imports: set[str] = set()
+    for path in APP_ROOT.glob("*.py"):
+        imports.update(_absolute_imports(path))
     forbidden = (
-        "dashboard",
         "tools",
         "tkinter",
         "serial",
@@ -50,6 +51,55 @@ def test_step1_product_shell_has_no_gui_driver_or_legacy_runtime_imports() -> No
     )
 
     assert all(not _imports_prefix(imports, prefix) for prefix in forbidden)
+
+
+def test_headless_dashboard_contracts_have_no_tk_network_or_device_runtime() -> None:
+    dashboard_root = APP_ROOT / "dashboard"
+    imports = set()
+    for name in ("__init__.py", "state.py", "presenter.py", "controller.py"):
+        imports.update(_absolute_imports(dashboard_root / name))
+    forbidden = (
+        "analog_validation.adapters",
+        "analog_validation.analysis",
+        "analog_validation.protocol",
+        "analog_validation.runners",
+        "analog_validation.serial_adapters",
+        "analog_validation.transport",
+        "analog_validation.workflows",
+        "analog_validation_pyserial",
+        "http",
+        "requests",
+        "serial",
+        "socket",
+        "tkinter",
+        "urllib",
+    )
+
+    assert all(not _imports_prefix(imports, prefix) for prefix in forbidden)
+
+
+def test_tkinter_exists_only_inside_the_explicit_dashboard_app_boundary() -> None:
+    tkinter_importers = {
+        path.relative_to(APP_ROOT).as_posix()
+        for path in APP_ROOT.rglob("*.py")
+        if _imports_prefix(_absolute_imports(path), "tkinter")
+    }
+
+    assert tkinter_importers == {"dashboard/app.py"}
+
+
+def test_dashboard_widgets_do_not_own_worker_analysis_or_resource_code() -> None:
+    source = (APP_ROOT / "dashboard" / "widgets.py").read_text(encoding="utf-8")
+    forbidden = (
+        "ProductJobWorker",
+        "make_serial_adapter",
+        "open(",
+        "socket",
+        "subprocess",
+        "urllib",
+    )
+
+    assert all(value not in source for value in forbidden)
 
 
 def test_product_shell_does_not_own_protocol_or_analysis_implementations() -> None:

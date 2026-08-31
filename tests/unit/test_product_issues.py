@@ -26,6 +26,7 @@ from analog_validation_app import (
     CliUsageError,
     ProductAppError,
     ProductCatalogError,
+    ProductDashboardUnavailableError,
     ProductDependencyError,
     ProductFeatureUnavailableError,
     ProductReportExistsError,
@@ -130,6 +131,11 @@ def test_user_issue_rejects_invalid_presentation_contracts(
         ),
         (
             ProductDependencyError("serial extra missing"),
+            UserIssueCode.OPTIONAL_DEPENDENCY,
+            UserIssueSeverity.ERROR,
+        ),
+        (
+            ProductDashboardUnavailableError("Tk display missing"),
             UserIssueCode.OPTIONAL_DEPENDENCY,
             UserIssueSeverity.ERROR,
         ),

@@ -29,6 +29,10 @@ class ProductDependencyError(ProductAppError):
     """An explicitly requested optional runtime dependency is unavailable."""
 
 
+class ProductDashboardUnavailableError(ProductDependencyError):
+    """The explicitly requested local Tk Dashboard cannot be created."""
+
+
 class ProductServiceError(ProductAppError):
     """A product application service cannot safely complete its operation."""
 
@@ -82,6 +86,7 @@ __all__ = [
     "ProductAppError",
     "ProductCatalogError",
     "ProductCliError",
+    "ProductDashboardUnavailableError",
     "ProductDependencyError",
     "ProductFeatureUnavailableError",
     "ProductJobCancelled",

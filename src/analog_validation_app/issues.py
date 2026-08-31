@@ -26,6 +26,7 @@ from .errors import (
     CliUsageError,
     ProductAppError,
     ProductCatalogError,
+    ProductDashboardUnavailableError,
     ProductDependencyError,
     ProductFeatureUnavailableError,
     ProductReportExistsError,
@@ -138,6 +139,15 @@ def issue_from_exception(error: BaseException) -> UserIssue:
             detail,
             "The command is reserved, but its reviewed implementation gate is not complete.",
             "Use a currently listed workflow or review the project roadmap.",
+            technical_type,
+        )
+    if isinstance(error, ProductDashboardUnavailableError):
+        return UserIssue(
+            UserIssueCode.OPTIONAL_DEPENDENCY,
+            UserIssueSeverity.ERROR,
+            detail,
+            "The local Python runtime has no usable Tk display support.",
+            "Use the CLI or install Python with Tcl/Tk support, then retry locally.",
             technical_type,
         )
     if isinstance(error, ProductDependencyError):

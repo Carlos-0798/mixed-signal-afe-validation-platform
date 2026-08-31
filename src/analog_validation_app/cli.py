@@ -11,7 +11,7 @@ import traceback
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import NoReturn, TextIO
+from typing import TYPE_CHECKING, NoReturn, TextIO
 from uuid import uuid4
 
 from analog_validation import (
@@ -50,6 +50,7 @@ from .errors import (
     CliUsageError,
     ProductAppError,
     ProductFeatureUnavailableError,
+    ProductRequestError,
     ProductServiceError,
 )
 from .factories import (
@@ -85,6 +86,9 @@ from .services import (
     make_read_service_factory,
 )
 
+if TYPE_CHECKING:
+    from .dashboard.app import DashboardSessionResult
+
 CLI_OUTPUT_SCHEMA_VERSION = "product-cli-output.v1"
 CLI_USAGE_EXIT_CODE = 2
 CLI_ENGINEERING_FAIL_EXIT_CODE = 1
@@ -110,6 +114,7 @@ SERIAL_LIMITATIONS = (
 )
 
 IdentifierFactory = Callable[[], str]
+DashboardLauncher = Callable[[], "DashboardSessionResult"]
 
 
 def _new_job_id() -> str:
@@ -127,6 +132,7 @@ class CliDependencies:
     serial_backend_factory: SerialBackendFactory = default_serial_backend_factory
     job_id_factory: IdentifierFactory = _new_job_id
     event_id_factory: IdentifierFactory = _new_event_id
+    dashboard_launcher: DashboardLauncher | None = None
 
     def __post_init__(self) -> None:
         for name in (
@@ -136,6 +142,10 @@ class CliDependencies:
         ):
             if not callable(getattr(self, name)):
                 raise CliUsageError(f"{name} must be callable")
+        if self.dashboard_launcher is not None and not callable(
+            self.dashboard_launcher
+        ):
+            raise CliUsageError("dashboard_launcher must be callable or None")
 
 
 @dataclass(frozen=True, slots=True)
@@ -515,6 +525,37 @@ def _profile_document() -> dict[str, object]:
         "software_version": __version__,
         "profiles": profiles,
         "hardware_claim": "NONE",
+    }
+
+
+def _launch_dashboard(dependencies: CliDependencies) -> DashboardSessionResult:
+    from .dashboard.app import DashboardSessionResult, launch_dashboard
+
+    launcher = dependencies.dashboard_launcher or launch_dashboard
+    session = launcher()
+    if not isinstance(session, DashboardSessionResult):
+        raise ProductRequestError(
+            "dashboard launcher must return a DashboardSessionResult"
+        )
+    return session
+
+
+def _dashboard_document(session: DashboardSessionResult) -> dict[str, object]:
+    from .dashboard.app import DashboardSessionResult
+
+    if not isinstance(session, DashboardSessionResult):
+        raise ProductRequestError("session must be a DashboardSessionResult")
+    return {
+        "schema_version": CLI_OUTPUT_SCHEMA_VERSION,
+        "command": "dashboard",
+        "product": PRODUCT_DISPLAY_NAME,
+        "software_version": __version__,
+        "dashboard_schema_version": session.schema_version,
+        "source_mode": session.source_mode.value,
+        "profile_identity": session.profile_identity,
+        "worker_state": session.worker_state.value,
+        "closed_safely": session.closed_safely,
+        "hardware_claim": session.hardware_claim,
     }
 
 
@@ -1179,7 +1220,18 @@ def main(
             else:
                 _write_report_publication(report_view, publication, output)
             return _report_exit_code(report_view.outcome)
-        if arguments.command in {"demo", "dashboard"}:
+        if arguments.command == "dashboard":
+            session = _launch_dashboard(injected)
+            if arguments.as_json:
+                _write_json(_dashboard_document(session), output)
+            else:
+                output.write("Dashboard closed safely.\n")
+                output.write(f"Source: {session.source_mode.value}\n")
+                output.write(f"Profile: {session.profile_identity}\n")
+                output.write(f"Worker state: {session.worker_state.value}\n")
+                output.write(f"Hardware claim: {session.hardware_claim}\n")
+            return 0
+        if arguments.command == "demo":
             raise ProductFeatureUnavailableError(
                 f"{arguments.command} is reserved for a later reviewed Phase 5 step"
             )
@@ -1232,6 +1284,7 @@ __all__ = [
     "CLI_USAGE_EXIT_CODE",
     "PRODUCT_DISPLAY_NAME",
     "CliDependencies",
+    "DashboardLauncher",
     "build_parser",
     "main",
 ]
