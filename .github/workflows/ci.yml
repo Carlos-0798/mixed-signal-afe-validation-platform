@@ -1,0 +1,138 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "phase*/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  PYTHONUTF8: "1"
+
+jobs:
+  compatibility:
+    name: Host tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+        python-version:
+          - "3.10"
+          - "3.12"
+          - "3.14"
+    steps:
+      - name: Check out source
+        # actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Python
+        # actions/setup-python v7.0.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install host-test environment
+        run: python -m pip install ".[test,serial]"
+      - name: Check installed dependencies
+        run: python -m pip check
+      - name: Run complete host suite
+        run: python -m pytest -q
+
+  quality:
+    name: Coverage, lint, and types
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        # actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Python
+        # actions/setup-python v7.0.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install quality environment
+        run: python -m pip install ".[dev,serial]"
+      - name: Check installed dependencies
+        run: python -m pip check
+      - name: Enforce package statement coverage
+        run: >-
+          python -m pytest -q
+          --cov=analog_validation
+          --cov=analog_validation_app
+          --cov=analog_validation_pyserial
+          --cov-report=term-missing
+          --cov-fail-under=100
+      - name: Run Ruff
+        run: python -m ruff check src tools tests
+      - name: Run mypy
+        run: python -m mypy src tools tests
+
+  package:
+    name: Build and clean-install package
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        # actions/checkout v7.0.1
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set up Python
+        # actions/setup-python v7.0.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install build frontend
+        run: python -m pip install "build>=1.3,<2"
+      - name: Build isolated sdist and wheel
+        run: python -m build --outdir dist
+      - name: Verify base and serial clean installs
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $PSNativeCommandUseErrorActionPreference = $true
+          $wheel = (Get-ChildItem -LiteralPath dist -Filter "*.whl" | Select-Object -First 1).FullName
+          if (-not $wheel) { throw "wheel was not built" }
+
+          $baseRoot = Join-Path $env:RUNNER_TEMP "afe-beta-base"
+          python -m venv $baseRoot
+          $basePython = Join-Path $baseRoot "Scripts/python.exe"
+          $baseCli = Join-Path $baseRoot "Scripts/analog-validation.exe"
+          & $basePython -m pip install --no-deps $wheel
+          & $basePython -m pip check
+          & $basePython -c "import sys; import analog_validation_app; assert 'serial' not in sys.modules; assert 'tkinter' not in sys.modules"
+          & $baseCli version --json
+          & $baseCli demo --output (Join-Path $env:RUNNER_TEMP "afe-demo") --json
+
+          $serialRoot = Join-Path $env:RUNNER_TEMP "afe-beta-serial"
+          python -m venv $serialRoot
+          $serialPython = Join-Path $serialRoot "Scripts/python.exe"
+          $wheelExtra = "$wheel`[serial`]"
+          & $serialPython -m pip install $wheelExtra
+          & $serialPython -m pip check
+          & $serialPython -c "from types import SimpleNamespace; from analog_validation_pyserial import PySerialBackend; backend=PySerialBackend(driver=object(), port_enumerator=lambda: (SimpleNamespace(device='SYNTHETIC_PORT', description='CI substitute'),)); assert backend.discover_ports()[0].port_id == 'SYNTHETIC_PORT'; assert not hasattr(backend, 'write'); assert not backend.is_open"
+      - name: Upload bounded verification artifacts
+        # actions/upload-artifact v7.0.1
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: python-distributions
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 7
