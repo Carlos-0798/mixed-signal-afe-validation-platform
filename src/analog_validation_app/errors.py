@@ -21,6 +21,18 @@ class CliUsageError(ProductCliError):
     """Command syntax or options are invalid."""
 
 
+class ProductFeatureUnavailableError(ProductCliError):
+    """A recognized product feature belongs to a later reviewed checkpoint."""
+
+
+class ProductDependencyError(ProductAppError):
+    """An explicitly requested optional runtime dependency is unavailable."""
+
+
+class ProductServiceError(ProductAppError):
+    """A product application service cannot safely complete its operation."""
+
+
 class ProductWorkerError(ProductAppError):
     """Base class for expected product-worker failures."""
 
@@ -50,8 +62,11 @@ __all__ = [
     "ProductAppError",
     "ProductCatalogError",
     "ProductCliError",
+    "ProductDependencyError",
+    "ProductFeatureUnavailableError",
     "ProductJobCancelled",
     "ProductRequestError",
+    "ProductServiceError",
     "ProductWorkerBusyError",
     "ProductWorkerClosedError",
     "ProductWorkerContractError",

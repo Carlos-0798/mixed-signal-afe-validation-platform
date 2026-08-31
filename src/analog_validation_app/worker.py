@@ -35,6 +35,7 @@ MAX_PRODUCT_EVENT_QUEUE_SIZE = 4096
 DEFAULT_PRODUCT_JOIN_TIMEOUT_S = 5.0
 MAX_PRODUCT_JOIN_TIMEOUT_S = 60.0
 MAX_PRODUCT_CANCELLATION_WAIT_S = 60.0
+_PRODUCT_JOIN_POLL_S = 0.05
 
 ProductProgressReporter = Callable[[str, int | None, int | None], None]
 
@@ -154,6 +155,7 @@ class ProductJobWorker:
         self._cleanup_error: BaseException | None = None
         self._cancellation: ProductCancellationToken | None = None
         self._thread: Thread | None = None
+        self._completion: Event | None = None
         self._closed = False
 
     @property
@@ -241,13 +243,15 @@ class ProductJobWorker:
             self._last_error = None
             self._cleanup_error = None
             cancellation = ProductCancellationToken()
+            completion = Event()
             self._cancellation = cancellation
+            self._completion = completion
             self._state = ProductWorkerState.STARTING
             self._publish_locked("Job accepted by the worker.")
             try:
                 thread = Thread(
-                    target=self._run_job,
-                    args=(request, cancellation),
+                    target=self._run_job_with_completion,
+                    args=(request, cancellation, completion),
                     name=f"analog-validation-{request.job_id}",
                     daemon=False,
                 )
@@ -303,21 +307,23 @@ class ProductJobWorker:
         while True:
             with self._lock:
                 thread = self._thread
+                completion = self._completion
             if thread is None:
                 return True
             if thread is current_thread():
                 raise ProductWorkerContractError(
                     "a product worker thread cannot join itself"
                 )
+            if completion is None:
+                raise ProductWorkerContractError(
+                    "active worker is missing its completion event"
+                )
             remaining = deadline - monotonic()
             if remaining <= 0:
                 return False
-            thread.join(remaining)
-            if thread.is_alive():
-                return False
-            with self._lock:
-                if self._thread is thread:
-                    return True
+            if completion.wait(min(remaining, _PRODUCT_JOIN_POLL_S)):
+                thread.join(max(0.0, deadline - monotonic()))
+                return True
 
     def cancel_and_join(self, timeout_s: float | None = None) -> None:
         """Request cooperative cancellation and require bounded termination."""
@@ -413,6 +419,19 @@ class ProductJobWorker:
                 error,
                 cleanup_error,
             )
+
+    def _run_job_with_completion(
+        self,
+        request: ProductJobRequest,
+        cancellation: ProductCancellationToken,
+        completion: Event,
+    ) -> None:
+        """Set completion only after service cleanup and terminal publication."""
+
+        try:
+            self._run_job(request, cancellation)
+        finally:
+            completion.set()
 
     def _report_progress(
         self,

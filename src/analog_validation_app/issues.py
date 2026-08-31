@@ -21,6 +21,8 @@ from .errors import (
     CliUsageError,
     ProductAppError,
     ProductCatalogError,
+    ProductDependencyError,
+    ProductFeatureUnavailableError,
     ProductRequestError,
 )
 
@@ -38,6 +40,7 @@ class UserIssueCode(str, Enum):
     DEVICE_CONNECTION = "DEVICE_CONNECTION"
     INPUT_DATA = "INPUT_DATA"
     OUTPUT_EXISTS = "OUTPUT_EXISTS"
+    OPTIONAL_DEPENDENCY = "OPTIONAL_DEPENDENCY"
     OPERATION_FAILED = "OPERATION_FAILED"
     INTERNAL_ERROR = "INTERNAL_ERROR"
 
@@ -116,6 +119,24 @@ def issue_from_exception(error: BaseException) -> UserIssue:
             detail,
             "The requested source/profile identity is not in the reviewed catalog.",
             "List the available profiles and select an exact name/version pair.",
+            technical_type,
+        )
+    if isinstance(error, ProductFeatureUnavailableError):
+        return UserIssue(
+            UserIssueCode.CAPABILITY_UNAVAILABLE,
+            UserIssueSeverity.WARNING,
+            detail,
+            "The command is reserved, but its reviewed implementation gate is not complete.",
+            "Use a currently listed workflow or review the project roadmap.",
+            technical_type,
+        )
+    if isinstance(error, ProductDependencyError):
+        return UserIssue(
+            UserIssueCode.OPTIONAL_DEPENDENCY,
+            UserIssueSeverity.ERROR,
+            detail,
+            "The selected operation needs an optional local package that is not installed.",
+            "Install the '[serial]' extra, then retry the explicit read-only command.",
             technical_type,
         )
     if isinstance(error, (CliUsageError, ProductRequestError, ValidationError)):

@@ -883,6 +883,22 @@ def test_defensive_missing_token_is_a_contract_failure() -> None:
     join_worker(worker)
 
 
+def test_defensive_missing_completion_event_is_a_contract_failure() -> None:
+    request = make_request()
+    service = BlockingService(make_result(request), cooperate=True)
+    worker = ProductJobWorker(lambda _request: service)
+
+    worker.start(request)
+    wait_started(service)
+    owned_completion = cast(Event, cast(Any, worker)._completion)
+    cast(Any, worker)._completion = None
+    with pytest.raises(ProductWorkerContractError, match="completion event"):
+        worker.join()
+    cast(Any, worker)._completion = owned_completion
+    worker.request_cancel()
+    join_worker(worker)
+
+
 def test_defensive_event_and_stale_completion_guards_are_fail_closed() -> None:
     worker = ProductJobWorker(lambda request: RecordingService(make_result(request)))
     with pytest.raises(ProductWorkerContractError, match="owned request"):

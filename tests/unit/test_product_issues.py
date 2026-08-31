@@ -21,7 +21,10 @@ from analog_validation_app import (
     CliUsageError,
     ProductAppError,
     ProductCatalogError,
+    ProductDependencyError,
+    ProductFeatureUnavailableError,
     ProductRequestError,
+    ProductServiceError,
     UserIssue,
     UserIssueCode,
     UserIssueSeverity,
@@ -112,6 +115,16 @@ def test_user_issue_rejects_invalid_presentation_contracts(
             UserIssueSeverity.WARNING,
         ),
         (
+            ProductFeatureUnavailableError("reserved command"),
+            UserIssueCode.CAPABILITY_UNAVAILABLE,
+            UserIssueSeverity.WARNING,
+        ),
+        (
+            ProductDependencyError("serial extra missing"),
+            UserIssueCode.OPTIONAL_DEPENDENCY,
+            UserIssueSeverity.ERROR,
+        ),
+        (
             ResultExportExistsError("destination exists"),
             UserIssueCode.OUTPUT_EXISTS,
             UserIssueSeverity.WARNING,
@@ -138,6 +151,11 @@ def test_user_issue_rejects_invalid_presentation_contracts(
         ),
         (
             ProductAppError("guarded product failure"),
+            UserIssueCode.OPERATION_FAILED,
+            UserIssueSeverity.ERROR,
+        ),
+        (
+            ProductServiceError("service invariant failed"),
             UserIssueCode.OPERATION_FAILED,
             UserIssueSeverity.ERROR,
         ),
@@ -172,9 +190,7 @@ def test_exception_mapping_uses_types_not_message_parsing(
 def test_expected_error_text_is_sanitized_bounded_and_never_empty() -> None:
     sanitized = issue_from_exception(CliUsageError("line\nbreak"))
     unnamed = issue_from_exception(CliUsageError())
-    long = issue_from_exception(
-        CliUsageError("x" * (MAX_USER_ISSUE_TEXT_CHARS + 100))
-    )
+    long = issue_from_exception(CliUsageError("x" * (MAX_USER_ISSUE_TEXT_CHARS + 100)))
 
     assert sanitized.what_happened == "line break"
     assert unnamed.what_happened == "CliUsageError"
