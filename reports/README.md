@@ -5,6 +5,7 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 Software checkpoint reports (each report states its own evidence level):
 
 - `software-phase5-step5.md` — immutable headless Dashboard state/presenter/controller, rendering-only Tk widgets, bounded cancel/close, actual Windows launch/close smoke, isolated-wheel verification, and no-new-hardware-validation boundary.
+- `software-phase5-step6.md` — shared CLI/Dashboard workflow compiler, fixed six-step beginner wizard, reviewed worker Run/Cancel/result/export wiring, Replay preflight, memory-serial zero-write proof, installed-package smoke, and explicit no-new-hardware-validation boundary.
 - `software-phase5-step4.md` — presentation-only human-report contract, deterministic text/Markdown/HTML/SVG, atomic five-file publication, exact report goldens, installed-wheel report smoke, and no-new-hardware-validation boundary.
 - `software-phase5-step3.md` — explicit factories/services, installed Simulator/Replay/receive-only CLI workflows, stable output/exit semantics, cancellation, artifact publication, external installation, and no-COM/no-display boundary.
 - `software-phase5-step2.md` — bounded single-owner worker, immutable events, cooperative cancellation, failure/cleanup precedence, race tests, build/external worker smoke, and no-COM/no-hardware boundary.

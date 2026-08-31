@@ -1,101 +1,144 @@
 # Local Dashboard
 
-**Implemented:** Software Phase 5 Step 5, 2026-08-31
-**State schema:** `dashboard-state.v1`
-**Session schema:** `dashboard-session.v1`
-**Default source:** Simulator
+**Implemented:** Software Phase 5 Steps 5–6, 2026-08-31<br>
+**State schemas:** `dashboard-state.v1`, `dashboard-wizard.v1`, and `dashboard-session.v1`<br>
+**Default source:** Simulator<br>
 **Hardware claim:** `NO_NEW_HARDWARE_VALIDATION`
 
 ## What is available now
 
-The local Dashboard is a real, launchable Tkinter/ttk desktop shell for Analog
-Validation Studio. It is intentionally headless-first: the state, actions,
-presenter, worker polling, cancellation, and close behavior can all be tested
-without creating a window. Tk is imported only after the user explicitly runs:
+`analog-validation dashboard` launches a local Tkinter/ttk application with a
+fixed six-step validation workflow:
+
+1. **Source** — select Simulator, CSV Replay, or Serial (read-only).
+2. **Test** — select bounded read, DC analysis, or hysteresis analysis.
+3. **Configure** — enter channels, units, counts, limits, and source-specific
+   settings.
+4. **Review** — compile and validate the exact request before a worker starts.
+5. **Run** — give the reviewed request to the existing single-owner worker and
+   show bounded progress; Cancel uses cooperative cleanup.
+6. **Result** — show outcome, evidence, limitations, points, and create-new
+   JSON/CSV export when an analysis result exists.
+
+Every step displays three beginner prompts: what is happening, why it matters,
+and what the user must confirm. Simulator is selected by default, so opening the
+window does not enumerate a port, open hardware, read a file, create an output,
+or start a network listener.
 
 ```powershell
 analog-validation dashboard
 ```
 
-The Step 5 window is a safe product shell, not yet the Step 6 test wizard. It
-shows the reviewed default Simulator/AFE selection and keeps Run disabled. It
-does not open a serial port, read a CSV file, create an adapter, publish a file,
-start a network listener, or calculate an engineering result.
+## Why review happens before Run
 
-## Why the layers are separate
+The form is not an executable test by itself. `DashboardWizardDraft` first
+converts user-entered strings into a bounded `ProductWorkflowConfiguration`.
+The shared `prepare_product_job()` compiler then creates exactly one immutable
+request, one reviewed service factory, and visible review lines. Only that exact
+request can be handed to the worker.
 
 ```text
-immutable DashboardState
-          ^
-          |
-DashboardPresenter  <- copies catalog / worker event / result / report view
-          ^
-          |
-DashboardController <- polls worker, requests cancel, performs bounded close
-          ^
-          |
-Tk/ttk widgets       <- render text/table and emit callbacks only
-          ^
-          |
-Dashboard app        <- lazy Tk import, main-thread polling, window lifecycle
+form draft
+   -> strict typed conversion
+   -> shared CLI/Dashboard workflow compiler
+   -> reviewed request + visible safety/criteria summary
+   -> single-owner worker
+   -> existing core workflow / analysis / criteria / export
+   -> finalized Dashboard result
 ```
 
-This prevents a button or plotting widget from becoming a second implementation
-of profile parsing, linear fitting, hysteresis thresholds, PASS/FAIL, or device
-control. The engineering core remains the only owner of those decisions.
+This is the key engineering principle: the interface collects intent but does
+not own CRC, profile parsing, line fitting, saturation exclusion, threshold
+calculation, or PASS/FAIL. Those decisions remain in the tested core, so CLI and
+Dashboard cannot silently calculate different answers.
 
-## Six visible regions
+## Source-specific safety behavior
 
-1. **Source / Profile** — exact source and profile identity, connection text,
-   and declared evidence class.
-2. **Configuration / Safe review** — selected job and the current read-only
-   boundary. Step 5 explicitly says that execution is not wired yet.
-3. **Progress** — worker state, text message, count/total, retained event count,
-   dropped-event count, and a safe Cancel button.
-4. **Plot / finalized point table** — copied report points and dispositions. It
-   does not fit, filter, or recalculate data.
-5. **Result / Evidence** — product status, engineering outcome, evidence source,
-   limitations, not-verified statements, and structured what/why/next-step
-   issues.
-6. **Artifacts** — filename, media type, size, and hash. Absolute local paths are
-   not copied into the default state.
+### Simulator
 
-No meaning is conveyed by color alone. `SYNTHETIC`, `CSV_REPLAY`, `HOST_TEST`,
-`BENCH_CONTROLLER`, worker state, outcome, and not-verified boundaries all have
-visible text.
+- selected by default;
+- deterministic and software-only;
+- produces `SYNTHETIC` evidence;
+- a PASS verifies the modeled software path, not a physical AFE.
 
-## Thread and close safety
+### CSV Replay
 
-- The presenter records its creating thread and rejects state updates from any
-  other thread.
-- The existing product worker retains exclusive ownership of a job and its
-  resources.
-- Tk's owner thread polls the worker's bounded immutable event queue; a worker
-  thread never calls a widget.
-- Cancel is cooperative and moves through the worker's existing cancellation
-  token and cleanup path.
-- Window close calls the worker's bounded `close()`, which requests cancel and
-  joins before the window is destroyed.
-- A close timeout remains visible as a structured issue; the UI does not claim
-  safe closure or silently abandon the owned job.
+- requires an explicit path and channel mapping;
+- loads and validates the complete `csv-replay.v1` dataset during Review;
+- keeps the immutable validated dataset closed and in memory until Run;
+- reports `CSV_REPLAY`, even if historical rows name a bench source;
+- never contacts hardware.
 
-An integration test uses the real `ProductJobWorker` with a cooperative blocking
-service and confirms window-close controller behavior reaches `CANCELLED`, joins,
-and runs cleanup. A separate Windows smoke created the real Tk window, displayed
-the default Simulator/AFE state, and auto-closed safely while pyserial remained
-unloaded.
+### Serial (read-only)
 
-## Current limitations and Step 6 boundary
+- requires an exact profile, logical port, read timeout, poll limit, sample
+  bound, and explicit receive-only confirmation;
+- Discover performs enumeration only, closes the backend, and does not open a
+  listed port;
+- Review does not open the selected port;
+- Run defers construction/opening to the owning worker and closes it during
+  cleanup;
+- there is no command console, transmit field, write button, device command, or
+  application-level backend `write()` surface.
 
-- There are no editable workflow fields or Run action yet.
-- The six-step beginner path — source, test, configuration, safety review, run,
-  export — is Step 6.
-- CSV validation and receive-only serial selections will be connected in Step 6.
-- Real serial use will still require an exact port/profile, bounded records/time,
-  and an explicit read-only confirmation.
-- The Dashboard does not expand the earlier narrow MSP430 UART compatibility
-  evidence and does not validate any physical AFE behavior.
+Opening an OS serial port may still change driver control lines. Therefore a
+real controller run remains a separately reviewed physical action even though
+the application path is receive-only.
 
-See the [product layer](product-layer.md), [CLI guide](product-cli.md),
-[human-report guide](human-reports.md), and
-[Step 5 evidence report](../reports/software-phase5-step5.md).
+## Thread, cancellation, and navigation safety
+
+- Tk widgets run only on the owner thread.
+- The worker owns its service and adapter; widgets never call them directly.
+- The owner thread polls immutable bounded events and renders copies.
+- Cancel requests cooperative cancellation and preserves `CANCELLED`; it cannot
+  create a PASS or export.
+- Closing the window requests cancellation and performs a bounded join before
+  returning a safe session result.
+- Returning from Review or Result invalidates the prepared request and clears
+  the prior result, so edited values cannot reuse stale approval.
+- Export uses create-new semantics and refuses to replace an existing file.
+
+## Result and evidence display
+
+The original six result regions remain visible: source/profile,
+configuration/safe review, progress, finalized point table, result/evidence,
+and artifacts. The Step 6 wizard sits above them and exposes the acceptance
+criteria used for DC or hysteresis evaluation. Evidence source, worker state,
+engineering outcome, limitations, exclusions, and issues are written as text;
+meaning is not conveyed by color alone.
+
+A bounded read can finish successfully without an analysis export. DC and
+hysteresis results can expose the existing finalized `ResultExportBundle` and
+write JSON or CSV. The Dashboard does not recompute that bundle.
+
+## Verified software behavior
+
+- CLI and Dashboard produced equivalent finalized results for the same 24-point
+  Simulator DC configuration.
+- Missing/invalid Replay input failed during Review, before worker start.
+- A memory-backed MSP430 receive-only chain opened once during Run, closed once,
+  and made zero write calls; no physical port was involved.
+- A cooperative blocking service reached `CANCELLED`, ran cleanup, and exposed
+  no export.
+- Fake-toolkit tests exercised every Step 6 callback; a separate real Windows Tk
+  smoke verified installed-package startup and safe auto-close.
+- The full repository passed 2,131 tests and covered 11,219/11,219 executable
+  statements. The new workflow and Dashboard modules also reached 100% branch
+  coverage.
+
+## Current limitations
+
+- The installed real-Tk smoke covered startup/render/close; automated full
+  keyboard navigation, display scaling, and long interactive sessions remain
+  Step 7 acceptance work.
+- The one-command reproducible portfolio demo is not implemented yet.
+- Real COM worker lifecycle, disconnect/reconnect, and long-duration timing have
+  not been tested in Step 6.
+- The connected MSP430 was not enumerated, opened, read, reset, flashed, or
+  written during this checkpoint.
+- No physical AFE, ADC/DAC accuracy, threshold, gain, bandwidth, wiring, or
+  instrument behavior was validated.
+
+See the [CLI guide](product-cli.md), [human-report guide](human-reports.md),
+[Phase 5 plan](SOFTWARE_PHASE_5_PLAN.md), and
+[Step 6 evidence report](../reports/software-phase5-step6.md).

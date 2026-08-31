@@ -1,7 +1,7 @@
 # 开发环境
 
 **验证日期：** 2026-08-31<br>
-**当前阶段：** Software Phase 5 Step 5 已完成（5/8）<br>
+**当前阶段：** Software Phase 5 Step 6 已完成（6/8）<br>
 **硬件要求：** 默认软件门禁无需硬件；Step 7 已单独完成一次 MSP430 receive-only HIL
 
 ## 已验证环境
@@ -49,9 +49,9 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m build
 ```
 
-pytest、三项 package coverage、全仓库 Ruff rule check、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式分析、runner 和导出，Software Phase 4 已完成 transport、profiles、receive-only serial adapter、可选 pyserial backend、兼容冻结和窄范围 COM4 HIL。Software Phase 5 Steps 1–5 新增独立 `analog_validation_app` 产品层、不可变 job/result/event contract、受控 catalog、面向用户的 issue 映射、single-owner/cooperative-cancel worker、显式 adapter factories、共享 read/DC/迟滞 services、稳定 Simulator/Replay/receive-only CLI、只呈现 finalized result 的确定性人类报告，以及 headless-first Dashboard state/presenter/controller 与延迟导入 Tk 的桌面外壳。当前完整门禁为 2,018 tests、10,273/10,273 正式+可选+产品 package statements、全仓库 Ruff rule check、176-file mypy、sdist/wheel、仓库外 headless import 和真实 Windows Dashboard 启动/关闭 smoke。
+pytest、三项 package coverage、全仓库 Ruff rule check、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式分析、runner 和导出，Software Phase 4 已完成 transport、profiles、receive-only serial adapter、可选 pyserial backend、兼容冻结和窄范围 COM4 HIL。Software Phase 5 Steps 1–6 新增独立 `analog_validation_app` 产品层、不可变 job/result/event contract、受控 catalog、面向用户的 issue 映射、single-owner/cooperative-cancel worker、显式 adapter factories、共享 read/DC/迟滞 services 与 CLI/Dashboard workflow compiler、稳定 Simulator/Replay/receive-only CLI、只呈现 finalized result 的确定性人类报告，以及 reviewed 六步 Dashboard。当前完整门禁为 2,131 tests、11,219/11,219 正式+可选+产品 package statements、全仓库 Ruff rule check、184-file mypy、sdist/wheel、仓库外 headless import、synthetic DC 和真实 Windows Dashboard 启动/关闭 smoke。
 
-当前 CLI 已执行正式的软件 read/DC/迟滞与 `report` 工作流；`dashboard` 已启动安全本地外壳，`demo` 仍是诚实返回退出码 4 的保留命令。Step 5 真实创建并安全关闭了 Windows Tk 窗口，但 Run 保持禁用；它没有发现或打开物理串口。下一检查点是 Phase 5 Step 6 六步初学者向导和 reviewed worker/service 接线。
+当前 CLI 已执行正式的软件 read/DC/迟滞与 `report` 工作流；`dashboard` 已执行 reviewed 六步 Simulator/Replay/receive-only 工作流，`demo` 仍是诚实返回退出码 4 的保留命令。Step 6 真实创建并安全关闭了 Windows Tk 窗口，并在内存后端验证 Run/Cancel/零 write；它没有发现或打开物理串口。下一检查点是 Phase 5 Step 7 一键可复现演示与产品质量验收。
 
 安装后可验证最小产品入口：
 
@@ -66,7 +66,7 @@ analog-validation simulate hysteresis
 analog-validation dashboard
 ```
 
-当前 Ruff 0.16.5 的全仓 formatter 仍会建议重排历史文件；本次 Step 5 的 19 个
+当前 Ruff 0.16.5 的全仓 formatter 仍会建议重排历史文件；本次 Step 6 的 20 个
 新增/修改 Python 文件已通过 formatter，全仓机械重排被单独保留为维护事项，避免掩盖功能 diff。
 
 ## 当前边界

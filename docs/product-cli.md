@@ -1,6 +1,6 @@
 # Analog Validation Studio CLI
 
-**Implemented:** Software Phase 5 Steps 3–5, 2026-08-31<br>
+**Implemented:** Software Phase 5 Steps 3–6, 2026-08-31<br>
 **Schema:** `product-cli-output.v1`<br>
 **Default source:** deterministic software-only Simulator<br>
 **Physical AFE claim:** none
@@ -15,7 +15,8 @@ observations through the already tested workflow, analysis, criteria, and export
 layers.
 
 ```text
-CLI request
+CLI or reviewed Dashboard configuration
+   -> shared product workflow compiler
    -> explicit source/profile factory
    -> owning cancellable worker
     -> DeviceAdapter + ReadWorkflow
@@ -61,7 +62,7 @@ saturation level, or threshold.
 | `replay hysteresis` | Project explicit analog/state channels and direction counts | File evidence only |
 | `observe` | Run one bounded receive-only serial read | Exact port/profile/channel plus `--confirm-read-only`; no write API |
 | `report` | Turn one finalized JSON/CSV result export into five deterministic human-report files | No adapter, serial port, analysis, or hardware operation |
-| `dashboard` | Launch the local headless-first Tkinter/ttk shell | Defaults to Simulator; Step 5 opens no adapter, file, COM port, network listener, or output path |
+| `dashboard` | Launch the local six-step Tkinter/ttk validation workflow | Defaults to Simulator; Replay validates before Run; Serial remains explicit, bounded, and receive-only |
 | `demo` | Reserved for Step 7 | Returns exit code 4 without fabricating demo artifacts |
 
 Run any command with `--help` to see its exact options. Sample and record counts
@@ -70,17 +71,18 @@ identity is exact rather than guessed from a filename or USB description.
 
 ## Dashboard command
 
-`analog-validation dashboard` lazily imports Tk and opens the six-region local
-shell described in the [Dashboard guide](dashboard.md). Closing the window first
-closes its bounded worker owner. After safe closure, the optional `--json` view
-reports the selected source/profile, final worker state, session schema, and
+`analog-validation dashboard` lazily imports Tk and opens the six-step workflow
+described in the [Dashboard guide](dashboard.md). Source, test, configuration,
+review, Run, and result/export all use the same `prepare_product_job()` compiler
+and worker services as the CLI. Closing the window first closes its bounded
+worker owner. After safe closure, the optional `--json` view reports the selected
+source/profile, final worker state, session schema, and
 `NO_NEW_HARDWARE_VALIDATION`.
 
-Step 5 deliberately keeps Run disabled. The window proves state/presenter/widget
-separation and safe lifecycle behavior; it does not yet execute the Step 6
-beginner workflow. If Tk is unavailable, the CLI gives a structured explanation
-and suggests using the existing terminal workflows rather than printing a
-traceback.
+If Tk is unavailable, the CLI gives a structured explanation and suggests using
+the existing terminal workflows rather than printing a traceback. Dashboard Run
+does not change evidence class: Simulator remains `SYNTHETIC`, Replay remains
+`CSV_REPLAY`, and a host-side memory serial test remains `HOST_TEST`.
 
 ## CSV Replay example
 
@@ -201,10 +203,10 @@ wiring, voltage domain, and ownership are confirmed. The product serial adapter
 has no application write method, but an OS driver can still affect control lines
 on open; that physical behavior requires its own device-specific review.
 
-Step 3 serial integration tests used a memory backend with a write trap. They
-proved the product path made zero write calls, but they did not open a real port.
-The MSP430 connected during development was deliberately left untouched in
-Steps 3–5.
+Step 3 CLI and Step 6 Dashboard serial integration tests used memory backends
+with write traps. They proved both product paths made zero write calls, but they
+did not open a real port. The MSP430 connected during Step 6 was deliberately
+left untouched.
 
 ## Cancellation and current evidence limit
 
@@ -216,5 +218,6 @@ signal delivery under the Codex/pytest host was not treated as a stable product
 claim; a normal interactive-terminal smoke remains a later release check.
 
 See the [product layer](product-layer.md),
-[worker design](product-worker.md), and
-[Step 5 evidence report](../reports/software-phase5-step5.md).
+[worker design](product-worker.md),
+[Dashboard guide](dashboard.md), and
+[Step 6 evidence report](../reports/software-phase5-step6.md).

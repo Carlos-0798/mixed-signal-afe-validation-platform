@@ -1,6 +1,6 @@
 # Product layer contracts, services, CLI, worker, and reports
 
-**Implemented:** Software Phase 5 Steps 1–5, 2026-08-31<br>
+**Implemented:** Software Phase 5 Steps 1–6, 2026-08-31<br>
 **Evidence:** HOST_TEST and repository-external package installation<br>
 **Hardware claim:** none
 
@@ -44,6 +44,8 @@ not import adapters, profiles, serial code, analysis, exports, or GUI modules.
 | `product-catalog.v1` | Reviewed sources and profiles | Lookup is exact; an unknown profile is rejected rather than guessed |
 | `user-issue.v1` | Stable user-facing failure explanation | Expected errors map by type; unexpected internal details are not exposed |
 | `product-cli-output.v1` | Versioned machine-readable CLI output | JSON identifies schema/software, source, worker/product/engineering state, limitations, and an explicit no-hardware-performance claim |
+| `product-workflow-config.v1` | Shared CLI/Dashboard typed workflow intent | Source-specific resources are mutually exclusive; Serial requires explicit receive-only confirmation |
+| `dashboard-wizard.v1` | Immutable six-step UI state | A reviewed request is invalidated by navigation/editing and only finalized analysis can be exported |
 | `human-report.v1` | Immutable presentation-only copy of a finalized result | No analysis methods; evidence/outcome/limitations remain unchanged |
 | `human-report-manifest.v1` | Identity of one five-file report publication | Canonical input hash and rendered artifact hashes; explicit no-new-hardware-validation claim |
 
@@ -152,10 +154,17 @@ Step 5 adds `analog_validation_app.dashboard` as a headless-first presentation
 boundary. Immutable state/actions and the owner-thread presenter copy only the
 reviewed catalog, product request/result/event, structured issue, and finalized
 human-report view. The controller polls the existing bounded worker and performs
-cooperative cancel/close; it does not start a service. Widgets render the six
-text/table regions and emit callbacks only. `app.py` imports Tk lazily after the
-explicit `dashboard` command and defaults to an idle Simulator/AFE shell with Run
-disabled until Step 6.
+cooperative cancel/close; it does not construct an adapter or engineering
+service. Widgets render the six text/table regions and emit callbacks only.
+`app.py` imports Tk lazily after the explicit `dashboard` command.
+
+Step 6 adds `product_workflows.py` as the single typed compiler used by CLI and
+Dashboard, `dashboard/wizard.py` as the fixed source/test/configure/review/run/
+result state machine, and `dashboard/application.py` as the reviewed handoff to
+the worker. Simulator remains default. Replay is fully parsed before Run. Serial
+requires exact port/profile/bounds/confirmation and is not opened during Review.
+The widgets expose criteria and callbacks but still do not own service creation,
+analysis, PASS/FAIL, or I/O.
 
 For an unknown command the CLI exits with code `2`, writes no result to stdout,
 and explains:
@@ -172,14 +181,14 @@ See the [CLI guide](product-cli.md) for exact commands and semantics.
 ## Installation and evidence boundary
 
 The current wheel was installed in a fresh directory outside the repository with
-`--no-deps`. Version, Simulator read/DC/hysteresis, CSV Replay, structured export,
-five-file report publication, and headless Dashboard import ran while pyserial
-was absent. The same external install then explicitly created a real Windows Tk
-window and closed it automatically with the idle Simulator state; pyserial
-remained unloaded and no port was accessed.
+`--no-deps`. Base import left both Tk and pyserial unloaded; the installed CLI
+then ran a 24-point `SYNTHETIC` DC PASS with an explicit
+`NO_PERFORMANCE_VALIDATION` claim. The same external install explicitly created
+a real Windows Tk window and closed it automatically with the Simulator state;
+no port was accessed.
 `ports` still fails before discovery when the optional serial dependency is
 absent. A subprocess interpreter interrupt reached `CANCELLED`, cleanup, and exit
-130. No COM port was enumerated or opened in Step 5.
+130. No COM port was enumerated or opened in Step 6.
 
 This proves packaging, dependency isolation, deterministic CLI behavior, and
 host-side product-contract logic. It does not add hardware evidence. The earlier
@@ -188,8 +197,9 @@ receive-only MSP430 UART capture remains a separate, narrowly scoped
 
 ## Next checkpoint
 
-Software Phase 5 Step 6 will connect the six-step beginner workflow to the same
-reviewed factories, services, worker, and presentation semantics. Simulator
-remains the default. CSV Replay must validate before run, and Serial remains an
-explicit bounded receive-only choice with no command surface. See the
-[Dashboard guide](dashboard.md) and [human-report guide](human-reports.md).
+Software Phase 5 Step 7 will add the installed one-command deterministic demo
+and product-quality acceptance for bounded performance, accessibility,
+path/Unicode handling, privacy, no-network operation, and reproducible
+artifacts. Hardware is not required by default. See the
+[Dashboard guide](dashboard.md), [human-report guide](human-reports.md), and
+[Step 6 report](../reports/software-phase5-step6.md).

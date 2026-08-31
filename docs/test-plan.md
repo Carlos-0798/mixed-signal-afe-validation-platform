@@ -166,9 +166,20 @@ Do not power the analog assembly until the open toolchain, inventory, permission
 - **Step 5 complete:** launch and safely auto-close a real Windows Tk window,
   verify Simulator/AFE defaults and textual status, and confirm no pyserial
   import, port access, file creation, network listener, or hardware claim.
+- **Step 6 complete:** test the fixed source/test/configure/review/run/result
+  state machine, what/why/confirm guidance, strict typed form conversion, stale
+  review invalidation, visible criteria, and every widget callback headlessly.
+- **Step 6 complete:** prove CLI/Dashboard finalized-result equivalence for the
+  same synthetic DC request, validate Replay before worker start, and use a
+  write-trap memory backend to prove reviewed MSP430-shaped receive-only Run
+  opens/closes exactly once with zero write calls.
+- **Step 6 complete:** verify cooperative Dashboard cancellation reaches
+  `CANCELLED`, runs cleanup, creates no export, and that JSON/CSV export remains
+  create-new. Repeat installed-package base import, synthetic CLI, and real Tk
+  startup/close without physical-port access.
 - Keep create-new output, hostile path/text/Unicode, sensitive raw-data
   exclusion, and no-network checks when the report is later embedded in the
-  Dashboard and demo. Phase 5 reports deliberately provide no overwrite mode.
+  demo. Phase 5 reports and Dashboard deliberately provide no overwrite mode.
 - Run the deterministic installed-package demo in a new directory and compare
   exact machine/result/report/plot manifest hashes.
 - Before Phase 5 closure, require full pytest and coverage, Ruff, mypy,

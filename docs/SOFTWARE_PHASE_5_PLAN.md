@@ -1,7 +1,7 @@
 # Software Phase 5 文件级实施计划
 
 **阶段名称：** 产品工作流、CLI、Dashboard 与证据可见报告<br>
-**规划状态：** 已完成；实现进度 5/8<br>
+**规划状态：** 已完成；实现进度 6/8<br>
 **预计时间：** 5–8 个有效开发日；初学者兼职约 2–3 周<br>
 **前置：** Software Phase 1–4 的领域、分析、runner、导出、transport、profile 和 adapter 兼容基线完成<br>
 **默认硬件要求：** 无<br>
@@ -14,7 +14,7 @@
 - [x] Step 3：稳定 CLI 工作流；
 - [x] Step 4：证据可见的人类报告与确定性图表；
 - [x] Step 5：Dashboard 状态模型、presenter 与桌面外壳；
-- [ ] Step 6：初学者向导、worker 接线与只读串口入口；
+- [x] Step 6：初学者向导、worker 接线与只读串口入口；
 - [ ] Step 7：可复现演示、性能/可访问性/隐私验收；
 - [ ] Step 8：公共兼容性冻结、构建、外部安装和阶段收口。
 
@@ -26,8 +26,10 @@ CLI 链。Step 4 已从 finalized result bundle 建立只呈现不重算的报�
 text/Markdown、自包含 HTML、确定性 SVG 与 hash manifest，并接通正式 `report` 命令。
 Step 5 已建立不可变 `dashboard-state.v1`、owner-thread presenter、headless controller、
 render-only widgets 和延迟导入 Tk 的本地桌面外壳，并真实验证 Windows 启动/关闭。
-五步都没有新增 AFE 实物证据；Run 在 Step 6 接线前保持禁用，因此完成 5/8 不等于
-Phase 5 产品已完成。
+Step 6 已把固定六步向导、同一套 reviewed product workflow、single-owner worker、取消、
+结果与默认不覆盖导出接入 Dashboard。Simulator 仍为默认来源；CSV 在 Run 前预检；
+Serial 仍需显式 port/profile/bounds/receive-only 确认，且产品接口没有 write surface。
+六步都没有新增 AFE 实物证据，因此完成 6/8 不等于 Phase 5 产品已完成。
 
 ## 1. 初学者先理解这一阶段解决什么
 
@@ -372,6 +374,20 @@ bounded record/time 和只读确认；不提供发送文本框、command console
 CLI 与 Dashboard 对同一请求生成等价 product result；serial host path 证明零 write
 surface。若执行真实 controller smoke，必须另获授权并单独报告。
 
+**状态：已完成（2026-08-31）。** 新增 `product-workflow-config.v1` 作为 CLI 与
+Dashboard 的共同配置编译入口；`dashboard/wizard.py` 实现固定六步、每步
+what/why/confirm 指导和严格表单转换；`dashboard/application.py` 只把复核后的精确
+request/service 交给现有 `ProductJobWorker`。Dashboard 已能运行 Simulator/CSV Replay/
+显式 receive-only Serial 的 read、DC 和迟滞工作流，显示正式 criteria/结果并以
+create-new 方式导出 JSON/CSV。CSV 内容在 Run 前验证；发现端口只枚举不打开；内存
+MSP430 串口链验证一次打开、一次关闭和零 write calls。CLI/Dashboard 对同一 24 点
+Simulator DC 请求得到等价 finalized result。181 项 Step 6 聚焦测试、19 项架构/组合
+门禁、2,131 项完整回归和 11,219/11,219 语句覆盖通过；新增 Dashboard/workflow 模块
+分支覆盖均为 100%。隔离 wheel 在仓库外完成基础导入、CLI synthetic DC 和真实 Tk
+启动/关闭 smoke。没有枚举、打开或操作当前连接的 MSP430，也没有新增硬件证据。详见
+[`dashboard.md`](dashboard.md) 和
+[`software-phase5-step6.md`](../reports/software-phase5-step6.md)。
+
 ### Step 7：可复现演示、性能/可访问性/隐私验收
 
 提供一个固定 synthetic DC observation demo：只读采集合成 input/output 后执行离线
@@ -512,9 +528,8 @@ analog-validation dashboard
 
 ## 14. 下一检查点
 
-Phase 5 Steps 1–5 已完成，实现进度为 5/8。下一次继续时只实施 Step 6：把固定六步
-流程（来源 → 测试 → 配置 → 证据/安全复核 → 运行 → 查看/导出）接到现有 reviewed
-services 和 single-owner worker。Simulator 继续默认选中；Serial 入口必须显式选择
-port/profile、设置时间/记录上限并确认 receive-only，不能增加 command console 或写
-按钮。真实 COM 和硬件操作仍不属于默认 Step 6；若需要新的 controller smoke，必须
-另行授权并单独记录，先前的窄范围 MSP430 HIL 不会因 UI 接线而被重复或扩大。
+Phase 5 Steps 1–6 已完成，实现进度为 6/8。下一次继续时只实施 Step 7：建立一条命令
+即可重复执行的无硬件产品演示，并完成性能、可访问性、路径/Unicode、隐私、无网络和
+有界资源验收。Step 6 已让 Dashboard 真正运行复核后的 Simulator/Replay/receive-only
+工作流；这不扩大先前的窄范围 MSP430 HIL，也不构成 AFE 实物验证。真实 COM、物理板
+或仪器操作仍需单独授权、单独停止条件和单独证据记录。
