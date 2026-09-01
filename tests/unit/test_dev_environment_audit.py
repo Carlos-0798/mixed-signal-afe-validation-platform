@@ -131,7 +131,18 @@ def test_optional_absence_and_unverified_minor_only_warn() -> None:
     } <= warning_ids
 
 
-def test_windows_known_install_location_is_detected_without_path_disclosure() -> None:
+def test_windows_known_install_location_is_detected_without_path_disclosure(
+    tmp_path: Path,
+) -> None:
+    gcc = (
+        tmp_path
+        / "msp430-gcc-9.3.1.2"
+        / "bin"
+        / "msp430-elf-gcc.exe"
+    )
+    gcc.parent.mkdir(parents=True)
+    gcc.touch()
+
     def path_probe(path: Path) -> bool:
         normalized = path.as_posix().lower()
         return normalized.endswith(
@@ -146,7 +157,7 @@ def test_windows_known_install_location_is_detected_without_path_disclosure() ->
         system="Windows",
         environment={
             "LOCALAPPDATA": "X:/fixture-profile/LocalAppData",
-            "TI_ROOT": "C:/ti",
+            "TI_ROOT": str(tmp_path),
         },
         package_probe=_ready_package_probe,
         command_locator=lambda command: command if command in {"git", "gh"} else None,
