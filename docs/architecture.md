@@ -26,13 +26,26 @@ Simulator / CSV Replay / future Serial / Instrument
  analog_validation.domain    ---> provenance / capability / TestRun
             |
             v
- analog_validation.workflows ---> shared read preflight / acquisition
-            |
-            +----> future analysis runners
-            +----> future CLI / Dashboard / reports
+ analog_validation.workflows ---> shared read-only preflight / acquisition
+
+ adapters + config + analysis ---> analog_validation.runners
+                                      |
+                                      +----> future CLI / Dashboard / reports
 ```
 
-`src/analog_validation/` is the only formal product core. An executable architecture test rejects third-party, serial, GUI, board-SDK, `dashboard`, or `tools` imports from that package. The remaining `dashboard/measurements/` files are explicitly legacy Phase 0 analysis algorithms awaiting Software Phase 3 migration; they are not dependencies of the formal core.
+`src/analog_validation/` is the only formal product core. An executable architecture test rejects third-party, serial, GUI, board-SDK, `dashboard`, or `tools` imports from that package. Software Phase 3 Step 1 adds `analog_validation.analysis.common` for lineage, quality policy, disposition/reasons, one-source batches, and explicit voltage normalization. Step 2 adds `analysis.dc_sweep` for traceable pairing, inclusive saturation decisions, completeness gaps, and ordinary least-squares metrics. It consumes domain Measurements and does not import adapters or control output. The remaining `dashboard/measurements/` files are legacy Phase 0 comparison paths; they are not dependencies of the formal core.
+
+Software Phase 3 Step 3 adds `analysis.dc_criteria`. Criteria remain immutable and versioned separately from the analysis. The evaluator verifies TestRun metadata/source/raw IDs, records five inclusive numeric checks, and maps only complete evidence to PASS/FAIL; missing criteria or data remains INCOMPLETE. This pure decision layer still does not import adapters or perform I/O. See `dc-sweep-criteria.md`.
+
+Software Phase 3 Step 4 adds the separate `analog_validation.runners` orchestration namespace. `run_dc_sweep` owns one disconnected adapter, validates the complete plan/config/metadata and every setpoint, confirms read/output/safe-shutdown capabilities before I/O, executes ordered settle/read pairs, and always disconnects. Analysis and criteria evaluation occur only after cleanup succeeds. Missing capabilities produce zero-I/O `UNSUPPORTED`; abort/EOF remains `INCOMPLETE`; execution or cleanup failure is `ERROR`. See `dc-sweep-runner.md`.
+
+Software Phase 3 Step 5 adds `analysis.hysteresis`, `analysis.hysteresis_criteria`, and `runners.hysteresis`. The pure analysis layer validates direction and exact boolean state, preserves analog/state references around each transition, publishes no partial thresholds, and summarizes only complete repeated cycles. The runner applies the existing default-deny output and cleanup order to rising/falling sweeps. See `hysteresis-analysis-and-runner.md`.
+
+Software Phase 3 Step 6 adds pure `analysis.calibration` and `analysis.frequency_response` modules. Calibration may compare one observed source with a separate reference source, freezes all fit-input lineage in versioned coefficients, reports before/after errors, and creates new derived Measurements on application. Frequency response requires three same-source, equal-length batches with explicit Hz/input/output amplitudes; it computes ratio/dB and one cutoff using linear interpolation in dB versus log10 frequency. Neither module imports adapters, samples waveforms, performs FFT, controls instruments, or upgrades evidence provenance. See `calibration-and-frequency-response.md`.
+
+Software Phase 3 Step 7 adds `analog_validation.exports` after the finalized TestRun boundary. Its typed DC and hysteresis builders copy existing conclusions into the immutable `result-export.v1` bundle; JSON and row-oriented CSV are deterministic representations of the same bundle. The layer preserves source and record lineage, requires limitation text, rejects non-finite or structurally inconsistent documents, and uses atomic local writes with no overwrite by default. It never recalculates metrics or promotes evidence. See `result-exports.md`.
+
+Software Phase 3 Step 8 freezes the explicit `analysis`, `runners`, and `exports` namespaces plus representative exact DC/hysteresis result meaning. The existing 84-symbol Phase 2 top level remains unchanged. Golden tests also assert that public Phase 3 implementations originate in `analog_validation.*`, keeping the legacy dashboard outside the formal product core. See `phase3-public-api.md`.
 
 `DeviceAdapter` uses template methods: public methods own lifecycle, capability, configuration, unit, provenance, and output-safety checks; concrete adapters implement protected source-specific hooks. `connect()` reaches only `CONNECTED_READ_ONLY`. Output remains impossible until capabilities are confirmed and a matching `allow_output=true` configuration passes both configured and device safe ranges. See `adapters.md`.
 
@@ -40,7 +53,7 @@ The Step 4 `SimulatorAdapter` is the first concrete adapter. It is read-only, us
 
 Step 5 adds `analog_validation.replay` as a separate file-format boundary that validates a complete CSV Replay v1 dataset. Step 6 adds `CsvReplayAdapter` as the lifecycle/playback boundary. It requires an explicit channel map, exposes read-only capabilities, keeps independent per-channel cursors, supports immediate or scaled timing, and returns current Measurements only as `CSV_REPLAY`. The immutable dataset remains available for audit lookup, including any untrusted declared source.
 
-Step 7 adds `analog_validation.workflows` above the adapter port. `run_read_workflow` accepts one immutable request regardless of source, owns connect/capability/read/disconnect for that call, and checks every command/channel/unit before the first read. It distinguishes completed acquisition, unsupported capability, early end-of-data, and execution errors. It deliberately performs no gain, linearity, hysteresis, calibration, or PASS/FAIL analysis; those remain future runners built on its Measurements.
+Step 7 adds `analog_validation.workflows` above the adapter port. `run_read_workflow` accepts one immutable request regardless of source, owns connect/capability/read/disconnect for that call, and checks every command/channel/unit before the first read. It distinguishes completed acquisition, unsupported capability, early end-of-data, and execution errors. It deliberately performs no gain, linearity, hysteresis, calibration, or PASS/FAIL analysis; the Phase 3 runner is a separate consumer rather than a change to this frozen read-only API.
 
 Step 8 freezes the Phase 2 boundary through machine-readable exports/schema/enum/signature/error/hash data and exact Simulator/CSV/UNSUPPORTED workflow results. The freeze protects callers and future Phase 3 runners from accidental API or meaning drift while keeping internal implementation replaceable. See `phase2-public-api.md`.
 

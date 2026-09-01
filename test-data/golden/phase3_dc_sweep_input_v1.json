@@ -1,0 +1,128 @@
+{
+  "schema_version": "phase3-dc-sweep-input-golden.v1",
+  "evidence_source": "SYNTHETIC",
+  "metadata": {
+    "run_id": "phase3-golden-dc",
+    "test_type": "dc-sweep",
+    "configuration_id": "phase3-golden-dc-config",
+    "configuration_version": "1",
+    "started_at": "2026-08-30T12:00:00Z",
+    "ended_at": "2026-08-30T12:00:01Z",
+    "software_version": "0.1.0.dev0",
+    "device_id": "phase3-golden-simulator",
+    "profile_name": "afe-synthetic",
+    "profile_version": "1"
+  },
+  "analysis_config": {
+    "input_channel": "afe.ch0.input",
+    "output_channel": "afe.ch0.output",
+    "low_output_limit": 0.0,
+    "high_output_limit": 3200.0,
+    "normalized_unit": "mV",
+    "minimum_included_points": 3
+  },
+  "criteria": {
+    "criteria_id": "phase3-golden-dc-criteria",
+    "criteria_version": "1",
+    "target_gain": 2.0,
+    "gain_absolute_tolerance": 0.05,
+    "max_abs_offset": 20.0,
+    "min_r_squared": 0.99,
+    "max_rmse": 5.0,
+    "minimum_included_points": 3,
+    "normalized_unit": "mV"
+  },
+  "limitations": [
+    "SYNTHETIC golden compatibility fixture; no physical AFE was measured."
+  ],
+  "measurements": [
+    {
+      "record_id": "golden-dc-input-0",
+      "raw_record_id": "golden-dc-raw-input-0",
+      "timestamp": "2026-08-30T12:00:00.000000Z",
+      "channel": "afe.ch0.input",
+      "value": 100.0,
+      "unit": "mV",
+      "status": "VALID",
+      "source": "SYNTHETIC",
+      "quality_flags": []
+    },
+    {
+      "record_id": "golden-dc-output-0",
+      "raw_record_id": "golden-dc-raw-output-0",
+      "timestamp": "2026-08-30T12:00:00.001000Z",
+      "channel": "afe.ch0.output",
+      "value": 212.0,
+      "unit": "mV",
+      "status": "VALID",
+      "source": "SYNTHETIC",
+      "quality_flags": []
+    },
+    {
+      "record_id": "golden-dc-input-1",
+      "raw_record_id": "golden-dc-raw-input-1",
+      "timestamp": "2026-08-30T12:00:00.002000Z",
+      "channel": "afe.ch0.input",
+      "value": 200.0,
+      "unit": "mV",
+      "status": "VALID",
+      "source": "SYNTHETIC",
+      "quality_flags": []
+    },
+    {
+      "record_id": "golden-dc-output-1",
+      "raw_record_id": "golden-dc-raw-output-1",
+      "timestamp": "2026-08-30T12:00:00.003000Z",
+      "channel": "afe.ch0.output",
+      "value": 412.0,
+      "unit": "mV",
+      "status": "VALID",
+      "source": "SYNTHETIC",
+      "quality_flags": []
+    },
+    {
+      "record_id": "golden-dc-input-2",
+      "raw_record_id": "golden-dc-raw-input-2",
+      "timestamp": "2026-08-30T12:00:00.004000Z",
+      "channel": "afe.ch0.input",
+      "value": 300.0,
+      "unit": "mV",
+      "status": "VALID",
+      "source": "SYNTHETIC",
+      "quality_flags": []
+    },
+    {
+      "record_id": "golden-dc-output-2",
+      "raw_record_id": "golden-dc-raw-output-2",
+      "timestamp": "2026-08-30T12:00:00.005000Z",
+      "channel": "afe.ch0.output",
+      "value": 3300.0,
+      "unit": "mV",
+      "status": "VALID",
+      "source": "SYNTHETIC",
+      "quality_flags": []
+    },
+    {
+      "record_id": "golden-dc-input-3",
+      "raw_record_id": "golden-dc-raw-input-3",
+      "timestamp": "2026-08-30T12:00:00.006000Z",
+      "channel": "afe.ch0.input",
+      "value": 400.0,
+      "unit": "mV",
+      "status": "VALID",
+      "source": "SYNTHETIC",
+      "quality_flags": []
+    },
+    {
+      "record_id": "golden-dc-output-3",
+      "raw_record_id": "golden-dc-raw-output-3",
+      "timestamp": "2026-08-30T12:00:00.007000Z",
+      "channel": "afe.ch0.output",
+      "value": 812.0,
+      "unit": "mV",
+      "status": "VALID",
+      "source": "SYNTHETIC",
+      "quality_flags": []
+    }
+  ]
+}

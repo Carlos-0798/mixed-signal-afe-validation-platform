@@ -1,0 +1,543 @@
+{
+  "schema_version": "result-export.v1",
+  "test_run": {
+    "metadata": {
+      "run_id": "phase3-golden-hysteresis",
+      "test_type": "hysteresis",
+      "configuration_id": "phase3-golden-hysteresis-config",
+      "configuration_version": "1",
+      "started_at": "2026-08-30T13:00:00.000000Z",
+      "ended_at": "2026-08-30T13:00:01.000000Z",
+      "software_version": "0.1.0.dev0",
+      "device_id": "phase3-golden-simulator",
+      "profile_name": "afe-synthetic",
+      "profile_version": "1",
+      "evidence_source": "SYNTHETIC",
+      "input_record_ids": [
+        "golden-hysteresis-rising-raw-input-0",
+        "golden-hysteresis-rising-raw-state-0",
+        "golden-hysteresis-rising-raw-input-1",
+        "golden-hysteresis-rising-raw-state-1",
+        "golden-hysteresis-rising-raw-input-2",
+        "golden-hysteresis-rising-raw-state-2",
+        "golden-hysteresis-rising-raw-input-3",
+        "golden-hysteresis-rising-raw-state-3",
+        "golden-hysteresis-falling-raw-input-0",
+        "golden-hysteresis-falling-raw-state-0",
+        "golden-hysteresis-falling-raw-input-1",
+        "golden-hysteresis-falling-raw-state-1",
+        "golden-hysteresis-falling-raw-input-2",
+        "golden-hysteresis-falling-raw-state-2",
+        "golden-hysteresis-falling-raw-input-3",
+        "golden-hysteresis-falling-raw-state-3"
+      ],
+      "schema_version": "test-run.v1"
+    },
+    "outcome": "PASS",
+    "summary": "Hysteresis criteria passed",
+    "evidence_record_ids": [
+      "golden-hysteresis-rising-input-0",
+      "golden-hysteresis-rising-state-0",
+      "golden-hysteresis-rising-input-1",
+      "golden-hysteresis-rising-state-1",
+      "golden-hysteresis-rising-input-2",
+      "golden-hysteresis-rising-state-2",
+      "golden-hysteresis-rising-input-3",
+      "golden-hysteresis-rising-state-3",
+      "golden-hysteresis-falling-input-0",
+      "golden-hysteresis-falling-state-0",
+      "golden-hysteresis-falling-input-1",
+      "golden-hysteresis-falling-state-1",
+      "golden-hysteresis-falling-input-2",
+      "golden-hysteresis-falling-state-2",
+      "golden-hysteresis-falling-input-3",
+      "golden-hysteresis-falling-state-3"
+    ],
+    "missing_requirements": []
+  },
+  "criteria": {
+    "id": "phase3-golden-hysteresis-criteria",
+    "version": "1",
+    "results": [
+      {
+        "name": "MEAN_HIGH_THRESHOLD",
+        "actual_value": 1750.0,
+        "unit": "mV",
+        "passed": true,
+        "lower_limit": 1700.0,
+        "upper_limit": 1800.0
+      },
+      {
+        "name": "MEAN_LOW_THRESHOLD",
+        "actual_value": 1550.0,
+        "unit": "mV",
+        "passed": true,
+        "lower_limit": 1500.0,
+        "upper_limit": 1600.0
+      },
+      {
+        "name": "MEAN_WIDTH",
+        "actual_value": 200.0,
+        "unit": "mV",
+        "passed": true,
+        "lower_limit": 150.0,
+        "upper_limit": 250.0
+      },
+      {
+        "name": "WIDTH_SPAN",
+        "actual_value": 0.0,
+        "unit": "mV",
+        "passed": true,
+        "lower_limit": null,
+        "upper_limit": 0.0
+      },
+      {
+        "name": "COMPLETE_CYCLES",
+        "actual_value": 1.0,
+        "unit": "cycles",
+        "passed": true,
+        "lower_limit": 1.0,
+        "upper_limit": null
+      }
+    ]
+  },
+  "source_schemas": [
+    {
+      "name": "analysis-common",
+      "version": "analysis-common.v1"
+    },
+    {
+      "name": "test-run",
+      "version": "test-run.v1"
+    },
+    {
+      "name": "hysteresis-analysis",
+      "version": "hysteresis-analysis.v1"
+    },
+    {
+      "name": "hysteresis-evaluation",
+      "version": "hysteresis-evaluation.v1"
+    },
+    {
+      "name": "hysteresis-criteria",
+      "version": "hysteresis-criteria.v1"
+    }
+  ],
+  "metrics": [
+    {
+      "name": "included_points",
+      "value": 8,
+      "unit": "points"
+    },
+    {
+      "name": "excluded_points",
+      "value": 0,
+      "unit": "points"
+    },
+    {
+      "name": "invalid_points",
+      "value": 0,
+      "unit": "points"
+    },
+    {
+      "name": "complete_cycles",
+      "value": 1,
+      "unit": "cycles"
+    },
+    {
+      "name": "mean_high_threshold",
+      "value": 1750.0,
+      "unit": "mV"
+    },
+    {
+      "name": "mean_low_threshold",
+      "value": 1550.0,
+      "unit": "mV"
+    },
+    {
+      "name": "mean_width",
+      "value": 200.0,
+      "unit": "mV"
+    },
+    {
+      "name": "minimum_width",
+      "value": 200.0,
+      "unit": "mV"
+    },
+    {
+      "name": "maximum_width",
+      "value": 200.0,
+      "unit": "mV"
+    },
+    {
+      "name": "width_span",
+      "value": 0.0,
+      "unit": "mV"
+    }
+  ],
+  "points": [
+    {
+      "index": 0,
+      "label": "cycle-0-rising-point-0",
+      "disposition": "INCLUDED",
+      "references": [
+        {
+          "record_id": "golden-hysteresis-rising-input-0",
+          "raw_record_id": "golden-hysteresis-rising-raw-input-0",
+          "timestamp": "2026-08-30T13:00:00.000000Z",
+          "channel": "afe.ch0.input",
+          "source": "SYNTHETIC"
+        },
+        {
+          "record_id": "golden-hysteresis-rising-state-0",
+          "raw_record_id": "golden-hysteresis-rising-raw-state-0",
+          "timestamp": "2026-08-30T13:00:00.001000Z",
+          "channel": "afe.ch0.threshold",
+          "source": "SYNTHETIC"
+        }
+      ],
+      "values": [
+        {
+          "name": "cycle_index",
+          "value": 0,
+          "unit": "index"
+        },
+        {
+          "name": "direction",
+          "value": "RISING",
+          "unit": "enum"
+        },
+        {
+          "name": "input",
+          "value": 1400.0,
+          "unit": "mV"
+        },
+        {
+          "name": "state",
+          "value": 0,
+          "unit": "bool"
+        }
+      ],
+      "quality_flags": [],
+      "exclusion_reasons": []
+    },
+    {
+      "index": 1,
+      "label": "cycle-0-rising-point-1",
+      "disposition": "INCLUDED",
+      "references": [
+        {
+          "record_id": "golden-hysteresis-rising-input-1",
+          "raw_record_id": "golden-hysteresis-rising-raw-input-1",
+          "timestamp": "2026-08-30T13:00:00.002000Z",
+          "channel": "afe.ch0.input",
+          "source": "SYNTHETIC"
+        },
+        {
+          "record_id": "golden-hysteresis-rising-state-1",
+          "raw_record_id": "golden-hysteresis-rising-raw-state-1",
+          "timestamp": "2026-08-30T13:00:00.003000Z",
+          "channel": "afe.ch0.threshold",
+          "source": "SYNTHETIC"
+        }
+      ],
+      "values": [
+        {
+          "name": "cycle_index",
+          "value": 0,
+          "unit": "index"
+        },
+        {
+          "name": "direction",
+          "value": "RISING",
+          "unit": "enum"
+        },
+        {
+          "name": "input",
+          "value": 1700.0,
+          "unit": "mV"
+        },
+        {
+          "name": "state",
+          "value": 0,
+          "unit": "bool"
+        }
+      ],
+      "quality_flags": [],
+      "exclusion_reasons": []
+    },
+    {
+      "index": 2,
+      "label": "cycle-0-rising-point-2",
+      "disposition": "INCLUDED",
+      "references": [
+        {
+          "record_id": "golden-hysteresis-rising-input-2",
+          "raw_record_id": "golden-hysteresis-rising-raw-input-2",
+          "timestamp": "2026-08-30T13:00:00.004000Z",
+          "channel": "afe.ch0.input",
+          "source": "SYNTHETIC"
+        },
+        {
+          "record_id": "golden-hysteresis-rising-state-2",
+          "raw_record_id": "golden-hysteresis-rising-raw-state-2",
+          "timestamp": "2026-08-30T13:00:00.005000Z",
+          "channel": "afe.ch0.threshold",
+          "source": "SYNTHETIC"
+        }
+      ],
+      "values": [
+        {
+          "name": "cycle_index",
+          "value": 0,
+          "unit": "index"
+        },
+        {
+          "name": "direction",
+          "value": "RISING",
+          "unit": "enum"
+        },
+        {
+          "name": "input",
+          "value": 1800.0,
+          "unit": "mV"
+        },
+        {
+          "name": "state",
+          "value": 1,
+          "unit": "bool"
+        }
+      ],
+      "quality_flags": [],
+      "exclusion_reasons": []
+    },
+    {
+      "index": 3,
+      "label": "cycle-0-rising-point-3",
+      "disposition": "INCLUDED",
+      "references": [
+        {
+          "record_id": "golden-hysteresis-rising-input-3",
+          "raw_record_id": "golden-hysteresis-rising-raw-input-3",
+          "timestamp": "2026-08-30T13:00:00.006000Z",
+          "channel": "afe.ch0.input",
+          "source": "SYNTHETIC"
+        },
+        {
+          "record_id": "golden-hysteresis-rising-state-3",
+          "raw_record_id": "golden-hysteresis-rising-raw-state-3",
+          "timestamp": "2026-08-30T13:00:00.007000Z",
+          "channel": "afe.ch0.threshold",
+          "source": "SYNTHETIC"
+        }
+      ],
+      "values": [
+        {
+          "name": "cycle_index",
+          "value": 0,
+          "unit": "index"
+        },
+        {
+          "name": "direction",
+          "value": "RISING",
+          "unit": "enum"
+        },
+        {
+          "name": "input",
+          "value": 1900.0,
+          "unit": "mV"
+        },
+        {
+          "name": "state",
+          "value": 1,
+          "unit": "bool"
+        }
+      ],
+      "quality_flags": [],
+      "exclusion_reasons": []
+    },
+    {
+      "index": 4,
+      "label": "cycle-0-falling-point-0",
+      "disposition": "INCLUDED",
+      "references": [
+        {
+          "record_id": "golden-hysteresis-falling-input-0",
+          "raw_record_id": "golden-hysteresis-falling-raw-input-0",
+          "timestamp": "2026-08-30T13:00:00.008000Z",
+          "channel": "afe.ch0.input",
+          "source": "SYNTHETIC"
+        },
+        {
+          "record_id": "golden-hysteresis-falling-state-0",
+          "raw_record_id": "golden-hysteresis-falling-raw-state-0",
+          "timestamp": "2026-08-30T13:00:00.009000Z",
+          "channel": "afe.ch0.threshold",
+          "source": "SYNTHETIC"
+        }
+      ],
+      "values": [
+        {
+          "name": "cycle_index",
+          "value": 0,
+          "unit": "index"
+        },
+        {
+          "name": "direction",
+          "value": "FALLING",
+          "unit": "enum"
+        },
+        {
+          "name": "input",
+          "value": 1900.0,
+          "unit": "mV"
+        },
+        {
+          "name": "state",
+          "value": 1,
+          "unit": "bool"
+        }
+      ],
+      "quality_flags": [],
+      "exclusion_reasons": []
+    },
+    {
+      "index": 5,
+      "label": "cycle-0-falling-point-1",
+      "disposition": "INCLUDED",
+      "references": [
+        {
+          "record_id": "golden-hysteresis-falling-input-1",
+          "raw_record_id": "golden-hysteresis-falling-raw-input-1",
+          "timestamp": "2026-08-30T13:00:00.010000Z",
+          "channel": "afe.ch0.input",
+          "source": "SYNTHETIC"
+        },
+        {
+          "record_id": "golden-hysteresis-falling-state-1",
+          "raw_record_id": "golden-hysteresis-falling-raw-state-1",
+          "timestamp": "2026-08-30T13:00:00.011000Z",
+          "channel": "afe.ch0.threshold",
+          "source": "SYNTHETIC"
+        }
+      ],
+      "values": [
+        {
+          "name": "cycle_index",
+          "value": 0,
+          "unit": "index"
+        },
+        {
+          "name": "direction",
+          "value": "FALLING",
+          "unit": "enum"
+        },
+        {
+          "name": "input",
+          "value": 1600.0,
+          "unit": "mV"
+        },
+        {
+          "name": "state",
+          "value": 1,
+          "unit": "bool"
+        }
+      ],
+      "quality_flags": [],
+      "exclusion_reasons": []
+    },
+    {
+      "index": 6,
+      "label": "cycle-0-falling-point-2",
+      "disposition": "INCLUDED",
+      "references": [
+        {
+          "record_id": "golden-hysteresis-falling-input-2",
+          "raw_record_id": "golden-hysteresis-falling-raw-input-2",
+          "timestamp": "2026-08-30T13:00:00.012000Z",
+          "channel": "afe.ch0.input",
+          "source": "SYNTHETIC"
+        },
+        {
+          "record_id": "golden-hysteresis-falling-state-2",
+          "raw_record_id": "golden-hysteresis-falling-raw-state-2",
+          "timestamp": "2026-08-30T13:00:00.013000Z",
+          "channel": "afe.ch0.threshold",
+          "source": "SYNTHETIC"
+        }
+      ],
+      "values": [
+        {
+          "name": "cycle_index",
+          "value": 0,
+          "unit": "index"
+        },
+        {
+          "name": "direction",
+          "value": "FALLING",
+          "unit": "enum"
+        },
+        {
+          "name": "input",
+          "value": 1500.0,
+          "unit": "mV"
+        },
+        {
+          "name": "state",
+          "value": 0,
+          "unit": "bool"
+        }
+      ],
+      "quality_flags": [],
+      "exclusion_reasons": []
+    },
+    {
+      "index": 7,
+      "label": "cycle-0-falling-point-3",
+      "disposition": "INCLUDED",
+      "references": [
+        {
+          "record_id": "golden-hysteresis-falling-input-3",
+          "raw_record_id": "golden-hysteresis-falling-raw-input-3",
+          "timestamp": "2026-08-30T13:00:00.014000Z",
+          "channel": "afe.ch0.input",
+          "source": "SYNTHETIC"
+        },
+        {
+          "record_id": "golden-hysteresis-falling-state-3",
+          "raw_record_id": "golden-hysteresis-falling-raw-state-3",
+          "timestamp": "2026-08-30T13:00:00.015000Z",
+          "channel": "afe.ch0.threshold",
+          "source": "SYNTHETIC"
+        }
+      ],
+      "values": [
+        {
+          "name": "cycle_index",
+          "value": 0,
+          "unit": "index"
+        },
+        {
+          "name": "direction",
+          "value": "FALLING",
+          "unit": "enum"
+        },
+        {
+          "name": "input",
+          "value": 1400.0,
+          "unit": "mV"
+        },
+        {
+          "name": "state",
+          "value": 0,
+          "unit": "bool"
+        }
+      ],
+      "quality_flags": [],
+      "exclusion_reasons": []
+    }
+  ],
+  "limitations": [
+    "SYNTHETIC golden compatibility fixture; no comparator was measured."
+  ]
+}

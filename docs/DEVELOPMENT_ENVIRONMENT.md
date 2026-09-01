@@ -1,7 +1,7 @@
 # 开发环境
 
 **验证日期：** 2026-08-30<br>
-**当前阶段：** Software Phase 2 已完成（8/8）<br>
+**当前阶段：** Software Phase 3 已完成（8/8）；Software Phase 4 尚未开始<br>
 **硬件要求：** 无
 
 ## 已验证环境
@@ -42,7 +42,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m build
 ```
 
-pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、隔离构建和仓库外 wheel 安装是当前质量门禁。旧 `dashboard/measurements/` 分析模块仍将在 Software Phase 3 迁移；它们通过当前静态检查和回归测试，但这不表示其质量、来源和可追溯语义已经达到正式分析核心要求。
+pytest、formal-package coverage、全仓库 Ruff、mypy、依赖检查、隔离构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式记录追溯、质量 policy、DC sweep 与方向性迟滞数学、版本化 criteria/TestRun 映射、安全门控 runners、不可变线性校准、离线幅值频响分析，以及严格 `result-export.v1` JSON/CSV。Step 8 再用公开 API manifest、固定结果文件和 SHA-256 冻结兼容边界；这些都是离线 `SYNTHETIC` 主机证据。旧 `dashboard/reporting/csv_export.py` 仅为指向正式 package 的 legacy placeholder。
 
 ## 当前边界
 

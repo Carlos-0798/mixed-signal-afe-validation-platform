@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 2 complete — 8/8 checkpoints |
-| Release maturity | Pre-MVP; software device/acquisition layer complete |
+| Development stage | Software Phase 3 complete — 8/8 checkpoints |
+| Release maturity | Pre-MVP; analysis, runners, and structured-result compatibility frozen |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated host tests | 644 passed |
-| Formal package coverage | 100% of 2,230 statements |
+| Automated host tests | 1,047 passed |
+| Formal package coverage | 100% of 5,594 statements |
 | Highest evidence level | `HOST_TEST` |
 | Verified hardware claims | **0 — hardware has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 2 plan](docs/SOFTWARE_PHASE_2_PLAN.md) · [Requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md) · [Phase 2 closure report](reports/software-phase2-step8.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Frozen Phase 3 API/results](docs/phase3-public-api.md) · [Phase 3 closure report](reports/software-phase3-step8.md)
 
 ## Product vision
 
@@ -57,10 +57,34 @@ The software-first plan allows the complete software product to mature without r
 - Workflow-owned connect/capability/read/disconnect lifecycle with cleanup on expected EOF and execution errors.
 - Frozen Phase 2 public API manifest covering exports, schema versions, enums, signature shapes, error inheritance, and replay-file hashes.
 - Frozen end-to-end Simulator, CSV Replay, and atomic `UNSUPPORTED` workflow meaning.
+- Versioned `analysis-common.v1` foundation with immutable record lineage, one-source measurement batches, explicit included/excluded/invalid dispositions, and exact quality-derived exclusion reasons.
+- Default-deny suspect-quality policy: selected finite suspect flags require an explicit immutable allowlist; missing/non-finite and invalid records cannot be promoted.
+- Strict finite V/mV normalization that does not guess units and never changes evidence provenance.
+- Versioned provenance-aware DC sweep analysis with traceable input/output pairing, configurable inclusive saturation exclusion, exact incomplete-data gaps, and retained per-point decisions.
+- Ordinary least-squares gain/offset, R², RMSE, maximum absolute residual, plus prediction/residual values for every included point in a complete fit.
+- Immutable versioned DC acceptance criteria for gain, absolute offset, R², RMSE, and included-point count, with one explicit result record per rule.
+- Evidence-safe TestRun mapping: complete evaluations become PASS/FAIL; missing criteria, incomplete analysis, or insufficient evidence points remain INCOMPLETE.
+- Versioned controller-neutral DC sweep plans, acquisition-step lineage, and runner results in a separate `analog_validation.runners` namespace.
+- Default-deny runner preflight for permission, profile, source, command, channel, unit, every setpoint range, and `SAFE_SHUTDOWN` before any write or read.
+- Injected settle/abort callbacks, ordered repetitions, partial-evidence preservation, and safe `UNSUPPORTED`/`INCOMPLETE`/`ERROR` degradation.
+- Host-test reference output execution plus integration proof that the read-only Simulator and CSV Replay adapters remain `UNSUPPORTED` with zero acquisition.
+- Versioned directional hysteresis analysis with strict rising/falling order, exact 0/1 state, four-record transition lineage, midpoint interval estimates, and no partial thresholds.
+- Per-cycle high/low/width plus repeated-cycle summary statistics; reverse transitions, chatter, multiple transitions, and `high < low` are explicitly rejected.
+- Versioned hysteresis criteria and a safety-gated repeated rising/falling runner with cleanup-before-conclusion semantics.
+- Immutable versioned linear calibration fitting with separate observed/reference provenance, before/after error metrics, and coefficient input lineage.
+- Calibration application creates new Measurements, preserves source/raw record identity, and never overwrites the input batch.
+- Offline frequency-response analysis accepts explicit Hz/input/output amplitude points, normalizes V/mV, calculates ratio and dB, and uses documented dB-versus-log-frequency cutoff interpolation.
+- Missing/invalid points suppress conclusions; zero or negative amplitudes, non-increasing frequency, and ambiguous multiple cutoff crossings are rejected explicitly.
+- Immutable `result-export.v1` bundles that preserve TestRun metadata, criteria, metrics, point decisions, source schemas, evidence lineage, and mandatory limitations.
+- Typed DC sweep and hysteresis export builders that copy finalized results without recomputing metrics, thresholds, or PASS/FAIL.
+- Deterministic strict JSON plus four-column row-oriented CSV with exact round trips, finite-number enforcement, version/size/row bounds, and typed errors.
+- Atomic UTF-8 result-file publication with existing destinations protected by default and replacement allowed only through explicit `overwrite=True`.
+- Frozen Phase 3 compatibility manifest covering public exports, 12 schemas, stable constants, 8 enum sets, key call signatures, result-export error bases, and golden-file hashes.
+- Exact synthetic DC and hysteresis golden results that protect numerical meaning, point lineage, saturation exclusion, criteria, provenance, and deterministic JSON output.
 - One formal AFE telemetry generator shared by the Simulator foundation, legacy CLI wrapper, and frozen 100-frame regression.
 - Reproducible pytest, coverage, Ruff, mypy, sdist, and wheel verification gates.
 
-Not yet implemented: analysis/test runners, serial transport, product CLI, dashboard, end-user report generation, firmware, or validated physical hardware.
+Not yet implemented: serial transport, controller profiles, calibration/frequency TestRun export mappings, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, or validated physical hardware.
 
 ## Architecture
 
@@ -100,8 +124,16 @@ The current results are host-software evidence only:
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 644 passed |
-| Formal package statement coverage | 100% of 2,230 statements |
+| Full pytest suite | 1,047 passed |
+| Formal package statement coverage | 100% of 5,594 statements |
+| Phase 3 common analysis semantics | 56 focused tests; 244/244 statements covered |
+| Phase 3 DC sweep analysis | 81 focused tests; 325/325 statements covered |
+| Phase 3 DC criteria and TestRun mapping | 67 focused tests; 201/201 statements covered |
+| Phase 3 safety-gated DC runner | 58 focused tests; 348/348 module statements covered |
+| Phase 3 hysteresis analysis, criteria, and runner | 38 focused tests; 892/892 new module statements covered |
+| Phase 3 calibration and offline frequency response | 48 focused tests; 705/705 new module statements covered |
+| Phase 3 versioned JSON/CSV result exports | 43 focused tests; 640/640 export statements covered |
+| Phase 3 public API and exact-result golden compatibility | 12 checks passed |
 | DeviceAdapter lifecycle and safety tests | 36 passed |
 | Reusable concrete-adapter contract | 8 shared checks passed by reference, Simulator, and CSV Replay adapters |
 | Simulator-specific unit tests | 69 passed |
@@ -113,7 +145,7 @@ The current results are host-software evidence only:
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 67 source files |
+| mypy | Passed on 99 source/test files |
 | Latest isolated build, sdist, and external wheel public-API smoke checks | Passed |
 | Hardware bench tests | Not run |
 
@@ -187,13 +219,13 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 0 | Product baseline, audit, requirements, architecture decisions | Complete |
 | Software Phase 1 | Domain, protocol, configuration, and golden core | Complete — 8/8 checkpoints |
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
-| Software Phase 3 | Test runners, analysis, calibration, structured results | Planned |
+| Software Phase 3 | Test runners, analysis, calibration, structured results | Complete — 8/8 checkpoints |
 | Software Phase 4 | Serial transport and independent controller profiles | Planned |
 | Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-The next planned milestone is Software Phase 3: migrate the legacy DC sweep, linear-fit, saturation-exclusion, and hysteresis logic into the formal package and build evidence-aware test runners on top of the shared workflow. A file-level Phase 3 plan and acceptance gates will be frozen before implementation.
+Software Phase 3 is complete: analysis, safety-gated runners, calibration, offline frequency response, and `result-export.v1` passed all eight checkpoints. Public namespaces and exact representative DC/hysteresis results are now protected by golden compatibility tests. Software Phase 4 serial transport/controller-profile planning has not started. Real hardware remains later work.
 
 ## Repository guide
 
@@ -236,6 +268,12 @@ See [assumptions requiring confirmation](ASSUMPTIONS.md), [test and evidence pol
 - [AFE v1 profile](docs/afe-v1-profile.md)
 - [CSV Replay v1 format](docs/csv-replay-v1.md)
 - [Shared read workflow](docs/read-workflow.md)
+- [DC sweep analysis](docs/dc-sweep-analysis.md)
+- [DC criteria and TestRun mapping](docs/dc-sweep-criteria.md)
+- [Safety-gated DC sweep runner](docs/dc-sweep-runner.md)
+- [Calibration and offline frequency response](docs/calibration-and-frequency-response.md)
+- [Versioned JSON/CSV result exports](docs/result-exports.md)
+- [Frozen Phase 3 public API and golden results](docs/phase3-public-api.md)
 - [Frozen Phase 2 public API](docs/phase2-public-api.md)
 - [Versioned safe configuration](docs/configuration.md)
 - [Capability and TestRun semantics](docs/capabilities-and-test-runs.md)

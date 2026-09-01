@@ -4,6 +4,15 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Host-only software reports:
 
+- `software-phase3-step8.md` — Software Phase 3 closure: public API and exact result golden freeze, full regression, external install, exit criteria, and remaining boundaries.
+- `software-phase3-step7.md` — versioned result bundle, deterministic JSON/CSV, safe file publication, typed builders, and executed Step 7 verification.
+- `software-phase3-step6.md` — immutable linear calibration, derived-record lineage, offline frequency response, cutoff semantics, packaging verification, and evidence limits.
+- `software-phase3-step5.md` — directional hysteresis analysis/criteria/runner, transition lineage, cycle statistics, safety gates, and incomplete-evidence behavior.
+- `software-phase3-step4.md` — safety-gated DC plan/runner, reference output lifecycle, partial evidence, read-only adapter degradation, packaging verification, and hardware limits.
+- `software-phase3-step3.md` — versioned DC criteria, per-rule results, PASS/FAIL/INCOMPLETE mapping, evidence consistency, build/install verification, and hardware limits.
+- `software-phase3-step2.md` — formal DC sweep pairing, point-level quality/saturation decisions, linear metrics, incomplete-analysis semantics, build/install verification, and evidence limits.
+- `software-phase3-step1.md` — common analysis schema, record lineage, quality policy, voltage normalization, focused/full tests, build/install verification, and evidence limits.
+- `software-phase3-planning.md` — Software Phase 3 file-level plan, architecture decisions, eight implementation checkpoints, approval boundary, and hardware evidence limits.
 - `software-phase2-step8.md` — Software Phase 2 closure: public API and end-to-end golden compatibility freeze, full regression, external install, exit criteria, and remaining boundaries.
 - `software-phase2-step7.md` — shared Simulator/CSV read workflow, atomic capability degradation, incomplete replay semantics, lifecycle cleanup, and evidence limits.
 - `software-phase2-step6.md` — formal CsvReplayAdapter playback, timing, pause/resume, EOF, provenance conversion, shared contract, and packaging evidence.
