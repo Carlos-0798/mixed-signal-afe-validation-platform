@@ -1,0 +1,28 @@
+{
+  "reproducibility": {
+    "artifact_hash_algorithm": "SHA-256",
+    "create_new_output": true,
+    "fixed_run_time_utc": "2026-01-01T00:00:00.000000Z"
+  },
+  "safety": {
+    "hardware_claim": "NO_NEW_HARDWARE_VALIDATION",
+    "network_access": "NONE",
+    "output_permission": "DENIED",
+    "serial_access": "NONE"
+  },
+  "schema_version": "portfolio-demo-config.v1",
+  "source": {
+    "evidence_source": "SYNTHETIC",
+    "mode": "SIMULATOR",
+    "profile_name": "afe",
+    "profile_version": "1"
+  },
+  "test": {
+    "input_channel": "afe.ch0.input",
+    "job_id": "portfolio-demo-dc-v1",
+    "job_type": "DC_ANALYSIS",
+    "output_channel": "afe.ch0.output",
+    "points": 24,
+    "unit": "mV"
+  }
+}

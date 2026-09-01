@@ -1,0 +1,65 @@
+{
+  "schema_version": "phase5-human-report-golden.v1",
+  "verification_scope": "HOST_TEST deterministic rendering from frozen synthetic result exports",
+  "new_hardware_validation": false,
+  "cases": [
+    {
+      "id": "dc-sweep",
+      "result_export": "phase3_dc_sweep_result_v1.json",
+      "canonical_result_sha256": "a137b527303a7a8938b4bba7f74d28f35e9a9ca013474cd5946f4d6da9591547",
+      "outcome": "PASS",
+      "evidence_source": "SYNTHETIC",
+      "artifacts": {
+        "report.txt": {
+          "size_bytes": 2607,
+          "sha256": "c60f844a5c113360176ecd730984138ecd6600d698ea89055a28aef7ee981053"
+        },
+        "report.md": {
+          "size_bytes": 3024,
+          "sha256": "44241ae39dfac605df340f03e7c981d44ecca9dfe7f0f93a674f91bf0b7040a7"
+        },
+        "report.html": {
+          "size_bytes": 10092,
+          "sha256": "265de4ea14a9476b709d8aeddabd7c5cbb3fb5bd1a6da3abd63a16e8f1e5520e"
+        },
+        "chart.svg": {
+          "size_bytes": 4138,
+          "sha256": "d2c826aedb89d2e553b278265ac2b4d5fe7c60a7c026d2cc7913d2500dad081a"
+        },
+        "manifest.json": {
+          "size_bytes": 1153,
+          "sha256": "3780fb464ccc83ab31ad21e05996bced018e3fc58ce6b4bcb22521a6a6fbde01"
+        }
+      }
+    },
+    {
+      "id": "hysteresis",
+      "result_export": "phase3_hysteresis_result_v1.json",
+      "canonical_result_sha256": "e7534508afea6dcf231387de293408d0a1b247ad3ee4a496b970dba4456f58db",
+      "outcome": "PASS",
+      "evidence_source": "SYNTHETIC",
+      "artifacts": {
+        "report.txt": {
+          "size_bytes": 3762,
+          "sha256": "52193785f983865764cc724d5cbf5c39e426d478c64e6084a0c2767b757e53c0"
+        },
+        "report.md": {
+          "size_bytes": 4148,
+          "sha256": "df84ba3deaba2b04ef5cb176553ecc710e1aaee025c5487e86354dfb1cebff3f"
+        },
+        "report.html": {
+          "size_bytes": 12164,
+          "sha256": "6f61997ef39cd61278b090d3754a22667e20525f218402c9bcbc3341ab76b0f9"
+        },
+        "chart.svg": {
+          "size_bytes": 4899,
+          "sha256": "b3c74f39edf48e14759c741df933f214c418d961cce9a57b5abb621d4c0eabfb"
+        },
+        "manifest.json": {
+          "size_bytes": 1161,
+          "sha256": "cfdbef65c241d7e84bc1454f440c2d78969a4f9e2012b34ae51cfc8af6d91a3e"
+        }
+      }
+    }
+  ]
+}

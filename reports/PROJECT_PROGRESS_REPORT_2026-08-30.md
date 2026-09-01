@@ -2,18 +2,18 @@
 
 **Report date:** 2026-08-30; updated 2026-08-31 (America/New_York)<br>
 **Product:** Configurable Analog Front-End & Validation Platform / Analog Validation Studio<br>
-**Current milestone:** Software Phase 4 complete, 8 of 8<br>
+**Current milestone:** Software Phase 5 in progress, 2 of 8<br>
 **Release maturity:** pre-MVP<br>
 **Highest accepted evidence:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware claims:** 0
 
 ## 1. Executive summary
 
-Analog Validation Studio is an independent, controller-neutral validation and test-automation product. Software Phases 1–4 are complete within explicit host, synthetic, replay, and narrowly separated controller-UART evidence boundaries. They provide versioned data models, protocol/configuration contracts, adapter lifecycles, deterministic simulation, CSV replay, safety-gated runners, DC/hysteresis/calibration/frequency analysis, structured result export, serial transport/profiles, and executable compatibility freezes.
+Analog Validation Studio is an independent, controller-neutral validation and test-automation product. Software Phases 1–4 are complete within explicit host, synthetic, replay, and narrowly separated controller-UART evidence boundaries. Software Phase 5 Steps 1–2 now add the installed product identity, immutable read-only product job/result/event contracts, reviewed source/profile catalog, stable user issues, minimal CLI foundation, and a bounded single-owner cancellable worker without changing the engineering core.
 
 Software Phase 4 started from the exact Phase 3 baseline commit `9ac23494b86212928185de9b0eef1c1a82a8c0ea`. Steps 1–7 added the bounded byte stream and sequence tracker, neutral CRC envelope and channel map, driver-neutral serial lifecycle/raw provenance, independent AFE/MSP profiles, receive-only SerialAdapter, optional pyserial backend, and a narrow repository-owned receive-only COM4 HIL. Step 8 at commit `269b9141e791d247b053ea38b3ee2da8d49a5a37` freezes 121 exports across seven namespaces, three schemas, public identities/enums/signatures/errors, five fixture hashes, and exact AFE/MSP external-backend composite results. Full regression, isolated build, and clean base/serial wheel installations passed without repeating physical HIL.
 
-The software core is mature and well-tested, but the end-user product is not complete. An owning serial worker, CLI, Dashboard, human-readable reports, release automation, long-duration/physical-disconnect serial testing, and physical AFE validation remain. The accepted physical claim is limited to five observed MSP430 UART records; no AFE or external-peripheral performance claim is made.
+The software core is mature and well-tested, and the product now has a real installation/CLI foundation plus generic job orchestration, but the end-user workflows are not complete. Concrete application services, test-running CLI commands, Dashboard, human-readable reports, release automation, long-duration/physical-disconnect serial testing, and physical AFE validation remain. The accepted physical claim is limited to five observed MSP430 UART records; no AFE or external-peripheral performance claim is made.
 
 ## 2. Product identity and peer-project boundary
 
@@ -29,7 +29,7 @@ Analog Validation Studio and MSP430 Equipment Health Controller are peer, indepe
 ## 3. Repository baseline
 
 - Repository: `https://github.com/Carlos-0798/mixed-signal-afe-validation-platform`
-- Current branch: `phase4/serial-profiles`
+- Current branch: `phase5/product-workflow`
 - Phase 3 baseline: `9ac23494b86212928185de9b0eef1c1a82a8c0ea`
 - Phase 4 Step 1 implementation: `299a1407a025f30c954b1387883a43e3f224de91`
 - Phase 4 Step 2 implementation: `95c1432febdce70007daba013cae4cce47cf8556`
@@ -39,6 +39,8 @@ Analog Validation Studio and MSP430 Equipment Health Controller are peer, indepe
 - Phase 4 Step 6 implementation: `d1c6bd11b25a81ec3e07c66008082442b485a6ff`
 - Phase 4 Step 7 implementation: `ccff7c322af7adf5dc97ca64545060abe1342898`
 - Phase 4 Step 8 compatibility freeze: `269b9141e791d247b053ea38b3ee2da8d49a5a37`
+- Phase 5 Step 1 implementation: `6c204bb0ff925bd73cf9cd3df1f905b16d4d884a`
+- Phase 5 Step 2 implementation: `cbca879547957e399f73e54ff7bf26250c15e687`
 - Package version: `0.1.0.dev0`
 - License status: all rights reserved; no open-source license selected
 - Python support target: 3.10 or later
@@ -53,13 +55,14 @@ Analog Validation Studio and MSP430 Equipment Health Controller are peer, indepe
 | 2 — adapters/replay/workflow | Complete, 8/8 | DeviceAdapter safety lifecycle, Simulator, CSV Replay, shared read workflow | HOST_TEST / SYNTHETIC / CSV_REPLAY |
 | 3 — analysis/runners/results | Complete, 8/8 | DC/hysteresis runners and criteria, calibration, frequency analysis, JSON/CSV results | HOST_TEST / SYNTHETIC / CSV_REPLAY |
 | 4 — serial/profiles | Complete, 8/8 | Profile-neutral stream/sequence/envelope, driver-neutral lifecycle/raw events, independent AFE/MSP profiles, receive-only SerialAdapter, optional pyserial backend, passive COM4 HIL, and frozen public/composite compatibility | HOST_TEST / BENCH_CONTROLLER |
-| 5 — CLI/Dashboard/reports | Planned | End-user workflow and human-readable product experience | None yet |
+| 5 — CLI/Dashboard/reports | In progress, 2/8 | Product contracts/catalog/issues, installed version/profile CLI foundation, and bounded cancellable worker | HOST_TEST / external base install |
 | 6 — product release | Planned | Installation, CI, user/developer docs, release candidate | None yet |
 
 ## 5. Current verified results
 
-- 1,526 pytest tests pass.
-- Formal core plus optional pyserial package coverage is 7,325/7,325 statements, 100%.
+- 1,725 pytest tests pass.
+- Formal core, optional pyserial, and product packages cover 8,098/8,098 statements, 100%.
+- Phase 5 Steps 1–2 have 207 focused tests and 773/773 product statements covered. Step 2 contributes 80 tests to the full suite, including 56 dedicated worker cases plus event-model and architecture checks.
 - Step 1 adds 32 focused tests and covers 158/158 new transport statements.
 - Step 2 adds 51 tests; envelope, channel mapping, and AFE wrapper cover 176/176 statements.
 - Step 3 adds 88 tests and 428 covered formal statements for serial lifecycle, failure injection, raw events, and composite processing.
@@ -71,8 +74,8 @@ Analog Validation Studio and MSP430 Equipment Health Controller are peer, indepe
 - CRC-16/CCITT-FALSE is frozen with `123456789 -> 0x29B1`.
 - AFE v1 retains 20 valid and 9 invalid golden wire/error cases.
 - Phase 1–4 public APIs and representative results remain frozen by executable compatibility tests.
-- Full-repository Ruff passes; mypy passes on all 148 files under `src`, `dashboard`, `tools`, and `tests`.
-- The isolated sdist/wheel build includes both new fixtures/tests and the HIL tool. A clean base install without pyserial runs an installed external-backend MSP workflow; a separate `[serial]` install provides pyserial 3.5 and read-only discovery. Both `pip check` runs pass.
+- Full-repository Ruff passes; mypy passes on all 147 files under `src`, `tools`, and `tests`.
+- The current isolated sdist/wheel includes `analog_validation_app` and exactly one console entry point. A fresh repository-external base install without pyserial runs help/version/profiles and the module entry point without importing serial/Tk modules; dependency checks pass.
 - No serial port or physical hardware was opened by Step 8. Step 7 alone supplies the narrow passive controller-UART record; it does not upgrade AFE evidence.
 
 The original Phase 4 baseline test command first reached 1,040 passes and seven pytest setup errors because its requested generated `work/` parent directory did not exist. No product assertion failed. The unchanged baseline then passed 1,047/1,047 after creating the ignored generated directory. This corrected rerun is the authoritative pre-change result; the original setup failure is not hidden or relabeled as a PASS.
@@ -176,11 +179,19 @@ Complete, 8/8. The transport/profile/adapter surface and representative external
 
 Estimated 5–8 effective development days. Deliver a stable CLI, Dashboard, beginner test wizard, charts, human-readable reports, example projects, and at least one reproducible end-to-end demonstration.
 
+The file-level Phase 5 plan is complete and implementation is 2/8. Step 1 has
+established the separate `analog_validation_app` contracts/catalog/issues and
+one installed `analog-validation version/profiles` entry point. Step 2 adds the
+bounded single-owner worker, immutable monotonic events, cooperative cancellation,
+finite join/close, terminal result/issue capture, and deterministic cleanup.
+Concrete services, test-running commands, deterministic HTML/SVG reports, and
+the offline Tkinter/ttk Dashboard remain future checkpoints. Step 3 is next.
+
 ### Software Phase 6 — product release
 
 Estimated 4–7 effective development days. Deliver clean-environment installation, CI, user/developer adapter documentation, examples, changelog/version/license review, privacy/evidence audit, and a release candidate suitable for GitHub presentation.
 
-Risk-adjusted expectation from the current Step 6 baseline to a mature independent software v1 is approximately 10–18 effective development days: about 2–4 weeks at a beginner/part-time pace, with the optional HIL and UI polish as the largest schedule variables.
+Risk-adjusted expectation from the current Phase 5 Step 2 baseline to a mature independent software v1 is approximately 7–12 effective development days: about 2–3 weeks at a beginner/part-time pace, with workflow integration, UI polish, and release packaging as the largest schedule variables.
 
 ## 10. Future hardware plan
 
@@ -211,12 +222,11 @@ A complete breadboard/BENCH program is expected to require roughly 8–14 weeks 
 
 ## 12. Immediate next checkpoint
 
-The immediate checkpoint is a Software Phase 5 file-level plan. It must define
-a stable CLI, owning/cancellable serial worker, evidence-visible Dashboard,
-plots, human-readable reports, beginner workflow, and at least one reproducible
-end-to-end demonstration while consuming the frozen Phase 1–4 interfaces. No
-physical port or hardware operation is implied by planning and any later HIL
-must remain separately authorized.
+Software Phase 5 Step 2 is complete. The immediate next checkpoint is Step 3
+only: implement concrete Simulator/CSV Replay application services and stable
+test-running CLI commands above the same worker, then freeze human/JSON output,
+stdout/stderr, exit codes, and Ctrl+C cancellation behavior. Reports, Dashboard
+windows, and unapproved physical-port behavior remain outside Step 3.
 
 ## 13. Portfolio presentation plan
 

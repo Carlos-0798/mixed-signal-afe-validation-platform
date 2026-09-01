@@ -31,5 +31,16 @@ Golden compatibility data:
   external-backend → SerialSession → profile → receive-only SerialAdapter →
   ReadWorkflow results, including sequence wrap, CRC rejection, sentinels,
   provenance, and no-write behavior.
+- `golden/phase5_human_reports_v1.json` freezes exact sizes and SHA-256 values
+  for text, Markdown, HTML, SVG, and manifest artifacts rendered from the
+  standard synthetic DC and hysteresis results. It verifies deterministic
+  presentation and explicitly adds no hardware evidence.
+- `golden/phase5_demo_v1.json` freezes the exact 12-file deterministic
+  portfolio-demo output, including workflow results, human reports, artifact
+  hashes, limitations, and the explicit `SYNTHETIC`/`HOST_TEST` boundary.
+- `golden/phase5_public_api.json` freezes the Phase 5 product imports, schema
+  versions, enums, dataclasses, signatures, errors, user-issue mappings, CLI
+  commands/options, exit codes, serialized fields, stable constants, and six
+  earlier/current golden-manifest hashes.
 
 These files verify host-software compatibility only. They are not measurements and carry no BENCH evidence claim.

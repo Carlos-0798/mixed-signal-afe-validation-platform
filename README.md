@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 4 complete — 8/8 checkpoints |
-| Release maturity | Pre-MVP; serial/profile compatibility contract frozen |
+| Development stage | Software Phase 5 complete — 8/8 checkpoints |
+| Release maturity | Software Beta; v1.0 release engineering remains Phase 6 |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated tests | 1,526 passed |
-| Formal + optional package coverage | 100% of 7,325 statements |
+| Automated tests | 2,189 passed; 0 skipped |
+| Formal + optional + product package coverage | 100% of 11,470 statements |
 | Highest evidence level | `BENCH_CONTROLLER` — MSP430 UART compatibility only |
 | Verified AFE hardware performance claims | **0 — the AFE has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 4 closure report](reports/software-phase4-step8.md) · [Frozen Phase 4 compatibility](docs/phase4-public-api.md) · [Current progress report](reports/PROJECT_PROGRESS_REPORT_2026-08-30.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [CLI guide](docs/product-cli.md) · [Dashboard guide](docs/dashboard.md) · [Human-report guide](docs/human-reports.md) · [Phase 5 compatibility contract](docs/phase5-public-api.md) · [Phase 5 closure report](reports/software-phase5-step8.md) · [Phase 4 closure report](reports/software-phase4-step8.md)
 
 ## Product vision
 
@@ -114,8 +114,33 @@ The separate MSP430 Equipment Health Controller is a peer product, not a subordi
 - Accepted receive-only COM4 result: 5/5 CRC-valid TEL records, continuous sequence/uptime, 25 `BENCH_CONTROLLER` Measurements, zero unexpected records, zero disconnects, and zero application writes/bytes; exact firmware and every external peripheral remain unverified.
 - Frozen Phase 4 compatibility manifest covering 121 exports in seven namespaces, three schemas, 12 enum/flag sets, 21 public call shapes, 17 error relationships, stable profile identities, and five fixture hashes.
 - Exact AFE/MSP430 external-backend composite results that preserve 16/32-bit wrap, CRC rejection, canonical mapping, unavailable sentinels, raw lineage, `HOST_TEST` provenance, deterministic close, and absence of a write surface.
+- Installable `analog_validation_app` product layer with immutable, bounded `product-job.v1` and `product-result.v1` contracts that cannot request output or promote incomplete/cancelled work into an engineering conclusion.
+- Reviewed `product-catalog.v1` entries for Simulator, CSV Replay, AFE v1, and independent MSP430 Equipment Health v1 receive-only compatibility, with exact profile matching and no identity guessing.
+- Stable `user-issue.v1` mapping that separates expected user-facing failures from hidden internal details and always provides what happened, a possible cause, and a safe next step.
+- One installed `analog-validation` entry point with deterministic human/JSON version, profile, Simulator, CSV Replay, and explicit receive-only serial workflows; the base wheel runs without pyserial or a display.
+- Product dependency tests that preserve one-way `analog_validation_app -> analog_validation` composition and reject copied protocol/analysis implementations; the superseded Phase 0 `dashboard/` source and legacy-only analysis tests have been retired.
+- Bounded single-owner `ProductJobWorker` with immutable monotonic events, cooperative cancellation, finite join timeouts, result/issue capture, and deterministic service cleanup.
+- Host fault/race coverage for duplicate starts, startup/run/cleanup failures, cancellation during startup/run/completion, queue eviction, close timeouts, and thread-start failure without importing device, analysis, serial, or GUI implementations.
+- Explicit product factories and shared read/DC/hysteresis services that compose the frozen adapters, workflow, analysis, criteria, and export APIs without copying engineering logic.
+- Stable `simulate read/dc/hysteresis` and `replay read/dc/hysteresis` commands, structured artifact hashes, default no-overwrite, and distinct worker/product/engineering status.
+- Discovery-only `ports` plus bounded `observe` with exact port/profile/channel and read-only confirmation; memory-backend integration proves zero writes without opening a physical port.
+- Stable CLI exit codes 0/1/2/3/4/5/70/130, safe default traceback suppression, and a subprocess interpreter-interrupt regression that confirms cancellation and cleanup.
+- Immutable `human-report.v1` presentation views that copy finalized result bundles without importing analysis, adapters, serial, GUI, or network code.
+- Deterministic plain-text, Markdown, self-contained HTML, and SVG reports for DC and hysteresis, with visible evidence, limitations, not-verified items, versions, record lineage, and canonical input hash.
+- Atomic create-new five-file report publication and exact DC/hysteresis golden hashes; HTML contains inline CSS and the exact generated SVG but no scripts or remote resources.
+- Installed `analog-validation report` support for strict JSON/CSV result exports with stable user issues and exit codes that preserve the finalized engineering outcome.
+- Immutable `dashboard-state.v1` panels and explicit actions, plus an owner-thread presenter that copies reviewed catalog selections, bounded worker events, structured issues, finalized product results, report points, and path-free artifact identities.
+- A headless Dashboard controller that polls the existing single-owner worker, maps cooperative cancel/close into bounded cleanup, and never creates adapters or jobs itself.
+- A lazy local Tkinter/ttk six-region shell for Source/Profile, Configuration/Safe Review, Progress, Plot/Point Table, Result/Evidence, and Artifacts; every state and evidence class is expressed in text rather than color alone.
+- A fixed six-step beginner workflow for source, test, configuration, review, Run, and result/export, with what/why/confirm guidance and visible acceptance criteria.
+- Shared CLI/Dashboard `product-workflow-config.v1` compilation, so both entry points use the same reviewed request, source factory, worker service, core analysis, criteria, and export path.
+- Stable `analog-validation dashboard` behavior with Simulator default, Replay preflight, explicit bounded receive-only Serial configuration, cooperative cancel, create-new JSON/CSV export, lazy Tk import, and no network listener.
+- A one-command `analog-validation demo` that runs the reviewed 24-point synthetic DC product chain and publishes 12 byte-reproducible machine, replay, report, chart, and manifest artifacts.
+- Product-quality acceptance for 10,000-record Replay parsing, a bounded 10,000-event worker burst, keyboard focus, Windows Tk scaling, Unicode paths, fail-closed output, privacy, and offline operation.
+- Frozen Phase 5 product compatibility covering four public namespaces, 14 schemas, 10 enum sets, 36 dataclass contracts, 35 public signatures, 24 error relationships, 25 issue mappings, 16 CLI paths, eight exit codes, 13 serialized field groups, and six golden hashes.
+- Release-style repository-external base and `[serial]` wheel installations; the base product remains driver-independent, while the serial smoke uses an injected host substitute without enumerating or opening a real port.
 
-Not yet implemented: owning serial worker, calibration/frequency TestRun export mappings, product CLI, dashboard, end-user reports, firmware, real-time runner deadlines, long-duration physical transport testing through this product, or validated physical AFE hardware.
+Not yet implemented: calibration/frequency TestRun export mappings, firmware, real-time runner deadlines, long-duration physical transport testing through this product, Phase 6 hosted CI/release-candidate publication, or validated physical AFE hardware.
 
 ## Architecture
 
@@ -169,8 +194,10 @@ row is separately limited to the Step 7 five-record `BENCH_CONTROLLER` capture.
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 1,526 passed |
-| Formal + optional package statement coverage | 100% of 7,325 statements |
+| Full pytest suite | 2,189 passed; 0 skipped |
+| Formal + optional + product package statement coverage | 100% of 11,470 statements |
+| Phase 5 Step 8 product compatibility | 15 new checks; 154 total golden checks; public imports/schemas/call shapes, CLI/options/exits, serialized fields, errors/issues, and exact prior manifests frozen |
+| Phase 5 Step 7 demo and product quality | 186 focused tests; two installed demos in normal/Unicode paths were byte-identical; 10,000-record/event bounded acceptance and real Tk scaling/focus smoke passed |
 | Phase 4 public API and composite golden compatibility | 13 checks; 121 exports, 3 schemas, 12 enum/flag sets, 21 signatures, 17 errors, 5 fixture hashes, and exact AFE/MSP external-backend results frozen |
 | Phase 4 optional pyserial backend and receive-only HIL | 127/127 optional statements covered; base and `[serial]` external installs passed; COM4 delivered 5/5 valid continuous TEL, 25 Measurements, and zero writes; exact firmware unconfirmed |
 | Phase 4 receive-only SerialAdapter and product chains | 74 new tests; 282/282 added statements covered; AFE/MSP shared contracts, workflows, reconnect, and zero-write runner degradation passed |
@@ -198,8 +225,8 @@ row is separately limited to the Step 7 five-record `BENCH_CONTROLLER` capture.
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 148 source/test files |
-| Latest build and repository-external installs | Isolated sdist/wheel passed; base install ran an external-backend MSP workflow without pyserial; `[serial]` installed pyserial 3.5 and performed discovery without opening a port |
+| mypy | Passed on 191 source/tool/test files |
+| Latest build and repository-external installs | Isolated sdist/wheel plus fresh base and `[serial]` installs passed; installed normal/Unicode demos were byte-identical, real Tk launched/closed, and the serial extra used only an injected host substitute with zero real-port operations |
 | Physical controller UART | Passed with limitations — receive-only Protocol v1 compatibility only; see Step 7 report |
 | AFE hardware bench tests | Not run |
 
@@ -213,8 +240,23 @@ Requirements: Python 3.10 or later. The current verified development environment
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 .\.venv\Scripts\python.exe -m pytest
-.\.venv\Scripts\python.exe -c "import analog_validation; print(analog_validation.__version__)"
+.\.venv\Scripts\analog-validation.exe --help
+.\.venv\Scripts\analog-validation.exe version
+.\.venv\Scripts\analog-validation.exe profiles
+.\.venv\Scripts\analog-validation.exe simulate read --samples 3
+.\.venv\Scripts\analog-validation.exe simulate dc --points 12 --json
+.\.venv\Scripts\analog-validation.exe simulate hysteresis
+.\.venv\Scripts\analog-validation.exe demo --output .\analog-validation-demo
+.\.venv\Scripts\analog-validation.exe dashboard
 ```
+
+The three Simulator workflows and the demo run real product services and formal
+software analysis, but use only deterministic synthetic observations. The
+Dashboard uses the same reviewed services through its six-step workflow; its
+default run is still software-only. A software PASS, generated report, or opened
+window is not a physical AFE result. See the
+[CLI guide](docs/product-cli.md) for Replay, exports, exit codes, cancellation,
+and the explicit serial safety gate.
 
 Add optional real-port support only when a serial controller is needed:
 
@@ -291,19 +333,19 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 2 | DeviceAdapter, simulator, CSV replay, capability workflow | Complete — 8/8 checkpoints |
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Complete — 8/8 checkpoints |
 | Software Phase 4 | Serial transport and independent controller profiles | Complete — 8/8 checkpoints |
-| Software Phase 5 | CLI, dashboard, and evidence-aware reports | Planned |
+| Software Phase 5 | CLI, dashboard, demo, evidence-aware reports, and compatibility freeze | Complete — 8/8 checkpoints; Software Beta |
 | Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-Software Phases 1–4 are complete. Phase 4 now freezes its transport/profile/adapter public surface and exact AFE/MSP430 host composites after passing full regression, isolated build, and two clean external-install paths. The Step 7 physical result remains a separate narrow controller-UART claim; all real AFE hardware work remains gated. The next milestone is a reviewed Software Phase 5 file-level plan for CLI, an owning serial worker, Dashboard, plots, human-readable reports, beginner workflow, and one reproducible end-to-end demo.
+Software Phases 1–5 are complete. Phase 5 established the `analog_validation_app` contracts/catalog, bounded single-owner worker, explicit factories, shared CLI/Dashboard workflow compilation, stable Simulator/Replay/receive-only CLI, presentation-only deterministic reports, a runnable six-step local Dashboard, the installed reproducible software demo, bounded product-quality acceptance, and an executable public compatibility freeze. Repository-external base and serial-extra installations close the phase as a Software Beta. Phase 6 now owns CI, release-candidate and publication work. The earlier Phase 4 Step 7 physical result remains a separate narrow controller-UART claim, and all real AFE hardware work remains gated.
 
 ## Repository guide
 
 ```text
 src/analog_validation/    installable controller-neutral product core
-dashboard/                legacy analysis/UI placeholders awaiting later phases
+src/analog_validation_app/ product contracts, services, reports, Dashboard, worker, and CLI entry point
 tools/                    repository-local synthetic data and developer utilities
-tests/                    unit, golden, integration, architecture, and legacy-analysis regression tests
+tests/                    unit, golden, integration, and architecture regression tests
 test-data/golden/         frozen compatibility vectors
 docs/                     product, architecture, protocol, safety, and status
 reports/                  executed validation records and evidence limits
