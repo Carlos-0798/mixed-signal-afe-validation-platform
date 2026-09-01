@@ -4,34 +4,18 @@
 from __future__ import annotations
 
 import argparse
-import math
-import random
 import sys
 import time
 from collections.abc import Iterator
 
+from analog_validation.adapters import generate_afe_telemetry
 from analog_validation.protocol import AfeTelemetry, encode_afe_message
 
 
 def generate(count: int, interval_ms: int, seed: int) -> Iterator[AfeTelemetry]:
     """Yield deterministic synthetic AFE v1 messages for one seed."""
 
-    rng = random.Random(seed)
-    for index in range(count):
-        input_mv = round(800 + 550 * math.sin(index / 7.0) + rng.gauss(0, 2))
-        ideal_output = 2.0 * input_mv + 12
-        output_mv = round(min(3275, max(25, ideal_output + rng.gauss(0, 3))))
-        fault = 0x0001 if output_mv in {25, 3275} else 0
-        yield AfeTelemetry(
-            seq=index & 0xFFFF,
-            time_ms=(index * interval_ms) & 0xFFFFFFFF,
-            channel=0,
-            input_mv=input_mv,
-            output_mv=output_mv,
-            gain_milli=2000,
-            threshold=int(input_mv >= 1800),
-            fault_flags=fault,
-        )
+    return generate_afe_telemetry(count, interval_ms, seed)
 
 
 def main() -> None:

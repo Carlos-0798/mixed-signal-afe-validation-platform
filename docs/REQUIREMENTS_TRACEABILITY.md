@@ -1,8 +1,8 @@
 # 产品需求追踪矩阵
 
 **基准：** `docs/PRODUCT_PLAN.md` v1.0  
-**更新日期：** 2026-08-29  
-**当前阶段：** Software Phase 1 完成
+**更新日期：** 2026-08-30<br>
+**当前阶段：** Software Phase 2 完成（8/8）
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。
 
@@ -23,12 +23,12 @@
 | SW-FR-015 | IMPLEMENTED | 多记录 CAP_REQ/CAP DEVICE/CHANNEL/END 已定义并可与 `DeviceCapabilities` 往返；未知 bit、序号和数量不一致被拒绝 | Phase 2/4 adapter 实际协商 |
 | SW-FR-016 | ACCEPTED | `serial_worker.py` 占位 | Phase 4 实现有限重试和错误恢复 |
 | SW-FR-017 | ACCEPTED | 无原始帧日志模型 | Phase 1 定义，Phase 4 实现 |
-| SW-FR-020 | ACCEPTED | 无 DeviceAdapter | Phase 2 实现契约和契约测试 |
-| SW-FR-021 | IMPLEMENTED | 合成工具已直接使用正式 AFE v1 model/encoder，100 帧 seed/hash 往返已进入 pytest | Phase 2 迁移为可注入故障的 SimulatorAdapter |
-| SW-FR-022 | ACCEPTED | 无 CSV replay | Phase 2 实现 |
+| SW-FR-020 | VERIFIED_HOST | 正式 `DeviceAdapter` 已定义统一接口；reference、Simulator 和 CSV Replay 均通过同一套 8 项只读契约；`run_read_workflow` 已用同一请求实际驱动两个正式适配器 | Phase 4 让 Serial 适配器通过相同契约和工作流 |
+| SW-FR-021 | VERIFIED_HOST | 版本化只读 SimulatorAdapter 已验证增益、偏置、确定性噪声、上下限饱和、Schmitt 迟滞、缺失样本、通信错误和 CRC 错误；所有记录保持 `SYNTHETIC` | Phase 3 runner 使用该适配器执行完整工作流 |
+| SW-FR-022 | VERIFIED_HOST | `csv-replay.v1` 提供不可变 dataset/record 与严格 parser；正式 `CsvReplayAdapter` 已验证顺序读取、独立通道游标、速度、暂停/恢复、明确 EOF、原引用保留和强制 `CSV_REPLAY` 来源；共享工作流已消费回放 | Phase 5 UI 增加用户控制 |
 | SW-FR-023 | ACCEPTED | 串口占位文件 | Phase 4 实现且隔离分析层 |
 | SW-FR-024 | ACCEPTED | 无 MSP430 profile | Phase 4 独立实现，保留原始字段 |
-| SW-FR-025 | IMPLEMENTED | `UNSUPPORTED` 结果语义已建立；AFE v1 与版本化配置校验区分缺能力和不安全配置 | Phase 2 adapter/runner 实际生成降级结果 |
+| SW-FR-025 | VERIFIED_HOST | 共享工作流在任何读取前原子检查命令、通道和单位；缺失能力返回无部分数据且列明缺口的 `UNSUPPORTED`；Replay 提前 EOF 单独返回 `INCOMPLETE` | Phase 3 runner 将采集状态映射到正式 TestRunResult |
 | SW-FR-026 | IMPLEMENTED | AFE v1 定义 SAFE_SHUTDOWN command；自动输出验证强制声明该能力 | Phase 2 adapter 实现；输出型硬件接入时做 fault/bench 验证 |
 | SW-FR-030 | IMPLEMENTED | 合成 sweep generator | Phase 3 建立 runner、等待、重复和运行记录 |
 | SW-FR-031 | VERIFIED_HOST | `linear_fit` 与 2 项核心拟合测试 | Phase 3 增加残差、有限值和质量信息 |
@@ -36,16 +36,16 @@
 | SW-FR-033 | VERIFIED_HOST | `calculate_hysteresis` 和 3 项测试 | Phase 3 增加方向、状态和重复统计 |
 | SW-FR-034 | ACCEPTED | `calibration.py` 占位 | Phase 3 实现版本化系数和前后结果 |
 | SW-FR-035 | ACCEPTED | `frequency_response.py` 占位 | Phase 3 先实现离线分析 |
-| SW-FR-036 | IMPLEMENTED | 缺失、非有限、饱和、超范围、时间和通信质量标志已建立；一致性测试通过 | Phase 3 将规则用于分析和判定 |
+| SW-FR-036 | IMPLEMENTED | 缺失、非有限、饱和、超范围、时间和通信质量标志已建立；Simulator 实际生成 `SATURATED` 及缺失/通信组合并通过一致性测试 | Phase 3 将规则用于分析和判定 |
 | SW-FR-037 | IMPLEMENTED | 领域模型强制 PASS/FAIL 具备证据且无缺失项；INCOMPLETE/UNSUPPORTED 不能成为 PASS | Phase 3 实现版本化判定引擎 |
-| SW-FR-038 | VERIFIED_HOST | 固定 seed 的 100 帧 AFE 流水线以冻结 SHA-256 验证生成、编码、解析和来源映射可重复 | Phase 2/3 扩展到 adapter/runner 端到端测试 |
+| SW-FR-038 | VERIFIED_HOST | 固定 seed 的 100 帧 AFE 流水线保持冻结 SHA-256；同配置/clock 的输入、带噪输出、迟滞和故障序列可重复，且各通道读取顺序互不干扰 | Phase 3 扩展到 runner 端到端测试 |
 | SW-FR-040 | IMPLEMENTED | 两个工具有 argparse | Phase 5 建立统一产品 CLI |
 | SW-FR-041 | ACCEPTED | `app.py` 仅占位 | Phase 5 实现 Dashboard |
 | SW-FR-042 | ACCEPTED | 无测试向导 | Phase 5 实现 |
 | SW-FR-043 | ACCEPTED | `csv_export.py` 占位 | Phase 3 实现结构化导出 |
 | SW-FR-044 | ACCEPTED | 无 JSON 摘要 | Phase 3 实现 |
 | SW-FR-045 | ACCEPTED | `summary.py` 占位 | Phase 5 实现证据和限制说明 |
-| SW-FR-046 | IMPLEMENTED | 正式包公开 9 类稳定错误；黄金坏消息冻结 CRC、长度、framing、版本和业务协议错误家族 | Phase 5 增加面向用户的操作指导 |
+| SW-FR-046 | IMPLEMENTED | 正式包公开稳定领域/协议/配置/adapter/replay 错误；黄金坏消息冻结 CRC、长度、framing、协议版本、业务协议和 replay 格式/版本错误家族；回放 EOF 使用独立 `ReplayEndOfData` | Phase 5 增加面向用户的操作指导 |
 
 ## 软件非功能需求
 
@@ -53,12 +53,12 @@
 |---|---|---|---|
 | SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建、仓库外 wheel 安装和 import 均通过 | Phase 5 增加最终用户运行入口，Phase 6 再做发布候选安装测试 |
 | SW-NFR-002 | IMPLEMENTED | 当前核心使用标准 Python | Phase 4/6 验证 Windows，避免核心平台绑定 |
-| SW-NFR-003 | IMPLEMENTED | framing/profile/config parser 可拒绝坏输入、重复/未知字段、非有限值和超大配置 | 设备断开、CSV、用户中止和 adapter 安全状态仍未实现 |
-| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构和 100 帧集成测试均无需硬件；正式核心依赖边界可执行检查 | Phase 2 增加 adapter 契约测试 |
-| SW-NFR-005 | ACCEPTED | 仅有架构文档 | Phase 1/2 建立可执行边界 |
+| SW-NFR-003 | IMPLEMENTED | framing/profile/config/replay parser 拒绝坏输入；adapter 状态机拒绝越级 I/O；CSV 回放暂停不消耗记录、EOF 类型明确；共享工作流在 success/unsupported/incomplete/error 后均断开自己拥有的 adapter | 真实断线、用户中止和串口恢复仍未实现 |
+| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、100 帧、adapter 契约和共用 workflow 测试均无需硬件；同一 workflow 已分别运行 Simulator 与 CSV Replay | Phase 3 runner 继续使用依赖注入 |
+| SW-NFR-005 | VERIFIED_HOST | `tests/architecture/test_core_dependencies.py` 可执行地禁止正式核心导入第三方、串口、GUI、板级 SDK、dashboard 或 tools；Phase 2 workflow 保持 adapter 依赖方向 | Phase 3 runner 继续受同一边界保护 |
 | SW-NFR-006 | VERIFIED_HOST | 正式领域、协议与配置模块责任分离，公开 API 有类型、文档与完整 host tests | Phase 2 继续保持 adapter 依赖方向 |
 | SW-NFR-007 | ACCEPTED | 无性能基准 | Phase 5/6 建立实际数据规模基准 |
-| SW-NFR-008 | VERIFIED_HOST | 严格 JSON 只作为数据解析；拒绝重复/未知字段、非标准数值、非 JSON 后缀和超大文件；无 `eval`/`exec` | Phase 2/5 扩展到 CSV、CLI 路径和命令入口 |
+| SW-NFR-008 | VERIFIED_HOST | 严格 JSON 与 CSV 只作为数据解析；CSV 拒绝坏 UTF-8/BOM/NUL/控制字符/非规范值/超限/不完整 END，loader 测试确认不修改源文件；无 `eval`/`exec` | Phase 5 扩展到 CLI 路径和命令入口 |
 | SW-NFR-009 | IMPLEMENTED | 当前无网络代码，文件均本地 | Phase 5 文档化并保持默认离线 |
 | SW-NFR-010 | ACCEPTED | 报告未实现 | Phase 1 定义版本字段，Phase 3/5 写入结果 |
 | SW-NFR-011 | ACCEPTED | 无 UI | Phase 5 验证文本与颜色双重表达 |
@@ -85,11 +85,11 @@
 
 | 状态 | 数量 |
 |---|---:|
-| VERIFIED_HOST | 16 |
-| IMPLEMENTED | 14 |
-| ACCEPTED | 18 |
+| VERIFIED_HOST | 21 |
+| IMPLEMENTED | 12 |
+| ACCEPTED | 15 |
 | DEFERRED | 12 |
 | VERIFIED_BENCH | 0 |
 | 总计 | 60 |
 
-Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。下一阶段聚焦 SW-FR-020/021/022/025：DeviceAdapter、完整 SimulatorAdapter、CSV replay 和能力降级工作流。
+Software Phase 1 已完成版本化、可测试、无硬件依赖的正式核心。Software Phase 2 已完成 8/8：公共 adapter 契约、可配置模拟器、严格 CSV Replay、正式 CsvReplayAdapter、共用读取工作流、明确能力降级，以及 API/端到端黄金兼容冻结均通过主机验证。下一步是 Software Phase 3 分析与 runner 规划；硬件仍为 DEFERRED，VERIFIED_BENCH 仍为 0。

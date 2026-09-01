@@ -42,7 +42,47 @@ class ConfigurationError(AnalogValidationError):
     """A product configuration is missing, inconsistent, or unsafe."""
 
 
+class AdapterError(AnalogValidationError):
+    """A device adapter could not complete an expected operation."""
+
+
+class AdapterConnectionError(AdapterError):
+    """An adapter failed to establish or release its connection."""
+
+
+class AdapterStateError(AdapterError):
+    """An adapter operation is not allowed in its current lifecycle state."""
+
+
+class AdapterDataError(AdapterError):
+    """An adapter returned data that violates the public contract."""
+
+
+class ReplayError(AnalogValidationError):
+    """A replay dataset could not be accessed or accepted."""
+
+
+class ReplayFormatError(ReplayError):
+    """Replay content violates its declared schema or record semantics."""
+
+
+class ReplayLimitError(ReplayError):
+    """Replay content exceeds a bounded parser resource limit."""
+
+
+class UnsupportedReplayVersion(ReplayFormatError):
+    """Replay content declares an unsupported schema version."""
+
+
+class ReplayEndOfData(ReplayError):
+    """A replay channel has no remaining records."""
+
+
 __all__ = [
+    "AdapterConnectionError",
+    "AdapterDataError",
+    "AdapterError",
+    "AdapterStateError",
     "AnalogValidationError",
     "CapabilityError",
     "ConfigurationError",
@@ -50,6 +90,11 @@ __all__ = [
     "FrameTooLong",
     "FramingError",
     "ProtocolError",
+    "ReplayEndOfData",
+    "ReplayError",
+    "ReplayFormatError",
+    "ReplayLimitError",
     "UnsupportedProtocolVersion",
+    "UnsupportedReplayVersion",
     "ValidationError",
 ]

@@ -1,0 +1,8 @@
+row_type,schema_version,dataset_id,record_id,raw_record_id,timestamp_utc,channel,value,unit,status,source,quality_flags,record_count
+META,csv-replay.v1,afe-demo-001,,,,,,,,,,
+DATA,csv-replay.v1,afe-demo-001,input-000,input-000,2026-08-30T12:00:00Z,afe.ch0.input,800,mV,VALID,SYNTHETIC,,
+DATA,csv-replay.v1,afe-demo-001,output-001,output-001,2026-08-30T12:00:00.100000Z,afe.ch0.output,3275,mV,SUSPECT,SYNTHETIC,SATURATED,
+DATA,csv-replay.v1,afe-demo-001,input-002,input-002,2026-08-30T12:00:00.200000Z,afe.ch0.input,,mV,INVALID,SYNTHETIC,MISSING|COMMUNICATION_ERROR,
+DATA,csv-replay.v1,afe-demo-001,output-003,output-003,2026-08-30T12:00:00.300000Z,afe.ch0.output,NaN,mV,INVALID,SPICE_MODEL,NON_FINITE,
+DATA,csv-replay.v1,afe-demo-001,bool-004,bool-004,2026-08-30T12:00:00.300000Z,afe.ch0.threshold,1,bool,VALID,HOST_TEST,,
+END,csv-replay.v1,afe-demo-001,,,,,,,,,,5
