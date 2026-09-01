@@ -4,15 +4,15 @@
 
 | Project status | Current value |
 |---|---|
-| Development stage | Software Phase 5 complete — 8/8 checkpoints |
-| Release maturity | Software Beta; v1.0 release engineering remains Phase 6 |
-| Current package | `mixed-signal-afe-validation-platform 0.1.0.dev0` |
-| Automated tests | 2,189 passed; 0 skipped |
+| Development stage | Software Phase 6 release engineering — 7/8 checkpoints |
+| Release maturity | Audited private beta candidate ready for owner review; no tag or Release published |
+| Current package | `mixed-signal-afe-validation-platform 0.1.0b1` |
+| Automated tests | 2,252 passed in the latest full local quality run |
 | Formal + optional + product package coverage | 100% of 11,470 statements |
 | Highest evidence level | `BENCH_CONTROLLER` — MSP430 UART compatibility only |
 | Verified AFE hardware performance claims | **0 — the AFE has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [CLI guide](docs/product-cli.md) · [Dashboard guide](docs/dashboard.md) · [Human-report guide](docs/human-reports.md) · [Phase 5 compatibility contract](docs/phase5-public-api.md) · [Phase 5 closure report](reports/software-phase5-step8.md) · [Phase 4 closure report](reports/software-phase4-step8.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 6 plan](docs/SOFTWARE_PHASE_6_PLAN.md) · [Private-beta installation](docs/INSTALLATION.md) · [Tester guide](docs/USER_TESTING_GUIDE.md) · [Private-beta handoff](docs/PRIVATE_BETA_HANDOFF.md) · [Draft release notes](docs/RELEASE_NOTES_DRAFT.md) · [Step 7 audit](reports/software-phase6-step7.md) · [Public adapter example](docs/PUBLIC_ADAPTER_EXAMPLE.md) · [Changelog](CHANGELOG.md) · [CLI guide](docs/product-cli.md) · [Dashboard guide](docs/dashboard.md) · [Phase 5 compatibility contract](docs/phase5-public-api.md)
 
 ## Product vision
 
@@ -139,8 +139,9 @@ The separate MSP430 Equipment Health Controller is a peer product, not a subordi
 - Product-quality acceptance for 10,000-record Replay parsing, a bounded 10,000-event worker burst, keyboard focus, Windows Tk scaling, Unicode paths, fail-closed output, privacy, and offline operation.
 - Frozen Phase 5 product compatibility covering four public namespaces, 14 schemas, 10 enum sets, 36 dataclass contracts, 35 public signatures, 24 error relationships, 25 issue mappings, 16 CLI paths, eight exit codes, 13 serialized field groups, and six golden hashes.
 - Release-style repository-external base and `[serial]` wheel installations; the base product remains driver-independent, while the serial smoke uses an injected host substitute without enumerating or opening a real port.
+- A create-new release verifier that requires a clean Git commit, repeats isolated wheel/sdist builds, normalizes non-content sdist metadata, compares exact bytes, runs fresh base and `[serial]` installs, reproduces the demo in normal/Unicode paths, and emits `release-candidate-manifest.v1` only after every gate passes.
 
-Not yet implemented: calibration/frequency TestRun export mappings, firmware, real-time runner deadlines, long-duration physical transport testing through this product, Phase 6 hosted CI/release-candidate publication, or validated physical AFE hardware.
+Not yet implemented: calibration/frequency TestRun export mappings, firmware, real-time runner deadlines, long-duration physical transport testing through this product, the guided tester documentation/bundle, the final candidate audit, or validated physical AFE hardware.
 
 ## Architecture
 
@@ -194,7 +195,7 @@ row is separately limited to the Step 7 five-record `BENCH_CONTROLLER` capture.
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 2,189 passed; 0 skipped |
+| Full pytest suite | 2,252 passed in the latest full local quality run |
 | Formal + optional + product package statement coverage | 100% of 11,470 statements |
 | Phase 5 Step 8 product compatibility | 15 new checks; 154 total golden checks; public imports/schemas/call shapes, CLI/options/exits, serialized fields, errors/issues, and exact prior manifests frozen |
 | Phase 5 Step 7 demo and product quality | 186 focused tests; two installed demos in normal/Unicode paths were byte-identical; 10,000-record/event bounded acceptance and real Tk scaling/focus smoke passed |
@@ -225,8 +226,8 @@ row is separately limited to the Step 7 five-record `BENCH_CONTROLLER` capture.
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 191 source/tool/test files |
-| Latest build and repository-external installs | Isolated sdist/wheel plus fresh base and `[serial]` installs passed; installed normal/Unicode demos were byte-identical, real Tk launched/closed, and the serial extra used only an injected host substitute with zero real-port operations |
+| mypy | Passed on 204 source/tool/test/example files |
+| Latest deterministic candidate | Local and hosted Windows/Python 3.12 produced a byte-identical four-file `0.1.0b1` bundle from commit `f6721b5`; `release-audit.v1` reports `PASS_WITH_REVIEW`, private binary beta `READY`, 0 current privacy findings, 8 legacy history review items, 0 high-confidence credentials, and `NO_NEW_HARDWARE_VALIDATION` |
 | Physical controller UART | Passed with limitations — receive-only Protocol v1 compatibility only; see Step 7 report |
 | AFE hardware bench tests | Not run |
 
@@ -334,10 +335,10 @@ assert all(item.source.value == "SYNTHETIC" for item in measurements)
 | Software Phase 3 | Test runners, analysis, calibration, structured results | Complete — 8/8 checkpoints |
 | Software Phase 4 | Serial transport and independent controller profiles | Complete — 8/8 checkpoints |
 | Software Phase 5 | CLI, dashboard, demo, evidence-aware reports, and compatibility freeze | Complete — 8/8 checkpoints; Software Beta |
-| Software Phase 6 | Packaging, CI, documentation, and v1.0 release | Planned |
+| Software Phase 6 | Packaging, CI, documentation, and v1.0 preparation | In progress — 7/8 checkpoints |
 | Hardware Phases 0–7 | Design freeze through PCB and MSP430 compatibility | Gated; not started |
 
-Software Phases 1–5 are complete. Phase 5 established the `analog_validation_app` contracts/catalog, bounded single-owner worker, explicit factories, shared CLI/Dashboard workflow compilation, stable Simulator/Replay/receive-only CLI, presentation-only deterministic reports, a runnable six-step local Dashboard, the installed reproducible software demo, bounded product-quality acceptance, and an executable public compatibility freeze. Repository-external base and serial-extra installations close the phase as a Software Beta. Phase 6 now owns CI, release-candidate and publication work. The earlier Phase 4 Step 7 physical result remains a separate narrow controller-UART claim, and all real AFE hardware work remains gated.
+Software Phases 1–5 are complete. Phase 6 Steps 1–7 have frozen the release contract, established read-only hosted CI across Windows/Ubuntu and Python 3.10/3.12/3.14, aligned the private-beta metadata at `0.1.0b1`, added a deterministic create-new candidate verifier, completed a beginner tester workflow, proved a public-API-only external read adapter against the installed wheel, and completed the candidate/current-tree/full-history/license/workbook/claims audit. The private binary beta is ready for controlled testing; public-history remediation, licensing, merge/tag/Release, and v1.0 remain owner decisions. The earlier Phase 4 Step 7 physical result remains a separate narrow controller-UART claim, and all real AFE hardware work remains gated.
 
 ## Repository guide
 
@@ -347,6 +348,7 @@ src/analog_validation_app/ product contracts, services, reports, Dashboard, work
 tools/                    repository-local synthetic data and developer utilities
 tests/                    unit, golden, integration, and architecture regression tests
 test-data/golden/         frozen compatibility vectors
+examples/public_adapter/  public-only third-party-style read-only extension example
 docs/                     product, architecture, protocol, safety, and status
 reports/                  executed validation records and evidence limits
 simulation/               LTspice tasks and ideal-model evidence
@@ -364,6 +366,7 @@ This is an **independent personal engineering project**.
 
 ## Safety and evidence policy
 
+- Current release boundary: `NO_NEW_HARDWARE_VALIDATION`.
 - Only low-voltage 0–3.3 V work is planned; mains experimentation is out of scope.
 - Numeric ranges in software fixtures are examples, not validated hardware limits.
 - `SYNTHETIC`, `SPICE_*`, and `HOST_TEST` evidence cannot support physical performance claims.
@@ -395,6 +398,7 @@ See [assumptions requiring confirmation](ASSUMPTIONS.md), [test and evidence pol
 - [Capability and TestRun semantics](docs/capabilities-and-test-runs.md)
 - [Theory calculations](docs/theory.md)
 - [Development environment](docs/DEVELOPMENT_ENVIRONMENT.md)
+- [Open-source architecture and plugin reference review](docs/OPEN_SOURCE_REFERENCE_REVIEW.md)
 
 ## License
 

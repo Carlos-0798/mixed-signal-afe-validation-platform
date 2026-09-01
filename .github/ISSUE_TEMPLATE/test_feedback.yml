@@ -1,0 +1,94 @@
+name: Private beta test feedback
+description: Submit one sanitized end-to-end tester session result.
+title: "[Beta feedback] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use docs/BETA_TEST_CHECKLIST.md first. Do not attach candidate files, private diagnostics, full paths, credentials, USB/port identifiers, or raw serial data.
+  - type: dropdown
+    id: overall_result
+    attributes:
+      label: Overall required-path result
+      options:
+        - PASS
+        - PARTIAL
+        - BLOCKED
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: OS and Python
+      description: OS family/version, Python version, and architecture only.
+      placeholder: Ubuntu latest; Python 3.12; 64-bit
+    validations:
+      required: true
+  - type: input
+    id: package_version
+    attributes:
+      label: Installed package version
+      placeholder: 0.1.0b1
+    validations:
+      required: true
+  - type: input
+    id: wheel_sha256
+    attributes:
+      label: Wheel SHA-256
+      description: Hash text only; do not attach the wheel.
+    validations:
+      required: true
+  - type: checkboxes
+    id: required_path
+    attributes:
+      label: Required base steps actually completed
+      options:
+        - label: Candidate artifact hashes matched release-manifest.json.
+        - label: Clean base installation and pip check passed.
+        - label: Version JSON reported 0.1.0b1.
+        - label: Create-new demo returned PASS, SYNTHETIC, and NO_NEW_HARDWARE_VALIDATION.
+        - label: The local HTML report made outcome, evidence, criteria, and limitations understandable.
+        - label: Existing-output protection refused overwrite.
+  - type: dropdown
+    id: dashboard
+    attributes:
+      label: Optional Dashboard result
+      options:
+        - PASS
+        - ISSUE FOUND
+        - NOT_RUN
+    validations:
+      required: true
+  - type: dropdown
+    id: replay
+    attributes:
+      label: Optional Replay result
+      options:
+        - PASS
+        - ISSUE FOUND
+        - NOT_RUN
+    validations:
+      required: true
+  - type: textarea
+    id: observations
+    attributes:
+      label: What was clear or confusing?
+      description: Focus on the user journey and evidence language. Replace paths with `<beta-root>`.
+    validations:
+      required: true
+  - type: textarea
+    id: blockers
+    attributes:
+      label: Blocking or partial items
+      description: Use NOT_RUN for optional paths; include controlled exit/issue codes only.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy and evidence confirmation
+      options:
+        - label: I removed usernames, emails, full paths, credentials, private URLs, USB/port identities, raw frames, and private data.
+          required: true
+        - label: I tested no physical port unless a separate device-specific procedure was approved.
+          required: true
+        - label: I understand that this software beta provides no new AFE hardware validation.
+          required: true

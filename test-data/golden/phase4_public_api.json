@@ -377,7 +377,7 @@
       "PySerialUnavailableError"
     ]
   },
-  "package_version": "0.1.0.dev0",
+  "package_version": "0.1.0b1",
   "schema_version": "phase4-public-api-golden.v1",
   "schema_versions": {
     "AFE_CHANNEL_MAPPING_SCHEMA_VERSION": "afe-channel-map.v1",

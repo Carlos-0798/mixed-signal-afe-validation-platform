@@ -3,9 +3,13 @@
 from __future__ import annotations
 
 import ast
+import sys
 from pathlib import Path
 
-import tomllib
+if sys.version_info >= (3, 11):
+    import tomllib
+else:  # pragma: no cover - exercised by the Python 3.10 CI job
+    import tomli as tomllib
 
 ROOT = Path(__file__).resolve().parents[2]
 CORE_ROOT = ROOT / "src" / "analog_validation"

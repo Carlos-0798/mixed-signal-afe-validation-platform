@@ -1,0 +1,87 @@
+name: Private beta bug report
+description: Report one reproducible software defect without sensitive data or hardware claims.
+title: "[Beta bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for testing. Do not include usernames, emails, full paths, credentials, private URLs, USB/port identifiers, raw serial frames, candidate packages, or private data. Replace local paths with `<beta-root>`.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Candidate integrity or installation
+        - Version or profile information
+        - Simulator workflow
+        - CSV Replay workflow
+        - Demo or generated artifacts
+        - Human report
+        - Dashboard
+        - Optional serial boundary
+        - Documentation
+        - Other software behavior
+    validations:
+      required: true
+  - type: input
+    id: package_version
+    attributes:
+      label: Installed package version
+      description: Copy only the software_version field from version JSON.
+      placeholder: 0.1.0b1
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: OS and Python
+      description: OS family/version, Python version, and architecture only.
+      placeholder: Windows 11; Python 3.12.10; 64-bit
+    validations:
+      required: true
+  - type: dropdown
+    id: evidence_source
+    attributes:
+      label: Evidence source shown by the product
+      options:
+        - SYNTHETIC
+        - CSV_REPLAY
+        - HOST_TEST
+        - Not shown or not sure
+        - Optional physical path was separately approved
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction steps
+      description: Number the smallest steps. Replace every path with `<beta-root>` and omit physical identifiers.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual sanitized behavior
+      description: Include exit/issue codes and outcome/evidence/hardware-claim fields, not a full environment dump or raw frame.
+    validations:
+      required: true
+  - type: textarea
+    id: hashes
+    attributes:
+      label: Relevant SHA-256 values
+      description: Optional wheel, release-manifest, or generated-manifest hashes; do not attach the files.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety and privacy confirmation
+      options:
+        - label: I removed usernames, emails, full paths, credentials, private URLs, USB/port identities, and raw serial data.
+          required: true
+        - label: I did not reinterpret SYNTHETIC, CSV_REPLAY, or HOST_TEST output as physical AFE evidence.
+          required: true

@@ -3035,12 +3035,12 @@
     "usage": 2
   },
   "golden_sha256": {
-    "phase2_public_api.json": "798dc65f10f39ac8cf47d375978a3736c1cdb01460ff07293a3fd09b62b902eb",
-    "phase3_public_api.json": "50277ba3236e8d46033907f95918f60e246eadb6710e27aedfb7633b34034f8f",
+    "phase2_public_api.json": "b90bd8070cc3e93b61749c9d8345489c4dace51301dc7e06d5f7e97434acc096",
+    "phase3_public_api.json": "c79ad82a9889c9408b270451d74a05295d9c75d07106aeb81fc7dc6527d4a3ca",
     "phase4_composite_v1.json": "9059a4fd1abff086c0f633dab2d17a07467966c1617aa830868245ed16cad1e5",
-    "phase4_public_api.json": "72ff9b1dfed4b27672a17f65133fef966fa8668f0489d6ac45988bcf11a4d7f2",
-    "phase5_demo_v1.json": "bf3f43401886d9d15f3424edbc94d5a69847ae7aa1c2df261a386fd5cdd0ab43",
-    "phase5_human_reports_v1.json": "b9a57aea5b2d48733214f194702e69ba34e37dcc3c0bef1039a8a91a4519c262"
+    "phase4_public_api.json": "8815de4379d4d236f05ffce39f9f492497c2e8f50052ff41ebf1c8cd36713346",
+    "phase5_demo_v1.json": "7e85b988113c9681d9571f3f2af73a0722931dee221afec94ae9fecd82688773",
+    "phase5_human_reports_v1.json": "36c8def44ef4976c399958aa99568473649b809116d6c54e27c22d02b733f6f4"
   },
   "issue_families": {
     "CliUsageError": [
@@ -3400,7 +3400,7 @@
     ]
   },
   "new_hardware_validation": false,
-  "package_version": "0.1.0.dev0",
+  "package_version": "0.1.0b1",
   "schema_version": "phase5-public-api-golden.v1",
   "schema_versions": {
     "CLI_OUTPUT_SCHEMA_VERSION": "product-cli-output.v1",
