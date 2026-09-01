@@ -760,10 +760,20 @@ def _audit_candidate(candidate: Path, commit: str) -> dict[str, object]:
         path.name: {"size_bytes": path.stat().st_size, "sha256": _sha256(path)}
         for path in (wheels[0], sdists[0])
     }
+    manifest_records: dict[str, dict[str, Any]] = {}
     for record in artifacts:
-        if not isinstance(record, dict) or record.get("filename") not in expected_records:
+        if not isinstance(record, dict):
             raise ReleaseAuditError("release manifest contains an unknown artifact")
-        expected = expected_records[str(record["filename"])]
+        filename = record.get("filename")
+        if not isinstance(filename, str) or filename not in expected_records:
+            raise ReleaseAuditError("release manifest contains an unknown artifact")
+        if filename in manifest_records:
+            raise ReleaseAuditError("release manifest artifact inventory is invalid")
+        manifest_records[filename] = record
+    if set(manifest_records) != set(expected_records):
+        raise ReleaseAuditError("release manifest artifact inventory is invalid")
+    for filename, record in manifest_records.items():
+        expected = expected_records[filename]
         if record.get("size_bytes") != expected["size_bytes"] or record.get("sha256") != expected["sha256"]:
             raise ReleaseAuditError("release manifest artifact identity does not match bytes")
 

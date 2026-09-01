@@ -2,17 +2,22 @@
 
 from __future__ import annotations
 
+import hashlib
 import io
+import json
 import zipfile
 from pathlib import Path
+from typing import Any
 
 import pytest
 
+import tools.release_audit as release_module
 from tools.release_audit import (
     LICENSE_POLICY_TEXT,
     RELEASE_AUDIT_SCHEMA_VERSION,
     ReleaseAuditDestinationError,
     ReleaseAuditError,
+    _audit_candidate,
     _is_approved_fixture,
     _is_approved_github_noreply,
     _normalize_member_path,
@@ -55,6 +60,55 @@ def _workbook(*, creator: str = "", hidden: bool = False) -> bytes:
 
 def _email(local: str, domain: str) -> str:
     return local + "@" + domain
+
+
+def _candidate_fixture(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> tuple[Path, str, dict[str, Any]]:
+    candidate = tmp_path / "candidate"
+    candidate.mkdir()
+    wheel = candidate / "package-0.1-py3-none-any.whl"
+    sdist = candidate / "package-0.1.tar.gz"
+    wheel.write_bytes(b"wheel")
+    sdist.write_bytes(b"sdist")
+    commit = "a" * 40
+
+    def record(path: Path, kind: str) -> dict[str, object]:
+        return {
+            "filename": path.name,
+            "kind": kind,
+            "size_bytes": path.stat().st_size,
+            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        }
+
+    manifest: dict[str, Any] = {
+        "schema_version": release_module.RELEASE_MANIFEST_SCHEMA_VERSION,
+        "candidate_status": "PASS",
+        "source": {"commit": commit, "working_tree": "CLEAN"},
+        "evidence_boundary": {
+            "hardware_claim": "NO_NEW_HARDWARE_VALIDATION",
+            "serial_ports_enumerated": 0,
+            "serial_ports_opened": 0,
+            "application_bytes_written": 0,
+        },
+        "artifacts": [record(wheel, "wheel"), record(sdist, "sdist")],
+    }
+    _write_candidate_manifest(candidate, manifest)
+    monkeypatch.setattr(
+        release_module,
+        "_audit_wheel",
+        lambda _path: ({"status": "PASS"}, {"status": "PASS"}),
+    )
+    monkeypatch.setattr(
+        release_module, "_audit_sdist", lambda _path: {"status": "PASS"}
+    )
+    return candidate, commit, manifest
+
+
+def _write_candidate_manifest(candidate: Path, manifest: dict[str, Any]) -> None:
+    (candidate / "release-manifest.json").write_text(
+        json.dumps(manifest), encoding="utf-8"
+    )
 
 
 def test_release_audit_schema_is_explicit() -> None:
@@ -125,6 +179,66 @@ def test_archive_member_path_rejects_traversal_and_backslashes() -> None:
         _normalize_member_path("../outside.txt")
     with pytest.raises(ReleaseAuditError, match="unsafe member"):
         _normalize_member_path("package\\module.py")
+
+
+@pytest.mark.parametrize("duplicate_index", (0, 1), ids=("wheel-only", "sdist-only"))
+def test_candidate_manifest_requires_unique_complete_archive_filenames(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, duplicate_index: int
+) -> None:
+    candidate, commit, manifest = _candidate_fixture(tmp_path, monkeypatch)
+    artifacts = manifest["artifacts"]
+    assert isinstance(artifacts, list)
+    duplicated = dict(artifacts[duplicate_index])
+    manifest["artifacts"] = [duplicated, dict(duplicated)]
+    _write_candidate_manifest(candidate, manifest)
+
+    with pytest.raises(ReleaseAuditError, match="artifact inventory"):
+        _audit_candidate(candidate, commit)
+
+
+def test_candidate_manifest_accepts_unique_records_in_either_order(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    candidate, commit, manifest = _candidate_fixture(tmp_path, monkeypatch)
+    artifacts = manifest["artifacts"]
+    assert isinstance(artifacts, list)
+    manifest["artifacts"] = list(reversed(artifacts))
+    _write_candidate_manifest(candidate, manifest)
+
+    result = _audit_candidate(candidate, commit)
+
+    assert result["status"] == "PASS"
+    assert result["manifest_source_commit_matches"] is True
+
+
+def test_candidate_manifest_still_rejects_tampered_artifact_identity(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    candidate, commit, manifest = _candidate_fixture(tmp_path, monkeypatch)
+    artifacts = manifest["artifacts"]
+    assert isinstance(artifacts, list)
+    tampered = dict(artifacts[0])
+    tampered["sha256"] = "0" * 64
+    manifest["artifacts"] = [tampered, artifacts[1]]
+    _write_candidate_manifest(candidate, manifest)
+
+    with pytest.raises(ReleaseAuditError, match="identity does not match bytes"):
+        _audit_candidate(candidate, commit)
+
+
+def test_candidate_manifest_rejects_non_string_filename_as_unknown(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    candidate, commit, manifest = _candidate_fixture(tmp_path, monkeypatch)
+    artifacts = manifest["artifacts"]
+    assert isinstance(artifacts, list)
+    malformed = dict(artifacts[0])
+    malformed["filename"] = [malformed["filename"]]
+    manifest["artifacts"] = [malformed, artifacts[1]]
+    _write_candidate_manifest(candidate, manifest)
+
+    with pytest.raises(ReleaseAuditError, match="unknown artifact"):
+        _audit_candidate(candidate, commit)
 
 
 def test_workbook_audit_accepts_visible_metadata_free_structure() -> None:
