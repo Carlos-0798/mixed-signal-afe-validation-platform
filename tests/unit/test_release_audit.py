@@ -14,6 +14,7 @@ from tools.release_audit import (
     ReleaseAuditDestinationError,
     ReleaseAuditError,
     _is_approved_fixture,
+    _is_approved_github_noreply,
     _normalize_member_path,
     _partition_findings,
     _validate_output_destination,
@@ -52,8 +53,36 @@ def _workbook(*, creator: str = "", hidden: bool = False) -> bytes:
     return output.getvalue()
 
 
+def _email(local: str, domain: str) -> str:
+    return local + "@" + domain
+
+
 def test_release_audit_schema_is_explicit() -> None:
     assert RELEASE_AUDIT_SCHEMA_VERSION == "release-audit.v1"
+
+
+@pytest.mark.parametrize(
+    "email",
+    (
+        _email("123+example", "users.noreply.github.com"),
+        _email("noreply", "github.com"),
+    ),
+)
+def test_github_user_and_system_noreply_identities_are_approved(email: str) -> None:
+    assert _is_approved_github_noreply(email)
+
+
+@pytest.mark.parametrize(
+    "email",
+    (
+        _email("developer", "example.com"),
+        _email("noreply", "example.com"),
+        _email("example", "github.com"),
+        "@users.noreply.github.com",
+    ),
+)
+def test_non_github_noreply_identities_are_rejected(email: str) -> None:
+    assert not _is_approved_github_noreply(email)
 
 
 def test_license_placeholder_matches_the_reviewed_exact_text() -> None:

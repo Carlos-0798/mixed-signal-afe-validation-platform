@@ -80,7 +80,7 @@ port and did not repeat or broaden the Step 7 HIL.
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 2,235 passed in the latest full local quality run |
+| Full pytest suite | 2,241 passed in the latest full local quality run |
 | Formal + optional + product package statement coverage | 100% of 11,470 statements |
 | Phase 6 hosted CI | PASS — Windows/Ubuntu with Python 3.10, 3.12, and 3.14; quality/build/base/serial jobs passed |
 | Phase 6 beta metadata | PASS — import, CLI, wheel, public manifests, README, and changelog aligned at `0.1.0b1`; no license/tag/Release selected |

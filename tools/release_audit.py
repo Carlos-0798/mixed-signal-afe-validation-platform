@@ -536,10 +536,7 @@ def _audit_git_identities(root: Path) -> dict[str, object]:
         author_name, author_email, committer_name, committer_email = fields
         names.update((author_name, committer_name))
         emails.update((author_email, committer_email))
-    if not emails or any(
-        re.fullmatch(r"[^@\s]+@users\.noreply\.github\.com", value) is None
-        for value in emails
-    ):
+    if not emails or any(not _is_approved_github_noreply(value) for value in emails):
         raise ReleaseAuditError("Git history contains an unreviewed commit email")
     return {
         "status": "PASS",
@@ -548,6 +545,14 @@ def _audit_git_identities(root: Path) -> dict[str, object]:
         "all_commit_emails_use_github_noreply": True,
         "identity_values_embedded": False,
     }
+
+
+def _is_approved_github_noreply(value: str) -> bool:
+    """Accept GitHub user and system noreply identities, but no other email."""
+
+    return value == "noreply" + "@" + "github.com" or re.fullmatch(
+        r"[^@\s]+@users\.noreply\.github\.com", value
+    ) is not None
 
 
 def _archive_privacy(
