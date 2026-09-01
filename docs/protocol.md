@@ -1,67 +1,62 @@
-# AFE UART CSV protocol
+# AFE UART CSV Protocol
 
-## Transport
+This is the current public protocol summary. The only supported AFE business profile is versioned `AFE,1,...`; the Phase 0 unversioned façade was retired at the end of Software Phase 1.
 
-- UART: 115200 baud, 8 data bits, no parity, 1 stop bit.
-- Encoding: printable 7-bit ASCII.
-- Record terminator: LF (`\n`); a received CRLF is accepted.
-- Maximum serialized record: 128 bytes including the terminator.
-- Namespace: every record begins with `AFE`.
-- CSV is deliberately restricted: fields may contain only the documented tokens and integers; quoting, embedded commas, and embedded whitespace are not supported.
+Detailed field and capability semantics are defined in [AFE v1 Profile](afe-v1-profile.md). CRC and envelope behavior are defined in [CRC and Framing Core](framing-and-crc.md).
+
+## Transport target
+
+- UART target: 115200 baud, 8 data bits, no parity, 1 stop bit;
+- encoding: printable 7-bit ASCII;
+- record terminator: LF; CRLF is accepted on input;
+- maximum serialized record: 128 bytes including the terminator;
+- namespace: every payload begins with `AFE`;
+- restricted CSV: no quoting, embedded commas, or embedded whitespace on the wire.
+
+These are software protocol definitions. No physical UART link or baud-rate tolerance has been verified.
 
 ## CRC-16/CCITT-FALSE
 
 | Parameter | Value |
 |---|---|
 | Width | 16 bits |
-| Polynomial | 0x1021 |
-| Initial value | 0xFFFF |
+| Polynomial | `0x1021` |
+| Initial value | `0xFFFF` |
 | RefIn / RefOut | false / false |
-| XorOut | 0x0000 |
-| Check for ASCII `123456789` | 0x29B1 |
+| XorOut | `0x0000` |
+| ASCII `123456789` check | `0x29B1` |
 
-The CRC covers the ASCII bytes from `AFE` through the last data field, including intervening commas but excluding the comma before the CRC, the four CRC hex characters, CR, and LF.
+The CRC covers the ASCII payload from `AFE` through its final data field, including commas between fields. It excludes the comma before the CRC, the four CRC characters, CR, and LF.
 
-Example payload and framing:
-
-```text
-payload = AFE,TEL,120,45120,0,500,2487,4974,1,0000
-wire    = payload + , + CRC16(payload) + \n
-```
-
-## Telemetry
+## Versioned message families
 
 ```text
-AFE,TEL,<seq>,<time_ms>,<channel>,<input_mv>,<output_mv>,<gain_milli>,<threshold>,<fault_hex>,<crc16>\n
+AFE,1,TEL,<seq>,<time_ms>,<channel>,<input_mv>,<output_mv>,<gain_milli>,<threshold>,<fault_hex>,<crc16>
+AFE,1,CMD,<seq>,...,<crc16>
+AFE,1,CAP_REQ,<seq>,<crc16>
+AFE,1,CAP,<seq>,DEVICE,...,<crc16>
+AFE,1,CAP,<seq>,CHANNEL,...,<crc16>
+AFE,1,CAP,<seq>,END,<entry_count>,<crc16>
 ```
 
-| Field | Phase 0 range/format |
-|---|---|
-| seq | unsigned 16-bit decimal, wraps modulo 65536 |
-| time_ms | unsigned 32-bit decimal, wraps modulo 2^32 |
-| channel | unsigned 8-bit decimal |
-| input_mv, output_mv | signed 16-bit decimal; negative values can describe detected invalid conditions but are not safe hardware inputs |
-| gain_milli | unsigned 16-bit decimal; 1000 means x1.000 |
-| threshold | `0` or `1` |
-| fault_hex | exactly four uppercase hexadecimal digits |
-| crc16 | exactly four uppercase hexadecimal digits |
+The profile supports status/digital reads, gain/filter configuration, analog/PWM stimulus requests, DC/hysteresis/frequency test requests, calibration save, safe shutdown, and multi-record capability exchange. A command shape existing on the wire does not authorize it: a future adapter must still enforce configuration, advertised capability, safe range, and shutdown gates.
 
-## Commands
+## Golden compatibility contract
 
-```text
-AFE,CMD,<seq>,GET,STATUS,<channel>,<crc16>
-AFE,CMD,<seq>,SET,GAIN,<channel>,<gain_id>,<crc16>
-AFE,CMD,<seq>,SET,FILTER,<channel>,<filter_id>,<crc16>
-AFE,CMD,<seq>,RUN,DC_SWEEP,<channel>,<crc16>
-AFE,CMD,<seq>,RUN,HYSTERESIS,<channel>,<crc16>
-AFE,CMD,<seq>,RUN,FREQUENCY_SWEEP,<channel>,<crc16>
-AFE,CMD,<seq>,SAVE,CALIBRATION,<crc16>
-```
+- `test-data/golden/afe_v1_valid.csv` freezes 20 valid records;
+- `test-data/golden/expected_frames.json` freezes their model meanings;
+- `test-data/golden/afe_v1_invalid.csv` freezes 9 rejected inputs and error families;
+- `tests/golden/test_protocol_golden.py` verifies exact parse/re-encode compatibility;
+- `tests/integration/test_synthetic_telemetry_pipeline.py` verifies a deterministic 100-frame synthetic pipeline.
 
-Phase 0 parsing validates framing, CRC, types, lengths, and the listed command shapes. Firmware acknowledgements, timeout policy, duplicate-sequence handling, and fault-bit assignments remain Phase 1 decisions.
+The synthetic stream is labeled `SYNTHETIC`; its derived Measurements are explicitly checked to be non-bench evidence.
 
-The protocol belongs to the AFE product, not to any MSP430, STM32, or RP2040 board. Phase 1 must add a versioned capability exchange before host software enables optional ADC, DAC, PWM, edge-capture, or calibration commands. Board-specific pin numbers and SDK names are never transmitted as part of this public protocol.
+## Rejection rules
 
-## Parser rejection rules
+A complete record is rejected for non-ASCII data, excessive length, invalid namespace/version/type, missing or extra fields, invalid tokens, malformed CRC/fault fields, CRC mismatch, unknown enum/command/capability bits, or out-of-range values.
 
-Reject the complete record if it is non-ASCII, overlong, missing required fields, contains unsupported message/command tokens, has malformed numeric or hexadecimal fields, violates a field range, or has a CRC mismatch. A caller reading a byte stream must buffer only through the length limit and discard input through the next LF after an overlong record.
+Real serial streaming still requires a bounded state machine for fragmentation, coalescing, timeouts, sequence loss, and recovery after an overlong frame. That work belongs to Software Phase 4 and is not implied by the single-record parser.
+
+## Independence boundary
+
+The protocol belongs to the independent AFE validation product, not to MSP430, STM32, RP2040, or any particular instrument. MSP430 Equipment Health Controller compatibility will use a separate future profile/adapter and will not change AFE v1 semantics.

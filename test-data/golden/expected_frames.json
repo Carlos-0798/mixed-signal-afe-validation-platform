@@ -1,0 +1,139 @@
+{
+  "schema_version": "afe-golden.v1",
+  "profile": {
+    "name": "afe",
+    "version": "1"
+  },
+  "evidence_source": "HOST_TEST",
+  "records": [
+    {
+      "name": "telemetry_nominal",
+      "model_type": "AfeTelemetry",
+      "fields": {
+        "seq": 120,
+        "time_ms": 45120,
+        "channel": 0,
+        "input_mv": 500,
+        "output_mv": 2487,
+        "gain_milli": 4974,
+        "threshold": 1,
+        "fault_flags": 0
+      }
+    },
+    {
+      "name": "telemetry_boundaries",
+      "model_type": "AfeTelemetry",
+      "fields": {
+        "seq": 65535,
+        "time_ms": 4294967295,
+        "channel": 255,
+        "input_mv": -32768,
+        "output_mv": 32767,
+        "gain_milli": 65535,
+        "threshold": 0,
+        "fault_flags": 65535
+      }
+    },
+    {
+      "name": "command_get_status",
+      "model_type": "AfeCommand",
+      "fields": {"seq": 1, "kind": "GET_STATUS", "channel": 0, "value": null}
+    },
+    {
+      "name": "command_read_digital",
+      "model_type": "AfeCommand",
+      "fields": {"seq": 2, "kind": "READ_DIGITAL", "channel": 1, "value": null}
+    },
+    {
+      "name": "command_set_gain",
+      "model_type": "AfeCommand",
+      "fields": {"seq": 3, "kind": "SET_GAIN", "channel": 0, "value": 3}
+    },
+    {
+      "name": "command_set_filter",
+      "model_type": "AfeCommand",
+      "fields": {"seq": 4, "kind": "SET_FILTER", "channel": 0, "value": 2}
+    },
+    {
+      "name": "command_set_stimulus",
+      "model_type": "AfeCommand",
+      "fields": {"seq": 5, "kind": "SET_STIMULUS_MV", "channel": 0, "value": 1650}
+    },
+    {
+      "name": "command_set_pwm",
+      "model_type": "AfeCommand",
+      "fields": {"seq": 6, "kind": "SET_PWM_PERMILLE", "channel": 0, "value": 500}
+    },
+    {
+      "name": "command_run_dc",
+      "model_type": "AfeCommand",
+      "fields": {"seq": 7, "kind": "RUN_DC_SWEEP", "channel": 0, "value": null}
+    },
+    {
+      "name": "command_run_hysteresis",
+      "model_type": "AfeCommand",
+      "fields": {"seq": 8, "kind": "RUN_HYSTERESIS", "channel": 0, "value": null}
+    },
+    {
+      "name": "command_run_frequency",
+      "model_type": "AfeCommand",
+      "fields": {"seq": 9, "kind": "RUN_FREQUENCY_SWEEP", "channel": 0, "value": null}
+    },
+    {
+      "name": "command_save_calibration",
+      "model_type": "AfeCommand",
+      "fields": {"seq": 10, "kind": "SAVE_CALIBRATION", "channel": null, "value": null}
+    },
+    {
+      "name": "command_safe_shutdown",
+      "model_type": "AfeCommand",
+      "fields": {"seq": 11, "kind": "SAFE_SHUTDOWN", "channel": null, "value": null}
+    },
+    {
+      "name": "capability_request",
+      "model_type": "AfeCapabilityRequest",
+      "fields": {"seq": 77}
+    },
+    {
+      "name": "capability_device",
+      "model_type": "AfeCapabilityDevice",
+      "fields": {
+        "seq": 77,
+        "device_id": "sim-afe-1",
+        "supported_commands": [
+          "READ_DIGITAL_STATE",
+          "READ_MEASUREMENT",
+          "RUN_DEVICE_COMMAND",
+          "SAFE_SHUTDOWN",
+          "SET_ANALOG_STIMULUS",
+          "SET_PWM_STIMULUS"
+        ]
+      }
+    },
+    {
+      "name": "capability_adc",
+      "model_type": "AfeCapabilityChannel",
+      "fields": {"seq": 77, "kind": "ADC", "index": 0, "minimum": 0.0, "maximum": 3300.0, "unit": "mV"}
+    },
+    {
+      "name": "capability_dac",
+      "model_type": "AfeCapabilityChannel",
+      "fields": {"seq": 77, "kind": "DAC", "index": 0, "minimum": 0.0, "maximum": 3300.0, "unit": "mV"}
+    },
+    {
+      "name": "capability_pwm",
+      "model_type": "AfeCapabilityChannel",
+      "fields": {"seq": 77, "kind": "PWM", "index": 0, "minimum": 0.0, "maximum": 1.0, "unit": "ratio"}
+    },
+    {
+      "name": "capability_digital",
+      "model_type": "AfeCapabilityChannel",
+      "fields": {"seq": 77, "kind": "DIN", "index": 0, "minimum": null, "maximum": null, "unit": null}
+    },
+    {
+      "name": "capability_end",
+      "model_type": "AfeCapabilityEnd",
+      "fields": {"seq": 77, "entry_count": 4}
+    }
+  ]
+}

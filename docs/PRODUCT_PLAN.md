@@ -806,4 +806,4 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/adr/`；
 - `docs/TECHNICAL_DEBT.md`。
 
-下一步是 **Software Phase 1：领域模型、配置与协议核心**，具体文件级顺序见 `docs/SOFTWARE_PHASE_1_PLAN.md`。该阶段仍不采购、不接线，也不引入真实硬件依赖。
+Software Phase 1 已于 2026-08-29 完成，真实证据见 `reports/software-phase1-step8.md`。下一步是 **Software Phase 2：适配器框架、模拟器与回放**。该阶段仍不采购、不接线，也不把合成或回放结果描述为实物验证。

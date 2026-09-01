@@ -8,24 +8,21 @@ import math
 import random
 import sys
 import time
-from pathlib import Path
+from collections.abc import Iterator
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-
-from dashboard.models import Telemetry
-from dashboard.protocol import build_telemetry
+from analog_validation.protocol import AfeTelemetry, encode_afe_message
 
 
-def generate(count: int, interval_ms: int, seed: int):
+def generate(count: int, interval_ms: int, seed: int) -> Iterator[AfeTelemetry]:
+    """Yield deterministic synthetic AFE v1 messages for one seed."""
+
     rng = random.Random(seed)
     for index in range(count):
         input_mv = round(800 + 550 * math.sin(index / 7.0) + rng.gauss(0, 2))
         ideal_output = 2.0 * input_mv + 12
         output_mv = round(min(3275, max(25, ideal_output + rng.gauss(0, 3))))
         fault = 0x0001 if output_mv in {25, 3275} else 0
-        yield Telemetry(
+        yield AfeTelemetry(
             seq=index & 0xFFFF,
             time_ms=(index * interval_ms) & 0xFFFFFFFF,
             channel=0,
@@ -48,7 +45,7 @@ def main() -> None:
         parser.error("count and interval must be non-negative")
     print("# source=SYNTHETIC generator=telemetry_simulator", file=sys.stderr)
     for message in generate(args.count, args.interval_ms, args.seed):
-        sys.stdout.write(build_telemetry(message))
+        sys.stdout.write(encode_afe_message(message))
         sys.stdout.flush()
         if args.realtime and args.interval_ms:
             time.sleep(args.interval_ms / 1000.0)
@@ -56,4 +53,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

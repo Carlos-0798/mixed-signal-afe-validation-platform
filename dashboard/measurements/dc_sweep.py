@@ -3,8 +3,26 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
+from dataclasses import dataclass
 
-from ..models import FitResult, SweepPoint
+
+@dataclass(frozen=True, slots=True)
+class SweepPoint:
+    """One legacy Phase 0 DC sweep point in millivolts."""
+
+    input_mv: float
+    output_mv: float
+
+
+@dataclass(frozen=True, slots=True)
+class FitResult:
+    """Legacy Phase 0 linear-fit result awaiting Phase 3 migration."""
+
+    gain: float
+    offset_mv: float
+    r_squared: float
+    used_points: int
+    excluded_points: int = 0
 
 
 def exclude_saturated(
@@ -58,4 +76,3 @@ def analyze_dc_sweep(
         result.used_points,
         len(excluded),
     )
-

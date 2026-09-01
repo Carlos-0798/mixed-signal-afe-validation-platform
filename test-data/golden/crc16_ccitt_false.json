@@ -1,0 +1,38 @@
+{
+  "algorithm": "CRC-16/CCITT-FALSE",
+  "parameters": {
+    "width": 16,
+    "polynomial": "1021",
+    "initial": "FFFF",
+    "reflect_input": false,
+    "reflect_output": false,
+    "xor_out": "0000"
+  },
+  "vectors": [
+    {
+      "name": "empty-payload",
+      "input_hex": "",
+      "expected_hex": "FFFF"
+    },
+    {
+      "name": "standard-check-string",
+      "input_hex": "313233343536373839",
+      "expected_hex": "29B1"
+    },
+    {
+      "name": "single-zero-byte",
+      "input_hex": "00",
+      "expected_hex": "E1F0"
+    },
+    {
+      "name": "single-ff-byte",
+      "input_hex": "FF",
+      "expected_hex": "FF00"
+    },
+    {
+      "name": "ascending-four-bytes",
+      "input_hex": "00010203",
+      "expected_hex": "E5F1"
+    }
+  ]
+}

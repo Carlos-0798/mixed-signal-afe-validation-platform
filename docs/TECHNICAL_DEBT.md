@@ -8,22 +8,23 @@
 | ID | 优先级 | 技术债/缺口 | 影响 | 计划处理 |
 |---|---|---|---|---|
 | TD-001 | CLOSED | Git 身份和首个 Phase 0 基线于 2026-08-29 建立 | 已具有可恢复基线和历史差异 | 后续阶段保持小步提交 |
-| TD-002 | P1 | 核心代码位于 `dashboard/` 包 | UI、领域和协议边界含义混乱 | Phase 1 迁移到 `src/analog_validation/` |
-| TD-003 | P0 | 数据模型缺少来源和质量标志 | 可能混淆合成、回放与实测数据 | Phase 1 优先建立 Provenance/QualityFlag |
-| TD-004 | P1 | 无 schema、协议和 profile 版本 | 将来修改可能静默破坏兼容性 | Phase 1 建立版本常量和黄金消息 |
-| TD-005 | P1 | 无 Capability 模型 | 软件可能根据板名猜测功能 | Phase 1 建模，Phase 2/4 实现协商 |
+| TD-002 | CLOSED | 正式核心已迁入 `src/analog_validation/`，旧 protocol/shared-model files 已删除；`dashboard/measurements` 仅保留待 Phase 3 迁移的旧分析 | UI、领域和协议依赖方向已分离 | 证据见 `reports/software-phase1-step8.md`；旧分析由 TD-007/008/009 跟踪 |
+| TD-003 | CLOSED | 正式 Measurement 强制来源、状态、质量、单位、UTC 时间和原始引用 | 合成、仿真、回放与 BENCH 标签不再依赖文件名 | 证据见 `reports/software-phase1-step3.md` |
+| TD-004 | CLOSED | Measurement、CRC、framing、AFE v1 profile 和 validation config 已版本化；20 条合法与 9 类非法 AFE 黄金消息已冻结 | 字段、CRC、模型意义和错误家族的意外漂移可由 pytest 发现 | 证据见 `reports/software-phase1-step8.md` |
+| TD-005 | CLOSED | `DeviceCapabilities` 已要求显式通道、安全范围、命令和 safe-shutdown 一致性 | 软件领域层不再需要根据板名猜测功能；线上协商仍属后续实现 | 证据见 `reports/software-phase1-step4.md` |
 | TD-006 | P2 | 无流式分帧和序列追踪 | 真实串口分段、粘包和丢帧无法处理 | Phase 4 |
-| TD-007 | P1 | DC/迟滞分析未验证 NaN、Inf、非法状态和方向 | 异常数据可能产生无意义结果 | Phase 3；Phase 1 先建立质量类型 |
+| TD-007 | P1 | Measurement 已强制显式处理 NaN/Inf/缺失；旧 DC/迟滞分析尚未应用质量和方向规则 | 旧分析仍可能对异常裸数据产生无意义结果 | Phase 3 迁移分析并保存逐点质量 |
 | TD-008 | P2 | 饱和排除只保存数量，不保存逐点原因 | 报告不可解释 | Phase 3 |
 | TD-009 | P1 | 校准、频响、判定和报告均为占位 | 不能形成成熟测试产品 | Phase 3/5 |
-| TD-010 | P1 | Phase 0 包已能构建并从 wheel 干净安装，但正式 `src/analog_validation/` 包尚未建立 | 当前发布物名称与模块边界仍是原型 | Phase 1 迁移正式包、版本和入口 |
+| TD-010 | CLOSED | 正式 `src/analog_validation/` 包、单一版本来源、隔离构建和仓库外 wheel 导入已于 2026-08-29 验证 | 包装基础问题已解除；CLI 仍由 TD-014 跟踪 | 证据见 `reports/software-phase1-step1.md` |
 | TD-011 | CLOSED | 独立 Python `.venv`、setuptools 和隔离 wheel 安装已于 2026-08-29 验证 | 原环境依赖 Codex 运行时的问题已解除 | 证据见 `reports/environment-setup-2026-08-29.md` |
-| TD-012 | P1 | 100帧流水线和合成 CLI 检查不在 pytest | 回归时可能丢失 | Phase 1/2 转为自动集成测试 |
+| TD-012 | CLOSED | 100 帧 deterministic generator/encode/parse/Measurement pipeline 已纳入 pytest，并冻结 stream SHA-256 | 合成基础流水线已有自动回归保护 | Phase 2 在 SimulatorAdapter 上扩展故障注入 |
 | TD-013 | P2 | 本地 mypy、Ruff 和 coverage 已可运行，但尚无冻结规则和 CI | 自动质量门仍不能在每次变更时执行 | Phase 1 冻结核心规则；Phase 6 建立 CI |
 | TD-014 | P2 | 无统一 CLI，`app.py` 仅打印状态 | 用户无法运行产品流程 | Phase 5 |
-| TD-015 | P2 | 无黄金文件和版本迁移样本 | 协议/schema 漂移难发现 | Phase 1 |
-| TD-016 | P2 | ProtocolError 分类较粗 | UI 无法给出稳定的故障指导 | Phase 1 建立错误层级 |
+| TD-015 | CLOSED | CRC vectors、AFE wire records、预期 model JSON 和非法输入错误家族均已冻结 | 文件兼容性已有 host regression 保护 | 未来 schema 变化必须添加迁移样本 |
+| TD-016 | CLOSED | 正式包已建立 Validation、Protocol、Framing、CRC、版本、Capability 和 Configuration 错误层级；旧协议入口已删除 | UI/CLI 已有稳定捕获边界 | 证据见 `reports/software-phase1-step2.md` 和 Step 8 closure |
 | TD-017 | P3 | 采购和控制器选择文档仍包含软件转向前候选 | 可能误读为立即采购指令 | 保留历史；采购前由新规划重新冻结 |
 | TD-018 | P0 | 所有硬件性能仍未验证 | 错误成果声明会损害可信度和安全 | 持续保持 `VERIFIED_BENCH=0`，直到真实台架阶段 |
+| TD-019 | CLOSED | `validation-config.v1` 已使用不可执行的严格 JSON，限制文件大小，并对 profile、通道、单位、超时、来源和输出边界执行分层验证 | 配置不再依赖任意 Python 代码；adapter I/O 仍属后续阶段 | 证据见 `reports/software-phase1-step7.md` |
 
 关闭技术债时必须记录对应代码、测试、文档和验证报告，不能只从表格删除。
