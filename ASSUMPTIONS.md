@@ -9,10 +9,10 @@ Nothing in this file is evidence that hardware exists, is wired, or has passed a
 - **OPEN:** Choose TI MSP430 Clang or another supported compiler; record exact compiler and linker versions.
 - **OPEN:** Confirm whether MSP430Ware/DriverLib will be used and pin its version.
 - **OPEN:** Confirm the LaunchPad debug probe firmware is current and the board can be programmed with a known-good example.
-- **OPEN:** Identify the backchannel UART COM port and confirm 115200 8N1 operation.
+- **CONFIRMED FOR PASSIVE STEP 7 ONLY:** Windows identified `MSP Application UART1 (COM4)` and `MSP Debug Interface (COM5)`; this repository opened only COM4 at 115200 8N1 and received five consecutive CRC-valid TEL records with zero application writes. Exact current firmware, control-line electrical behavior, and future AFE wiring remain unconfirmed.
 - **OPEN:** Compare the future `board_pins.h` map with the independent MSP430 Equipment Health Controller before connecting the projects.
 
-Phase 0 host code assumes Python 3.10+ and uses only the standard library; pytest is needed only for tests.
+The formal core assumes Python 3.10+ and uses only the standard library. Pytest is needed for tests; pyserial is an optional `[serial]` extra and is not required for simulation, replay, analysis, or core imports.
 
 ## Parts actually on hand
 

@@ -8,6 +8,14 @@ Golden compatibility data:
 - `golden/afe_v1_valid.csv` freezes 20 valid AFE v1 wire records;
 - `golden/afe_v1_invalid.csv` stores Base64-encoded rejected records and their expected error families;
 - `golden/expected_frames.json` freezes the model meaning of every valid wire record.
+- `golden/profile_neutral_envelope_v1.json` freezes AFE-shaped and MSP430-shaped
+  token/CRC records at the envelope layer only. It does not claim MSP430 business
+  parsing, serial I/O, or hardware validation.
+- `golden/msp430_equipment_health_v1.json` freezes 10 valid and 11 invalid
+  repository-owned business-profile records derived from the peer product's
+  public UART Protocol v1 contract at commit `151fdcfa60661bce1ba04af13c1d3509706f7d4a`;
+  its scope explicitly excludes peer runtime code, serial I/O, and inherited
+  hardware evidence.
 - `golden/csv_replay_v1_valid.csv` freezes five complete Replay v1 records and an explicit END count;
 - `golden/csv_replay_v1_invalid.json` freezes rejected schema/semantic mutations and their stable error families.
 - `golden/phase2_public_api.json` freezes Phase 2 imports, schemas, enums, signature shapes, error bases, and replay hashes;
@@ -16,5 +24,12 @@ Golden compatibility data:
 - `golden/phase3_dc_sweep_input_v1.json` is a fixed `SYNTHETIC` DC input whose accepted points have gain 2 and offset 12 mV while one point is explicitly high-saturation excluded;
 - `golden/phase3_dc_sweep_result_v1.json` freezes the exact structured DC result for that input;
 - `golden/phase3_hysteresis_result_v1.json` freezes an exact `SYNTHETIC` result with 1750 mV rising threshold, 1550 mV falling threshold, and 200 mV width.
+- `golden/phase4_public_api.json` freezes seven Phase 4 namespaces, schemas,
+  profile identities, enums, signatures, error bases, and protocol/composite
+  fixture hashes.
+- `golden/phase4_composite_v1.json` freezes exact AFE and MSP430 in-memory
+  external-backend → SerialSession → profile → receive-only SerialAdapter →
+  ReadWorkflow results, including sequence wrap, CRC rejection, sentinels,
+  provenance, and no-write behavior.
 
 These files verify host-software compatibility only. They are not measurements and carry no BENCH evidence claim.

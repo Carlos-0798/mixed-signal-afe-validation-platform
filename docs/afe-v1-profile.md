@@ -130,14 +130,15 @@ AFE v1 将 numeric index 映射为：
 
 ## 7. 当前限制
 
-- 没有串口 transport、超时、重试或 sequence tracker；
-- capability 多记录收集目前是纯函数，不处理真实异步到达；
+- Software Phase 4 Step 4 已提供 host-tested `AfeV1SerialProfile`、16-bit TEL continuity、capability 多记录状态收集和 raw outcome mapping；
+- Step 6 已实现 receive-only `SerialAdapter` 和显式 capability projection，但尚无具体 OS/pyserial backend 或真实异步 COM/HIL 证据；
+- profile-native capability snapshot 继续使用冻结的 `adcN/dacN/pwmN/dinN` wire vocabulary；Step 6 adapter 将其显式投影到 `afe.chN.input/dac/pwm/threshold`，保留 native snapshot 且不允许 command escalation；
 - 没有 ACK/NACK message；
 - 没有冻结 fault-bit assignment；
 - 没有固件实现或 controller contract test；
-- 合成工具已经迁移到正式 AFE v1 API，但完整 SimulatorAdapter 属于 Phase 2；
+- 合成工具、SimulatorAdapter 和 CSV Replay 属于独立正式软件路径，不证明 serial/HIL；
 - 所有范围都来自测试 fixture，不是硬件安全证据。
 
 ## 8. 证据边界
 
-AFE v1 单元测试、20 条合法黄金消息、9 类非法黄金消息和 100 帧确定性集成流水线验证 Python model、编码、解析、映射和错误分类。它们不能证明 UART 电气、固件 parser、ADC/DAC、AFE 电压范围、safe shutdown 时序或任何实物性能。
+AFE v1 单元测试、20 条合法黄金消息、9 类非法黄金消息、100 帧确定性流水线和 Step 4 memory-serial profile chain 验证 Python model、编码、解析、canonical mapping、16-bit continuity、capability aggregation 和错误分类。全部历史 golden records 已通过新 profile path。它们不能证明 OS serial、UART 电气、固件 parser、ADC/DAC、AFE 电压范围、safe shutdown 时序或任何实物性能。

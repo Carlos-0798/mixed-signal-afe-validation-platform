@@ -1,0 +1,29 @@
+{
+  "schema_version": "profile-neutral-envelope-golden.v1",
+  "evidence_source": "HOST_TEST",
+  "scope": "CRC envelope compatibility only; no business-field parsing, serial I/O, or hardware validation",
+  "interface_references": {
+    "afe": "afe.v1",
+    "msp430": "msp430-equipment-health UART Protocol v1 at 151fdcfa60661bce1ba04af13c1d3509706f7d4a"
+  },
+  "records": [
+    {
+      "name": "afe_wrapper_shape",
+      "profile_context": "afe.v1",
+      "fields": ["AFE", "1", "TEL", "120", "45120", "0", "500", "2487", "4974", "1", "0000"],
+      "record": "AFE,1,TEL,120,45120,0,500,2487,4974,1,0000,D312\n"
+    },
+    {
+      "name": "msp430_unavailable_telemetry_shape",
+      "profile_context": "msp430-equipment-health.v1",
+      "fields": ["TEL", "1", "1000", "-32768", "-32768", "0", "0", "0", "0", "FAULT", "0015"],
+      "record": "TEL,1,1000,-32768,-32768,0,0,0,0,FAULT,0015,80FC\n"
+    },
+    {
+      "name": "msp430_status_shape",
+      "profile_context": "msp430-equipment-health.v1",
+      "fields": ["STS", "42", "9000", "AUTO", "0", "NORMAL", "0000"],
+      "record": "STS,42,9000,AUTO,0,NORMAL,0000,7836\n"
+    }
+  ]
+}

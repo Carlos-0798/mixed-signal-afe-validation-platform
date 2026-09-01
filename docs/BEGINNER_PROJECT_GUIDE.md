@@ -1,6 +1,6 @@
 # 初学者项目启动指南
 
-更新时间：2026-08-29
+更新时间：2026-08-31
 
 ## 1. 我们究竟要做什么
 
@@ -30,7 +30,9 @@
 
 ## 2. 当前真实状态
 
-Phase 0 已建立仓库、理论计算、理想化 LTspice 网表、通信协议、合成数据工具和 Python 测试。它证明了设计与软件骨架可以继续推进，**没有证明任何真实硬件已经工作**。
+软件路线的 Phases 0–4 已完成：仓库、理论与理想仿真、版本化协议/数据模型、模拟器与 CSV 回放、分析与结果导出、串口 transport、独立 AFE/MSP430 profiles、receive-only adapter、可选 pyserial 边界，以及公开接口/复合结果冻结均已有可重复测试。当前完整软件门禁为 1,526 项测试和 7,325/7,325 package statements。Step 7 另有一次五帧、零应用写入的 MSP430 UART 兼容记录，但它不证明外部传感器、风扇、接线或 AFE 性能。
+
+硬件路线仍停留在准备阶段：AFE 尚未采购、搭建或测量。因此“软件 Phase 4 完成”和“硬件仍未验证”可以同时成立，二者不是矛盾。下一软件阶段将先规划 CLI、serial worker、Dashboard、图表和人类可读报告；下面的 Phase 1–6 表格描述的是未来硬件路线。
 
 进入 Phase 1 前，需要同时满足四个条件：
 
@@ -85,7 +87,9 @@ python -m venv .venv
 ### 4.2 暂缓安装
 
 - **Code Composer Studio**：只用于未来 MSP430 兼容 profile；软件产品核心不依赖 CCS。
-- **串口终端和 pyserial**：Software Phase 4 开始真实串口适配时再安装。
+- **串口终端和 pyserial**：正式核心和默认测试不需要。Step 7 已通过可选
+  `[serial]` extra 安装 pyserial 3.5，并仅用于 owner-approved、零应用写入的
+  COM4 HIL；新环境只有需要真实端口时才安装。
 - **KiCad 10**：Phase 6 再安装；现在画 PCB 会把尚未验证的接线固化。
 - **MSP430 GCC 独立工具链**：CCS 路线无法满足需求时再评估。
 - **Labrador 软件/驱动**：只有确认购买并确认 Windows 11 兼容性后安装。

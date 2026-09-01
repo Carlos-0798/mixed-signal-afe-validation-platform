@@ -85,3 +85,78 @@ Software Phase 2 Step 5 adds a separate replay family so malformed local dataset
 Software Phase 2 Step 6 adds `ReplayEndOfData` so normal replay completion is distinguishable from a malformed file, adapter state error, or unexpected I/O failure. Pause remains an `AdapterStateError` because data still exists but reads are temporarily disallowed.
 
 These error types describe software behavior only. They do not certify hardware ranges, wiring safety, communication reliability, or physical measurements.
+
+## Phase 4 transport-local errors
+
+Software Phase 4 Step 3 adds a separate family exported from
+`analog_validation.transport`. Keeping it in the transport namespace preserves
+the frozen Phase 1–3 top-level API while still making every error a subclass of
+`AnalogValidationError`:
+
+```text
+AnalogValidationError
+├── SerialTransportError
+│   ├── SerialStateError
+│   ├── SerialDiscoveryError
+│   ├── SerialOpenError
+│   ├── SerialReadError
+│   ├── SerialCloseError
+│   ├── SerialReconnectError
+│   ├── SerialBackendTimeout
+│   └── SerialBackendDisconnected
+└── RawEventError
+    ├── RawEventLimitError
+    └── RawEventNotFound
+```
+
+`SerialBackendTimeout` is handled as a normal no-data poll outcome;
+`SerialBackendDisconnected` triggers bounded reconnect processing. They are
+control signals from a replaceable backend, not evidence that a physical port
+was tested. Backend exception details remain available through Python exception
+chaining but are not copied automatically into persistent or user-visible raw
+records.
+
+See [serial transport and raw-event boundary](serial-transport.md) for the
+lifecycle, retry, privacy, and resource-limit contract.
+
+## Phase 4 profile-local errors
+
+Software Phase 4 Step 4 adds `SerialProfileError` and
+`SerialProfileStateError` under `analog_validation.profiles`. They describe a
+wrong selected identity, mismatched/stale raw event, invalid result contract, or
+unsupported evidence-source use. Expected wire problems remain the existing
+`ProtocolError` family and are recorded as `REJECTED`; programming/profile-state
+problems propagate instead of being mislabeled as bad device input. If raw-log
+finalization fails, prior profile state is restored and the raw-log error
+propagates.
+
+Step 5 reuses the same split for the independent MSP430 profile. CRC, framing,
+field count/type/range, unknown TEL state, and unsupported device-record family
+are `ProtocolError` outcomes retained as raw `REJECTED` events. Wrong profile,
+stale event/log, mapping-contract failure, and outcome-storage failure remain
+profile/program state errors and are not presented as device faults. The wire
+`fault_flags` field is device telemetry data, not a Python exception family.
+
+See [serial profiles and independent AFE/MSP430 integrations](serial-profiles.md).
+
+## Phase 4 SerialAdapter error translation
+
+Software Phase 4 Step 6 keeps transport/profile details below the existing
+`DeviceAdapter` public boundary:
+
+- session open, close, fatal poll, and visible reconnect boundaries become
+  `AdapterConnectionError` with the original transport exception chained;
+- bounded poll exhaustion, invalid/changing capabilities, projector failure,
+  invalid profile output, evidence mismatch, and measurement-buffer overflow
+  become `AdapterDataError`;
+- unsupported channels or commands continue to use the existing
+  `CapabilityError` preflight rather than being mislabeled as communication
+  failures;
+- expected bad wire records remain raw `REJECTED` events and polling can
+  continue within the configured finite budget.
+
+A successful low-level reconnect is not hidden as a successful read. The
+adapter clears buffered Measurements and capability trust, returns to
+`CONNECTED_READ_ONLY`, and raises a visible connection error so the caller must
+confirm capabilities again. These behaviors are HOST_TEST results from an
+in-memory backend, not OS/UART reliability claims.

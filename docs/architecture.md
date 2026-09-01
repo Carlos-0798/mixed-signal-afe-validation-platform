@@ -11,7 +11,7 @@ Independent AFE Base Unit
 ```
 
 ```text
-Simulator / CSV Replay / future Serial / Instrument
+Simulator / CSV Replay / receive-only Serial / future Instrument
             |
             v
  analog_validation.adapters  ---> lifecycle / capability / safety port
@@ -57,4 +57,14 @@ Step 7 adds `analog_validation.workflows` above the adapter port. `run_read_work
 
 Step 8 freezes the Phase 2 boundary through machine-readable exports/schema/enum/signature/error/hash data and exact Simulator/CSV/UNSUPPORTED workflow results. The freeze protects callers and future Phase 3 runners from accidental API or meaning drift while keeping internal implementation replaceable. See `phase2-public-api.md`.
 
-Hardware, reference-controller firmware, integration profiles, and host tools are separate boundaries. Firmware remains a later-phase placeholder. Public integration with the independent MSP430 project is one future supported profile, limited to documented protocol and electrical interfaces; no application code, ownership, or product identity is shared. See `PRODUCT_ARCHITECTURE.md`.
+Software Phase 4 Steps 1–7 add lower communication and receive-only composition boundaries without changing the frozen Phase 1–3 public surface. `analog_validation.transport` turns arbitrary bounded byte chunks into complete LF records, tracks profile-selected sequence widths, defines a replaceable serial backend port, owns the deterministic lifecycle, and retains bounded raw outcomes. `analog_validation.protocol.envelope` validates printable tokens, terminators, record length, and CRC without assuming a namespace; the existing AFE `framing.py` delegates to it and adds only the historical `AFE` shape requirement. A versioned `afe-channel-map.v1` provides explicit legacy-to-canonical channel conversion. `analog_validation.profiles` defines the controller-neutral profile port with two independent implementations: AFE telemetry uses 16-bit continuity and canonical Measurement names while its capability records use transaction correlation; MSP430 Equipment Health telemetry uses 32-bit continuity, preserves raw sentinels/faults, maps unavailable values to missing/invalid records, and exposes a static read-only capability contract. `analog_validation.serial_adapters` composes a session/profile pair behind `DeviceAdapter`, while separate optional `analog_validation_pyserial` implements only OS discovery/open/read/close. The Step 6 adapter and Step 7 backend expose no write API or command escape hatch. Transport cannot import profiles, profiles cannot import adapters or higher layers, `serial_adapters` cannot import pyserial or higher layers, and the optional backend cannot import profiles/adapters/workflows/analysis/runners/exports. Step 7 opened COM4 only for the reported five-frame passive HIL; it did not establish AFE or peripheral behavior. See `serial-profiles.md` and `pyserial-backend.md`.
+
+Software Phase 4 Step 8 freezes these boundaries in
+`phase4-public-api-golden.v1` and `phase4-composite-golden.v1`. Seven namespaces,
+their schemas/identities/enums/signatures/errors, and exact AFE/MSP430
+external-backend product chains are checked without requiring inheritance from
+an internal backend class. This protects extension points while keeping the
+Step 7 physical UART evidence separate from deterministic HOST_TEST results.
+See `phase4-public-api.md`.
+
+Hardware, reference-controller firmware, integration profiles, and host tools are separate boundaries. Firmware remains a later-phase placeholder. Public integration with the independent MSP430 project now includes one host-tested read-only profile/adapter and one narrow Analog-owned passive UART HIL through the optional OS backend. Exact firmware, long-duration transport, physical disconnect recovery, external peripherals, the AFE electrical interface, application code, ownership, and product identity are not shared or inferred. See `PRODUCT_ARCHITECTURE.md`.

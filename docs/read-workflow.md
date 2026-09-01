@@ -1,16 +1,16 @@
 # Shared Read Workflow
 
 **Schema:** `read-workflow.v1`  
-**Current evidence:** HOST_TEST / SYNTHETIC / CSV_REPLAY  
-**Hardware validation:** none
+**Current evidence:** HOST_TEST / SYNTHETIC / CSV_REPLAY / narrow BENCH_CONTROLLER UART capture<br>
+**AFE hardware validation:** none
 
-Software Phase 2 Step 7 adds one read-only application workflow above `DeviceAdapter`. Simulator and CSV Replay now receive the same immutable request and execute through the same `run_read_workflow` function.
+Software Phase 2 Step 7 adds one read-only application workflow above `DeviceAdapter`. Simulator and CSV Replay receive the same immutable request and execute through the same `run_read_workflow` function. Software Phase 4 Step 6 proves that explicitly configured AFE and MSP430 serial profiles can enter the unchanged workflow through the receive-only `SerialAdapter`; Step 7 sends one physical MSP430 UART capture through that same function without changing its API.
 
 ## Why this layer exists
 
 An analysis runner should ask for “two mV samples from this analog channel” rather than contain branches such as “if Simulator do this, if CSV do that, if MSP430 do something else.” The adapter handles where data comes from; the workflow handles a complete acquisition attempt.
 
-This separation lets future Serial, MSP430, and instrument adapters join the product by satisfying the public adapter contract. The upper workflow and later analysis do not need board registers, file columns, COM-port details, or vendor SDK calls.
+This separation lets future serial and instrument adapters join the product by satisfying the public adapter contract. A serial adapter may use the existing AFE or MSP430 profile without exposing device fields to the workflow. The upper workflow and later analysis do not need board registers, file columns, COM-port details, or vendor SDK calls.
 
 ## Versioned request
 
@@ -103,14 +103,35 @@ assert len(result.measurements) == 4
 assert not any(item.is_bench_evidence for item in result.measurements)
 ```
 
-The identical request can be passed to a CsvReplayAdapter that advertises matching channels and units.
+The identical request can be passed to a CsvReplayAdapter or receive-only SerialAdapter that advertises matching channels and units.
 
 Software Phase 2 Step 8 freezes this API shape and one complete Simulator/CSV/UNSUPPORTED behavior set in `phase2_public_api.json` and `phase2_workflow_v1.json`. Future intentional breaking changes require a new schema/API version and migration notes rather than silently rewriting these files.
+
+## Phase 4 serial composition
+
+Step 6 does not add profile branches to this workflow. Instead, the adapter
+projects profile-native capabilities before the existing atomic preflight:
+
+- AFE `adcN` and `dinN` become `afe.chN.input` and
+  `afe.chN.threshold`; two scripted telemetry records can therefore satisfy one
+  analog/two-sample and one digital/two-sample request while retaining the raw
+  event IDs from which all four Measurements were derived;
+- MSP430 static channels enter the same analog request path; unavailable
+  temperature or INA219 values remain `value=None` and `INVALID`, rather than
+  becoming false zeros or a workflow failure;
+- every serial Measurement keeps the profile's explicitly configured evidence
+  source. Step 6 uses only `HOST_TEST`.
+
+The returned `ReadWorkflowResult` is structured and preserves capability,
+measurement, request, source, and limitation lineage for later exports. Step 6
+does not add a new file exporter or claim that a `COMPLETED` read is an
+engineering PASS.
 
 ## Current boundary
 
 - no output stimulus is requested or authorized;
 - no analysis, calibration, limit evaluation, or PASS/FAIL is performed;
-- no serial port, board SDK, controller, instrument, or physical AFE is used;
+- the Phase 4 serial path uses only an in-memory backend; no OS serial port,
+  board SDK, instrument, or physical AFE is used;
 - software fixture ranges are not validated electrical limits;
 - `SYNTHETIC` and `CSV_REPLAY` remain non-bench evidence.

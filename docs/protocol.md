@@ -2,7 +2,7 @@
 
 This is the current public protocol summary. The only supported AFE business profile is versioned `AFE,1,...`; the Phase 0 unversioned façade was retired at the end of Software Phase 1.
 
-Detailed field and capability semantics are defined in [AFE v1 Profile](afe-v1-profile.md). CRC and envelope behavior are defined in [CRC and Framing Core](framing-and-crc.md).
+Detailed field and capability semantics are defined in [AFE v1 Profile](afe-v1-profile.md). CRC and envelope behavior are defined in [CRC and Framing Core](framing-and-crc.md), and legacy/canonical channel names are defined in [AFE Channel Naming Mapping v1](afe-channel-mapping.md).
 
 ## Transport target
 
@@ -10,7 +10,7 @@ Detailed field and capability semantics are defined in [AFE v1 Profile](afe-v1-p
 - encoding: printable 7-bit ASCII;
 - record terminator: LF; CRLF is accepted on input;
 - maximum serialized record: 128 bytes including the terminator;
-- namespace: every payload begins with `AFE`;
+- AFE namespace: every AFE business payload begins with `AFE`;
 - restricted CSV: no quoting, embedded commas, or embedded whitespace on the wire.
 
 These are software protocol definitions. No physical UART link or baud-rate tolerance has been verified.
@@ -55,8 +55,8 @@ The synthetic stream is labeled `SYNTHETIC`; its derived Measurements are explic
 
 A complete record is rejected for non-ASCII data, excessive length, invalid namespace/version/type, missing or extra fields, invalid tokens, malformed CRC/fault fields, CRC mismatch, unknown enum/command/capability bits, or out-of-range values.
 
-Real serial streaming still requires a bounded state machine for fragmentation, coalescing, timeouts, sequence loss, and recovery after an overlong frame. That work belongs to Software Phase 4 and is not implied by the single-record parser.
+Software Phase 4 Steps 1–7 now provide a profile-neutral bounded byte-stream state machine, a namespace-neutral ASCII token/CRC envelope, a driver-neutral lifecycle, bounded raw events, independent AFE v1 plus read-only MSP430 Equipment Health v1 serial profiles, one receive-only SerialAdapter, and a separately packaged optional pyserial backend. The existing AFE framing API is a compatibility wrapper over the neutral envelope. All 20 valid plus 9 invalid AFE cases retain their exact contracts; 10 valid plus 11 invalid repository-owned MSP430 fixtures freeze its separate `TEL/ACK/STS/CFG/LOG`, 32-bit sequence, sentinel/fault, CRC, field, state, and limit behavior. A five-frame passive COM4 HIL now supports only MSP430 UART/profile compatibility; the two business protocols remain distinct and the AFE is unverified.
 
 ## Independence boundary
 
-The protocol belongs to the independent AFE validation product, not to MSP430, STM32, RP2040, or any particular instrument. MSP430 Equipment Health Controller compatibility will use a separate future profile/adapter and will not change AFE v1 semantics.
+The AFE protocol belongs to the independent AFE validation product, not to MSP430, STM32, RP2040, or any particular instrument. MSP430 Equipment Health Controller compatibility uses its own read-only v1 profile and does not change AFE v1 semantics; the future live adapter and HIL work will consume that separate profile rather than merge the products.

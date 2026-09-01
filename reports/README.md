@@ -2,8 +2,16 @@
 
 No hardware validation report exists. Reports must preserve the evidence labels defined in `docs/test-plan.md`.
 
-Host-only software reports:
+Software checkpoint reports (each report states its own evidence level):
 
+- `software-phase4-step8.md` — Software Phase 4 closure: public API/composite golden freeze, full regression, isolated build, base/serial external installs, phase exit criteria, and strict separation of Step 7 UART evidence from AFE/peripheral claims.
+- `software-phase4-step7.md` — optional pyserial backend, base/serial external installs, repository-owned receive-only COM4 HIL, CRC/sequence/uptime/fault evidence, legacy-HB classification, zero-write proof, and exact-firmware/AFE limitations. This report includes narrow `BENCH_CONTROLLER` evidence and is not a physical AFE report.
+- `software-phase4-step6.md` — receive-only SerialAdapter composition, explicit AFE capability projection, AFE/MSP shared adapter/workflow contracts, bounded failure/reconnect behavior, zero-write runner degradation, package/install evidence, and no-COM boundary.
+- `software-phase4-step5.md` — independent read-only MSP430 Equipment Health v1 profile, frozen peer-interface reference, repository-owned fixtures, sentinel/fault mapping, 32-bit continuity, build/install evidence, and no-COM boundary.
+- `software-phase4-step4.md` — generic serial-profile contract, independent AFE v1 integration, canonical telemetry, capability/sequence semantics, golden migration, build/install evidence, and hardware limits.
+- `software-phase4-step3.md` — driver-neutral serial lifecycle, finite reconnect, bounded memory-only raw events, failure injection, build/install evidence, and real-port limits.
+- `software-phase4-step2.md` — namespace-neutral CRC envelope, frozen AFE wrapper compatibility, explicit channel mapping, composite stream path, build/install verification, and hardware limits.
+- `software-phase4-step1.md` — profile-neutral bounded byte stream, modular sequence tracking, package verification, and serial/hardware evidence limits.
 - `software-phase3-step8.md` — Software Phase 3 closure: public API and exact result golden freeze, full regression, external install, exit criteria, and remaining boundaries.
 - `software-phase3-step7.md` — versioned result bundle, deterministic JSON/CSV, safe file publication, typed builders, and executed Step 7 verification.
 - `software-phase3-step6.md` — immutable linear calibration, derived-record lineage, offline frequency response, cutoff semantics, packaging verification, and evidence limits.

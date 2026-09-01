@@ -1,0 +1,729 @@
+{
+  "enum_members": {
+    "AfeChannelNaming": [
+      [
+        "CANONICAL",
+        "CANONICAL"
+      ],
+      [
+        "LEGACY_TELEMETRY_V1",
+        "LEGACY_TELEMETRY_V1"
+      ]
+    ],
+    "AfeChannelRole": [
+      [
+        "INPUT",
+        "INPUT"
+      ],
+      [
+        "OUTPUT",
+        "OUTPUT"
+      ],
+      [
+        "GAIN",
+        "GAIN"
+      ],
+      [
+        "THRESHOLD",
+        "THRESHOLD"
+      ]
+    ],
+    "Msp430ControlMode": [
+      [
+        "AUTO",
+        "AUTO"
+      ],
+      [
+        "MANUAL",
+        "MANUAL"
+      ]
+    ],
+    "Msp430DeviceState": [
+      [
+        "BOOT",
+        "BOOT"
+      ],
+      [
+        "INIT",
+        "INIT"
+      ],
+      [
+        "NORMAL",
+        "NORMAL"
+      ],
+      [
+        "COOLING_LOW",
+        "COOLING_LOW"
+      ],
+      [
+        "COOLING_HIGH",
+        "COOLING_HIGH"
+      ],
+      [
+        "WARNING",
+        "WARNING"
+      ],
+      [
+        "FAULT",
+        "FAULT"
+      ]
+    ],
+    "Msp430Fault": [
+      [
+        "DS18B20_MISSING",
+        1
+      ],
+      [
+        "DS18B20_CRC",
+        2
+      ],
+      [
+        "NTC_RANGE",
+        4
+      ],
+      [
+        "SENSOR_DISAGREE",
+        8
+      ],
+      [
+        "INA219_COMM",
+        16
+      ],
+      [
+        "FAN_NO_CURRENT",
+        32
+      ],
+      [
+        "FAN_OVERCURRENT",
+        64
+      ],
+      [
+        "OVERTEMP_WARNING",
+        128
+      ],
+      [
+        "OVERTEMP_CRITICAL",
+        256
+      ],
+      [
+        "CONFIG_CRC",
+        512
+      ],
+      [
+        "WATCHDOG_RESET",
+        1024
+      ],
+      [
+        "UART_PROTOCOL",
+        2048
+      ]
+    ],
+    "RawRecordStatus": [
+      [
+        "PENDING_PROFILE",
+        "PENDING_PROFILE"
+      ],
+      [
+        "PARSED",
+        "PARSED"
+      ],
+      [
+        "REJECTED",
+        "REJECTED"
+      ]
+    ],
+    "SequenceDisposition": [
+      [
+        "FIRST",
+        "FIRST"
+      ],
+      [
+        "IN_ORDER",
+        "IN_ORDER"
+      ],
+      [
+        "GAP",
+        "GAP"
+      ],
+      [
+        "DUPLICATE",
+        "DUPLICATE"
+      ],
+      [
+        "OUT_OF_ORDER",
+        "OUT_OF_ORDER"
+      ]
+    ],
+    "SerialParity": [
+      [
+        "NONE",
+        "NONE"
+      ],
+      [
+        "EVEN",
+        "EVEN"
+      ],
+      [
+        "ODD",
+        "ODD"
+      ]
+    ],
+    "SerialPollStatus": [
+      [
+        "DATA",
+        "DATA"
+      ],
+      [
+        "TIMEOUT",
+        "TIMEOUT"
+      ],
+      [
+        "RECONNECTED",
+        "RECONNECTED"
+      ]
+    ],
+    "SerialSessionState": [
+      [
+        "CLOSED",
+        "CLOSED"
+      ],
+      [
+        "OPEN",
+        "OPEN"
+      ]
+    ],
+    "SerialStopBits": [
+      [
+        "ONE",
+        "ONE"
+      ],
+      [
+        "ONE_POINT_FIVE",
+        "ONE_POINT_FIVE"
+      ],
+      [
+        "TWO",
+        "TWO"
+      ]
+    ],
+    "StreamIssueKind": [
+      [
+        "OVERLONG_RECORD",
+        "OVERLONG_RECORD"
+      ]
+    ]
+  },
+  "error_bases": {
+    "PySerialBackendError": "AnalogValidationError",
+    "PySerialBackendStateError": "PySerialBackendError",
+    "PySerialUnavailableError": "PySerialBackendError",
+    "RawEventError": "AnalogValidationError",
+    "RawEventLimitError": "RawEventError",
+    "RawEventNotFound": "RawEventError",
+    "SerialBackendDisconnected": "SerialTransportError",
+    "SerialBackendTimeout": "SerialTransportError",
+    "SerialCloseError": "SerialTransportError",
+    "SerialDiscoveryError": "SerialTransportError",
+    "SerialOpenError": "SerialTransportError",
+    "SerialProfileError": "AnalogValidationError",
+    "SerialProfileStateError": "SerialProfileError",
+    "SerialReadError": "SerialTransportError",
+    "SerialReconnectError": "SerialTransportError",
+    "SerialStateError": "SerialTransportError",
+    "SerialTransportError": "AnalogValidationError"
+  },
+  "evidence_source": "HOST_TEST",
+  "golden_sha256": {
+    "afe_v1_invalid.csv": "cd480cf37d07ddfdda0e8d4686411418bbf5d301265ddf06c74258be19f9fbd6",
+    "afe_v1_valid.csv": "a1875a35c20241b277890ddb5af3ec25c7e977c6c91ce295e5502ae89e229095",
+    "msp430_equipment_health_v1.json": "779e434ffbd7c052723b5069aa34ccafb569826312c24108381ba3ff54488516",
+    "phase4_composite_v1.json": "9059a4fd1abff086c0f633dab2d17a07467966c1617aa830868245ed16cad1e5",
+    "profile_neutral_envelope_v1.json": "2fc6b57b79afe1bbb328f8e3983f0a6856920922823cbdff7c126423b31e1762"
+  },
+  "module_exports": {
+    "analog_validation.profiles": [
+      "AFE_V1_SEQUENCE_BITS",
+      "AFE_V1_SERIAL_IDENTITY",
+      "AfeV1SerialProfile",
+      "MAX_PROFILE_IDENTITY_CHARS",
+      "MSP430_HEALTH_V1_SEQUENCE_BITS",
+      "MSP430_HEALTH_V1_SERIAL_IDENTITY",
+      "Msp430HealthV1SerialProfile",
+      "SERIAL_PROFILE_SCHEMA_VERSION",
+      "SerialProfile",
+      "SerialProfileError",
+      "SerialProfileIdentity",
+      "SerialProfileRecord",
+      "SerialProfileResetResult",
+      "SerialProfileStateError"
+    ],
+    "analog_validation.protocol.afe_channels": [
+      "AFE_CHANNEL_MAPPING_SCHEMA_VERSION",
+      "AfeChannelNaming",
+      "AfeChannelReference",
+      "AfeChannelRole",
+      "convert_afe_channel",
+      "format_afe_channel",
+      "parse_afe_channel"
+    ],
+    "analog_validation.protocol.envelope": [
+      "CrcEnvelope",
+      "DEFAULT_MAX_RECORD_BYTES",
+      "decode_crc_envelope",
+      "encode_crc_envelope"
+    ],
+    "analog_validation.protocol.msp430_health_v1": [
+      "MSP430_HEALTH_CHANNEL_BUS_VOLTAGE",
+      "MSP430_HEALTH_CHANNEL_CURRENT",
+      "MSP430_HEALTH_CHANNEL_FAN_PWM",
+      "MSP430_HEALTH_CHANNEL_TEMPERATURE_DS",
+      "MSP430_HEALTH_CHANNEL_TEMPERATURE_NTC",
+      "MSP430_HEALTH_INTERFACE_COMMIT",
+      "MSP430_HEALTH_KNOWN_FAULT_MASK",
+      "MSP430_HEALTH_MAX_RECORD_BYTES",
+      "MSP430_HEALTH_PROFILE_NAME",
+      "MSP430_HEALTH_PROFILE_VERSION",
+      "MSP430_HEALTH_TEMPERATURE_UNAVAILABLE_DECI_C",
+      "MSP430_HEALTH_V1_READ_ONLY_CAPABILITIES",
+      "Msp430Ack",
+      "Msp430Config",
+      "Msp430ControlMode",
+      "Msp430DeviceState",
+      "Msp430Fault",
+      "Msp430LogRecord",
+      "Msp430Message",
+      "Msp430Status",
+      "Msp430Telemetry",
+      "encode_msp430_message",
+      "msp430_telemetry_to_measurements",
+      "parse_msp430_ack",
+      "parse_msp430_config",
+      "parse_msp430_log",
+      "parse_msp430_message",
+      "parse_msp430_status",
+      "parse_msp430_telemetry"
+    ],
+    "analog_validation.serial_adapters": [
+      "CapabilityProjector",
+      "DEFAULT_MAX_BUFFERED_MEASUREMENTS",
+      "DEFAULT_MAX_POLLS_PER_OPERATION",
+      "MAX_BUFFERED_MEASUREMENTS",
+      "MAX_POLLS_PER_OPERATION",
+      "SERIAL_ADAPTER_CONFIG_SCHEMA_VERSION",
+      "SerialAdapter",
+      "SerialAdapterConfig",
+      "project_afe_v1_read_only_capabilities",
+      "project_identity_read_only_capabilities"
+    ],
+    "analog_validation.transport": [
+      "BoundedLineFramer",
+      "BoundedRawEventLog",
+      "Clock",
+      "DEFAULT_BAUD_RATE",
+      "DEFAULT_MAX_RAW_EVENTS",
+      "DEFAULT_MAX_RAW_LOG_BYTES",
+      "DEFAULT_MAX_RECONNECT_ATTEMPTS",
+      "DEFAULT_READ_CHUNK_BYTES",
+      "DEFAULT_READ_TIMEOUT_SECONDS",
+      "MAX_BAUD_RATE",
+      "MAX_RAW_EVENTS",
+      "MAX_RAW_EVENT_BYTES",
+      "MAX_RAW_LOG_BYTES",
+      "MAX_RAW_METADATA_CHARS",
+      "MAX_RAW_RESULT_CHARS",
+      "MAX_READ_CHUNK_BYTES",
+      "MAX_READ_TIMEOUT_SECONDS",
+      "MAX_RECONNECT_ATTEMPTS",
+      "MAX_SEQUENCE_BITS",
+      "MAX_SERIAL_TEXT_CHARS",
+      "MIN_SEQUENCE_BITS",
+      "RAW_EVENT_PRIVACY_NOTICE",
+      "RawEventError",
+      "RawEventLimitError",
+      "RawEventNotFound",
+      "RawEventSnapshot",
+      "RawRecordEvent",
+      "RawRecordStatus",
+      "SequenceDisposition",
+      "SequenceObservation",
+      "SequenceTracker",
+      "SerialBackend",
+      "SerialBackendDisconnected",
+      "SerialBackendTimeout",
+      "SerialCloseError",
+      "SerialConnectionSettings",
+      "SerialDiscoveryError",
+      "SerialOpenError",
+      "SerialParity",
+      "SerialPollResult",
+      "SerialPollStatus",
+      "SerialPortInfo",
+      "SerialReadError",
+      "SerialReconnectError",
+      "SerialSession",
+      "SerialSessionState",
+      "SerialStateError",
+      "SerialStopBits",
+      "SerialTransportError",
+      "StreamFeedResult",
+      "StreamIssue",
+      "StreamIssueKind",
+      "StreamResetResult"
+    ],
+    "analog_validation_pyserial": [
+      "PySerialBackend",
+      "PySerialBackendError",
+      "PySerialBackendStateError",
+      "PySerialUnavailableError"
+    ]
+  },
+  "package_version": "0.1.0.dev0",
+  "schema_version": "phase4-public-api-golden.v1",
+  "schema_versions": {
+    "AFE_CHANNEL_MAPPING_SCHEMA_VERSION": "afe-channel-map.v1",
+    "SERIAL_ADAPTER_CONFIG_SCHEMA_VERSION": "serial-adapter-config.v1",
+    "SERIAL_PROFILE_SCHEMA_VERSION": "serial-profile.v1"
+  },
+  "signature_parameters": {
+    "AfeV1SerialProfile": [
+      [
+        "evidence_source",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "BoundedLineFramer": [
+      [
+        "max_record_bytes",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "BoundedRawEventLog": [
+      [
+        "max_events",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "max_total_bytes",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "Msp430HealthV1SerialProfile": [
+      [
+        "evidence_source",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "PySerialBackend": [
+      [
+        "driver",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "port_enumerator",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "SequenceTracker": [
+      [
+        "bits",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "SerialAdapter": [
+      [
+        "session",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "profile",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "config",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "capability_projector",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "SerialAdapterConfig": [
+      [
+        "profile_name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "profile_version",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "max_polls_per_operation",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "max_buffered_measurements",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "SerialConnectionSettings": [
+      [
+        "port_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "profile_name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "baud_rate",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "data_bits",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "parity",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "stop_bits",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "read_chunk_bytes",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "max_record_bytes",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "read_timeout_seconds",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "max_reconnect_attempts",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "SerialProfileIdentity": [
+      [
+        "name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "version",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "sequence_bits",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "max_record_bytes",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "SerialSession": [
+      [
+        "backend",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "settings",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "event_log",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "clock",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "convert_afe_channel": [
+      [
+        "channel_name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "source",
+        "KEYWORD_ONLY",
+        true
+      ],
+      [
+        "target",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "decode_crc_envelope": [
+      [
+        "record",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "max_record_bytes",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "encode_crc_envelope": [
+      [
+        "fields",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "max_record_bytes",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "encode_msp430_message": [
+      [
+        "message",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "format_afe_channel": [
+      [
+        "channel",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "role",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "naming",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "msp430_telemetry_to_measurements": [
+      [
+        "telemetry",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "received_at",
+        "KEYWORD_ONLY",
+        true
+      ],
+      [
+        "raw_record_id",
+        "KEYWORD_ONLY",
+        true
+      ],
+      [
+        "source",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "parse_afe_channel": [
+      [
+        "channel_name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "naming",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "parse_msp430_message": [
+      [
+        "record",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "project_afe_v1_read_only_capabilities": [
+      [
+        "capabilities",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "project_identity_read_only_capabilities": [
+      [
+        "capabilities",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ]
+  },
+  "stable_constants": {
+    "AFE_V1_SERIAL_IDENTITY": {
+      "max_record_bytes": 128,
+      "name": "afe",
+      "schema_version": "serial-profile.v1",
+      "sequence_bits": 16,
+      "version": "1"
+    },
+    "MSP430_HEALTH_INTERFACE_COMMIT": "151fdcfa60661bce1ba04af13c1d3509706f7d4a",
+    "MSP430_HEALTH_V1_SERIAL_IDENTITY": {
+      "max_record_bytes": 128,
+      "name": "msp430-equipment-health",
+      "schema_version": "serial-profile.v1",
+      "sequence_bits": 32,
+      "version": "1"
+    },
+    "RAW_EVENT_PRIVACY_NOTICE": "Raw records may contain device identifiers, configuration, or fault state. This bounded log is memory-only and is never persisted or uploaded automatically."
+  }
+}

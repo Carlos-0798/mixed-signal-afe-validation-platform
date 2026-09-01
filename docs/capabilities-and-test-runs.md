@@ -107,7 +107,9 @@ capabilities.require_automated_output(
 
 ## 5. 当前边界与后续步骤
 
-- AFE v1 已定义 capability 记录，但真实串口请求/响应仍属于 Software Phase 4。
+- AFE v1 capability 聚合和 receive-only adapter projection 已由内存 backend
+  完成 HOST_TEST；真实 OS 串口请求/响应仍属于 Software Phase 4 的后续 HIL
+  门禁。
 - Software Phase 2 Step 7 的共用读取工作流已在读取前检查命令、通道和单位，并实际返回 `UNSUPPORTED`；它不连接真实硬件。
 - 工作流的 `COMPLETED` 只表示采集齐全，不等同于 `TestRunOutcome.PASS`。Software Phase 3 Step 4 的独立 DC runner 已把受控采集接入 Step 3 evaluator；只有能力/范围/权限预检、完整采集和清理都成功后才可能得到 PASS/FAIL。
 - runner 对 capability 缺口返回零采集 `UNSUPPORTED`，对中止/EOF 返回 `INCOMPLETE`，对执行或 shutdown/disconnect 故障返回 `ERROR`；这些状态不能升级为 PASS。

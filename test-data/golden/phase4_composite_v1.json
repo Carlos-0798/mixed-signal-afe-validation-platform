@@ -1,0 +1,252 @@
+{
+  "afe": {
+    "backend": {
+      "close_calls": 1,
+      "has_write": false,
+      "is_open": false,
+      "open_calls": 1,
+      "read_calls": 1
+    },
+    "capabilities": {
+      "adc_channels": [
+        "afe.ch0.input"
+      ],
+      "device_id": "phase4-golden-afe",
+      "digital_input_channels": [
+        "afe.ch0.threshold"
+      ],
+      "profile_name": "afe",
+      "profile_version": "1",
+      "supported_commands": [
+        "READ_DIGITAL_STATE",
+        "READ_MEASUREMENT"
+      ],
+      "supports_safe_shutdown": false
+    },
+    "evidence_source": "HOST_TEST",
+    "measurements": [
+      {
+        "channel": "afe.ch0.input",
+        "quality_flags": [],
+        "raw_record_id": "serial-20260831T120000000000Z-5",
+        "record_id": "serial-20260831T120000000000Z-5:input_mv",
+        "source": "HOST_TEST",
+        "status": "VALID",
+        "timestamp_utc": "2026-08-31T12:00:00Z",
+        "unit": "mV",
+        "value": 400.0
+      },
+      {
+        "channel": "afe.ch0.input",
+        "quality_flags": [],
+        "raw_record_id": "serial-20260831T120000000000Z-6",
+        "record_id": "serial-20260831T120000000000Z-6:input_mv",
+        "source": "HOST_TEST",
+        "status": "VALID",
+        "timestamp_utc": "2026-08-31T12:00:00Z",
+        "unit": "mV",
+        "value": 700.0
+      },
+      {
+        "channel": "afe.ch0.threshold",
+        "quality_flags": [],
+        "raw_record_id": "serial-20260831T120000000000Z-5",
+        "record_id": "serial-20260831T120000000000Z-5:threshold",
+        "source": "HOST_TEST",
+        "status": "VALID",
+        "timestamp_utc": "2026-08-31T12:00:00Z",
+        "unit": "bool",
+        "value": 0.0
+      },
+      {
+        "channel": "afe.ch0.threshold",
+        "quality_flags": [],
+        "raw_record_id": "serial-20260831T120000000000Z-6",
+        "record_id": "serial-20260831T120000000000Z-6:threshold",
+        "source": "HOST_TEST",
+        "status": "VALID",
+        "timestamp_utc": "2026-08-31T12:00:00Z",
+        "unit": "bool",
+        "value": 1.0
+      }
+    ],
+    "raw_events": [
+      {
+        "error_type": null,
+        "event_id": 1,
+        "raw_ascii": "AFE,1,CAP,9,DEVICE,phase4-golden-afe,0003,4A69\n",
+        "sequence": null,
+        "status": "PARSED"
+      },
+      {
+        "error_type": null,
+        "event_id": 2,
+        "raw_ascii": "AFE,1,CAP,9,CHANNEL,ADC,0,0,3300,mV,B1B1\n",
+        "sequence": null,
+        "status": "PARSED"
+      },
+      {
+        "error_type": null,
+        "event_id": 3,
+        "raw_ascii": "AFE,1,CAP,9,CHANNEL,DIN,0,-,-,-,DC28\n",
+        "sequence": null,
+        "status": "PARSED"
+      },
+      {
+        "error_type": null,
+        "event_id": 4,
+        "raw_ascii": "AFE,1,CAP,9,END,2,1090\n",
+        "sequence": null,
+        "status": "PARSED"
+      },
+      {
+        "error_type": null,
+        "event_id": 5,
+        "raw_ascii": "AFE,1,TEL,65535,1000,0,400,800,2000,0,0000,A87A\n",
+        "sequence": {
+          "disposition": "FIRST",
+          "missing_count": 0,
+          "value": 65535
+        },
+        "status": "PARSED"
+      },
+      {
+        "error_type": null,
+        "event_id": 6,
+        "raw_ascii": "AFE,1,TEL,0,2000,0,700,1400,2000,1,0000,BA13\n",
+        "sequence": {
+          "disposition": "IN_ORDER",
+          "missing_count": 0,
+          "value": 0
+        },
+        "status": "PARSED"
+      },
+      {
+        "error_type": "CrcMismatch",
+        "event_id": 7,
+        "raw_ascii": "AFE,1,TEL,1,3000,0,900,1800,2000,1,0000,E307\n",
+        "sequence": null,
+        "status": "REJECTED"
+      }
+    ],
+    "workflow_status": "COMPLETED"
+  },
+  "evidence_source": "HOST_TEST",
+  "limitations": [
+    "In-memory external backend only; no COM port or physical AFE was used.",
+    "MSP430 unavailable sentinels are frozen as invalid missing data, not physical zero readings."
+  ],
+  "msp430": {
+    "backend": {
+      "close_calls": 1,
+      "has_write": false,
+      "is_open": false,
+      "open_calls": 1,
+      "read_calls": 1
+    },
+    "capabilities": {
+      "adc_channels": [
+        "msp430.health.temperature_ds",
+        "msp430.health.temperature_ntc",
+        "msp430.health.bus_voltage",
+        "msp430.health.current",
+        "msp430.health.fan_pwm"
+      ],
+      "device_id": "msp430-equipment-health-v1-contract",
+      "digital_input_channels": [],
+      "profile_name": "msp430-equipment-health",
+      "profile_version": "1",
+      "supported_commands": [
+        "READ_MEASUREMENT"
+      ],
+      "supports_safe_shutdown": false
+    },
+    "evidence_source": "HOST_TEST",
+    "measurements": [
+      {
+        "channel": "msp430.health.temperature_ds",
+        "quality_flags": [],
+        "raw_record_id": "serial-20260831T120000000000Z-1",
+        "record_id": "serial-20260831T120000000000Z-1-temperature_ds",
+        "source": "HOST_TEST",
+        "status": "VALID",
+        "timestamp_utc": "2026-08-31T12:00:00Z",
+        "unit": "degC",
+        "value": 42.1
+      },
+      {
+        "channel": "msp430.health.temperature_ds",
+        "quality_flags": [
+          "DEVICE_FAULT",
+          "MISSING"
+        ],
+        "raw_record_id": "serial-20260831T120000000000Z-2",
+        "record_id": "serial-20260831T120000000000Z-2-temperature_ds",
+        "source": "HOST_TEST",
+        "status": "INVALID",
+        "timestamp_utc": "2026-08-31T12:00:00Z",
+        "unit": "degC",
+        "value": null
+      },
+      {
+        "channel": "msp430.health.bus_voltage",
+        "quality_flags": [],
+        "raw_record_id": "serial-20260831T120000000000Z-1",
+        "record_id": "serial-20260831T120000000000Z-1-bus_voltage",
+        "source": "HOST_TEST",
+        "status": "VALID",
+        "timestamp_utc": "2026-08-31T12:00:00Z",
+        "unit": "mV",
+        "value": 5012.0
+      },
+      {
+        "channel": "msp430.health.bus_voltage",
+        "quality_flags": [
+          "COMMUNICATION_ERROR",
+          "DEVICE_FAULT",
+          "MISSING"
+        ],
+        "raw_record_id": "serial-20260831T120000000000Z-2",
+        "record_id": "serial-20260831T120000000000Z-2-bus_voltage",
+        "source": "HOST_TEST",
+        "status": "INVALID",
+        "timestamp_utc": "2026-08-31T12:00:00Z",
+        "unit": "mV",
+        "value": null
+      }
+    ],
+    "raw_events": [
+      {
+        "error_type": null,
+        "event_id": 1,
+        "raw_ascii": "TEL,4294967295,1000,421,418,5012,186,932,650,COOLING_HIGH,0000,7147\n",
+        "sequence": {
+          "disposition": "FIRST",
+          "missing_count": 0,
+          "value": 4294967295
+        },
+        "status": "PARSED"
+      },
+      {
+        "error_type": null,
+        "event_id": 2,
+        "raw_ascii": "TEL,0,2000,-32768,-32768,0,0,0,0,FAULT,0015,AAAA\n",
+        "sequence": {
+          "disposition": "IN_ORDER",
+          "missing_count": 0,
+          "value": 0
+        },
+        "status": "PARSED"
+      },
+      {
+        "error_type": "CrcMismatch",
+        "event_id": 3,
+        "raw_ascii": "TEL,4294967295,1000,421,418,5012,186,932,650,COOLING_HIGH,0000,7107\n",
+        "sequence": null,
+        "status": "REJECTED"
+      }
+    ],
+    "workflow_status": "COMPLETED"
+  },
+  "schema_version": "phase4-composite-golden.v1"
+}

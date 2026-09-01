@@ -1,6 +1,6 @@
 # Device Adapter Contract
 
-Software Phase 2 introduces one public device port for every future data source. The upper application layer calls `DeviceAdapter`; a concrete adapter decides whether the data comes from a simulator, CSV file, serial controller, MSP430 compatibility profile, or instrument.
+Software Phase 2 introduces one public device port for every data source. The upper application layer calls `DeviceAdapter`; a concrete adapter decides whether the data comes from a simulator, CSV file, profile-backed serial controller, or future instrument. A serial profile parses a device protocol; the Phase 4 `SerialAdapter` composes that profile with a transport session and the existing lifecycle.
 
 ## Why the boundary exists
 
@@ -10,9 +10,11 @@ Without this boundary, a DC sweep or report could accidentally depend on a COM p
 same application workflow
           |
           v
-    DeviceAdapter
-      /   |    \
-Simulator CSV  future Serial/MSP430/instrument
+       DeviceAdapter
+      /     |       \
+Simulator  CSV  Serial / future instrument
+                    |
+             AFE or MSP430 profile
 ```
 
 ## Lifecycle
@@ -56,7 +58,7 @@ class TestExampleAdapterContract(ReadOnlyAdapterContract):
 
 Pytest then inherits the same eight checks for initial state/provenance, read-only connection, explicit and cached capabilities, premature-read rejection, typed measurement output, unknown-channel classification, idempotent shutdown, and disconnect/reconnect behavior.
 
-The Step 2 `ContractReferenceAdapter` is only a HOST_TEST fixture proving that the suite is collectible and reusable. It is not a SimulatorAdapter, physical device, or product data source. Step 3 runs the suite against the real SimulatorAdapter, and Step 6 runs the same eight checks against CsvReplayAdapter.
+The Phase 2 Step 2 `ContractReferenceAdapter` is only a HOST_TEST fixture proving that the suite is collectible and reusable. It is not a SimulatorAdapter, physical device, or product data source. Phase 2 Step 3 runs the suite against the real SimulatorAdapter, Phase 2 Step 6 runs it against CsvReplayAdapter, and Phase 4 Step 6 runs it independently against AFE and MSP430 `SerialAdapter` configurations.
 
 ## Configurable deterministic SimulatorAdapter
 
@@ -111,6 +113,37 @@ Step 7 adds `run_read_workflow` above the adapter boundary. An immutable request
 Preflight is atomic. If any command, channel, or analog unit is missing, the function returns `UNSUPPORTED` with machine-readable missing-requirement tokens before consuming any data. A CSV replay that advertises the capability but reaches EOF early returns `INCOMPLETE` with partial Measurements and exact remaining sample counts. Unexpected adapter or protocol errors remain exceptions; they are not mislabeled as unsupported. Every return/error path disconnects the workflow-owned adapter.
 
 `COMPLETED` means acquisition returned every requested Measurement. It is not a gain, accuracy, safety, or hardware PASS. See [Shared Read Workflow](read-workflow.md).
+
+## Receive-only SerialAdapter
+
+Software Phase 4 Step 6 adds a separate public namespace,
+`analog_validation.serial_adapters`, without changing the frozen Phase 2
+top-level exports. `SerialAdapter` composes one explicitly matching
+`SerialSession`, `SerialProfile`, `SerialAdapterConfig`, and capability
+projector. Construction rejects a mismatched profile name/version, record
+limit, non-closed session, unsupported evidence source, or invalid projector.
+
+The first version is intentionally receive-only:
+
+- it exposes no backend write method and no generic device-command escape hatch;
+- its projected command set can contain only `READ_MEASUREMENT` and
+  `READ_DIGITAL_STATE`;
+- it never advertises `SAFE_SHUTDOWN`, even when a profile-native AFE snapshot
+  describes future output hardware;
+- AFE capability names are explicitly projected to canonical workflow names,
+  while the profile-native snapshot remains available for audit;
+- MSP430 static capabilities pass through an identity/read-only projector;
+- every read and capability negotiation has a finite poll budget, and queued
+  Measurements have a fixed upper bound;
+- a successful transport reconnect clears buffered Measurements and capability
+  trust, returns to `CONNECTED_READ_ONLY`, and requires reconfirmation.
+
+Host integration tests pass both serial configurations through the same
+eight-check contract and `run_read_workflow`. Separate runner tests use a
+backend with no write method and prove that the read-only MSP430 adapter returns
+`UNSUPPORTED` for DC sweep and hysteresis before reads or writes occur. This is
+software behavior over an in-memory backend, not a serial-device claim. See
+[Serial profiles and receive-only adapter integration](serial-profiles.md).
 
 ## What this does not prove
 
