@@ -1,83 +1,120 @@
 # 开发环境
 
-**验证日期：** 2026-08-31<br>
-**当前阶段：** Software Phase 5 已完成（8/8，Software Beta）<br>
-**硬件要求：** 默认软件门禁无需硬件；Phase 4 Step 7 已单独完成一次 MSP430 receive-only HIL
+**最近验证：** 2026-09-01<br>
+**代码基线：** `95cd471`（PR #6 manifest 完整性修复）<br>
+**硬件要求：** 完整软件质量门禁不需要 AFE、MSP430 或实验室仪器
 
-## 已验证环境
+## 当前已就绪
 
-- Windows 11 Home 64-bit，build 26200；
-- Python 3.12.10 64-bit，来自 python.org 独立安装；
-- Git for Windows 2.55.0；
-- Visual Studio Code 1.135.0；
-- LTspice 26.0.1（未来模拟电路仿真使用，当前 Software Phase 5 不依赖）；
-- 项目虚拟环境：`.venv`；
-- pytest 8.4.2；
-- Ruff 0.16.5；
-- mypy 2.3.1；
-- build 1.6.0。
-- 可选 pyserial 3.5（只在安装 `[serial]` extra 后使用）。
+| 组件 | 本机状态 | 项目中的角色 |
+|---|---|---|
+| Python | 3.12.10，64-bit，python.org | 推荐的本地开发和发布验证解释器 |
+| 项目虚拟环境 | `C:\avs-dev\afe-validation-py312` | 短路径，避免 Windows `WinError 206` |
+| Python 工具 | pip 26.2.1、setuptools 84.0.0、wheel 0.48.0、build 1.6.0 | 安装与构建 |
+| 质量工具 | pytest 8.4.2、pytest-cov 7.1.0、Ruff 0.16.5、mypy 2.3.1 | 测试、覆盖率、lint 和类型检查 |
+| 可选串口 | pyserial 3.5 | 仅用于经过单独批准的真实端口工作 |
+| 可选桌面 | Tk/Tcl 8.6 | 本地 Dashboard；CLI 不依赖显示器 |
+| Git / GitHub CLI | Git 2.55.0、GitHub CLI 2.98.0 | 本地版本控制和明确授权后的远程操作 |
+| VS Code | 1.135.0 | Python、Pylance、Ruff 扩展均已安装 |
+| LTspice | 26.0.1 | 可选 `SPICE_IDEAL`/器件模型仿真，不构成硬件证据 |
+| MSP430 GCC | 9.3.1 | 独立控制器工具链；本软件核心不依赖 |
 
-VS Code 已推荐并安装 Python、Pylance 和 Ruff 扩展。工作区设置会自动选择 `.venv` 并启用 pytest 测试发现。
+LTspice 和 MSP430 GCC 可从已知安装位置调用，但没有写入全局 `PATH`。这避免不同
+项目或未来工具链版本互相覆盖。Code Composer Studio 和 UniFlash 当前未检测到；软件
+Beta、模拟器、回放、报告、Dashboard 和 hosted CI 均不需要它们。
 
-## 首次建立环境
+本机只安装 Python 3.12。Python 3.10 和 3.14 由 GitHub hosted CI 在 Windows/Ubuntu
+上覆盖，不要求初学者为了日常开发额外安装两套解释器。
 
-在仓库根目录打开 PowerShell：
+## 一次性建立短路径环境
+
+在最新、干净的项目工作树根目录打开 PowerShell：
 
 ```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+$DevRoot = "C:\avs-dev"
+$Venv = Join-Path $DevRoot "afe-validation-py312"
+
+New-Item -ItemType Directory -Path $DevRoot -Force | Out-Null
+py -3.12 -m venv $Venv
+& "$Venv\Scripts\python.exe" -m pip install --upgrade pip setuptools wheel
+& "$Venv\Scripts\python.exe" -m pip install -e ".[dev,serial]"
+& "$Venv\Scripts\python.exe" -m pip check
 ```
 
-不要求激活虚拟环境；直接调用 `.venv` 中的 Python 可以避免 PowerShell 执行策略问题。
-
-只有需要真实串口时才安装可选 extra：
+为了让 VS Code 继续使用通用的 `${workspaceFolder}\.venv` 设置，可在确认 `.venv`
+不存在后建立目录联接：
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install -e ".[dev,serial]"
+New-Item -ItemType Junction -Path ".venv" -Target $Venv
 ```
 
-## 日常验证
+不要删除或覆盖一个已有但来源不明的 `.venv`。先检查其解释器和安装目标，或为本次
+工作选择新的短路径。无需激活虚拟环境，也不需要改变 PowerShell execution policy。
+
+## 无硬件环境自检
+
+仓库提供一个标准库实现的开发环境审计入口：
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest -q
-.\.venv\Scripts\python.exe -m pytest --cov=analog_validation --cov=analog_validation_pyserial --cov=analog_validation_app --cov-report=term-missing
+.\.venv\Scripts\python.exe -m tools.dev_environment_audit
+.\.venv\Scripts\python.exe -m tools.dev_environment_audit --json
+```
+
+审计区分必需项和可选项，并检测：
+
+- 当前 Python 是否满足项目要求及 hosted matrix 状态；
+- 项目包、pytest、coverage、Ruff、mypy、build 和 `pip check`；
+- 可选 pyserial、Tk、GitHub CLI、VS Code、LTspice 和 MSP430 GCC；
+- VS Code 的 Python、Pylance 和 Ruff 推荐扩展。
+
+它不会访问网络、枚举或打开串口、发送设备字节、读取 USB 序列号，也不会形成任何
+硬件验证结论。输出不包含解释器、工具或用户目录的绝对路径。
+
+## 日常质量门禁
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q `
+  --cov=analog_validation `
+  --cov=analog_validation_app `
+  --cov=analog_validation_pyserial `
+  --cov-report=term-missing `
+  --cov-fail-under=100
 .\.venv\Scripts\python.exe -m ruff check src tools tests examples/public_adapter
 .\.venv\Scripts\python.exe -m mypy src tools tests examples/public_adapter
 .\.venv\Scripts\python.exe -m pip check
-.\.venv\Scripts\python.exe -m build
 ```
 
-pytest、三项 package coverage、全仓库 Ruff rule check、mypy、依赖检查、构建和仓库外 wheel 安装是当前质量门禁。Software Phase 3 已完成正式分析、runner 和导出，Software Phase 4 已完成 transport、profiles、receive-only serial adapter、可选 pyserial backend、兼容冻结和窄范围 COM4 HIL，Software Phase 5 已完成独立产品层、CLI/report/Dashboard/demo 和公共兼容冻结。Software Phase 6 Steps 1–6 又建立 release contract、hosted matrix、`0.1.0b1` metadata、同一本地/CI release verifier、beginner tester/feedback 闭环与 public-only adapter 扩展证明。当前完整门禁为 2,222 tests、0 skipped、11,470/11,470 package statements、全仓库 Ruff、199-file mypy、两次隔离构建、fresh base + `[serial]` 安装、普通/Unicode installed demo、hosted wheel tester journey，以及 external `python -I` adapter run。
-
-当前 CLI 已执行正式的软件 read/DC/迟滞、`report` 和 `demo` 工作流；`dashboard` 已执行 reviewed 六步 Simulator/Replay/receive-only 工作流。最终 base wheel 在仓库外短路径环境完成 headless import，并在普通与 Unicode 目录生成逐字节一致的 12 个 demo artifacts；同一安装历史上已真实启动并安全关闭 Tk Dashboard。独立 `[serial]` 安装只使用注入式 host substitute，真实端口枚举/打开/写入均为 0。Step 5 用 hosted wheel 完成 beginner tester journey；Step 6 将 public adapter 单文件复制到仓库外，并以 fresh base wheel 的 isolated Python 完成 public import、capability、三次 read、cleanup 与 zero-write 验收。本地/hosted 三文件候选逐字节一致。10k Replay/event、键盘焦点、Tk 1.0/1.5/2.0 scaling、隐私和 no-network 验收继续有效。下一检查点是 Software Phase 6 Step 7 final candidate audit。
-
-安装后可验证最小产品入口：
+发布候选门禁还会完成两次隔离构建、sdist/wheel 内容检查、fresh base/`[serial]`
+安装、普通/Unicode demo 和 manifest/audit：
 
 ```powershell
-analog-validation --help
-analog-validation version
-analog-validation profiles
-analog-validation simulate read --samples 3
-analog-validation simulate dc --points 6 --output work\dc-result.json --json
-analog-validation report --input work\dc-result.json --output work\dc-report --json
-analog-validation simulate hysteresis
-analog-validation demo --output work\software-demo --json
-analog-validation dashboard
+.\.venv\Scripts\python.exe tools\release_candidate_check.py `
+  --output C:\avs-dev\candidate-new
 ```
 
-当前 Ruff 0.16.5 的全仓 formatter 仍会建议重排历史文件；Step 7 只对本步骤文件进行
-局部格式维护，全仓机械重排被单独保留为维护事项，避免掩盖功能 diff。
+目标目录必须不存在；工具使用 create-new 语义，不覆盖旧证据。
 
-## 当前边界
+## 当前真实结果
 
-- 正式核心和 Simulator/Replay CLI 仍不要求 `pyserial`；owning worker 与 interpreter-interrupt 取消已完成 HOST_TEST，但真实串口长时间运行、物理断线和交互式 Windows console smoke 尚未验证；
-- Windows 默认旧式路径长度限制仍会影响用户手动选择的过深虚拟环境；Step 4 verifier 使用系统临时 venv/build、短同父 staging 和写前长度检查，Step 5 安装/故障排查文档要求短 beta root，且 hosted wheel 已在该路径完成外部测试者验收；
-- 不需要 CCS、MSP430 GCC、KiCad 或实验室仪器；
-- 软件测试结果不代表任何模拟电路、控制器、接线或仪器已经验证；
-- Git 提交身份已配置为 GitHub 账号 `Carlos-0798` 及其 noreply 邮箱。
+在 `95cd471` 上重建短路径环境后：
 
-## 本机备份
+- 开发环境审计：22 PASS、0 WARN、0 FAIL；
+- 完整 pytest：2,252 passed；
+- package coverage：11,470/11,470 statements，100%；
+- Ruff：PASS；
+- mypy：204 files，PASS；
+- `pip check`：PASS；
+- 四个 LTspice 理想网表：进程退出码均为 0，结果与既有 `SPICE_IDEAL` 记录一致。
 
-重建独立环境前的 Codex 运行时虚拟环境已移动到 `.venv-codex-backup-20260829`。新环境验证稳定后可以再决定是否移除；当前不删除该备份。
+## 环境与证据边界
+
+- 可发现 COM4/COM5 只说明 Windows 驱动呈现了端口，不说明固件、协议或接线正确；
+- 安装 pyserial 不等于批准打开物理端口；打开端口仍可能影响 RTS/DTR；
+- LTspice 理想网表不是 MCP6004/MCP6544 器件模型，更不是台架测量；
+- MSP430 GCC 存在不等于目标固件已经构建、烧录或验证；
+- CCS/UniFlash、Python 3.10/3.14、本地多机 HIL、VISA 后端和实验室仪器均不是当前
+  软件交付的隐藏依赖；
+- 不需要额外 Codex 插件才能开发或测试本项目。
+
+开源框架和未来仪器插件边界见
+[Open-source reference review](OPEN_SOURCE_REFERENCE_REVIEW.md)。

@@ -7,7 +7,7 @@
 | Development stage | Software Phase 6 release engineering — 7/8 checkpoints |
 | Release maturity | Audited private beta candidate ready for owner review; no tag or Release published |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0b1` |
-| Automated tests | 2,241 passed in the latest full local quality run |
+| Automated tests | 2,252 passed in the latest full local quality run |
 | Formal + optional + product package coverage | 100% of 11,470 statements |
 | Highest evidence level | `BENCH_CONTROLLER` — MSP430 UART compatibility only |
 | Verified AFE hardware performance claims | **0 — the AFE has not been built or bench-validated** |
@@ -195,7 +195,7 @@ row is separately limited to the Step 7 five-record `BENCH_CONTROLLER` capture.
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 2,241 passed in the latest full local quality run |
+| Full pytest suite | 2,252 passed in the latest full local quality run |
 | Formal + optional + product package statement coverage | 100% of 11,470 statements |
 | Phase 5 Step 8 product compatibility | 15 new checks; 154 total golden checks; public imports/schemas/call shapes, CLI/options/exits, serialized fields, errors/issues, and exact prior manifests frozen |
 | Phase 5 Step 7 demo and product quality | 186 focused tests; two installed demos in normal/Unicode paths were byte-identical; 10,000-record/event bounded acceptance and real Tk scaling/focus smoke passed |
@@ -226,7 +226,7 @@ row is separately limited to the Step 7 five-record `BENCH_CONTROLLER` capture.
 | AFE golden compatibility | 20 valid + 9 invalid records passed |
 | Deterministic synthetic integration | 100 frames / 400 Measurements passed |
 | Ruff | Passed on the full repository |
-| mypy | Passed on 202 source/tool/test/example files |
+| mypy | Passed on 204 source/tool/test/example files |
 | Latest deterministic candidate | Local and hosted Windows/Python 3.12 produced a byte-identical four-file `0.1.0b1` bundle from commit `f6721b5`; `release-audit.v1` reports `PASS_WITH_REVIEW`, private binary beta `READY`, 0 current privacy findings, 8 legacy history review items, 0 high-confidence credentials, and `NO_NEW_HARDWARE_VALIDATION` |
 | Physical controller UART | Passed with limitations — receive-only Protocol v1 compatibility only; see Step 7 report |
 | AFE hardware bench tests | Not run |
@@ -398,6 +398,7 @@ See [assumptions requiring confirmation](ASSUMPTIONS.md), [test and evidence pol
 - [Capability and TestRun semantics](docs/capabilities-and-test-runs.md)
 - [Theory calculations](docs/theory.md)
 - [Development environment](docs/DEVELOPMENT_ENVIRONMENT.md)
+- [Open-source architecture and plugin reference review](docs/OPEN_SOURCE_REFERENCE_REVIEW.md)
 
 ## License
 

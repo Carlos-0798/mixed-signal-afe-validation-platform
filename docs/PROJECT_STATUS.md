@@ -80,7 +80,7 @@ port and did not repeat or broaden the Step 7 HIL.
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 2,241 passed in the latest full local quality run |
+| Full pytest suite | 2,252 passed in the latest full local quality run |
 | Formal + optional + product package statement coverage | 100% of 11,470 statements |
 | Phase 6 hosted CI | PASS — Windows/Ubuntu with Python 3.10, 3.12, and 3.14; quality/build/base/serial jobs passed |
 | Phase 6 beta metadata | PASS — import, CLI, wheel, public manifests, README, and changelog aligned at `0.1.0b1`; no license/tag/Release selected |
@@ -117,7 +117,7 @@ port and did not repeat or broaden the Step 7 HIL.
 | Synthetic integration | 100 frames / 400 explicit `SYNTHETIC` Measurements passed |
 | Core dependency boundary | Passed; standard library and own package only |
 | Ruff | Rule check passed on the full repository; historical files retain formatting-only debt |
-| mypy | Passed on `src`, `tools`, `tests`, and public adapter example — 202 files |
+| mypy | Passed on `src`, `tools`, `tests`, and public adapter example — 204 files |
 | Package build and external installs | Passed; two isolated builds were byte-identical after deterministic sdist metadata normalization; fresh base and `[serial]` installs passed, base remained headless/driver-free, normal/Unicode demos were byte-identical, and serial used only an injected substitute with zero real-port operations |
 | Physical controller UART | PASS with limitations — receive-only COM4 Protocol v1 compatibility; exact firmware, disconnect recovery, external peripherals, and AFE are unverified |
 | AFE hardware bench validation | Not performed |

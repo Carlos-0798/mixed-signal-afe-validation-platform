@@ -82,7 +82,7 @@ def test_step7_status_and_report_preserve_review_not_publication() -> None:
     report = REPORT.read_text(encoding="utf-8")
 
     assert "7/8 checkpoints" in readme
-    assert "2,241 passed" in readme
+    assert "2,252 passed" in readme
     assert "- [x] Step 7" in plan
     assert "7 of 8 checkpoints" in status
     for text in (readme, plan, status, report):
