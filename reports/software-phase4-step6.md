@@ -148,10 +148,9 @@ The isolated artifacts were:
 | `mixed_signal_afe_validation_platform-0.1.0.dev0-py3-none-any.whl` | 151,327 bytes | `191B2F61FF033C47545E0CD3346325705F6B30AA7276417BB7A0A0526C1A06E6` |
 | `mixed_signal_afe_validation_platform-0.1.0.dev0.tar.gz` | 262,990 bytes | `A7144153ACF72877038F1567F808108B78DC354FA342E47080FCC16961567B42` |
 
-The external import resolved to
-`site-packages/analog_validation/__init__.py`; the personal absolute path is
-intentionally omitted.
-The environment had no importable `serial` module. The installed wheel decoded
+The external import resolved from a clean virtual environment outside the
+repository rather than from the source tree. The environment had no importable
+`serial` module. The installed wheel decoded
 one generated MSP430 record through `SerialAdapter` and `ReadWorkflow`, returned
 25.3 °C as `HOST_TEST`, retained one raw event, opened/read/closed once, and had
 no backend write method.

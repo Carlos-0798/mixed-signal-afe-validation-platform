@@ -47,8 +47,7 @@ The Ruff findings are one `itertools.pairwise` modernization, one `collections.a
 ## Git baseline
 
 - Git `user.name` is `Carlos-0798`.
-- Git uses the owner's GitHub-provided `noreply` commit address; the exact value
-  is intentionally not reproduced in repository documentation.
+- Git `user.email` is configured to the account's GitHub-provided `noreply` address; the exact address is intentionally omitted from this report.
 - The first Phase 0 baseline is established by this environment setup workflow; use `git log` for the resulting commit identifier.
 
 ## Evidence boundary

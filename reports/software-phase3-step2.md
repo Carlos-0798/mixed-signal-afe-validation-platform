@@ -57,7 +57,13 @@ This checkpoint does not create PASS/FAIL conclusions, operate an adapter, autho
 
 The external smoke preserved the frozen 84-symbol Phase 2 top-level API and exposed the 19-symbol `analog_validation.analysis` namespace. It exercised an exact traceable fit, inclusive saturation exclusion, insufficient-data reporting, and unchanged `SYNTHETIC` provenance outside the repository.
 
-The first external-install attempt used a virtual environment nested under the already long repository path and hit Windows `WinError 206` while creating package metadata. No success was claimed from that attempt. Repeating the same wheel installation in a short repository-external path succeeded, `pip check` passed, and the imported package path was confirmed inside that external environment's `site-packages`. This was a verification-path limitation, not a package-code change. The personal absolute path is intentionally omitted.
+The first external-install attempt used a virtual environment nested under the
+already long repository path and hit Windows `WinError 206` while creating
+package metadata. No success was claimed from that attempt. Repeating the same
+wheel installation in a short repository-external virtual environment
+succeeded, `pip check` passed, and the import resolved from that environment's
+`site-packages`. This was a verification-path limitation, not a package-code
+change.
 
 ## Beginner interpretation
 
