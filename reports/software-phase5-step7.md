@@ -103,11 +103,10 @@ hardware claim `NO_NEW_HARDWARE_VALIDATION`.
 A first installation attempt placed the virtual environment below the already
 deep repository `work/` path. Windows rejected that layout with `WinError 206`
 because the resulting package path was too long. That attempt is recorded as a
-failure, not counted as installation evidence. The same wheel then installed,
-passed `pip check`, imported headlessly, and produced both demos from the short
-repository-external directory
-`C:\Users\24046\Documents\Codex\afe-p5s7-external-20260831`.
-TD-036 tracks this Windows path-length condition for release documentation.
+failure, not counted as installation evidence. The same wheel then installed
+in a short repository-external virtual environment, passed `pip check`,
+imported headlessly, and produced both demos. TD-036 tracks this Windows
+path-length condition for release documentation.
 
 ## Additional diagnostic finding
 

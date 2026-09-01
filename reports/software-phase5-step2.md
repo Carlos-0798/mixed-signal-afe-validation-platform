@@ -117,12 +117,12 @@ The inspected wheel still exposes exactly one console entry point:
 analog-validation = analog_validation_app.cli:main
 ```
 
-The final external environment was
-`C:\Users\24046\afe-p5s2-base-20260831-01`. The wheel was installed outside the
-repository with `--no-deps`. Its in-memory worker smoke checked progress/event
-indexes, terminal state, cleanup, and absence of remaining product-named
-threads. CLI help/version/profiles and unknown-command behavior also passed.
-No COM enumeration, display, network, or hardware access occurred.
+The final external environment was a clean short-path virtual environment
+outside the repository. The wheel was installed with `--no-deps`. Its
+in-memory worker smoke checked progress/event indexes, terminal state, cleanup,
+and absence of remaining product-named threads. CLI help/version/profiles and
+unknown-command behavior also passed. No COM enumeration, display, network, or
+hardware access occurred.
 
 Generated build artifacts and the external virtual environment are local
 verification outputs, not committed release binaries.
