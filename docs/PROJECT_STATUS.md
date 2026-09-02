@@ -1,8 +1,8 @@
 # Project Status
 
-**Last updated:** 2026-08-31<br>
+**Last updated:** 2026-09-02<br>
 **Current milestone:** Software Phase 6 release engineering — 7 of 8 checkpoints<br>
-**Release maturity:** Audited private beta candidate (`0.1.0b1`) ready for owner review; no tag or Release<br>
+**Release maturity:** Audited `0.1.0b1` private-beta baseline plus locally validated Dashboard UX follow-up; no tag or Release<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
 
@@ -13,6 +13,14 @@ The repository currently provides an installable, controller-neutral Python core
 The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow remains a frozen read-only acquisition API. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, versioned structured result exports, both serial business profiles, their receive-only adapter composition, and a narrow MSP430 UART HIL are implemented. Phase 5 adds immutable product request/result/event contracts, a reviewed source/profile catalog, stable user issues, a bounded single-owner cancellable worker, explicit adapter factories, shared read/DC/hysteresis services and workflow compilation, stable installed Simulator/Replay/receive-only CLI workflows, deterministic human reports that only present finalized results, a runnable six-step local Dashboard, a one-command reproducible synthetic demo with bounded performance/accessibility/privacy acceptance, and an executable product public-contract freeze. A validated physical AFE is not yet implemented.
 
 The reviewed Software Phase 5 plan defines a separate `analog_validation_app` product layer, one `analog-validation` command, a bounded single-owner cancellable worker, deterministic HTML/SVG reporting, a local offline Tkinter/ttk Dashboard, a six-step beginner workflow, and an installed-package deterministic demo. All 8 checkpoints are implemented. The final checkpoint freezes product imports, schemas, CLI commands/options and exits, dataclass/function shapes, report/demo fields, worker states, errors/issues, and prior manifest hashes. The workflow defaults to Simulator/AFE, expresses status and criteria in text, prevalidates Replay, and gates Serial behind exact receive-only settings. Architecture tests enforce consumption of the frozen core without copying device/profile or engineering-analysis logic. Software Phase 6 Steps 1–7 now add the release contract, hosted compatibility CI, `0.1.0b1` metadata, a deterministic create-new candidate verifier, an executable beginner tester path, a public-API-only third-party-style read adapter proved from the installed wheel outside the repository, and a complete-history/privacy/license/workbook/claims audit with a four-file private-beta handoff contract.
+
+The current Dashboard UX follow-up adds modern styling, Setup/Results tabs,
+vertical scrolling and Windows mouse-wheel routing, revision-gated redraws,
+explicit result actions, visible READ observations, and clearer error/export
+feedback. Windows interaction checks covered Simulator READ/DC/hysteresis and
+valid/invalid CSV Replay without touching a physical serial port. These changes
+have passed local quality/build/install gates but remain an uncommitted,
+owner-review-pending change set rather than a new release candidate.
 
 Software Phase 3 is complete. Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. Step 8 freezes the 84-symbol Phase 2 top level, 68 analysis exports, 10 runner exports, 28 export symbols, 12 Phase 3 schemas, public enums/signatures/errors, and exact representative DC/hysteresis results. The golden values remain HOST_TEST/SYNTHETIC software evidence.
 
@@ -80,8 +88,9 @@ port and did not repeat or broaden the Step 7 HIL.
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 2,252 passed in the latest full local quality run |
-| Formal + optional + product package statement coverage | 100% of 11,470 statements |
+| Full pytest suite | 2,263 passed in the latest full local quality run |
+| Formal + optional + product package statement coverage | 100% of 11,820 statements |
+| Dashboard UX follow-up | PASS locally — Simulator READ/DC/hysteresis, valid/invalid CSV Replay, scrolling, first-paint, result navigation, create-new export, and immediate rerun; physical port discovery/open/write all 0 |
 | Phase 6 hosted CI | PASS — Windows/Ubuntu with Python 3.10, 3.12, and 3.14; quality/build/base/serial jobs passed |
 | Phase 6 beta metadata | PASS — import, CLI, wheel, public manifests, README, and changelog aligned at `0.1.0b1`; no license/tag/Release selected |
 | Phase 6 deterministic candidate | PASS — local and hosted Windows/Python 3.12 outputs for commit `0c04aee` were byte-identical; manifest records only HOST_TEST/SYNTHETIC evidence and zero AFE bench claims |
@@ -241,6 +250,12 @@ Safe to claim now:
 - installed the base wheel outside the repository and generated/parsed all five report artifacts without pyserial/Tk import, serial access, network access, or hardware operation.
 - implemented immutable bounded `dashboard-state.v1`, owner-thread presentation, a headless polling/cancel/close controller, and rendering-only six-region widgets without duplicating profile or engineering logic;
 - launched and safely auto-closed the local Windows Tk Dashboard with Simulator/AFE defaults, text-visible status, `NO_NEW_HARDWARE_VALIDATION`, and no pyserial import, serial access, file output, or network listener;
+- redesigned the Dashboard with modern styled cards, Setup/Results tabs,
+  visible scrolling, revision-gated redraws, explicit result actions, and
+  presentation-only READ rows without changing the frozen Phase 5 contract;
+- completed interactive Windows Simulator READ/DC/hysteresis and valid/invalid
+  CSV Replay checks, including no-overwrite export and immediate rerun, without
+  enumerating, opening, or writing a physical serial port;
 - verified the Dashboard close path against an actual `ProductJobWorker`: cancellation reached `CANCELLED`, finite join completed, and cleanup ran before the window session returned.
 - implemented the fixed six-step beginner workflow with what/why/confirm guidance, strict typed configuration, visible DC/hysteresis acceptance criteria, reviewed Run, cooperative Cancel, finalized results, and create-new JSON/CSV export;
 - made CLI and Dashboard share `product-workflow-config.v1` compilation and verified equivalent finalized output for the same 24-point Simulator DC request;
@@ -264,13 +279,14 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 6 Steps 1–7 are complete. The next checkpoint is the owner-only
-Step 8 preview and decision. The private binary beta is ready for controlled
-testing, while public Git-history remediation, license selection, merge/tag,
-GitHub Release, repository visibility, beta-feedback disposition, and v1.0
-remain explicitly undecided. Simulator remains the default. Real-port
-reliability and future physical AFE work stay separately gated and are not
-inherited by the software release path.
+Software Phase 6 Steps 1–7 are complete. Before the owner-only Step 8 release
+decision, the locally validated Dashboard UX follow-up still needs an exact
+diff review, owner-approved commit/PR, hosted CI, and a clean-commit candidate
+rerun. Public Git-history remediation, license selection, merge/tag, GitHub
+Release, repository visibility, beta-feedback disposition, and v1.0 remain
+explicitly undecided. Simulator remains the default. Real-port reliability and
+future physical AFE work stay separately gated and are not inherited by the
+software release path.
 
 ## GitHub and LinkedIn presentation policy
 

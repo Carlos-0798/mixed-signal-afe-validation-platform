@@ -196,6 +196,21 @@ def test_application_selection_navigation_and_error_mapping_are_headless() -> No
     assert application.request_close()
 
 
+def test_back_from_review_discards_only_the_prepared_run() -> None:
+    application = DashboardApplication(job_id_factory=lambda: "review-back")
+    draft = advance_to_configuration(application)
+    assert application.prepare_review(draft)
+    assert application.wizard_state.step is DashboardWizardStep.REVIEW
+    assert application.dashboard_state.configuration.can_run is True
+
+    assert application.back()
+
+    assert application.wizard_state.step is DashboardWizardStep.CONFIGURATION
+    assert application.dashboard_state.configuration.can_run is False
+    assert application.dashboard_state.active_job_id is None
+    assert application.request_close()
+
+
 def test_simulator_read_runs_to_result_without_inventing_an_analysis_export() -> None:
     application = DashboardApplication(job_id_factory=lambda: "dashboard-read")
     draft = advance_to_configuration(application)
@@ -211,9 +226,63 @@ def test_simulator_read_runs_to_result_without_inventing_an_analysis_export() ->
         is ProductWorkerState.SUCCEEDED
     )
     assert application.wizard_state.export_available is False
+    assert application.dashboard_state.plot.title == "Read observations"
+    assert len(application.dashboard_state.plot.points) == 5
+    assert application.dashboard_state.plot.points[0].values[0] == "value=800 mV"
+    assert "PASS or FAIL" in application.dashboard_state.plot.summary
     assert application.export_result("result.json", "json") is False
     assert application.back()
     assert application.dashboard_state.active_job_id is None
+    assert application.request_close()
+
+
+def test_result_navigation_preserves_reference_but_never_resurrects_worker_state() -> None:
+    application = DashboardApplication(job_id_factory=lambda: "dashboard-reference")
+    draft = advance_to_configuration(application)
+    assert application.prepare_review(draft)
+    assert application.run()
+    wait_for_result(application)
+    completed_plot = application.dashboard_state.plot
+    completed_result = application.dashboard_state.result
+
+    assert application.modify_setup()
+    assert application.wizard_state.step is DashboardWizardStep.CONFIGURATION
+    assert application.dashboard_state.active_job_id is None
+    assert application.dashboard_state.plot == completed_plot
+    assert application.dashboard_state.result == completed_result
+    assert application.dashboard_state.progress.worker_state is ProductWorkerState.IDLE
+
+    for _ in range(3):
+        application.poll()
+    assert application.dashboard_state.active_job_id is None
+    assert application.dashboard_state.plot == completed_plot
+    assert application.dashboard_state.result == completed_result
+    assert application.request_close()
+
+
+def test_result_actions_review_same_setup_and_start_a_clean_new_test() -> None:
+    job_ids = iter(("dashboard-first", "dashboard-repeat"))
+    application = DashboardApplication(job_id_factory=lambda: next(job_ids))
+    draft = advance_to_configuration(application)
+    assert application.prepare_review(draft)
+    assert application.run()
+    wait_for_result(application)
+
+    assert application.review_same_setup()
+    assert application.wizard_state.step is DashboardWizardStep.REVIEW
+    assert application.wizard_state.can_run is True
+    assert application.dashboard_state.plot.points == ()
+    assert application.run()
+    wait_for_result(application)
+
+    assert application.start_new_test()
+    assert application.wizard_state.step is DashboardWizardStep.SOURCE
+    assert application.wizard_state.draft == DashboardWizardDraft()
+    assert application.dashboard_state.result.status is None
+    assert application.dashboard_state.plot.points == ()
+    assert application.modify_setup() is False
+    assert application.review_same_setup() is False
+    assert application.start_new_test() is False
     assert application.request_close()
 
 

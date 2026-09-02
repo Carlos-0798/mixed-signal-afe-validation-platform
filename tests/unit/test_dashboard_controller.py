@@ -109,6 +109,25 @@ def worker_event(
     )
 
 
+class ReusableFakeWorker(FakeWorker):
+    """Keep unread prior events to reproduce the immediate-rerun boundary."""
+
+    def start(self, selected: ProductJobRequest) -> None:
+        self.request = selected
+        self.result = None
+        self.issue = None
+        self.state = ProductWorkerState.STARTING
+        self.events.append(
+            ProductJobEvent(
+                selected.job_id,
+                3,
+                datetime(2026, 8, 31, tzinfo=timezone.utc),
+                ProductWorkerState.STARTING,
+                "Replacement job accepted.",
+            )
+        )
+
+
 def test_controller_requires_headless_presenter_and_worker_port() -> None:
     presenter = DashboardPresenter()
     worker = FakeWorker()
@@ -151,6 +170,39 @@ def test_poll_drains_events_and_copies_terminal_snapshot() -> None:
     assert state.progress.dropped_event_count == 3
     assert state.result.outcome is RunOutcome.PASS
     assert len(state.event_messages) == 2
+
+
+def test_start_job_reconciles_unread_terminal_event_before_immediate_rerun() -> None:
+    previous = request()
+    replacement = ProductJobRequest(
+        "controller-rerun",
+        ProductSourceMode.SIMULATOR,
+        ProductJobType.READ,
+        "afe",
+        "1",
+    )
+    worker = ReusableFakeWorker()
+    worker.request = previous
+    worker.result = result(previous)
+    worker.state = ProductWorkerState.SUCCEEDED
+    worker.events.append(
+        ProductJobEvent(
+            previous.job_id,
+            2,
+            datetime(2026, 8, 31, tzinfo=timezone.utc),
+            ProductWorkerState.SUCCEEDED,
+            "Previous job finished.",
+        )
+    )
+    controller = DashboardController(DashboardPresenter(), worker)
+
+    assert controller.start_job(replacement) is True
+    assert controller.state.active_job_id == replacement.job_id
+    assert controller.state.progress.worker_state is ProductWorkerState.STARTING
+    assert controller.state.event_messages == (
+        "#3 [STARTING] Replacement job accepted.",
+    )
+    assert controller.state.result.issue is None
 
 
 def test_cancel_is_cooperative_visible_and_noop_when_idle_or_closed() -> None:

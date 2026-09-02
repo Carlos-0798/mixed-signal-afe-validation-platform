@@ -111,6 +111,7 @@ class FakeRoot(FakeWidget):
         self.ttk = ttk
         self.destroyed = False
         self.withdrawn = False
+        self.paint_events: list[str] = []
         self.protocols: dict[str, Any] = {}
         self.scheduled: list[tuple[int, int, Any]] = []
         self.clock = 0
@@ -129,6 +130,14 @@ class FakeRoot(FakeWidget):
 
     def withdraw(self) -> None:
         self.withdrawn = True
+        self.paint_events.append("withdraw")
+
+    def update_idletasks(self) -> None:
+        self.paint_events.append("update_idletasks")
+
+    def deiconify(self) -> None:
+        self.withdrawn = False
+        self.paint_events.append("deiconify")
 
     def after(self, delay: int, callback: Any) -> None:
         self.sequence += 1
@@ -211,6 +220,7 @@ def test_mainloop_return_without_window_callback_still_closes_owned_worker() -> 
 
     assert session.closed_safely is True
     assert root.destroyed is True
+    assert root.paint_events == ["withdraw", "update_idletasks", "deiconify"]
 
 
 @pytest.mark.parametrize(
@@ -364,15 +374,15 @@ def test_six_step_window_callbacks_drive_the_headless_application() -> None:
         def mainloop(self) -> None:
             self._select("SIMULATOR")
             self._select("afe/1")
-            cast(Any, self._button("Next").kwargs["command"])()
+            cast(Any, self._button("Continue").kwargs["command"])()
             self._select("READ")
-            cast(Any, self._button("Next").kwargs["command"])()
-            cast(Any, self._button("Discover ports").kwargs["command"])()
-            cast(Any, self._button("Validate & review").kwargs["command"])()
-            cast(Any, self._button("Run reviewed job").kwargs["command"])()
-            cast(Any, self._button("Cancel safely").kwargs["command"])()
-            cast(Any, self._button("Export (no overwrite)").kwargs["command"])()
-            cast(Any, self._button("Back").kwargs["command"])()
+            cast(Any, self._button("Continue").kwargs["command"])()
+            cast(Any, self._button("Find serial ports").kwargs["command"])()
+            cast(Any, self._button("Validate setup").kwargs["command"])()
+            cast(Any, self._button("Run reviewed test").kwargs["command"])()
+            cast(Any, self._button("Cancel run safely").kwargs["command"])()
+            cast(Any, self._button("Save analysis result").kwargs["command"])()
+            cast(Any, self._button("Previous step").kwargs["command"])()
             if self.scheduled:
                 self.scheduled.sort(key=lambda value: (value[0], value[1]))
                 _, _, callback = self.scheduled.pop(0)
@@ -399,4 +409,40 @@ def test_review_callback_rejects_non_draft_payload_and_still_closes(
     monkeypatch.setattr(app_module, "create_dashboard_workflow_widgets", invalid_review)
     with pytest.raises(ProductRequestError, match="wizard draft"):
         launch_dashboard(tk_loader=lambda: (tk, ttk))
+    assert root.destroyed is True
+
+
+def test_result_action_callbacks_are_wired_through_the_application(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root, tk, ttk = fake_toolkit()
+    callback_calls: list[str] = []
+
+    class CallbackWidgets:
+        invoked = False
+
+        def __init__(self, selected_callbacks: dict[str, Any]) -> None:
+            self.callbacks = selected_callbacks
+
+        def render(self, dashboard: object, wizard: object) -> None:
+            if self.invoked:
+                return
+            self.invoked = True
+            for name in ("on_modify", "on_repeat", "on_new_test"):
+                callback_calls.append(name)
+                cast(Any, self.callbacks[name])()
+
+    def capture_callbacks(*args: object, **kwargs: object) -> CallbackWidgets:
+        return CallbackWidgets(dict(kwargs))
+
+    monkeypatch.setattr(
+        app_module, "create_dashboard_workflow_widgets", capture_callbacks
+    )
+    session = launch_dashboard(
+        tk_loader=lambda: (tk, ttk),
+        auto_close_ms=1,
+    )
+
+    assert callback_calls == ["on_modify", "on_repeat", "on_new_test"]
+    assert session.closed_safely is True
     assert root.destroyed is True

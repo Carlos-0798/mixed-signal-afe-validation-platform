@@ -16,7 +16,10 @@ from analog_validation_app import (
     build_human_report_view,
 )
 from analog_validation_app.dashboard import DashboardPresenter, initial_dashboard_state
-from analog_validation_app.dashboard.widgets import create_dashboard_widgets
+from analog_validation_app.dashboard.widgets import (
+    configure_dashboard_style,
+    create_dashboard_widgets,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 DC_RESULT = ROOT / "test-data" / "golden" / "phase3_dc_sweep_result_v1.json"
@@ -118,6 +121,55 @@ class FakeTtk:
     Treeview = _widget
 
 
+def test_optional_style_supports_legacy_factories_and_fails_open() -> None:
+    class LegacyStyle:
+        def __init__(self) -> None:
+            self.selected_theme = ""
+            self.configured: list[str] = []
+
+        def theme_names(self) -> tuple[str, ...]:
+            return ("default", "clam")
+
+        def theme_use(self, value: str) -> None:
+            self.selected_theme = value
+
+        def configure(self, name: str, **kwargs: object) -> None:
+            self.configured.append(name)
+
+        def map(self, name: str, **kwargs: object) -> None:
+            return None
+
+    class LegacyTtk:
+        def __init__(self, style: LegacyStyle) -> None:
+            self.style = style
+            self.calls: list[tuple[object, ...]] = []
+
+        def Style(self, *args: object) -> LegacyStyle:
+            self.calls.append(args)
+            if args:
+                raise TypeError("legacy Style does not accept a root")
+            return self.style
+
+    root = FakeRoot()
+    style = LegacyStyle()
+    ttk = LegacyTtk(style)
+
+    configure_dashboard_style(root, ttk)
+
+    assert len(ttk.calls) == 2
+    assert ttk.calls[1] == ()
+    assert style.selected_theme == "clam"
+    assert "Primary.TButton" in style.configured
+    assert root.config["background"] == "#f4f7fb"
+
+    class BrokenTtk:
+        @staticmethod
+        def Style(*args: object) -> object:
+            raise RuntimeError("optional styling is unavailable")
+
+    configure_dashboard_style(root, BrokenTtk())
+
+
 def issue() -> UserIssue:
     return UserIssue(
         UserIssueCode.OPERATION_FAILED,
@@ -141,8 +193,8 @@ def test_widget_builder_creates_six_text_regions_without_business_actions() -> N
         on_close=lambda: calls.append("close"),
     )
 
-    assert root.window_title == "Analog Validation Studio — Software Dashboard"
-    assert root.minimum == (960, 720)
+    assert root.window_title == "Analog Validation Studio"
+    assert root.minimum == (1040, 760)
     assert len(ttk.created) >= 20
     assert set(widgets.plot_table.headings) == {
         "index",
@@ -224,6 +276,7 @@ def test_render_copies_report_rows_artifacts_and_structured_issue() -> None:
     widgets.render(presenter.state)
 
     assert first_rows
+    assert widgets.plot_table.rows == first_rows
     assert len(widgets.plot_table.rows) == len(view.points)
     assert "Engineering outcome: PASS" in widgets.result_value.value
     assert "Issue: OPERATION_FAILED" in widgets.result_value.value

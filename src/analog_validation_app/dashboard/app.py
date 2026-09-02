@@ -121,6 +121,9 @@ def launch_dashboard(
                 "Tkinter is installed but no local display could create the Dashboard"
             ) from error
         raise
+    initial_hide = getattr(root, "withdraw", None)
+    if callable(initial_hide):
+        initial_hide()
 
     try:
         worker = None if worker_factory is None else worker_factory()
@@ -181,6 +184,18 @@ def launch_dashboard(
         application.export_result(path, format_name)
         render()
 
+    def modify_setup() -> None:
+        application.modify_setup()
+        render()
+
+    def review_same_setup() -> None:
+        application.review_same_setup()
+        render()
+
+    def start_new_test() -> None:
+        application.start_new_test()
+        render()
+
     def close_window() -> None:
         nonlocal closed
         if closed:
@@ -214,12 +229,20 @@ def launch_dashboard(
             on_cancel=cancel_job,
             on_discover=discover_ports,
             on_export=export_result,
+            on_modify=modify_setup,
+            on_repeat=review_same_setup,
+            on_new_test=start_new_test,
             on_close=close_window,
         )
         root.protocol("WM_DELETE_WINDOW", close_window)
         render()
-        if withdraw:
-            root.withdraw()
+        finish_layout = getattr(root, "update_idletasks", None)
+        if callable(finish_layout):
+            finish_layout()
+        if not withdraw:
+            show_window = getattr(root, "deiconify", None)
+            if callable(show_window):
+                show_window()
         root.after(0, poll_worker)
         if auto_close_ms is not None:
             root.after(auto_close_ms, close_window)

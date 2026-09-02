@@ -109,6 +109,12 @@ class DashboardController:
         if not isinstance(self._worker, DashboardStartableWorkerPort):
             raise ProductRequestError("Dashboard worker does not support starting jobs")
         try:
+            # A terminal worker snapshot can become visible just before its final
+            # event is drained.  Reconcile that previous job while its request is
+            # still current so an immediate rerun cannot attribute the stale event
+            # to the newly reviewed request.
+            if self._worker.request is not None:
+                self.poll()
             self._worker.start(request)
             self.poll()
             return True

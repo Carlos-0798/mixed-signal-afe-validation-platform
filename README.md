@@ -7,12 +7,12 @@
 | Development stage | Software Phase 6 release engineering — 7/8 checkpoints |
 | Release maturity | Audited private beta candidate ready for owner review; no tag or Release published |
 | Current package | `mixed-signal-afe-validation-platform 0.1.0b1` |
-| Automated tests | 2,252 passed in the latest full local quality run |
-| Formal + optional + product package coverage | 100% of 11,470 statements |
+| Automated tests | 2,263 passed in the latest full local quality run |
+| Formal + optional + product package coverage | 100% of 11,820 statements |
 | Highest evidence level | `BENCH_CONTROLLER` — MSP430 UART compatibility only |
 | Verified AFE hardware performance claims | **0 — the AFE has not been built or bench-validated** |
 
-[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 6 plan](docs/SOFTWARE_PHASE_6_PLAN.md) · [Private-beta installation](docs/INSTALLATION.md) · [Tester guide](docs/USER_TESTING_GUIDE.md) · [Private-beta handoff](docs/PRIVATE_BETA_HANDOFF.md) · [Draft release notes](docs/RELEASE_NOTES_DRAFT.md) · [Step 7 audit](reports/software-phase6-step7.md) · [Public adapter example](docs/PUBLIC_ADAPTER_EXAMPLE.md) · [Changelog](CHANGELOG.md) · [CLI guide](docs/product-cli.md) · [Dashboard guide](docs/dashboard.md) · [Phase 5 compatibility contract](docs/phase5-public-api.md)
+[Detailed project status](docs/PROJECT_STATUS.md) · [Phase 6 plan](docs/SOFTWARE_PHASE_6_PLAN.md) · [Private-beta installation](docs/INSTALLATION.md) · [Tester guide](docs/USER_TESTING_GUIDE.md) · [Private-beta handoff](docs/PRIVATE_BETA_HANDOFF.md) · [Draft release notes](docs/RELEASE_NOTES_DRAFT.md) · [Step 7 audit](reports/software-phase6-step7.md) · [Windows Dashboard QA](reports/dashboard-ux-windows-qa-2026-09-02.md) · [Public adapter example](docs/PUBLIC_ADAPTER_EXAMPLE.md) · [Changelog](CHANGELOG.md) · [CLI guide](docs/product-cli.md) · [Dashboard guide](docs/dashboard.md) · [Phase 5 compatibility contract](docs/phase5-public-api.md)
 
 ## Product vision
 
@@ -131,8 +131,8 @@ The separate MSP430 Equipment Health Controller is a peer product, not a subordi
 - Installed `analog-validation report` support for strict JSON/CSV result exports with stable user issues and exit codes that preserve the finalized engineering outcome.
 - Immutable `dashboard-state.v1` panels and explicit actions, plus an owner-thread presenter that copies reviewed catalog selections, bounded worker events, structured issues, finalized product results, report points, and path-free artifact identities.
 - A headless Dashboard controller that polls the existing single-owner worker, maps cooperative cancel/close into bounded cleanup, and never creates adapters or jobs itself.
-- A lazy local Tkinter/ttk six-region shell for Source/Profile, Configuration/Safe Review, Progress, Plot/Point Table, Result/Evidence, and Artifacts; every state and evidence class is expressed in text rather than color alone.
-- A fixed six-step beginner workflow for source, test, configuration, review, Run, and result/export, with what/why/confirm guidance and visible acceptance criteria.
+- A lazy local Tkinter/ttk Dashboard with modern styled cards, separate Setup/Results tabs, visible vertical scrolling, and six evidence regions; every state and evidence class is expressed in text rather than color alone.
+- A fixed six-step beginner workflow for source, test, configuration, review, Run, and result/export, with what/why/confirm guidance, visible acceptance criteria, and explicit modify/review-again/new-test/finish actions.
 - Shared CLI/Dashboard `product-workflow-config.v1` compilation, so both entry points use the same reviewed request, source factory, worker service, core analysis, criteria, and export path.
 - Stable `analog-validation dashboard` behavior with Simulator default, Replay preflight, explicit bounded receive-only Serial configuration, cooperative cancel, create-new JSON/CSV export, lazy Tk import, and no network listener.
 - A one-command `analog-validation demo` that runs the reviewed 24-point synthetic DC product chain and publishes 12 byte-reproducible machine, replay, report, chart, and manifest artifacts.
@@ -141,7 +141,9 @@ The separate MSP430 Equipment Health Controller is a peer product, not a subordi
 - Release-style repository-external base and `[serial]` wheel installations; the base product remains driver-independent, while the serial smoke uses an injected host substitute without enumerating or opening a real port.
 - A create-new release verifier that requires a clean Git commit, repeats isolated wheel/sdist builds, normalizes non-content sdist metadata, compares exact bytes, runs fresh base and `[serial]` installs, reproduces the demo in normal/Unicode paths, and emits `release-candidate-manifest.v1` only after every gate passes.
 
-Not yet implemented: calibration/frequency TestRun export mappings, firmware, real-time runner deadlines, long-duration physical transport testing through this product, the guided tester documentation/bundle, the final candidate audit, or validated physical AFE hardware.
+Not yet implemented: calibration/frequency TestRun export mappings, firmware,
+real-time runner deadlines, long-duration physical transport testing through
+this product, or validated physical AFE hardware.
 
 ## Architecture
 
@@ -195,8 +197,9 @@ row is separately limited to the Step 7 five-record `BENCH_CONTROLLER` capture.
 
 | Verification gate | Result |
 |---|---|
-| Full pytest suite | 2,252 passed in the latest full local quality run |
-| Formal + optional + product package statement coverage | 100% of 11,470 statements |
+| Full pytest suite | 2,263 passed in the latest full local quality run |
+| Formal + optional + product package statement coverage | 100% of 11,820 statements |
+| Windows Dashboard interaction and UX follow-up | Simulator READ/DC/hysteresis, valid/invalid CSV Replay, create-new export, immediate rerun, scrolling, first-paint, and result actions passed; no serial port or hardware was accessed |
 | Phase 5 Step 8 product compatibility | 15 new checks; 154 total golden checks; public imports/schemas/call shapes, CLI/options/exits, serialized fields, errors/issues, and exact prior manifests frozen |
 | Phase 5 Step 7 demo and product quality | 186 focused tests; two installed demos in normal/Unicode paths were byte-identical; 10,000-record/event bounded acceptance and real Tk scaling/focus smoke passed |
 | Phase 4 public API and composite golden compatibility | 13 checks; 121 exports, 3 schemas, 12 enum/flag sets, 21 signatures, 17 errors, 5 fixture hashes, and exact AFE/MSP external-backend results frozen |

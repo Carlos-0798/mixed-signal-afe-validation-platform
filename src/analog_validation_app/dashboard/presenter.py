@@ -6,7 +6,7 @@ from dataclasses import replace
 from threading import get_ident
 from typing import Any, cast
 
-from analog_validation import EvidenceSource, TestRunOutcome
+from analog_validation import EvidenceSource, ReadWorkflowResult, TestRunOutcome
 
 from ..catalog import (
     ProductProfileDescriptor,
@@ -205,6 +205,40 @@ def _report_point_values(view: HumanReportView) -> tuple[DashboardPlotPoint, ...
     )
 
 
+def _read_observation_values(
+    result: ReadWorkflowResult,
+) -> tuple[DashboardPlotPoint, ...]:
+    """Copy acquired observations without turning a READ into an analysis."""
+
+    return tuple(
+        DashboardPlotPoint(
+            index,
+            f"{measurement.channel} · sample {index + 1}",
+            measurement.status.value,
+            (
+                (
+                    "value=missing"
+                    if measurement.value is None
+                    else (
+                        f"value={format(measurement.value, '.12g')} "
+                        f"{measurement.unit.value}"
+                    )
+                ),
+                f"source={measurement.source.value}",
+                "quality="
+                + (
+                    ",".join(
+                        sorted(flag.value for flag in measurement.quality_flags)
+                    )
+                    or "none"
+                ),
+                f"timestamp={measurement.timestamp.isoformat()}",
+            ),
+        )
+        for index, measurement in enumerate(result.measurements)
+    )
+
+
 def _product_not_verified(source: EvidenceSource) -> tuple[str, ...]:
     if source is EvidenceSource.BENCH_CONTROLLER:
         return (
@@ -303,7 +337,11 @@ class DashboardPresenter:
                 raise ProductRequestError(
                     "an active Dashboard result cannot be cleared"
                 )
+            source = get_product_source(self._state.source.source_mode)
             return self._replace(
+                configuration=_configuration_panel(
+                    source, self._state.configuration.job_type
+                ),
                 plot=_empty_plot(),
                 result=_empty_result(),
                 artifacts=_empty_artifacts(),
@@ -312,6 +350,18 @@ class DashboardPresenter:
             )
         raise ProductRequestError(  # pragma: no cover - exhaustive enum guard
             f"unsupported Dashboard action: {action.action_type}"
+        )
+
+    def detach_result(self) -> DashboardState:
+        """Detach terminal worker ownership while retaining copied result evidence."""
+
+        self._require_owner()
+        if self._state.progress.worker_state.is_active:
+            raise ProductRequestError("an active Dashboard result cannot be detached")
+        return self._replace(
+            progress=_empty_progress(),
+            event_messages=(),
+            active_job_id=None,
         )
 
     def begin_job(self, request: ProductJobRequest) -> DashboardState:
@@ -486,6 +536,30 @@ class DashboardPresenter:
             _product_not_verified(result.evidence_source),
         )
         return self._replace(result=panel)
+
+    def present_read_observations(
+        self,
+        result: ReadWorkflowResult,
+    ) -> DashboardState:
+        """Show bounded READ records as copied observations, never PASS/FAIL."""
+
+        self._require_owner()
+        if not isinstance(result, ReadWorkflowResult):
+            raise ProductRequestError("result must be a ReadWorkflowResult")
+        points = _read_observation_values(result)
+        requested = result.request.requested_sample_count
+        return self._replace(
+            plot=DashboardPlotPanel(
+                "Read observations",
+                (
+                    f"Copied {len(points)} of {requested} acquired observations. "
+                    "This table is presentation-only and does not calculate an "
+                    "engineering PASS or FAIL."
+                ),
+                points,
+                len(points),
+            )
+        )
 
     def present_issue(self, issue: UserIssue) -> DashboardState:
         """Present structured what/why/next-step text without parsing messages."""
