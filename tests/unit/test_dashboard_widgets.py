@@ -47,6 +47,8 @@ class FakeWidget:
         self.headings: dict[str, dict[str, object]] = {}
         self.columns: dict[str, dict[str, object]] = {}
         self.rows: dict[str, tuple[object, ...]] = {}
+        self.yview_calls: list[tuple[object, ...]] = []
+        self.set_calls: list[tuple[object, ...]] = []
 
     def grid(self, **kwargs: object) -> None:
         self.grid_calls.append(dict(kwargs))
@@ -59,6 +61,12 @@ class FakeWidget:
 
     def configure(self, **kwargs: object) -> None:
         self.config.update(kwargs)
+
+    def yview(self, *args: object) -> None:
+        self.yview_calls.append(args)
+
+    def set(self, *args: object) -> None:
+        self.set_calls.append(args)
 
     def heading(self, column: str, **kwargs: object) -> None:
         self.headings[column] = dict(kwargs)
@@ -119,6 +127,7 @@ class FakeTtk:
     Progressbar = _widget
     Button = _widget
     Treeview = _widget
+    Scrollbar = _widget
 
 
 def test_optional_style_supports_legacy_factories_and_fails_open() -> None:
@@ -202,6 +211,18 @@ def test_widget_builder_creates_six_text_regions_without_business_actions() -> N
         "disposition",
         "values",
     }
+    scrollbars = [
+        widget
+        for widget in ttk.created
+        if widget.kwargs.get("orient") == "vertical"
+    ]
+    assert len(scrollbars) == 1
+    scrollbar = scrollbars[0]
+    assert scrollbar.kwargs["command"] == widgets.plot_table.yview
+    assert scrollbar.grid_calls == [
+        {"row": 1, "column": 1, "sticky": "ns", "pady": (6, 0)}
+    ]
+    assert widgets.plot_table.config["yscrollcommand"] == scrollbar.set
     widgets.cancel_button.kwargs["command"]()
     assert calls == ["cancel"]
 
