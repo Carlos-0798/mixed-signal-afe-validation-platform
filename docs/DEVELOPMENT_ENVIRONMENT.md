@@ -125,18 +125,20 @@ Windows 还可能在很深的仓库、工作树和虚拟环境组合下触发传
 
 ## 最新本地分支快照
 
-2026-09-03 的 Dashboard UX 功能门禁在未访问串口或 MSP430 的条件下完成：
+2026-09-04 的本地组合候选门禁在未访问串口或 MSP430 的条件下完成：
 
-- 完整 pytest：2,275 passed；
+- 完整 pytest：2,277 passed；
 - package coverage：11,911/11,911 statements，100%；
 - Ruff：PASS；
 - mypy：204 files，PASS；
 - build、fresh base 和 `[serial]` 安装：PASS；
 - Windows Simulator/CSV 交互、滚动、保存路径、结果导航、首帧和焦点检查：PASS。
+- deterministic release candidate：PASS；
+- release audit：`PASS_WITH_REVIEW`，当前树隐私发现为 0，旧历史审阅项为 8。
 
-随后加入的 README、截图、当前状态同步和治理文件属于展示/发布准备，
-仍需在最终精确提交上重跑完整门禁；不能把此前功能门禁的数字当成对尚未提交
-候选的 hosted CI 证明。
+README、截图、当前状态同步和治理文件已纳入本地干净提交和正式门禁。
+Draft PR #7 的远端 head 仍是较早的 `8f7eaf6`；只有推送新 head 并重跑
+GitHub Actions 后，才能把本地结果称为当前 PR 的 hosted CI 证明。
 
 ## 环境与证据边界
 

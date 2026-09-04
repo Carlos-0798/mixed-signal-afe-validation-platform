@@ -1,8 +1,8 @@
 # Project Status
 
-**Last updated:** 2026-09-03<br>
+**Last updated:** 2026-09-04<br>
 **Current milestone:** Software Phase 6 release engineering — 7 of 8 checkpoints<br>
-**Release maturity:** Audited `0.1.0b1` private-beta baseline plus Draft PR #7 and a locally validated interaction-safety follow-up; no tag or Release<br>
+**Release maturity:** Audited `0.1.0b1` private-beta baseline plus Draft PR #7 and a formally validated local UX/portfolio follow-up; no tag or Release<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
 
@@ -17,17 +17,18 @@ The reviewed Software Phase 5 plan defines a separate `analog_validation_app` pr
 Draft PR #7 adds modern styling, Setup/Results tabs, adaptive vertical
 scrolling and Windows mouse-wheel routing, revision-gated redraws, explicit
 result actions, visible READ observations, and clearer error/export feedback.
-Its committed head `8f7eaf6` passed all eight hosted CI jobs. A newer local
-follow-up adds a native format-aware save picker, suffix validation, fresh
-destinations, unsaved-result warnings, clearer count bounds, safer button
-hierarchy, and step-aware keyboard focus. Its functional change set passed the
-2,275-test/11,911-statement local quality, build, and install gates. The current
-working tree also prepares a recruiter-first README, two classified Simulator
+Its remote head `8f7eaf6` passed all eight hosted CI jobs. Newer local commits
+add a native format-aware save picker, suffix validation, fresh destinations,
+unsaved-result warnings, clearer count bounds, safer button hierarchy,
+step-aware keyboard focus, a recruiter-first README, two classified Simulator
 screenshots, synchronized current-state documentation, and repository
-governance files. Those presentation/governance additions remain local and
-must pass the final gate on an exact commit before their results are called a
-release candidate. All Windows interaction checks remained Simulator/CSV-only
-and did not touch a physical serial port.
+governance. The combined local committed change set passed 2,277 tests,
+11,911/11,911 package statements, Ruff, mypy, deterministic build, fresh base
+and serial installs, the formal release-candidate verifier, and a
+`PASS_WITH_REVIEW` release audit. These commits remain unpushed, so the older
+eight-job result is not presented as hosted proof for the local follow-up. All
+interaction checks remained Simulator/CSV-only and did not touch a physical
+serial port.
 
 Software Phase 3 is complete. Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. Step 8 freezes the 84-symbol Phase 2 top level, 68 analysis exports, 10 runner exports, 28 export symbols, 12 Phase 3 schemas, public enums/signatures/errors, and exact representative DC/hysteresis results. The golden values remain HOST_TEST/SYNTHETIC software evidence.
 
@@ -95,9 +96,10 @@ port and did not repeat or broaden the Step 7 HIL.
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 2,275 passed in the latest full local quality run |
+| Full pytest suite | 2,277 passed in the latest full local quality run |
 | Formal + optional + product package statement coverage | 100% of 11,911 statements |
 | Dashboard UX Draft PR #7 | PASS at committed head `8f7eaf6` — all eight hosted Windows/Ubuntu matrix, quality, and deterministic-candidate jobs passed |
+| Current local candidate and audit | PASS / `PASS_WITH_REVIEW` — current-tree privacy findings 0; eight legacy-history review items retained for owner review |
 | Local interaction-safety follow-up | PASS locally — adaptive scrolling, native format-aware save selection, suffix validation, fresh result destinations, unsaved-result recovery, button hierarchy, and step focus; physical port discovery/open/write all 0 |
 | Phase 6 hosted CI | PASS — Windows/Ubuntu with Python 3.10, 3.12, and 3.14; quality/build/base/serial jobs passed |
 | Phase 6 beta metadata | PASS — import, CLI, wheel, public manifests, README, and changelog aligned at `0.1.0b1`; no license/tag/Release selected |

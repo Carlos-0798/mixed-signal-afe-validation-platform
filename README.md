@@ -34,7 +34,7 @@ runtime, or product identity.
 | Data sources | Deterministic Simulator, strict CSV Replay, receive-only serial profiles |
 | Analyses | DC gain/offset/linearity with saturation exclusion; directional hysteresis; calibration and offline frequency response |
 | Extension model | Public `DeviceAdapter` and serial-profile contracts |
-| Latest local quality run | 2,275 tests passed; 11,911/11,911 package statements covered |
+| Latest local quality run | 2,277 tests passed; 11,911/11,911 package statements covered |
 | Latest committed PR #7 CI | Eight hosted jobs passed on Windows/Ubuntu and Python 3.10/3.12/3.14 |
 | Hardware claim | `NO_NEW_HARDWARE_VALIDATION` — physical AFE not built or measured |
 
@@ -174,7 +174,7 @@ OSU Lab Bench Monitor Senior Capstone.
 
 | Gate | Verified result |
 |---|---|
-| Local software gate | 2,275 passed; 100% statement coverage across 11,911 package statements; Ruff and mypy passed |
+| Local software gate | 2,277 passed; 100% statement coverage across 11,911 package statements; Ruff and mypy passed |
 | Hosted PR #7 gate | Eight jobs green at committed head `8f7eaf6`; the newer local UX follow-up is not yet pushed |
 | Reproducible candidate baseline | Local/hosted four-file `0.1.0b1` candidate matched byte-for-byte at audited commit `f6721b5` |
 | Release audit | `PASS_WITH_REVIEW`; zero current-tree privacy findings, eight legacy-history review items, zero high-confidence credentials |

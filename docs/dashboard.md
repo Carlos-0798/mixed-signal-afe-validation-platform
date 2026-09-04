@@ -159,7 +159,7 @@ The design rationale and remaining interaction follow-ups are recorded in the
   no-overwrite export; immediate rerun; result actions; scrolling; and clean
   window close. The executed observations remain `SYNTHETIC` or `CSV_REPLAY`
   software evidence only.
-- The current functional follow-up gate passed 2,275 tests and covered
+- The current local follow-up gate passed 2,277 tests and covered
   11,911/11,911 executable package statements. Two isolated builds were
   byte-identical, and fresh base and `[serial]` installations passed using only
   an injected serial substitute.
