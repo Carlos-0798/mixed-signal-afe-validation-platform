@@ -13,6 +13,10 @@ reviewed acquisition jobs, engineering analyses, and traceable reports. The
 design keeps device profiles replaceable so the product is not tied to one
 microcontroller or laboratory.
 
+This is an independent personal engineering project. Compatibility profiles
+allow peer products to exchange evidence without merging their ownership,
+runtime, or product identity.
+
 > **Evidence boundary:** the screenshots and demo below use deterministic
 > `SYNTHETIC` data. No configurable AFE has been built or bench-validated, so
 > this repository makes zero AFE hardware-performance claims. A prior
@@ -176,7 +180,7 @@ Bench Monitor Senior Capstone.
 | Release audit | `PASS_WITH_REVIEW`; zero current-tree privacy findings, eight legacy-history review items, zero high-confidence credentials |
 | Dashboard validation | Simulator/CSV interaction, data entry, adaptive scrolling, fresh save paths, navigation, cancellation, first-paint, and keyboard/scaling checks |
 | Physical controller evidence | One prior five-frame receive-only MSP430 UART capture with zero application writes; exact firmware and peripherals unverified |
-| Physical AFE evidence | Not run |
+| AFE hardware bench tests | Not run |
 
 These rows do not imply 100% branch coverage, production readiness, electrical
 safety certification, or validated AFE performance. Historical checkpoint
