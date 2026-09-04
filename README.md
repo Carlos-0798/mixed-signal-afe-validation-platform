@@ -167,8 +167,8 @@ saturation exclusion, threshold calculation, or PASS/FAIL logic.
 | Future instruments/controllers | Planned adapter/profile | Future explicit bench class | Requires safety review and separate evidence |
 
 The MSP430 Equipment Health Controller and this project are independent
-products. They are not intended to merge, and neither is part of the OSU Lab
-Bench Monitor Senior Capstone.
+products. They are not intended to merge, and neither is part of the
+OSU Lab Bench Monitor Senior Capstone.
 
 ## Verification and claim discipline
 
