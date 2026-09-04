@@ -1,8 +1,8 @@
 # Project Status
 
-**Last updated:** 2026-09-02<br>
+**Last updated:** 2026-09-03<br>
 **Current milestone:** Software Phase 6 release engineering — 7 of 8 checkpoints<br>
-**Release maturity:** Audited `0.1.0b1` private-beta baseline plus locally validated Dashboard UX follow-up; no tag or Release<br>
+**Release maturity:** Audited `0.1.0b1` private-beta baseline plus Draft PR #7 and a locally validated interaction-safety follow-up; no tag or Release<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
 
@@ -14,13 +14,20 @@ The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmi
 
 The reviewed Software Phase 5 plan defines a separate `analog_validation_app` product layer, one `analog-validation` command, a bounded single-owner cancellable worker, deterministic HTML/SVG reporting, a local offline Tkinter/ttk Dashboard, a six-step beginner workflow, and an installed-package deterministic demo. All 8 checkpoints are implemented. The final checkpoint freezes product imports, schemas, CLI commands/options and exits, dataclass/function shapes, report/demo fields, worker states, errors/issues, and prior manifest hashes. The workflow defaults to Simulator/AFE, expresses status and criteria in text, prevalidates Replay, and gates Serial behind exact receive-only settings. Architecture tests enforce consumption of the frozen core without copying device/profile or engineering-analysis logic. Software Phase 6 Steps 1–7 now add the release contract, hosted compatibility CI, `0.1.0b1` metadata, a deterministic create-new candidate verifier, an executable beginner tester path, a public-API-only third-party-style read adapter proved from the installed wheel outside the repository, and a complete-history/privacy/license/workbook/claims audit with a four-file private-beta handoff contract.
 
-The current Dashboard UX follow-up adds modern styling, Setup/Results tabs,
-vertical scrolling and Windows mouse-wheel routing, revision-gated redraws,
-explicit result actions, visible READ observations, and clearer error/export
-feedback. Windows interaction checks covered Simulator READ/DC/hysteresis and
-valid/invalid CSV Replay without touching a physical serial port. These changes
-have passed local quality/build/install gates but remain an uncommitted,
-owner-review-pending change set rather than a new release candidate.
+Draft PR #7 adds modern styling, Setup/Results tabs, adaptive vertical
+scrolling and Windows mouse-wheel routing, revision-gated redraws, explicit
+result actions, visible READ observations, and clearer error/export feedback.
+Its committed head `8f7eaf6` passed all eight hosted CI jobs. A newer local
+follow-up adds a native format-aware save picker, suffix validation, fresh
+destinations, unsaved-result warnings, clearer count bounds, safer button
+hierarchy, and step-aware keyboard focus. Its functional change set passed the
+2,275-test/11,911-statement local quality, build, and install gates. The current
+working tree also prepares a recruiter-first README, two classified Simulator
+screenshots, synchronized current-state documentation, and repository
+governance files. Those presentation/governance additions remain local and
+must pass the final gate on an exact commit before their results are called a
+release candidate. All Windows interaction checks remained Simulator/CSV-only
+and did not touch a physical serial port.
 
 Software Phase 3 is complete. Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. Step 8 freezes the 84-symbol Phase 2 top level, 68 analysis exports, 10 runner exports, 28 export symbols, 12 Phase 3 schemas, public enums/signatures/errors, and exact representative DC/hysteresis results. The golden values remain HOST_TEST/SYNTHETIC software evidence.
 
@@ -88,9 +95,10 @@ port and did not repeat or broaden the Step 7 HIL.
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 2,263 passed in the latest full local quality run |
-| Formal + optional + product package statement coverage | 100% of 11,820 statements |
-| Dashboard UX follow-up | PASS locally — Simulator READ/DC/hysteresis, valid/invalid CSV Replay, scrolling, first-paint, result navigation, create-new export, and immediate rerun; physical port discovery/open/write all 0 |
+| Full pytest suite | 2,275 passed in the latest full local quality run |
+| Formal + optional + product package statement coverage | 100% of 11,911 statements |
+| Dashboard UX Draft PR #7 | PASS at committed head `8f7eaf6` — all eight hosted Windows/Ubuntu matrix, quality, and deterministic-candidate jobs passed |
+| Local interaction-safety follow-up | PASS locally — adaptive scrolling, native format-aware save selection, suffix validation, fresh result destinations, unsaved-result recovery, button hierarchy, and step focus; physical port discovery/open/write all 0 |
 | Phase 6 hosted CI | PASS — Windows/Ubuntu with Python 3.10, 3.12, and 3.14; quality/build/base/serial jobs passed |
 | Phase 6 beta metadata | PASS — import, CLI, wheel, public manifests, README, and changelog aligned at `0.1.0b1`; no license/tag/Release selected |
 | Phase 6 deterministic candidate | PASS — local and hosted Windows/Python 3.12 outputs for commit `0c04aee` were byte-identical; manifest records only HOST_TEST/SYNTHETIC evidence and zero AFE bench claims |
@@ -279,14 +287,16 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 6 Steps 1–7 are complete. Before the owner-only Step 8 release
-decision, the locally validated Dashboard UX follow-up still needs an exact
-diff review, owner-approved commit/PR, hosted CI, and a clean-commit candidate
-rerun. Public Git-history remediation, license selection, merge/tag, GitHub
-Release, repository visibility, beta-feedback disposition, and v1.0 remain
-explicitly undecided. Simulator remains the default. Real-port reliability and
-future physical AFE work stay separately gated and are not inherited by the
-software release path.
+Software Phase 6 Steps 1–7 are complete. Draft PR #7 is open against `main`,
+and its committed head has green hosted CI. The local interaction-safety,
+portfolio-presentation, and publication-governance work still needs final
+diff/privacy review, an owner-approved commit and push, hosted CI, and a
+clean-commit candidate rerun. Marking PR #7 Ready or merging it remains
+owner-gated. The publication checklist now makes public Git-history review,
+license selection, visibility, social preview, tag, GitHub Release,
+beta-feedback disposition, and LinkedIn handoff separate explicit decisions.
+Simulator remains the default. Real-port reliability and future physical AFE
+work stay separately gated and are not inherited by the software release path.
 
 ## GitHub and LinkedIn presentation policy
 

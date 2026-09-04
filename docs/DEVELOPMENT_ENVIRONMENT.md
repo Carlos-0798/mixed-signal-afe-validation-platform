@@ -51,6 +51,23 @@ New-Item -ItemType Junction -Path ".venv" -Target $Venv
 不要删除或覆盖一个已有但来源不明的 `.venv`。先检查其解释器和安装目标，或为本次
 工作选择新的短路径。无需激活虚拟环境，也不需要改变 PowerShell execution policy。
 
+一个 editable install 只应对应一个活动 Git worktree。多个 worktree 共用同一虚拟
+环境时，`.pth`/editable metadata 可能仍指向先前的源码目录，从而“测试当前分支却
+导入旧代码”。正式门禁前应为当前 worktree 建立独立环境，或至少执行：
+
+~~~powershell
+.\.venv\Scripts\python.exe -c "import analog_validation_app; print(analog_validation_app.__file__)"
+~~~
+
+输出路径必须位于当前 worktree。临时设置 `PYTHONPATH=<当前工作树>\src` 只适合
+定位问题；发布证据仍应使用隔离构建和 fresh install。
+
+Windows 还可能在很深的仓库、工作树和虚拟环境组合下触发传统路径长度限制。若
+`pip` 报错并提示 `Windows Long Path support`，不要把它误判为 wheel 损坏，也不要
+覆盖现有环境。应在明确的新短路径（例如 `C:\avs-gates\<candidate>`）创建隔离
+虚拟环境，再重复相同的 wheel 安装和验证；或者由用户/管理员单独决定是否启用
+系统长路径策略。短路径重试的结果和原始失败原因都应记录。
+
 ## 无硬件环境自检
 
 仓库提供一个标准库实现的开发环境审计入口：
@@ -94,7 +111,7 @@ New-Item -ItemType Junction -Path ".venv" -Target $Venv
 
 目标目录必须不存在；工具使用 create-new 语义，不覆盖旧证据。
 
-## 当前真实结果
+## 已记录的 `95cd471` 基线
 
 在 `95cd471` 上重建短路径环境后：
 
@@ -105,6 +122,21 @@ New-Item -ItemType Junction -Path ".venv" -Target $Venv
 - mypy：204 files，PASS；
 - `pip check`：PASS；
 - 四个 LTspice 理想网表：进程退出码均为 0，结果与既有 `SPICE_IDEAL` 记录一致。
+
+## 最新本地分支快照
+
+2026-09-03 的 Dashboard UX 功能门禁在未访问串口或 MSP430 的条件下完成：
+
+- 完整 pytest：2,275 passed；
+- package coverage：11,911/11,911 statements，100%；
+- Ruff：PASS；
+- mypy：204 files，PASS；
+- build、fresh base 和 `[serial]` 安装：PASS；
+- Windows Simulator/CSV 交互、滚动、保存路径、结果导航、首帧和焦点检查：PASS。
+
+随后加入的 README、截图、当前状态同步和治理文件属于展示/发布准备，
+仍需在最终精确提交上重跑完整门禁；不能把此前功能门禁的数字当成对尚未提交
+候选的 hosted CI 证明。
 
 ## 环境与证据边界
 
