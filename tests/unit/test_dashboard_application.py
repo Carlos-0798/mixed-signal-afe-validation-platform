@@ -170,6 +170,7 @@ def test_application_validates_dependencies_and_exposes_initial_state() -> None:
     application = DashboardApplication()
     assert application.dashboard_state.source.source_mode is ProductSourceMode.SIMULATOR
     assert application.wizard_state.step is DashboardWizardStep.SOURCE
+    assert application.has_unsaved_result is False
     assert application.is_closed is False
     assert application.request_cancel() is False
     assert application.request_close() is True
@@ -292,10 +293,12 @@ def test_simulator_dc_runs_shared_analysis_and_exports_json_csv_without_overwrit
     application = ready_dc_application()
     assert application.dashboard_state.result.outcome is not None
     assert application.dashboard_state.plot.points
+    assert application.has_unsaved_result is True
 
     json_path = tmp_path / "dc-result.json"
     csv_path = tmp_path / "dc-result.csv"
     assert application.export_result(str(json_path), "json")
+    assert application.has_unsaved_result is False
     assert json_path.is_file()
     assert application.dashboard_state.artifacts.artifacts[0].name == json_path.name
     assert application.export_result(str(csv_path), "csv")
@@ -311,6 +314,9 @@ def test_simulator_dc_runs_shared_analysis_and_exports_json_csv_without_overwrit
         ("", "json"),
         (" result.json", "json"),
         ("result.json", "yaml"),
+        ("result.csv", "json"),
+        ("result.json", "csv"),
+        ("result", "json"),
     ],
 )
 def test_export_rejects_missing_ambiguous_or_unknown_destination(

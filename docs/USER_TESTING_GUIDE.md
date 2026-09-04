@@ -88,9 +88,19 @@ This is an intentional evidence-preservation feature, not a defect.
 
 If a graphical Windows desktop and Tk are available, launch the Dashboard with
 the default Simulator. Review the six steps, criteria, Run/Cancel controls,
-result/evidence panel, and close behavior. Do not select Serial. Record
-`NOT_RUN` when no suitable display exists; never convert a skipped GUI test
-into PASS.
+result/evidence panel, and close behavior. Confirm that a short page stays at
+the top without wheel movement, while a page taller than the window exposes a
+working vertical scrollbar. For a finalized DC or hysteresis analysis, use
+**Choose save location...**, cancel once to confirm the existing field is
+unchanged, then choose a new JSON or CSV filename and save it. Confirm that the
+picker suggests a matching filename and offers only the selected format. Before
+saving, try **Finish & close** and **Start new test**: each must warn that the
+only finalized copy is unsaved, and choosing No must preserve the Result page.
+After saving, repeat one analysis and confirm that its destination starts empty.
+Finally, select JSON but manually enter a `.csv` path; the app must explain the
+suffix mismatch and create no file. Do not select Serial.
+Record `NOT_RUN` when no suitable display exists; never convert a skipped GUI
+test into PASS.
 
 ## Optional Replay check
 

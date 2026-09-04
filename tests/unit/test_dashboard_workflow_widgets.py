@@ -19,6 +19,7 @@ from analog_validation_app.dashboard import initial_dashboard_state
 from analog_validation_app.dashboard.widgets import (
     _bind_mouse_wheel,
     _create_scrollable_page,
+    _sync_vertical_scroll_state,
     create_dashboard_widgets,
     create_dashboard_workflow_widgets,
 )
@@ -42,6 +43,7 @@ class FakeWidget:
         self.bindings: dict[str, Any] = {}
         self.rows: dict[str, tuple[object, ...]] = {}
         self.visible = False
+        self.focus_calls = 0
 
     def grid(self, **kwargs: object) -> None:
         self.visible = True
@@ -60,6 +62,9 @@ class FakeWidget:
 
     def bind(self, event: str, callback: Any) -> None:
         self.bindings[event] = callback
+
+    def focus_set(self) -> None:
+        self.focus_calls += 1
 
     def heading(self, column: str, **kwargs: object) -> None:
         return None
@@ -120,6 +125,10 @@ class FakeTtk:
 
 
 def callbacks(log: list[object]) -> dict[str, Any]:
+    def choose_export_path(format_name: str) -> str:
+        log.append(("choose-export", format_name))
+        return f"chosen-result.{format_name}"
+
     return {
         "on_source": lambda value: log.append(("source", value)),
         "on_profile": lambda value: log.append(("profile", value)),
@@ -130,6 +139,7 @@ def callbacks(log: list[object]) -> dict[str, Any]:
         "on_run": lambda: log.append("run"),
         "on_cancel": lambda: log.append("cancel"),
         "on_discover": lambda: log.append("discover"),
+        "on_choose_export_path": choose_export_path,
         "on_export": lambda path, format_name: log.append(
             ("export", path, format_name)
         ),
@@ -167,6 +177,8 @@ def test_workflow_widgets_render_six_steps_and_emit_only_typed_callbacks() -> No
     assert widgets.run_button.config["state"] == "disabled"
     assert widgets.modify_button.config["state"] == "disabled"
     assert widgets.new_test_button.config["state"] == "disabled"
+    assert widgets.export_button.kwargs["style"] == "Primary.TButton"
+    assert widgets.new_test_button.kwargs["style"] == "Secondary.TButton"
     assert widgets.source_select.config["values"] == (
         "SIMULATOR",
         "CSV_REPLAY",
@@ -178,8 +190,8 @@ def test_workflow_widgets_render_six_steps_and_emit_only_typed_callbacks() -> No
     widgets.job_select.bindings["<<ComboboxSelected>>"](None)
     widgets.next_button.kwargs["command"]()
     widgets.review_button.kwargs["command"]()
-    widgets.form.export_path.set("result.json")
     widgets.form.export_format.set("json")
+    widgets.export_browse_button.kwargs["command"]()
     widgets.export_button.kwargs["command"]()
     widgets.finish_button.kwargs["command"]()
 
@@ -191,8 +203,9 @@ def test_workflow_widgets_render_six_steps_and_emit_only_typed_callbacks() -> No
     assert log[3] == "next"
     assert log[4][0] == "review"  # type: ignore[index]
     assert isinstance(log[4][1], DashboardWizardDraft)  # type: ignore[index]
-    assert log[5] == ("export", "result.json", "json")
-    assert log[6] == "close"
+    assert log[5] == ("choose-export", "json")
+    assert log[6] == ("export", "chosen-result.json", "json")
+    assert log[7] == "close"
 
 
 def test_workflow_render_shows_review_ports_issue_and_export_permissions() -> None:
@@ -232,6 +245,7 @@ def test_workflow_render_shows_review_ports_issue_and_export_permissions() -> No
     assert widgets.new_test_button.config["state"] == "normal"
     assert "Run complete" in widgets.next_steps_value.value
     assert widgets.export_path_input.config["state"] == "normal"
+    assert widgets.export_browse_button.config["state"] == "normal"
     with pytest.raises(ProductRequestError, match="DashboardState"):
         widgets.render(cast(Any, object()), wizard)
     with pytest.raises(ProductRequestError, match="DashboardWizardState"):
@@ -300,6 +314,7 @@ def test_scrollable_page_tracks_width_and_routes_mouse_wheel() -> None:
             super().__init__(*args, **kwargs)
             self.window_config: dict[str, object] = {}
             self.scroll_calls: list[tuple[int, str]] = []
+            self.top_calls: list[float] = []
 
         def yview(self, *args: object) -> None:
             return None
@@ -311,12 +326,18 @@ def test_scrollable_page_tracks_width_and_routes_mouse_wheel() -> None:
             assert item == "all"
             return (0, 0, 700, 1200)
 
+        def winfo_height(self) -> int:
+            return 600
+
         def itemconfigure(self, item: int, **kwargs: object) -> None:
             assert item == 7
             self.window_config.update(kwargs)
 
         def yview_scroll(self, amount: int, units: str) -> None:
             self.scroll_calls.append((amount, units))
+
+        def yview_moveto(self, position: float) -> None:
+            self.top_calls.append(position)
 
         def winfo_ismapped(self) -> bool:
             return True
@@ -351,6 +372,97 @@ def test_scrollable_page_tracks_width_and_routes_mouse_wheel() -> None:
 
     assert result == "break"
     assert canvas.scroll_calls == [(2, "units")]
+
+
+def test_short_scrollable_page_stays_at_top_and_ignores_mouse_wheel() -> None:
+    class ShortCanvas(FakeWidget):
+        def __init__(self) -> None:
+            super().__init__()
+            self.top_calls: list[float] = []
+            self.scroll_calls: list[tuple[int, str]] = []
+
+        def bbox(self, item: str) -> tuple[int, int, int, int]:
+            assert item == "all"
+            return (0, 0, 700, 500)
+
+        def winfo_height(self) -> int:
+            return 800
+
+        def yview_moveto(self, position: float) -> None:
+            self.top_calls.append(position)
+
+        def yview_scroll(self, amount: int, units: str) -> None:
+            self.scroll_calls.append((amount, units))
+
+        def winfo_ismapped(self) -> bool:
+            return True
+
+    class WheelEvent:
+        delta = -120
+
+    canvas = ShortCanvas()
+    scrollbar = FakeWidget()
+    scrollbar.grid()
+
+    assert _sync_vertical_scroll_state(canvas, scrollbar) is False
+    assert canvas.config["scrollregion"] == (0, 0, 700, 800)
+    assert canvas.top_calls == [0.0]
+    assert scrollbar.visible is False
+
+    root = FakeRoot()
+    _bind_mouse_wheel(root, (canvas,))
+    assert root.all_bindings["<MouseWheel>"](WheelEvent()) is None
+    assert canvas.scroll_calls == []
+
+
+def test_scroll_state_defensively_handles_missing_geometry() -> None:
+    class MissingBounds(FakeWidget):
+        @staticmethod
+        def bbox(item: str) -> None:
+            assert item == "all"
+
+    class MissingHeight(FakeWidget):
+        @staticmethod
+        def bbox(item: str) -> tuple[int, int, int, int]:
+            assert item == "all"
+            return (0, 0, 400, 500)
+
+    class UnlaidOut(MissingHeight):
+        @staticmethod
+        def winfo_height() -> int:
+            return 1
+
+    scrollbar = FakeWidget()
+    missing_bounds = MissingBounds()
+    missing_height = MissingHeight()
+    unlaid_out = UnlaidOut()
+
+    assert _sync_vertical_scroll_state(missing_bounds, scrollbar) is False
+    assert _sync_vertical_scroll_state(missing_height, scrollbar) is False
+    assert missing_height.config["scrollregion"] == (0, 0, 400, 500)
+    assert _sync_vertical_scroll_state(unlaid_out, scrollbar) is False
+    assert unlaid_out.config["scrollregion"] == (0, 0, 400, 500)
+
+
+def test_export_location_chooser_preserves_path_on_cancel_and_rejects_bad_type() -> (
+    None
+):
+    cancel_callbacks = callbacks([])
+    cancel_callbacks["on_choose_export_path"] = lambda _format: ""
+    cancelled = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **cancel_callbacks
+    )
+    cancelled.form.export_path.set("existing.json")
+    cancelled.export_browse_button.kwargs["command"]()
+    assert cancelled.form.export_path.get() == "existing.json"
+
+    invalid_callbacks = callbacks([])
+    invalid_callbacks["on_choose_export_path"] = lambda _format: cast(Any, 42)
+    invalid = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **invalid_callbacks
+    )
+    with pytest.raises(ProductRequestError, match="path string"):
+        invalid.export_browse_button.kwargs["command"]()
 
 
 def test_workflow_tabs_select_current_page_and_reset_its_scroll_position() -> None:
@@ -392,10 +504,57 @@ def test_workflow_tabs_select_current_page_and_reset_its_scroll_position() -> No
     widgets.render(initial_dashboard_state(), source)
     assert widgets.notebook.selected is widgets.workflow_page
     assert workflow_canvas.positions == [0.0]
+    assert widgets.source_select.focus_calls == 1
 
     widgets.render(initial_dashboard_state(), result)
     assert widgets.notebook.selected is widgets.result_page
     assert result_canvas.positions == [0.0]
+    assert widgets.result_widgets.plot_table.focus_calls == 1
+
+
+def test_step_changes_move_focus_to_a_safe_logical_target() -> None:
+    widgets = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **callbacks([])
+    )
+    draft = DashboardWizardDraft()
+    sequence = (
+        (DashboardWizardStep.SOURCE, widgets.source_select),
+        (DashboardWizardStep.TEST, widgets.job_select),
+        (DashboardWizardStep.CONFIGURATION, widgets.primary_channel_input),
+        (DashboardWizardStep.REVIEW, widgets.run_button),
+        (DashboardWizardStep.RUN, widgets.result_widgets.plot_table),
+        (DashboardWizardStep.RESULT, widgets.result_widgets.plot_table),
+    )
+
+    for revision, (step, target) in enumerate(sequence):
+        before = target.focus_calls
+        review_lines = ("Reviewed.",) if step is DashboardWizardStep.REVIEW else ()
+        widgets.render(
+            initial_dashboard_state(),
+            DashboardWizardState(revision, step, draft, review_lines=review_lines),
+        )
+        assert target.focus_calls == before + 1
+
+
+def test_each_new_analysis_result_requires_a_fresh_export_destination() -> None:
+    widgets = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **callbacks([])
+    )
+    draft = DashboardWizardDraft(export_path="previous-result.json")
+    running = DashboardWizardState(1, DashboardWizardStep.RUN, draft)
+    result = DashboardWizardState(
+        2,
+        DashboardWizardStep.RESULT,
+        draft,
+        export_available=True,
+        export_message="Choose a destination.",
+    )
+
+    widgets.render(initial_dashboard_state(), running)
+    assert widgets.form.export_path.get() == "previous-result.json"
+
+    widgets.render(initial_dashboard_state(), result)
+    assert widgets.form.export_path.get() == ""
 
 
 def test_mouse_wheel_defensive_paths_and_legacy_binding_are_safe() -> None:

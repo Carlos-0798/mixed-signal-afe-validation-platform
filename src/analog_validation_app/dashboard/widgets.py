@@ -677,8 +677,10 @@ class DashboardWorkflowWidgets:
     source_select: Any
     profile_select: Any
     job_select: Any
+    primary_channel_input: Any
     serial_port_select: Any
     export_path_input: Any
+    export_browse_button: Any
     export_format_select: Any
     back_button: Any
     next_button: Any
@@ -818,6 +820,7 @@ class DashboardWorkflowWidgets:
             control.configure(state=active_state if enabled else "disabled")
         export_state = "normal" if wizard.can_export else "disabled"
         self.export_path_input.configure(state=export_state)
+        self.export_browse_button.configure(state=export_state)
         self.export_format_select.configure(
             state="readonly" if wizard.can_export else "disabled"
         )
@@ -917,6 +920,24 @@ class DashboardWorkflowWidgets:
         )
         if should_load:
             self.form.load(wizard.draft)
+        if (
+            self._last_step is DashboardWizardStep.RUN
+            and wizard.step is DashboardWizardStep.RESULT
+        ):
+            # Every finalized analysis starts with a fresh create-new destination.
+            self.form.export_path.set("")
+        if self._last_step is not wizard.step:
+            focus_target = {
+                DashboardWizardStep.SOURCE: self.source_select,
+                DashboardWizardStep.TEST: self.job_select,
+                DashboardWizardStep.CONFIGURATION: self.primary_channel_input,
+                DashboardWizardStep.REVIEW: self.run_button,
+                DashboardWizardStep.RUN: self.result_widgets.plot_table,
+                DashboardWizardStep.RESULT: self.result_widgets.plot_table,
+            }[wizard.step]
+            set_focus = getattr(focus_target, "focus_set", None)
+            if callable(set_focus):
+                set_focus()
         self._rendered_wizard_revision = wizard.revision
         self._current_draft = wizard.draft
         self._last_step = wizard.step
@@ -941,7 +962,7 @@ def _create_scrollable_page(
     tk_module: Any,
     ttk_module: Any,
 ) -> tuple[Any, Any | None]:
-    """Create one width-tracking page with a visible vertical scrollbar."""
+    """Create a top-anchored page that scrolls only when its content overflows."""
 
     canvas_factory = getattr(tk_module, "Canvas", None)
     scrollbar_factory = getattr(ttk_module, "Scrollbar", None)
@@ -967,20 +988,54 @@ def _create_scrollable_page(
     canvas.configure(yscrollcommand=scrollbar.set)
     canvas.grid(row=0, column=0, sticky="nsew")
     scrollbar.grid(row=0, column=1, sticky="ns")
+    scrollbar.grid_remove()
+    canvas._avs_vertical_overflow = False
     page = ttk_module.Frame(canvas, style="App.TFrame")
     window_id = canvas.create_window((0, 0), window=page, anchor="nw")
 
     def sync_scroll_region(_event: object) -> None:
-        canvas.configure(scrollregion=canvas.bbox("all"))
+        _sync_vertical_scroll_state(canvas, scrollbar)
 
     def sync_page_width(event: object) -> None:
         width = getattr(event, "width", None)
         if isinstance(width, int) and width > 0:
             canvas.itemconfigure(window_id, width=width)
+        _sync_vertical_scroll_state(canvas, scrollbar)
 
     page.bind("<Configure>", sync_scroll_region)
     canvas.bind("<Configure>", sync_page_width)
     return page, canvas
+
+
+def _sync_vertical_scroll_state(canvas: Any, scrollbar: Any) -> bool:
+    """Clamp short pages to the top and expose scrolling only for overflow."""
+
+    bbox = canvas.bbox("all")
+    if not isinstance(bbox, tuple) or len(bbox) != 4:
+        return False
+    height_getter = getattr(canvas, "winfo_height", None)
+    if not callable(height_getter):
+        canvas.configure(scrollregion=bbox)
+        return False
+    viewport_height = height_getter()
+    if not isinstance(viewport_height, int) or viewport_height <= 1:
+        canvas.configure(scrollregion=bbox)
+        return False
+    left, top, right, bottom = bbox
+    content_height = bottom - top
+    overflow = content_height > viewport_height + 1
+    scroll_bottom = bottom if overflow else top + viewport_height
+    canvas.configure(scrollregion=(left, top, right, scroll_bottom))
+    canvas._avs_vertical_overflow = overflow
+    if not overflow:
+        move_to = getattr(canvas, "yview_moveto", None)
+        if callable(move_to):
+            move_to(0.0)
+    if overflow:
+        scrollbar.grid()
+    else:
+        scrollbar.grid_remove()
+    return overflow
 
 
 def _bind_mouse_wheel(root: Any, canvases: tuple[Any, ...]) -> None:
@@ -998,6 +1053,8 @@ def _bind_mouse_wheel(root: Any, canvases: tuple[Any, ...]) -> None:
         for canvas in available:
             is_mapped = getattr(canvas, "winfo_ismapped", None)
             if callable(is_mapped) and not is_mapped():
+                continue
+            if not bool(getattr(canvas, "_avs_vertical_overflow", True)):
                 continue
             scroll = getattr(canvas, "yview_scroll", None)
             if callable(scroll):
@@ -1026,6 +1083,7 @@ def create_dashboard_workflow_widgets(
     on_run: Callable[[], object],
     on_cancel: Callable[[], object],
     on_discover: Callable[[], object],
+    on_choose_export_path: Callable[[str], str | None],
     on_export: Callable[[str, str], object],
     on_modify: Callable[[], object],
     on_repeat: Callable[[], object],
@@ -1046,6 +1104,7 @@ def create_dashboard_workflow_widgets(
             ("on_run", on_run),
             ("on_cancel", on_cancel),
             ("on_discover", on_discover),
+            ("on_choose_export_path", on_choose_export_path),
             ("on_export", on_export),
             ("on_modify", on_modify),
             ("on_repeat", on_repeat),
@@ -1247,9 +1306,9 @@ def create_dashboard_workflow_widgets(
     config_fields = (
         ("Operation", operation_select),
         ("Unit", unit_select),
-        ("Samples / DC points", sample_count_input),
-        ("Rising samples", rising_count_input),
-        ("Falling samples", falling_count_input),
+        ("Samples / DC points (1–10k)", sample_count_input),
+        ("Rising samples (2–10k)", rising_count_input),
+        ("Falling samples (2–10k)", falling_count_input),
         ("Target gain", target_gain_input),
     )
     for column, (label, widget) in enumerate(config_fields):
@@ -1257,6 +1316,15 @@ def create_dashboard_workflow_widgets(
             row=0, column=column, sticky="w"
         )
         widget.grid(row=1, column=column, sticky="ew", padx=(0, 8), pady=(3, 0))
+    ttk.Label(
+        signal_frame,
+        text=(
+            "Count limits: READ/DC 1–10,000; hysteresis at least 2 per direction "
+            "and 10,000 combined."
+        ),
+        style="Muted.TLabel",
+        justify="left",
+    ).grid(row=2, column=0, columnspan=6, sticky="w", pady=(6, 0))
 
     acceptance_frame = ttk.LabelFrame(
         wizard_frame,
@@ -1482,7 +1550,26 @@ def create_dashboard_workflow_widgets(
     )
     export_path_input = entry(export_frame, textvariable=form.export_path)
     export_path_input.grid(
-        row=1, column=3, columnspan=2, sticky="ew", padx=(0, 8), pady=(3, 0)
+        row=1, column=3, sticky="ew", padx=(0, 8), pady=(3, 0)
+    )
+
+    def choose_export_path() -> None:
+        selected = on_choose_export_path(str(form.export_format.get()))
+        if selected is None or selected == "":
+            return
+        if not isinstance(selected, str):
+            raise ProductRequestError("on_choose_export_path must return a path string")
+        form.export_path.set(selected)
+
+    export_browse_button = ttk.Button(
+        export_frame,
+        text="Choose save location...",
+        command=choose_export_path,
+        takefocus=True,
+        style="Secondary.TButton",
+    )
+    export_browse_button.grid(
+        row=1, column=4, sticky="ew", padx=(0, 8), pady=(3, 0)
     )
     ttk.Label(export_frame, text="Format", style="Muted.TLabel").grid(
         row=0, column=5, sticky="w"
@@ -1543,7 +1630,7 @@ def create_dashboard_workflow_widgets(
         text="Start new test",
         command=on_new_test,
         takefocus=True,
-        style="Primary.TButton",
+        style="Secondary.TButton",
     )
     finish_button = ttk.Button(
         next_steps_frame,
@@ -1600,8 +1687,10 @@ def create_dashboard_workflow_widgets(
         source_select=source_select,
         profile_select=profile_select,
         job_select=job_select,
+        primary_channel_input=primary_channel_input,
         serial_port_select=serial_port_select,
         export_path_input=export_path_input,
+        export_browse_button=export_browse_button,
         export_format_select=export_format_select,
         back_button=back_button,
         next_button=next_button,

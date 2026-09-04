@@ -21,11 +21,12 @@ fixed six-step validation workflow:
    JSON/CSV export when an analysis result exists.
 
 The window separates the workflow into **Setup & run** and
-**Results & evidence** tabs. Both pages have a visible vertical scrollbar and
-support the Windows mouse wheel, so the run status, observation table,
-limitations, and artifact information remain reachable on shorter displays.
-Each new step returns its active page to the top instead of preserving a stale
-scroll position from the previous step.
+**Results & evidence** tabs. A vertical scrollbar appears only when the active
+page is taller than the available viewport. Short pages stay pinned to the top
+and ignore the Windows mouse wheel instead of moving into empty space; long
+pages remain scrollable so run status, observations, limitations, and artifact
+information are reachable. Each new step returns its active page to the top
+instead of preserving a stale scroll position from the previous step.
 
 Every step displays three beginner prompts: what is happening, why it matters,
 and what the user must confirm. Simulator is selected by default, so opening the
@@ -106,7 +107,16 @@ the application path is receive-only.
   request but retains copied result evidence as a reference; Run remains
   disabled until the edited setup is validated again. **Start new test** clears
   the prior result and resets the form.
-- Export uses create-new semantics and refuses to replace an existing file.
+- Export has no implicit default destination: a finalized analysis remains in
+  memory until the user types a new path or chooses one through the native
+  **Choose save location...** dialog. The picker suggests a format-matching
+  filename, and manually entered paths must use the selected `.json` or `.csv`
+  suffix. Each newly finalized analysis starts with an empty destination.
+  Export uses create-new semantics and refuses to replace an existing file.
+- If the only copy of a finalized analysis has not been exported, **Modify
+  setup**, **Review same setup**, **Start new test**, **Finish & close**, and the
+  window close control ask before discarding it. The safe default returns to
+  the Result page so the user can save first.
 - The window is composed while hidden, finishes its first layout pass, and is
   then shown. Subsequent 50 ms worker polls redraw widgets only when an immutable
   Dashboard or wizard revision changes; unchanged polls do not clear and rebuild
@@ -127,6 +137,9 @@ A bounded read can finish successfully without an analysis export. DC and
 hysteresis results can expose the existing finalized `ResultExportBundle` and
 write JSON or CSV. The Dashboard does not recompute that bundle.
 
+The design rationale and remaining interaction follow-ups are recorded in the
+[Dashboard interaction design audit](UX_DESIGN_AUDIT.md).
+
 ## Verified software behavior
 
 - CLI and Dashboard produced equivalent finalized results for the same 24-point
@@ -146,10 +159,10 @@ write JSON or CSV. The Dashboard does not recompute that bundle.
   no-overwrite export; immediate rerun; result actions; scrolling; and clean
   window close. The executed observations remain `SYNTHETIC` or `CSV_REPLAY`
   software evidence only.
-- The current follow-up gate passed 2,263 tests and covered 11,820/11,820
-  executable package statements. Two isolated builds were byte-identical, and
-  fresh base and `[serial]` installations passed using only an injected serial
-  substitute.
+- The current functional follow-up gate passed 2,275 tests and covered
+  11,911/11,911 executable package statements. Two isolated builds were
+  byte-identical, and fresh base and `[serial]` installations passed using only
+  an injected serial substitute.
 
 ## Current limitations
 
@@ -172,3 +185,7 @@ See the [CLI guide](product-cli.md), [human-report guide](human-reports.md),
 [product-quality acceptance](product-quality-acceptance.md),
 [Phase 5 plan](SOFTWARE_PHASE_5_PLAN.md), and
 [Step 8 closure report](../reports/software-phase5-step8.md).
+
+Current portfolio screenshots are cataloged in the
+[media evidence register](../media/README.md). They use only the deterministic
+Simulator and do not add a hardware claim.

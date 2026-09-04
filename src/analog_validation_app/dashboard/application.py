@@ -105,6 +105,7 @@ class DashboardApplication:
         self._bundle: ResultExportBundle | None = None
         self._report_view: HumanReportView | None = None
         self._terminal_presented = False
+        self._result_exported = False
 
     @property
     def dashboard_state(self) -> DashboardState:
@@ -117,6 +118,16 @@ class DashboardApplication:
     @property
     def is_closed(self) -> bool:
         return self._controller.is_closed
+
+    @property
+    def has_unsaved_result(self) -> bool:
+        """Report whether the current finalized analysis has no saved copy yet."""
+
+        return (
+            self._wizard.state.can_export
+            and self._bundle is not None
+            and not self._result_exported
+        )
 
     def _present_exception(self, error: BaseException) -> UserIssue:
         issue = issue_from_exception(error)
@@ -273,6 +284,7 @@ class DashboardApplication:
             self._bundle = None
             self._report_view = None
             self._terminal_presented = False
+            self._result_exported = False
             self._wizard.present_review(draft, prepared.review_lines)
             self._dashboard.present_review(prepared.request, prepared.review_lines)
             return True
@@ -360,6 +372,12 @@ class DashboardApplication:
                 raise ProductRequestError("export path must be printable stripped text")
             selected_format = DashboardExportFormat(format_name)
             path = Path(path_text)
+            required_suffix = f".{selected_format.value}"
+            if path.suffix.lower() != required_suffix:
+                raise ProductRequestError(
+                    f"{selected_format.value.upper()} export path must end with "
+                    f"{required_suffix}"
+                )
             if selected_format is DashboardExportFormat.JSON:
                 written = write_result_export_json(path, self._bundle)
                 media_type = "application/json"
@@ -382,6 +400,7 @@ class DashboardApplication:
                 HumanReportPublication(written.parent, (artifact,)),
             )
             self._wizard.present_export(written.name)
+            self._result_exported = True
             return True
         except BaseException as error:  # noqa: BLE001 - UI boundary
             self._present_exception(error)
@@ -396,6 +415,7 @@ class DashboardApplication:
         self._bundle = None
         self._report_view = None
         self._terminal_presented = False
+        self._result_exported = False
 
 
 __all__ = [
