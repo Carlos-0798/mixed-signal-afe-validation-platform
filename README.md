@@ -175,7 +175,7 @@ OSU Lab Bench Monitor Senior Capstone.
 | Gate | Verified result |
 |---|---|
 | Local software gate | 2,277 passed; 100% statement coverage across 11,911 package statements; Ruff and mypy passed |
-| Hosted PR #7 gate | Eight jobs green at committed head `8f7eaf6`; the newer local UX follow-up is not yet pushed |
+| Hosted PR #7 gate | Eight jobs green at remote head `e00f165`; Actions run `33897499685` completed successfully on attempt 2 |
 | Reproducible candidate baseline | Local/hosted four-file `0.1.0b1` candidate matched byte-for-byte at audited commit `f6721b5` |
 | Release audit | `PASS_WITH_REVIEW`; zero current-tree privacy findings, eight legacy-history review items, zero high-confidence credentials |
 | Dashboard validation | Simulator/CSV interaction, data entry, adaptive scrolling, fresh save paths, navigation, cancellation, first-paint, and keyboard/scaling checks |

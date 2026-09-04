@@ -137,8 +137,9 @@ Windows 还可能在很深的仓库、工作树和虚拟环境组合下触发传
 - release audit：`PASS_WITH_REVIEW`，当前树隐私发现为 0，旧历史审阅项为 8。
 
 README、截图、当前状态同步和治理文件已纳入本地干净提交和正式门禁。
-Draft PR #7 的远端 head 仍是较早的 `8f7eaf6`；只有推送新 head 并重跑
-GitHub Actions 后，才能把本地结果称为当前 PR 的 hosted CI 证明。
+Draft PR #7 的远端 head `e00f165` 已在 Actions run `33897499685`
+attempt 2 通过全部八项 hosted CI。此后的本地提交（包括当前状态文档同步）
+只有在推送并重新通过 GitHub Actions 后，才能称为新 PR head 的 hosted CI 证明。
 
 ## 环境与证据边界
 
