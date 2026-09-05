@@ -137,8 +137,9 @@ A bounded read can finish successfully without an analysis export. DC and
 hysteresis results can expose the existing finalized `ResultExportBundle` and
 write JSON or CSV. The Dashboard does not recompute that bundle.
 
-The design rationale and remaining interaction follow-ups are recorded in the
-[Dashboard interaction design audit](UX_DESIGN_AUDIT.md).
+The reusable interaction rules, acceptance cases, and design rationale are
+recorded in the [software interaction design guide](SOFTWARE_INTERACTION_DESIGN_GUIDE.md)
+and [Dashboard interaction design audit](UX_DESIGN_AUDIT.md).
 
 ## Verified software behavior
 

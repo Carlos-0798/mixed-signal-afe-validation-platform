@@ -224,6 +224,7 @@ media/                      classified software visuals; future bench media is s
 
 - Start here: [Installation](docs/INSTALLATION.md),
   [CLI](docs/product-cli.md), [Dashboard](docs/dashboard.md),
+  [interaction design guide](docs/SOFTWARE_INTERACTION_DESIGN_GUIDE.md),
   [software demo](docs/software-demo.md), and
   [beginner testing](docs/USER_TESTING_GUIDE.md).
 - Engineering: [Theory](docs/theory.md),
