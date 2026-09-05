@@ -32,6 +32,9 @@ versioning for stable releases and PEP 440 for Python package versions.
 - Added Windows interaction evidence and regression coverage for valid and
   invalid Simulator/CSV paths, result navigation, scrolling, redraw gating,
   first paint, and legacy Tk fallback behavior.
+- Added a reusable software-interaction design guide covering workflow state,
+  adaptive scrolling, native save behavior, error recovery, evidence labels,
+  automated checks, and manual acceptance criteria.
 - Private beta feedback and release-candidate decisions remain pending.
 - No public license, Git tag, GitHub Release, or PyPI publication has been
   selected or created.

@@ -136,10 +136,11 @@ Windows 还可能在很深的仓库、工作树和虚拟环境组合下触发传
 - deterministic release candidate：PASS；
 - release audit：`PASS_WITH_REVIEW`，当前树隐私发现为 0，旧历史审阅项为 8。
 
-README、截图、当前状态同步和治理文件已纳入本地干净提交和正式门禁。
-Draft PR #7 的远端 head `e00f165` 已在 Actions run `33897499685`
-attempt 2 通过全部八项 hosted CI。此后的本地提交（包括当前状态文档同步）
-只有在推送并重新通过 GitHub Actions 后，才能称为新 PR head 的 hosted CI 证明。
+README、截图、交互设计指南、状态同步和治理文件已纳入经过正式门禁的
+Dashboard UX PR #7。最终 PR head `c9710fe` 在 Actions run `33933549983`
+通过全部八项 hosted CI，并通过 merge commit `b4f0fef` 进入 `main`；
+post-merge run `33934417152` attempt 2 也通过 8/8。未来提交仍必须在其
+精确 Head 上重新通过 GitHub Actions，不能继承这次提交的 hosted 证明。
 
 ## 环境与证据边界
 

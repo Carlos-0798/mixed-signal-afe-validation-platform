@@ -35,11 +35,11 @@ runtime, or product identity.
 | Analyses | DC gain/offset/linearity with saturation exclusion; directional hysteresis; calibration and offline frequency response |
 | Extension model | Public `DeviceAdapter` and serial-profile contracts |
 | Latest local quality run | 2,277 tests passed; 11,911/11,911 package statements covered |
-| Latest committed PR #7 CI | Eight hosted jobs passed on Windows/Ubuntu and Python 3.10/3.12/3.14 |
+| Latest merged delivery | Dashboard UX PR #7 merged to `main`; post-merge CI passed all eight jobs |
 | Hardware claim | `NO_NEW_HARDWARE_VALIDATION` — physical AFE not built or measured |
 
 [Detailed status](docs/PROJECT_STATUS.md) ·
-[Milestone/resume handoff](reports/PROJECT_MILESTONE_RESUME_HANDOFF_2026-09-03.md) ·
+[Current milestone handoff](reports/PROJECT_MILESTONE_UPDATE_2026-09-04.md) ·
 [Installation](docs/INSTALLATION.md) ·
 [Tester guide](docs/USER_TESTING_GUIDE.md) ·
 [Changelog](CHANGELOG.md)
@@ -175,7 +175,7 @@ OSU Lab Bench Monitor Senior Capstone.
 | Gate | Verified result |
 |---|---|
 | Local software gate | 2,277 passed; 100% statement coverage across 11,911 package statements; Ruff and mypy passed |
-| Hosted PR #7 gate | Eight jobs green at remote head `e00f165`; Actions run `33897499685` completed successfully on attempt 2 |
+| Hosted Dashboard gate | PR head `c9710fe` passed eight jobs in run `33933549983`; merged `main` commit `b4f0fef` passed eight post-merge jobs in run `33934417152` attempt 2 |
 | Reproducible candidate baseline | Local/hosted four-file `0.1.0b1` candidate matched byte-for-byte at audited commit `f6721b5` |
 | Release audit | `PASS_WITH_REVIEW`; zero current-tree privacy findings, eight legacy-history review items, zero high-confidence credentials |
 | Dashboard validation | Simulator/CSV interaction, data entry, adaptive scrolling, fresh save paths, navigation, cancellation, first-paint, and keyboard/scaling checks |
@@ -196,7 +196,7 @@ reports retain the exact counts and evidence available when they were written.
 | Stage | Status | Exit condition |
 |---|---|---|
 | Software Phases 0–5 | Complete | Core, adapters, analyses, CLI/Dashboard/reports/demo, compatibility freeze |
-| Software Phase 6 | 7/8 | Owner-reviewed UX follow-up, hosted CI, publication decisions, controlled release |
+| Software Phase 6 | 7/8 | Dashboard UX delivered; owner-controlled history, license, visibility, tag, and release decisions remain |
 | Hardware design preparation | Deferred | Confirmed requirements, tools, instruments, components, safety review |
 | Breadboard AFE | Not started | Power/protection/buffer/gain/filter/Schmitt tests with raw bench evidence |
 | Automated hardware validation | Not started | Replaceable reference controller/instrument adapters and repeatable datasets |
