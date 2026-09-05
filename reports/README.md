@@ -4,6 +4,13 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Software checkpoint reports (each report states its own evidence level):
 
+- `PROJECT_MILESTONE_RESUME_HANDOFF_2026-09-03.md` — current phase map,
+  implemented capability inventory, merged/Draft/local snapshot separation,
+  reproducible verification, resume-ready fact bank, prohibited hardware
+  claims, and next-agent handoff rules.
+- `PORTFOLIO_PUBLICATION_PREP_2026-09-03.md` — recruiter-facing presentation,
+  classified screenshots, synchronized copy, governance files, local quality
+  gates, remote read-only snapshot, and owner-controlled publication sequence.
 - `software-phase6-step7.md` — deterministic candidate/history/privacy/license/workbook/project-boundary audit, four-file local/hosted identity, private-beta readiness, explicit historical owner-review items, and no-publication/no-hardware boundary.
 - `software-phase6-step6.md` — public-API-only read adapter, architecture/import/no-output gates, fresh-wheel repository-external isolated execution, local/hosted candidate identity, deterministic provenance/cleanup, and zero-hardware boundary.
 - `software-phase6-step5.md` — beginner installation/testing/troubleshooting/known-limit workflow, sanitized feedback forms, hosted-wheel short-path installation, deterministic demo/report/create-new/Replay acceptance, and explicit Dashboard/Serial/hardware NOT_RUN boundaries.

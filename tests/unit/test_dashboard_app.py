@@ -111,6 +111,7 @@ class FakeRoot(FakeWidget):
         self.ttk = ttk
         self.destroyed = False
         self.withdrawn = False
+        self.paint_events: list[str] = []
         self.protocols: dict[str, Any] = {}
         self.scheduled: list[tuple[int, int, Any]] = []
         self.clock = 0
@@ -129,6 +130,14 @@ class FakeRoot(FakeWidget):
 
     def withdraw(self) -> None:
         self.withdrawn = True
+        self.paint_events.append("withdraw")
+
+    def update_idletasks(self) -> None:
+        self.paint_events.append("update_idletasks")
+
+    def deiconify(self) -> None:
+        self.withdrawn = False
+        self.paint_events.append("deiconify")
 
     def after(self, delay: int, callback: Any) -> None:
         self.sequence += 1
@@ -176,6 +185,98 @@ def fake_toolkit(*, after_close_callbacks: bool = False):
     return root, tk, ttk
 
 
+def test_export_destination_dialog_uses_requested_format_and_safe_options() -> None:
+    calls: list[dict[str, object]] = []
+
+    def choose(**kwargs: object) -> str:
+        calls.append(dict(kwargs))
+        return r"C:\safe\analysis.csv"
+
+    parent = object()
+    selected = app_module._choose_export_destination(
+        parent,
+        "csv",
+        dialog=choose,
+    )
+
+    assert selected == r"C:\safe\analysis.csv"
+    assert calls == [
+        {
+            "parent": parent,
+            "title": "Choose a new analysis result file",
+            "defaultextension": ".csv",
+            "initialfile": "analog-validation-result.csv",
+            "filetypes": (("CSV analysis result", "*.csv"),),
+            "confirmoverwrite": False,
+        }
+    ]
+
+
+def test_export_destination_dialog_cancel_and_invalid_results_are_bounded() -> None:
+    assert (
+        app_module._choose_export_destination(
+            object(),
+            "json",
+            dialog=lambda **_kwargs: "",
+        )
+        == ""
+    )
+    with pytest.raises(ProductRequestError, match="json or csv"):
+        app_module._choose_export_destination(
+            object(),
+            "txt",
+            dialog=lambda **_kwargs: "ignored",
+        )
+    with pytest.raises(ProductRequestError, match="path string"):
+        app_module._choose_export_destination(
+            object(),
+            "json",
+            dialog=lambda **_kwargs: cast(Any, None),
+        )
+
+
+def test_unsaved_result_confirmation_is_explicit_cancel_first_and_bounded() -> None:
+    calls: list[dict[str, object]] = []
+
+    def confirm(**kwargs: object) -> bool:
+        calls.append(dict(kwargs))
+        return False
+
+    parent = object()
+    assert (
+        app_module._confirm_discard_unsaved_result(
+            parent,
+            "start a new test",
+            dialog=confirm,
+        )
+        is False
+    )
+    assert calls == [
+        {
+            "parent": parent,
+            "title": "Unsaved analysis result",
+            "message": (
+                "Discard the unsaved analysis result and start a new test?"
+            ),
+            "detail": "Choose No to return to the result page and save it first.",
+            "icon": "warning",
+            "default": "no",
+        }
+    ]
+    with pytest.raises(ProductRequestError, match="discard action"):
+        app_module._confirm_discard_unsaved_result(
+            parent,
+            " padded ",
+            dialog=confirm,
+        )
+    with pytest.raises(ProductRequestError, match="return a bool"):
+        app_module._confirm_discard_unsaved_result(
+            parent,
+            "close the application",
+            dialog=lambda **_kwargs: cast(Any, "yes"),
+        )
+
+
 def test_fake_window_launch_poll_cancel_and_close_is_safe_and_path_free() -> None:
     root, tk, ttk = fake_toolkit(after_close_callbacks=True)
 
@@ -211,6 +312,7 @@ def test_mainloop_return_without_window_callback_still_closes_owned_worker() -> 
 
     assert session.closed_safely is True
     assert root.destroyed is True
+    assert root.paint_events == ["withdraw", "update_idletasks", "deiconify"]
 
 
 @pytest.mark.parametrize(
@@ -343,7 +445,9 @@ def test_failed_bounded_close_returns_an_honest_timeout() -> None:
     assert root.destroyed is False
 
 
-def test_six_step_window_callbacks_drive_the_headless_application() -> None:
+def test_six_step_window_callbacks_drive_the_headless_application(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     class InteractiveRoot(FakeRoot):
         def _button(self, text: str) -> FakeWidget:
             return next(
@@ -364,15 +468,16 @@ def test_six_step_window_callbacks_drive_the_headless_application() -> None:
         def mainloop(self) -> None:
             self._select("SIMULATOR")
             self._select("afe/1")
-            cast(Any, self._button("Next").kwargs["command"])()
+            cast(Any, self._button("Continue").kwargs["command"])()
             self._select("READ")
-            cast(Any, self._button("Next").kwargs["command"])()
-            cast(Any, self._button("Discover ports").kwargs["command"])()
-            cast(Any, self._button("Validate & review").kwargs["command"])()
-            cast(Any, self._button("Run reviewed job").kwargs["command"])()
-            cast(Any, self._button("Cancel safely").kwargs["command"])()
-            cast(Any, self._button("Export (no overwrite)").kwargs["command"])()
-            cast(Any, self._button("Back").kwargs["command"])()
+            cast(Any, self._button("Continue").kwargs["command"])()
+            cast(Any, self._button("Find serial ports").kwargs["command"])()
+            cast(Any, self._button("Validate setup").kwargs["command"])()
+            cast(Any, self._button("Run reviewed test").kwargs["command"])()
+            cast(Any, self._button("Cancel run safely").kwargs["command"])()
+            cast(Any, self._button("Choose save location...").kwargs["command"])()
+            cast(Any, self._button("Save analysis result").kwargs["command"])()
+            cast(Any, self._button("Previous step").kwargs["command"])()
             if self.scheduled:
                 self.scheduled.sort(key=lambda value: (value[0], value[1]))
                 _, _, callback = self.scheduled.pop(0)
@@ -381,6 +486,11 @@ def test_six_step_window_callbacks_drive_the_headless_application() -> None:
 
     ttk = FakeTtk()
     root = InteractiveRoot(ttk)
+    monkeypatch.setattr(
+        app_module,
+        "_choose_export_destination",
+        lambda _parent, _format_name: "chosen-result.json",
+    )
     session = launch_dashboard(tk_loader=lambda: (FakeTk(root), ttk))
 
     assert session.closed_safely is True
@@ -399,4 +509,91 @@ def test_review_callback_rejects_non_draft_payload_and_still_closes(
     monkeypatch.setattr(app_module, "create_dashboard_workflow_widgets", invalid_review)
     with pytest.raises(ProductRequestError, match="wizard draft"):
         launch_dashboard(tk_loader=lambda: (tk, ttk))
+    assert root.destroyed is True
+
+
+def test_result_action_callbacks_are_wired_through_the_application(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root, tk, ttk = fake_toolkit()
+    callback_calls: list[str] = []
+
+    class CallbackWidgets:
+        invoked = False
+
+        def __init__(self, selected_callbacks: dict[str, Any]) -> None:
+            self.callbacks = selected_callbacks
+
+        def render(self, dashboard: object, wizard: object) -> None:
+            if self.invoked:
+                return
+            self.invoked = True
+            for name in ("on_modify", "on_repeat", "on_new_test"):
+                callback_calls.append(name)
+                cast(Any, self.callbacks[name])()
+
+    def capture_callbacks(*args: object, **kwargs: object) -> CallbackWidgets:
+        return CallbackWidgets(dict(kwargs))
+
+    monkeypatch.setattr(
+        app_module, "create_dashboard_workflow_widgets", capture_callbacks
+    )
+    session = launch_dashboard(
+        tk_loader=lambda: (tk, ttk),
+        auto_close_ms=1,
+    )
+
+    assert callback_calls == ["on_modify", "on_repeat", "on_new_test"]
+    assert session.closed_safely is True
+    assert root.destroyed is True
+
+
+def test_unsaved_result_can_cancel_every_destructive_result_action(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root, tk, ttk = fake_toolkit()
+    prompted_actions: list[str] = []
+
+    class GuardWidgets:
+        invoked = False
+
+        def __init__(self, selected_callbacks: dict[str, Any]) -> None:
+            self.callbacks = selected_callbacks
+
+        def render(self, dashboard: object, wizard: object) -> None:
+            if self.invoked:
+                return
+            self.invoked = True
+            for name in ("on_modify", "on_repeat", "on_new_test", "on_close"):
+                cast(Any, self.callbacks[name])()
+
+    monkeypatch.setattr(
+        app_module,
+        "create_dashboard_workflow_widgets",
+        lambda *args, **kwargs: GuardWidgets(dict(kwargs)),
+    )
+    monkeypatch.setattr(
+        app_module.DashboardApplication,
+        "has_unsaved_result",
+        property(lambda _application: True),
+    )
+
+    def deny_discard(_parent: object, action: str) -> bool:
+        prompted_actions.append(action)
+        return False
+
+    monkeypatch.setattr(app_module, "_confirm_discard_unsaved_result", deny_discard)
+
+    session = launch_dashboard(
+        tk_loader=lambda: (tk, ttk),
+        auto_close_ms=1,
+    )
+
+    assert prompted_actions == [
+        "modify the setup",
+        "review the same setup again",
+        "start a new test",
+        "close the application",
+    ]
+    assert session.closed_safely is True
     assert root.destroyed is True

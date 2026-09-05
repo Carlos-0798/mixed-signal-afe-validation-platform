@@ -240,6 +240,8 @@ def test_lifecycle_actions_are_visible_and_active_results_cannot_be_cleared() ->
     presenter.begin_job(selected)
     with pytest.raises(ProductRequestError, match="active"):
         presenter.dispatch(DashboardAction(DashboardActionType.CLEAR_RESULT))
+    with pytest.raises(ProductRequestError, match="active"):
+        presenter.detach_result()
     cancelling = presenter.dispatch(DashboardAction(DashboardActionType.REQUEST_CANCEL))
     assert cancelling.progress.worker_state is ProductWorkerState.CANCELLING
     assert cancelling.progress.can_cancel is False
@@ -388,6 +390,8 @@ def test_report_view_and_publication_copy_points_values_and_path_free_artifacts(
         presenter.present_report(cast(Any, object()))
     with pytest.raises(ProductRequestError, match="HumanReportPublication"):
         presenter.present_report(report_view(), cast(Any, object()))
+    with pytest.raises(ProductRequestError, match="ReadWorkflowResult"):
+        presenter.present_read_observations(cast(Any, object()))
 
 
 def test_presenter_rejects_updates_from_a_non_owner_thread() -> None:

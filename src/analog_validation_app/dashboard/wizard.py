@@ -419,6 +419,18 @@ class DashboardWizardState:
     def can_export(self) -> bool:
         return self.step is DashboardWizardStep.RESULT and self.export_available
 
+    @property
+    def can_modify_setup(self) -> bool:
+        return self.step is DashboardWizardStep.RESULT
+
+    @property
+    def can_review_same_setup(self) -> bool:
+        return self.step is DashboardWizardStep.RESULT
+
+    @property
+    def can_start_new_test(self) -> bool:
+        return self.step is DashboardWizardStep.RESULT
+
 
 class DashboardWizardPresenter:
     """Apply wizard transitions only on the creating UI/main thread."""
@@ -543,6 +555,37 @@ class DashboardWizardPresenter:
         return self._replace(
             step=target,
             review_lines=(),
+            issue=None,
+            export_available=False,
+            export_message="No finalized analysis export is available.",
+        )
+
+    def modify_setup(self) -> DashboardWizardState:
+        """Return from Result to Configuration while preserving reviewed values."""
+
+        if not self._state.can_modify_setup:
+            raise ProductRequestError("Modify setup requires a finalized result")
+        return self._replace(
+            step=DashboardWizardStep.CONFIGURATION,
+            review_lines=(),
+            issue=None,
+            export_available=False,
+            export_message=(
+                "The previous result remains visible for reference. "
+                "Validate the edited setup before running again."
+            ),
+        )
+
+    def start_new_test(self) -> DashboardWizardState:
+        """Start a fresh workflow only after the current run has finalized."""
+
+        if not self._state.can_start_new_test:
+            raise ProductRequestError("New test requires a finalized result")
+        return self._replace(
+            step=DashboardWizardStep.SOURCE,
+            draft=DashboardWizardDraft(),
+            review_lines=(),
+            discovered_ports=(),
             issue=None,
             export_available=False,
             export_message="No finalized analysis export is available.",

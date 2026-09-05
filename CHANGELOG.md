@@ -5,6 +5,33 @@ versioning for stable releases and PEP 440 for Python package versions.
 
 ## [Unreleased]
 
+- Reorganized the repository front page around product value, a reproducible
+  software demo, architecture, compatibility, evidence limits, and a concise
+  recruiter-facing verification snapshot.
+- Added two classified Windows Dashboard screenshots captured from a
+  Simulator-only DC run; both remain `SYNTHETIC` and explicitly make no new
+  hardware-validation claim.
+- Added a security policy, contribution guide, pull-request checklist,
+  CODEOWNERS, weekly Dependabot configuration, and an owner-gated publication
+  and LinkedIn checklist.
+- Added exact GitHub/LinkedIn portfolio-copy previews and a dated local
+  publication-preparation record; neither document performs a remote change.
+- Synchronized current-state plan, traceability, beginner, environment,
+  Dashboard, media, hardware, and firmware documentation while retaining
+  historical checkpoint results.
+- Redesigned the local Dashboard with modern ttk styling, Setup/Results tabs,
+  visible vertical scrolling, mouse-wheel routing, and a hidden-first-paint
+  sequence that reduces incomplete initial rendering on the tested Windows host.
+- Added explicit **Modify setup**, **Review same setup**, **Start new test**, and
+  **Finish & close** result actions while preserving reviewed-run boundaries.
+- Added presentation-only READ observations so successful acquisition remains
+  visible without being mislabeled as an engineering PASS/FAIL analysis.
+- Fixed hidden configuration errors, stale duplicate-export success text,
+  immediate-rerun terminal-event leakage, and stale review authorization after
+  returning to editable configuration.
+- Added Windows interaction evidence and regression coverage for valid and
+  invalid Simulator/CSV paths, result navigation, scrolling, redraw gating,
+  first paint, and legacy Tk fallback behavior.
 - Private beta feedback and release-candidate decisions remain pending.
 - No public license, Git tag, GitHub Release, or PyPI publication has been
   selected or created.

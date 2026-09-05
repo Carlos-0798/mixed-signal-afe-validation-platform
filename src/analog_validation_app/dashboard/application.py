@@ -105,6 +105,7 @@ class DashboardApplication:
         self._bundle: ResultExportBundle | None = None
         self._report_view: HumanReportView | None = None
         self._terminal_presented = False
+        self._result_exported = False
 
     @property
     def dashboard_state(self) -> DashboardState:
@@ -117,6 +118,16 @@ class DashboardApplication:
     @property
     def is_closed(self) -> bool:
         return self._controller.is_closed
+
+    @property
+    def has_unsaved_result(self) -> bool:
+        """Report whether the current finalized analysis has no saved copy yet."""
+
+        return (
+            self._wizard.state.can_export
+            and self._bundle is not None
+            and not self._result_exported
+        )
 
     def _present_exception(self, error: BaseException) -> UserIssue:
         issue = issue_from_exception(error)
@@ -188,15 +199,70 @@ class DashboardApplication:
     def back(self) -> bool:
         try:
             leaving = self._wizard.state.step
-            self._wizard.back()
-            if leaving in {
-                DashboardWizardStep.REVIEW,
-                DashboardWizardStep.RESULT,
-            }:
+            if leaving is DashboardWizardStep.RESULT:
+                self._wizard.modify_setup()
+            else:
+                self._wizard.back()
+            if leaving is DashboardWizardStep.REVIEW:
                 self._reset_prepared()
                 self._dashboard.dispatch(
                     DashboardAction(DashboardActionType.CLEAR_RESULT)
                 )
+            elif leaving is DashboardWizardStep.RESULT:
+                self._reset_prepared()
+                self._dashboard.detach_result()
+            return True
+        except BaseException as error:  # noqa: BLE001 - UI boundary
+            self._present_exception(error)
+            return False
+
+    def modify_setup(self) -> bool:
+        """Leave Result for editable configuration without erasing its display."""
+
+        return self.back()
+
+    def review_same_setup(self) -> bool:
+        """Compile a fresh immutable job from the last finalized setup."""
+
+        try:
+            if not self._wizard.state.can_review_same_setup:
+                raise ProductRequestError(
+                    "Review same setup requires a finalized result"
+                )
+            draft = self._wizard.state.draft
+            self._wizard.modify_setup()
+            self._reset_prepared()
+            self._dashboard.detach_result()
+        except BaseException as error:  # noqa: BLE001 - UI boundary
+            self._present_exception(error)
+            return False
+        return self.prepare_review(draft)
+
+    def start_new_test(self) -> bool:
+        """Reset the wizard only after an explicit Result-page action."""
+
+        try:
+            state = self._wizard.start_new_test()
+            self._reset_prepared()
+            self._dashboard.dispatch(
+                DashboardAction(
+                    DashboardActionType.SELECT_SOURCE,
+                    source_mode=state.draft.source_mode,
+                )
+            )
+            self._dashboard.dispatch(
+                DashboardAction(
+                    DashboardActionType.SELECT_PROFILE,
+                    profile_name=state.draft.profile_name,
+                    profile_version=state.draft.profile_version,
+                )
+            )
+            self._dashboard.dispatch(
+                DashboardAction(
+                    DashboardActionType.SELECT_JOB,
+                    job_type=state.draft.job_type,
+                )
+            )
             return True
         except BaseException as error:  # noqa: BLE001 - UI boundary
             self._present_exception(error)
@@ -218,6 +284,7 @@ class DashboardApplication:
             self._bundle = None
             self._report_view = None
             self._terminal_presented = False
+            self._result_exported = False
             self._wizard.present_review(draft, prepared.review_lines)
             self._dashboard.present_review(prepared.request, prepared.review_lines)
             return True
@@ -247,10 +314,11 @@ class DashboardApplication:
             return False
 
     def poll(self) -> DashboardState:
+        if self._wizard.state.step is not DashboardWizardStep.RUN:
+            return self._controller.state
         state = self._controller.poll()
         if (
-            self._wizard.state.step is DashboardWizardStep.RUN
-            and state.progress.worker_state.is_terminal
+            state.progress.worker_state.is_terminal
             and not self._terminal_presented
         ):
             self._terminal_presented = True
@@ -262,6 +330,12 @@ class DashboardApplication:
             )
             if self._report_view is not None:
                 self._dashboard.present_report(self._report_view)
+            elif (
+                output is not None
+                and prepared is not None
+                and prepared.request.job_type is ProductJobType.READ
+            ):
+                self._dashboard.present_read_observations(output.read_result)
             self._wizard.finish_run(export_available=self._bundle is not None)
         return self._controller.state
 
@@ -298,6 +372,12 @@ class DashboardApplication:
                 raise ProductRequestError("export path must be printable stripped text")
             selected_format = DashboardExportFormat(format_name)
             path = Path(path_text)
+            required_suffix = f".{selected_format.value}"
+            if path.suffix.lower() != required_suffix:
+                raise ProductRequestError(
+                    f"{selected_format.value.upper()} export path must end with "
+                    f"{required_suffix}"
+                )
             if selected_format is DashboardExportFormat.JSON:
                 written = write_result_export_json(path, self._bundle)
                 media_type = "application/json"
@@ -320,6 +400,7 @@ class DashboardApplication:
                 HumanReportPublication(written.parent, (artifact,)),
             )
             self._wizard.present_export(written.name)
+            self._result_exported = True
             return True
         except BaseException as error:  # noqa: BLE001 - UI boundary
             self._present_exception(error)
@@ -334,6 +415,7 @@ class DashboardApplication:
         self._bundle = None
         self._report_view = None
         self._terminal_presented = False
+        self._result_exported = False
 
 
 __all__ = [

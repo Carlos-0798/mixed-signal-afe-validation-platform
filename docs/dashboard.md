@@ -20,6 +20,14 @@ fixed six-step validation workflow:
 6. **Result** — show outcome, evidence, limitations, points, and create-new
    JSON/CSV export when an analysis result exists.
 
+The window separates the workflow into **Setup & run** and
+**Results & evidence** tabs. A vertical scrollbar appears only when the active
+page is taller than the available viewport. Short pages stay pinned to the top
+and ignore the Windows mouse wheel instead of moving into empty space; long
+pages remain scrollable so run status, observations, limitations, and artifact
+information are reachable. Each new step returns its active page to the top
+instead of preserving a stale scroll position from the previous step.
+
 Every step displays three beginner prompts: what is happening, why it matters,
 and what the user must confirm. Simulator is selected by default, so opening the
 window does not enumerate a port, open hardware, read a file, create an output,
@@ -94,22 +102,44 @@ the application path is receive-only.
   create a PASS or export.
 - Closing the window requests cancellation and performs a bounded join before
   returning a safe session result.
-- Returning from Review or Result invalidates the prepared request and clears
-  the prior result, so edited values cannot reuse stale approval.
-- Export uses create-new semantics and refuses to replace an existing file.
+- Returning from Review invalidates the prepared request and clears its review
+  authorization. **Modify setup** from Result also invalidates the prepared
+  request but retains copied result evidence as a reference; Run remains
+  disabled until the edited setup is validated again. **Start new test** clears
+  the prior result and resets the form.
+- Export has no implicit default destination: a finalized analysis remains in
+  memory until the user types a new path or chooses one through the native
+  **Choose save location...** dialog. The picker suggests a format-matching
+  filename, and manually entered paths must use the selected `.json` or `.csv`
+  suffix. Each newly finalized analysis starts with an empty destination.
+  Export uses create-new semantics and refuses to replace an existing file.
+- If the only copy of a finalized analysis has not been exported, **Modify
+  setup**, **Review same setup**, **Start new test**, **Finish & close**, and the
+  window close control ask before discarding it. The safe default returns to
+  the Result page so the user can save first.
+- The window is composed while hidden, finishes its first layout pass, and is
+  then shown. Subsequent 50 ms worker polls redraw widgets only when an immutable
+  Dashboard or wizard revision changes; unchanged polls do not clear and rebuild
+  the observation table.
 
 ## Result and evidence display
 
-The original six result regions remain visible: source/profile,
+The original six result regions remain available on the results tab:
+source/profile,
 configuration/safe review, progress, finalized point table, result/evidence,
-and artifacts. The Step 6 wizard sits above them and exposes the acceptance
-criteria used for DC or hysteresis evaluation. Evidence source, worker state,
-engineering outcome, limitations, exclusions, and issues are written as text;
-meaning is not conveyed by color alone.
+and artifacts. Result actions make the end of a run explicit: **Modify setup**,
+**Review same setup**, **Start new test**, or **Finish & close**. The Step 6
+wizard exposes the acceptance criteria used for DC or hysteresis evaluation.
+Evidence source, worker state, engineering outcome, limitations, exclusions,
+and issues are written as text; meaning is not conveyed by color alone.
 
 A bounded read can finish successfully without an analysis export. DC and
 hysteresis results can expose the existing finalized `ResultExportBundle` and
 write JSON or CSV. The Dashboard does not recompute that bundle.
+
+The reusable interaction rules, acceptance cases, and design rationale are
+recorded in the [software interaction design guide](SOFTWARE_INTERACTION_DESIGN_GUIDE.md)
+and [Dashboard interaction design audit](UX_DESIGN_AUDIT.md).
 
 ## Verified software behavior
 
@@ -125,14 +155,24 @@ write JSON or CSV. The Dashboard does not recompute that bundle.
 - Step 7 made actionable controls explicit keyboard-focus targets. Real Windows
   Tk smoke at scaling 1.0, 1.5, and 2.0 verified focus traversal and successful
   layout creation.
-- The final Phase 5 gate passed 2,189 tests with zero skips and covered
-  11,470/11,470 executable package statements. A fresh repository-external
-  base-wheel installation also launched and safely closed the real Dashboard.
+- A real Windows interactive check covered Simulator READ, 12-point DC, and
+  12-rising/22-falling hysteresis; valid and malformed CSV Replay; safe
+  no-overwrite export; immediate rerun; result actions; scrolling; and clean
+  window close. The executed observations remain `SYNTHETIC` or `CSV_REPLAY`
+  software evidence only.
+- The current local follow-up gate passed 2,277 tests and covered
+  11,911/11,911 executable package statements. Two isolated builds were
+  byte-identical, and fresh base and `[serial]` installations passed using only
+  an injected serial substitute.
 
 ## Current limitations
 
 - Keyboard focus and common Tk scaling have automated baseline coverage; full
   screen-reader certification and long interactive sessions remain unverified.
+- The hidden-first-paint and revision-gated redraw changes removed the observed
+  incomplete first frame during the documented Windows check; behavior across
+  every graphics driver, remote desktop mode, and display configuration remains
+  unverified.
 - The one-command demo is implemented, but it remains a deterministic software
   demonstration and does not validate physical hardware.
 - Real COM worker lifecycle, disconnect/reconnect, and long-duration timing have
@@ -146,3 +186,7 @@ See the [CLI guide](product-cli.md), [human-report guide](human-reports.md),
 [product-quality acceptance](product-quality-acceptance.md),
 [Phase 5 plan](SOFTWARE_PHASE_5_PLAN.md), and
 [Step 8 closure report](../reports/software-phase5-step8.md).
+
+Current portfolio screenshots are cataloged in the
+[media evidence register](../media/README.md). They use only the deterministic
+Simulator and do not add a hardware claim.

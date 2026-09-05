@@ -24,6 +24,8 @@ MAX_DASHBOARD_SMOKE_MS = 60_000
 
 TkLoader = Callable[[], tuple[object, object]]
 DashboardWorkerFactory = Callable[[], DashboardWorkerPort]
+SavePathDialog = Callable[..., object]
+DiscardConfirmationDialog = Callable[..., object]
 
 
 @dataclass(frozen=True, slots=True)
@@ -78,6 +80,71 @@ def _bounded_integer(name: str, value: object, maximum: int) -> int:
     return value
 
 
+def _choose_export_destination(
+    parent: object,
+    format_name: str,
+    *,
+    dialog: SavePathDialog | None = None,
+) -> str:
+    """Choose a path without creating or replacing a result file."""
+
+    if format_name not in {"json", "csv"}:
+        raise ProductRequestError("Dashboard export format must be json or csv")
+    selected_dialog: SavePathDialog
+    if dialog is None:  # pragma: no cover - exercised by the real Windows Tk gate
+        from tkinter import filedialog
+
+        selected_dialog = cast(SavePathDialog, filedialog.asksaveasfilename)
+    else:
+        selected_dialog = dialog
+    selected = selected_dialog(
+        parent=parent,
+        title="Choose a new analysis result file",
+        defaultextension=f".{format_name}",
+        initialfile=f"analog-validation-result.{format_name}",
+        filetypes=((f"{format_name.upper()} analysis result", f"*.{format_name}"),),
+        confirmoverwrite=False,
+    )
+    if not isinstance(selected, str):
+        raise ProductRequestError("Dashboard save dialog must return a path string")
+    return selected
+
+
+def _confirm_discard_unsaved_result(
+    parent: object,
+    action: str,
+    *,
+    dialog: DiscardConfirmationDialog | None = None,
+) -> bool:
+    """Ask before an explicit UI action discards the only analysis copy."""
+
+    if (
+        not isinstance(action, str)
+        or not action
+        or action != action.strip()
+        or not action.isprintable()
+    ):
+        raise ProductRequestError("discard action must be printable stripped text")
+    selected_dialog: DiscardConfirmationDialog
+    if dialog is None:  # pragma: no cover - exercised by the real Windows Tk gate
+        from tkinter import messagebox
+
+        selected_dialog = cast(DiscardConfirmationDialog, messagebox.askyesno)
+    else:
+        selected_dialog = dialog
+    confirmed = selected_dialog(
+        parent=parent,
+        title="Unsaved analysis result",
+        message=f"Discard the unsaved analysis result and {action}?",
+        detail="Choose No to return to the result page and save it first.",
+        icon="warning",
+        default="no",
+    )
+    if not isinstance(confirmed, bool):
+        raise ProductRequestError("Dashboard discard confirmation must return a bool")
+    return confirmed
+
+
 def launch_dashboard(
     *,
     tk_loader: TkLoader | None = None,
@@ -121,6 +188,9 @@ def launch_dashboard(
                 "Tkinter is installed but no local display could create the Dashboard"
             ) from error
         raise
+    initial_hide = getattr(root, "withdraw", None)
+    if callable(initial_hide):
+        initial_hide()
 
     try:
         worker = None if worker_factory is None else worker_factory()
@@ -181,9 +251,40 @@ def launch_dashboard(
         application.export_result(path, format_name)
         render()
 
-    def close_window() -> None:
+    def choose_export_path(format_name: str) -> str:
+        return _choose_export_destination(root, format_name)
+
+    def discard_is_confirmed(action: str) -> bool:
+        return not application.has_unsaved_result or _confirm_discard_unsaved_result(
+            root, action
+        )
+
+    def modify_setup() -> None:
+        if not discard_is_confirmed("modify the setup"):
+            return
+        application.modify_setup()
+        render()
+
+    def review_same_setup() -> None:
+        if not discard_is_confirmed("review the same setup again"):
+            return
+        application.review_same_setup()
+        render()
+
+    def start_new_test() -> None:
+        if not discard_is_confirmed("start a new test"):
+            return
+        application.start_new_test()
+        render()
+
+    def close_window(*, bypass_unsaved_confirmation: bool = False) -> None:
         nonlocal closed
         if closed:
+            return
+        if (
+            not bypass_unsaved_confirmation
+            and not discard_is_confirmed("close the application")
+        ):
             return
         if application.request_close():
             closed = True
@@ -213,16 +314,28 @@ def launch_dashboard(
             on_run=run_job,
             on_cancel=cancel_job,
             on_discover=discover_ports,
+            on_choose_export_path=choose_export_path,
             on_export=export_result,
+            on_modify=modify_setup,
+            on_repeat=review_same_setup,
+            on_new_test=start_new_test,
             on_close=close_window,
         )
         root.protocol("WM_DELETE_WINDOW", close_window)
         render()
-        if withdraw:
-            root.withdraw()
+        finish_layout = getattr(root, "update_idletasks", None)
+        if callable(finish_layout):
+            finish_layout()
+        if not withdraw:
+            show_window = getattr(root, "deiconify", None)
+            if callable(show_window):
+                show_window()
         root.after(0, poll_worker)
         if auto_close_ms is not None:
-            root.after(auto_close_ms, close_window)
+            root.after(
+                auto_close_ms,
+                lambda: close_window(bypass_unsaved_confirmation=True),
+            )
         root.mainloop()
     finally:
         if not closed:

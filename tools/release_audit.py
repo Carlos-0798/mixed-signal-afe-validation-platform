@@ -36,6 +36,15 @@ MAX_ARCHIVE_MEMBERS = 10_000
 MAX_ARCHIVE_UNCOMPRESSED_BYTES = 64 * 1024 * 1024
 MAX_HISTORY_BLOB_BYTES = 2 * 1024 * 1024
 WORKBOOK_PATH = "hardware/bom/independent-product-purchase.xlsx"
+REVIEWED_BINARY_SHA256: dict[str, str] = {
+    WORKBOOK_PATH: "143474f38012581774140a4888d9146e64363e8d7549ffeba37c4dabd2d92719",
+    "media/dashboard-dc-evidence.png": (
+        "b7413756950af4f865566680d8bf7026d97045940334c3b8310f6bbe6c80dd2b"
+    ),
+    "media/dashboard-dc-result.png": (
+        "0bc310ae673226a47c47a71eefdd8af50a3a0bf73a81c79e04af0c20b67a9c05"
+    ),
+}
 APPROVED_PRIVACY_FIXTURE = "tests/unit/test_release_candidate_check.py"
 LICENSE_POLICY_TEXT = (
     "No license has been selected yet.\n\n"
@@ -229,8 +238,11 @@ def _audit_tracked_tree(root: Path) -> dict[str, object]:
     findings: list[PrivacyFinding] = []
     for path, _mode, _object_id in entries:
         payload = (root / Path(path)).read_bytes()
-        if path == WORKBOOK_PATH:
+        reviewed_digest = REVIEWED_BINARY_SHA256.get(path)
+        if reviewed_digest is not None:
             binary_paths.append(path)
+            if _sha256_bytes(payload) != reviewed_digest:
+                raise ReleaseAuditError("tracked reviewed binary identity changed")
             continue
         if b"\x00" in payload:
             binary_paths.append(path)
@@ -242,7 +254,7 @@ def _audit_tracked_tree(root: Path) -> dict[str, object]:
             "current tracked text contains a privacy finding: "
             f"{unapproved[0].rule} in {unapproved[0].relative_path}"
         )
-    if binary_paths != [WORKBOOK_PATH]:
+    if binary_paths != sorted(REVIEWED_BINARY_SHA256):
         raise ReleaseAuditError("tracked binary inventory differs from the reviewed allowlist")
 
     return {

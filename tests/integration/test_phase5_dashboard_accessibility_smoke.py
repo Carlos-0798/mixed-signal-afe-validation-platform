@@ -44,7 +44,11 @@ def test_real_tk_workflow_has_text_and_keyboard_targets_at_common_scaling(
             on_run=_callback,
             on_cancel=_callback,
             on_discover=_callback,
+            on_choose_export_path=_callback,
             on_export=_callback,
+            on_modify=_callback,
+            on_repeat=_callback,
+            on_new_test=_callback,
             on_close=_callback,
         )
         root.update_idletasks()
@@ -58,7 +62,12 @@ def test_real_tk_workflow_has_text_and_keyboard_targets_at_common_scaling(
             widgets.review_button,
             widgets.run_button,
             widgets.discover_button,
+            widgets.export_browse_button,
             widgets.export_button,
+            widgets.modify_button,
+            widgets.repeat_button,
+            widgets.new_test_button,
+            widgets.finish_button,
             widgets.result_widgets.cancel_button,
             widgets.result_widgets.plot_table,
         )

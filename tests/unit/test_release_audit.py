@@ -173,6 +173,61 @@ def test_only_reviewed_manifest_privacy_fixture_is_allowlisted() -> None:
     assert not _is_approved_fixture(approved_source, "email_address")
 
 
+def test_reviewed_binary_inventory_pins_path_and_content(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    relative_path = "media/reviewed.png"
+    payload = b"reviewed\x00binary"
+    binary = tmp_path / relative_path
+    binary.parent.mkdir()
+    binary.write_bytes(payload)
+    monkeypatch.setattr(
+        release_module,
+        "REVIEWED_BINARY_SHA256",
+        {relative_path: hashlib.sha256(payload).hexdigest()},
+    )
+    monkeypatch.setattr(
+        release_module,
+        "_tracked_entries",
+        lambda _root: ((relative_path, "100644", "a" * 40),),
+    )
+
+    result = release_module._audit_tracked_tree(tmp_path)
+
+    assert result["tracked_binary_paths"] == [relative_path]
+    binary.write_bytes(payload + b"tampered")
+    with pytest.raises(ReleaseAuditError, match="binary identity changed"):
+        release_module._audit_tracked_tree(tmp_path)
+
+
+def test_tracked_binary_inventory_rejects_an_unreviewed_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    reviewed_path = "media/reviewed.png"
+    unreviewed_path = "media/unreviewed.png"
+    payload = b"reviewed\x00binary"
+    for relative_path in (reviewed_path, unreviewed_path):
+        binary = tmp_path / relative_path
+        binary.parent.mkdir(exist_ok=True)
+        binary.write_bytes(payload)
+    monkeypatch.setattr(
+        release_module,
+        "REVIEWED_BINARY_SHA256",
+        {reviewed_path: hashlib.sha256(payload).hexdigest()},
+    )
+    monkeypatch.setattr(
+        release_module,
+        "_tracked_entries",
+        lambda _root: (
+            (reviewed_path, "100644", "a" * 40),
+            (unreviewed_path, "100644", "b" * 40),
+        ),
+    )
+
+    with pytest.raises(ReleaseAuditError, match="binary inventory"):
+        release_module._audit_tracked_tree(tmp_path)
+
+
 def test_archive_member_path_rejects_traversal_and_backslashes() -> None:
     assert _normalize_member_path("package/module.py").as_posix() == "package/module.py"
     with pytest.raises(ReleaseAuditError, match="unsafe member"):

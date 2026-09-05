@@ -201,6 +201,9 @@ def test_wizard_state_exposes_fixed_choices_guidance_and_permissions() -> None:
     assert initial.can_run is False
     assert initial.can_cancel is False
     assert initial.can_export is False
+    assert initial.can_modify_setup is False
+    assert initial.can_review_same_setup is False
+    assert initial.can_start_new_test is False
     assert DASHBOARD_WIZARD_SCHEMA_VERSION == "dashboard-wizard.v1"
 
 
@@ -270,10 +273,36 @@ def test_presenter_runs_the_six_steps_and_preserves_review_permissions() -> None
     assert presenter.state.can_cancel is True
     presenter.finish_run(export_available=True)
     assert presenter.state.can_export is True
+    assert presenter.state.can_modify_setup is True
+    assert presenter.state.can_review_same_setup is True
+    assert presenter.state.can_start_new_test is True
     presenter.present_export("result.json")
     assert presenter.state.export_message == "Exported safely: result.json"
     presenter.back()
     assert presenter.state.step is DashboardWizardStep.CONFIGURATION
+
+
+def test_result_specific_transitions_preserve_or_reset_the_draft_explicitly() -> None:
+    modified = reviewed_presenter()
+    modified.begin_run()
+    modified.finish_run(export_available=False)
+    reviewed_draft = modified.state.draft
+    state = modified.modify_setup()
+    assert state.step is DashboardWizardStep.CONFIGURATION
+    assert state.draft == reviewed_draft
+    assert "previous result remains visible" in state.export_message.lower()
+
+    fresh = reviewed_presenter()
+    fresh.begin_run()
+    fresh.finish_run(export_available=False)
+    state = fresh.start_new_test()
+    assert state.step is DashboardWizardStep.SOURCE
+    assert state.draft == DashboardWizardDraft()
+
+    with pytest.raises(ProductRequestError, match="finalized result"):
+        DashboardWizardPresenter().modify_setup()
+    with pytest.raises(ProductRequestError, match="finalized result"):
+        DashboardWizardPresenter().start_new_test()
 
 
 def test_source_and_profile_selection_follow_compatibility_without_guessing() -> None:
