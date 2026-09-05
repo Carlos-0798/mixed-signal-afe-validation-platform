@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-09-04<br>
 **Current milestone:** Software Phase 6 release engineering — 7 of 8 checkpoints<br>
-**Release maturity:** Audited `0.1.0b1` private-beta baseline plus Draft PR #7 at hosted-green head `e00f165` and a local current-state documentation sync; no tag or Release<br>
+**Release maturity:** Audited `0.1.0b1` private-beta baseline with Dashboard UX PR #7 merged to `main` at `b4f0fef`; no tag or Release<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
 
@@ -14,23 +14,29 @@ The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmi
 
 The reviewed Software Phase 5 plan defines a separate `analog_validation_app` product layer, one `analog-validation` command, a bounded single-owner cancellable worker, deterministic HTML/SVG reporting, a local offline Tkinter/ttk Dashboard, a six-step beginner workflow, and an installed-package deterministic demo. All 8 checkpoints are implemented. The final checkpoint freezes product imports, schemas, CLI commands/options and exits, dataclass/function shapes, report/demo fields, worker states, errors/issues, and prior manifest hashes. The workflow defaults to Simulator/AFE, expresses status and criteria in text, prevalidates Replay, and gates Serial behind exact receive-only settings. Architecture tests enforce consumption of the frozen core without copying device/profile or engineering-analysis logic. Software Phase 6 Steps 1–7 now add the release contract, hosted compatibility CI, `0.1.0b1` metadata, a deterministic create-new candidate verifier, an executable beginner tester path, a public-API-only third-party-style read adapter proved from the installed wheel outside the repository, and a complete-history/privacy/license/workbook/claims audit with a four-file private-beta handoff contract.
 
-Draft PR #7 adds modern styling, Setup/Results tabs, adaptive vertical
-scrolling and Windows mouse-wheel routing, revision-gated redraws, explicit
-result actions, visible READ observations, and clearer error/export feedback.
-Its remote head `e00f165` adds a native format-aware save picker, suffix
-validation, fresh destinations,
-unsaved-result warnings, clearer count bounds, safer button hierarchy,
-step-aware keyboard focus, a recruiter-first README, two classified Simulator
-screenshots, synchronized current-state documentation, and repository
-governance. That exact head passed all eight hosted CI jobs in Actions run
-`33897499685` after the failed-job rerun completed successfully on attempt 2.
-Its local gate passed 2,277 tests, 11,911/11,911 package statements, Ruff,
-mypy, deterministic build, fresh base and serial installs, the formal
-release-candidate verifier, and a `PASS_WITH_REVIEW` release audit. This
-current-state-only documentation synchronization remains local and unpushed;
-it does not add product behavior or expand the hosted evidence beyond
-`e00f165`. All interaction checks remained Simulator/CSV-only and did not
-touch a physical serial port.
+Dashboard UX PR #7 delivered modern styling, Setup/Results tabs, adaptive
+vertical scrolling and Windows mouse-wheel routing, revision-gated redraws,
+explicit result actions, visible READ observations, clearer error/export
+feedback, a native format-aware save picker, suffix validation, fresh
+destinations, unsaved-result warnings, clearer count bounds, safer button
+hierarchy, step-aware keyboard focus, a recruiter-first README, two classified
+Simulator screenshots, repository governance, and a reusable interaction
+design guide. Its final PR head `c9710fe` passed all eight hosted CI jobs in
+Actions run `33933549983` attempt 1.
+
+Before merge, GitHub's generated merge ref `70c5bf1` was checked in an
+independent worktree. It passed 174 focused Dashboard/architecture tests, all
+10 bounded product-quality checks, the 2,277-test and 11,911/11,911-statement
+gate, Ruff, mypy, deterministic builds, fresh base and serial installations,
+the formal release-candidate verifier, and a `PASS_WITH_REVIEW` release audit.
+After owner approval, PR #7 was merged with merge commit `b4f0fef`; its tree
+matches the independently verified merge tree and the remote feature branch
+was retained. Post-merge Actions run `33934417152` reported one non-specific
+release-candidate child-process failure on attempt 1. The same command on the
+exact `main` commit passed locally with 2,277 tests and 100% package-statement
+coverage; a failed-job-only rerun then completed all eight hosted jobs
+successfully on attempt 2. All interaction checks remained Simulator/CSV-only
+and did not touch a physical serial port.
 
 Software Phase 3 is complete. Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. Step 8 freezes the 84-symbol Phase 2 top level, 68 analysis exports, 10 runner exports, 28 export symbols, 12 Phase 3 schemas, public enums/signatures/errors, and exact representative DC/hysteresis results. The golden values remain HOST_TEST/SYNTHETIC software evidence.
 
@@ -100,9 +106,9 @@ port and did not repeat or broaden the Step 7 HIL.
 |---|---|
 | Full pytest suite | 2,277 passed in the latest full local quality run |
 | Formal + optional + product package statement coverage | 100% of 11,911 statements |
-| Dashboard UX Draft PR #7 | PASS at remote head `e00f165` — all eight hosted Windows/Ubuntu matrix, quality, and deterministic-candidate jobs passed in run `33897499685` attempt 2 |
-| Current local candidate and audit | PASS / `PASS_WITH_REVIEW` — current-tree privacy findings 0; eight legacy-history review items retained for owner review |
-| Interaction-safety follow-up | PASS locally and included in hosted-green head `e00f165` — adaptive scrolling, native format-aware save selection, suffix validation, fresh result destinations, unsaved-result recovery, button hierarchy, and step focus; physical port discovery/open/write all 0 |
+| Dashboard UX PR #7 | MERGED — final head `c9710fe` passed eight jobs in run `33933549983`; merge commit `b4f0fef` passed eight post-merge jobs in run `33934417152` attempt 2 |
+| Verified merge candidate and audit | PASS / `PASS_WITH_REVIEW` — tested merge ref `70c5bf1`; current-tree privacy findings 0; eight legacy-history review items retained for owner review |
+| Interaction-safety delivery | PASS and merged — adaptive scrolling, native format-aware save selection, suffix validation, fresh result destinations, unsaved-result recovery, button hierarchy, and step focus; physical port discovery/open/write all 0 |
 | Phase 6 hosted CI | PASS — Windows/Ubuntu with Python 3.10, 3.12, and 3.14; quality/build/base/serial jobs passed |
 | Phase 6 beta metadata | PASS — import, CLI, wheel, public manifests, README, and changelog aligned at `0.1.0b1`; no license/tag/Release selected |
 | Phase 6 deterministic candidate | PASS — local and hosted Windows/Python 3.12 outputs for commit `0c04aee` were byte-identical; manifest records only HOST_TEST/SYNTHETIC evidence and zero AFE bench claims |
@@ -196,7 +202,7 @@ port and did not repeat or broaden the Step 7 HIL.
 | 5 | Installation, tester, troubleshooting, and feedback documentation | Complete | HOST_TEST / SYNTHETIC / CSV_REPLAY / hosted-wheel external install |
 | 6 | Public-API-only external adapter proof | Complete | HOST_TEST / SYNTHETIC / external fresh-wheel isolated run |
 | 7 | Privacy, license, history, claims, and candidate audit | Complete | HOST_TEST / complete-history audit / local + hosted four-file identity / owner-review items retained |
-| 8 | Owner review, merge/tag/Release, and v1.0 decision | Owner-gated | Not authorized |
+| 8 | Owner review, history/visibility/license/tag/Release, and v1.0 decision | Owner-gated | PR #7 merge complete; remaining publication decisions not authorized |
 
 ## Public claim boundary
 
@@ -291,17 +297,14 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 6 Steps 1–7 are complete. Draft PR #7 is open against `main`,
-and remote head `e00f165` has eight green hosted jobs in Actions run
-`33897499685`. This current-state-only documentation sync remains local and
-unpushed; if accepted and pushed, the resulting new head requires hosted CI
-before PR readiness can be reassessed. Marking PR #7 Ready or merging it
-remains owner-gated. The publication checklist keeps public Git-history
-review, license selection, visibility, social preview, tag, GitHub Release,
-beta-feedback disposition, and LinkedIn handoff as separate explicit
-decisions. Simulator remains the default. Real-port reliability and future
-physical AFE work stay separately gated and are not inherited by the software
-release path.
+Software Phase 6 Steps 1–7 are complete, and Dashboard UX PR #7 is delivered
+to `main` at merge commit `b4f0fef` with a successful eight-job post-merge CI
+run. Phase 6 Step 8 remains owner-gated because merging the UX work does not
+select repository visibility or a license and does not authorize a tag,
+GitHub Release, package publication, public-history exposure, social preview,
+beta-feedback disposition, or LinkedIn handoff. Simulator remains the default.
+Real-port reliability and future physical AFE work stay separately gated and
+are not inherited by the software release path.
 
 ## GitHub and LinkedIn presentation policy
 

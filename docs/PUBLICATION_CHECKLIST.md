@@ -1,9 +1,9 @@
 # Publication and Portfolio Governance Checklist
 
-**Last reviewed:** 2026-09-03
+**Last reviewed:** 2026-09-04
 
-**Current state:** Private repository, Draft PR #7, package `0.1.0b1`, no tag,
-no GitHub Release, no selected open-source license
+**Current state:** Private repository, Dashboard UX PR #7 merged at `b4f0fef`,
+package `0.1.0b1`, no tag, no GitHub Release, no selected open-source license
 
 **Hardware claim:** `NO_NEW_HARDWARE_VALIDATION`
 
@@ -96,7 +96,7 @@ the GitHub repository or LinkedIn profile.
 - [ ] Private vulnerability reporting is enabled before public exposure.
 - [ ] Secret scanning and dependency alerts are enabled where the account and
       repository plan permit.
-- [ ] Dependabot configuration is merged and observed once.
+- [x] Dependabot configuration is merged and its first update checks completed.
 - [ ] Branch/ruleset protection is enabled for `main` with required CI checks,
       pull-request review, and no force pushes, where the GitHub plan permits.
 - [ ] Tag and Release permissions are restricted to the owner.
@@ -110,8 +110,8 @@ accepts and displays the rule.
 
 Each item needs an exact preview and explicit approval:
 
-- [ ] Mark PR #7 Ready.
-- [ ] Merge PR #7 and choose whether to retain its branch.
+- [x] Mark PR #7 Ready.
+- [x] Merge PR #7 and retain its remote feature branch.
 - [ ] Choose repository visibility.
 - [ ] Choose an open-source license or intentionally retain all rights.
 - [ ] Approve GitHub description and topics.

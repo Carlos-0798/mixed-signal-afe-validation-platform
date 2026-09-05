@@ -1,8 +1,8 @@
 # Dashboard interaction design audit
 
-Status: local design follow-up for the Dashboard UX candidate. This audit covers
-software interaction only. It does not access a serial port and does not add any
-hardware-validation claim.
+Status: implemented and merged to `main` through Dashboard UX PR #7. This audit
+covers software interaction only. It does not access a serial port and does not
+add any hardware-validation claim.
 
 ## Reference basis
 
@@ -23,10 +23,12 @@ The review used the following public design and teaching references:
 - Microsoft Learn, [Keyboard
   interactions](https://learn.microsoft.com/en-us/windows/apps/develop/input/keyboard-interactions):
   make actionable controls keyboard reachable and keep focus order logical.
-- Microsoft Learn, [Command buttons in Windows
-  applications](https://learn.microsoft.com/en-us/windows/win32/uxguide/ctrl-command-buttons):
-  use concise action-specific labels and an ellipsis when the action first
-  needs more information from the user.
+- Microsoft Learn, [Commanding
+  basics](https://learn.microsoft.com/en-us/windows/apps/design/basics/commanding-basics)
+  and [Dialogs and
+  flyouts](https://learn.microsoft.com/en-us/windows/apps/design/controls/dialogs-and-flyouts/):
+  use concise action-specific labels, keep command priority visible, and ask
+  for additional information or confirmation in a clear dialog.
 - W3C WAI, [Error
   identification](https://www.w3.org/WAI/WCAG22/Understanding/error-identification),
   [Focus order](https://www.w3.org/WAI/WCAG22/Understanding/focus-order.html),

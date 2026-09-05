@@ -4,7 +4,10 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Software checkpoint reports (each report states its own evidence level):
 
-- `PROJECT_MILESTONE_RESUME_HANDOFF_2026-09-03.md` — current phase map,
+- `PROJECT_MILESTONE_UPDATE_2026-09-04.md` — current post-PR #7 delivery
+  identity, verification record, product capability summary, evidence limits,
+  remaining owner decisions, and next-agent handoff.
+- `PROJECT_MILESTONE_RESUME_HANDOFF_2026-09-03.md` — dated pre-merge phase map,
   implemented capability inventory, merged/Draft/local snapshot separation,
   reproducible verification, resume-ready fact bank, prohibited hardware
   claims, and next-agent handoff rules.
