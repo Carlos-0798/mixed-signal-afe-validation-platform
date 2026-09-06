@@ -76,9 +76,7 @@ def _bounded_text(name: str, value: object) -> str:
     if not value or value != value.strip():
         raise SerialStateError(f"{name} must be non-empty without outer whitespace")
     if len(value) > MAX_SERIAL_TEXT_CHARS:
-        raise SerialStateError(
-            f"{name} exceeds {MAX_SERIAL_TEXT_CHARS} characters"
-        )
+        raise SerialStateError(f"{name} exceeds {MAX_SERIAL_TEXT_CHARS} characters")
     if any(not character.isprintable() or character in "\r\n" for character in value):
         raise SerialStateError(f"{name} must contain printable single-line text")
     return value
@@ -135,9 +133,7 @@ class SerialConnectionSettings:
         baud_rate = _bounded_integer(
             "baud_rate", self.baud_rate, minimum=1, maximum=MAX_BAUD_RATE
         )
-        data_bits = _bounded_integer(
-            "data_bits", self.data_bits, minimum=5, maximum=8
-        )
+        data_bits = _bounded_integer("data_bits", self.data_bits, minimum=5, maximum=8)
         if not isinstance(self.parity, SerialParity):
             raise SerialStateError("parity must be a SerialParity")
         if not isinstance(self.stop_bits, SerialStopBits):

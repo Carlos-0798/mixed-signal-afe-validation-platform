@@ -110,6 +110,53 @@ def _choose_export_destination(
     return selected
 
 
+def _choose_coefficient_path(
+    parent: object,
+    mode: str,
+    *,
+    dialog: SavePathDialog | None = None,
+) -> str:
+    """Choose a coefficient JSON path without opening, creating, or applying it."""
+
+    if mode not in {"save", "load"}:
+        raise ProductRequestError("coefficient path mode must be save or load")
+    selected_dialog: SavePathDialog
+    if dialog is None:  # pragma: no cover - exercised by the real Windows Tk gate
+        from tkinter import filedialog
+
+        selected_dialog = cast(
+            SavePathDialog,
+            filedialog.asksaveasfilename
+            if mode == "save"
+            else filedialog.askopenfilename,
+        )
+    else:
+        selected_dialog = dialog
+    options: dict[str, object] = {
+        "parent": parent,
+        "title": (
+            "Choose a new calibration coefficient file"
+            if mode == "save"
+            else "Choose an existing calibration coefficient file"
+        ),
+        "defaultextension": ".json",
+        "filetypes": (("Calibration coefficients", "*.json"),),
+    }
+    if mode == "save":
+        options.update(
+            {
+                "initialfile": "analog-validation-calibration.json",
+                "confirmoverwrite": False,
+            }
+        )
+    selected = selected_dialog(**options)
+    if not isinstance(selected, str):
+        raise ProductRequestError(
+            "Dashboard coefficient dialog must return a path string"
+        )
+    return selected
+
+
 def _confirm_discard_unsaved_result(
     parent: object,
     action: str,
@@ -254,6 +301,29 @@ def launch_dashboard(
     def choose_export_path(format_name: str) -> str:
         return _choose_export_destination(root, format_name)
 
+    def choose_coefficient_path(mode: str) -> str:
+        return _choose_coefficient_path(root, mode)
+
+    def save_coefficients(path: str) -> None:
+        application.save_calibration_coefficients(path)
+        render()
+
+    def load_coefficients(path: str) -> None:
+        application.load_calibration_coefficients(path)
+        render()
+
+    def pause_live_monitor() -> None:
+        application.pause_live_monitor()
+        render()
+
+    def resume_live_monitor() -> None:
+        application.resume_live_monitor()
+        render()
+
+    def change_live_window(seconds: float) -> None:
+        application.set_live_time_window(seconds)
+        render()
+
     def discard_is_confirmed(action: str) -> bool:
         return not application.has_unsaved_result or _confirm_discard_unsaved_result(
             root, action
@@ -281,9 +351,8 @@ def launch_dashboard(
         nonlocal closed
         if closed:
             return
-        if (
-            not bypass_unsaved_confirmation
-            and not discard_is_confirmed("close the application")
+        if not bypass_unsaved_confirmation and not discard_is_confirmed(
+            "close the application"
         ):
             return
         if application.request_close():
@@ -320,6 +389,12 @@ def launch_dashboard(
             on_repeat=review_same_setup,
             on_new_test=start_new_test,
             on_close=close_window,
+            on_choose_coefficient_path=choose_coefficient_path,
+            on_save_coefficients=save_coefficients,
+            on_load_coefficients=load_coefficients,
+            on_pause_live=pause_live_monitor,
+            on_resume_live=resume_live_monitor,
+            on_live_window=change_live_window,
         )
         root.protocol("WM_DELETE_WINDOW", close_window)
         render()

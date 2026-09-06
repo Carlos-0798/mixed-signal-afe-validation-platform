@@ -108,7 +108,7 @@ _GUIDANCE = {
     DashboardWizardStep.TEST: DashboardWizardGuidance(
         2,
         "Choose the test",
-        "We choose a bounded read, DC analysis, or hysteresis analysis.",
+        "We choose a bounded read, live monitor, DC, hysteresis, calibration, or frequency-response analysis.",
         "A test defines required channels and calculations, independent of the device brand.",
         "Confirm that the selected source declares support for this test.",
     ),
@@ -174,6 +174,12 @@ class DashboardWizardDraft:
     max_abs_offset: str = "25"
     min_r_squared: str = "0.999"
     max_rmse: str = "1"
+    coefficient_id: str = "afe-linear-calibration"
+    coefficient_version: str = "1"
+    max_calibration_rmse: str = "1"
+    max_calibration_mean_absolute_error: str = "1"
+    max_calibration_absolute_error: str = "2"
+    minimum_calibration_rmse_reduction: str = "0"
     minimum_high_threshold: str = "900"
     maximum_high_threshold: str = "1100"
     minimum_low_threshold: str = "800"
@@ -183,6 +189,20 @@ class DashboardWizardDraft:
     maximum_width_span: str = "0"
     export_path: str = ""
     export_format: DashboardExportFormat = DashboardExportFormat.JSON
+    frequency_channel: str = "afe.ch0.frequency"
+    frequency_point_count: str = "21"
+    frequency_minimum_hz: str = "10"
+    frequency_maximum_hz: str = "100000"
+    frequency_input_amplitude: str = "1000"
+    simulated_cutoff_frequency_hz: str = "1000"
+    target_cutoff_frequency_hz: str = "1000"
+    cutoff_relative_tolerance: str = "0.15"
+    cutoff_drop_db: str = "3.010299956639812"
+    monitor_sample_interval_seconds: str = "0.05"
+    monitor_time_window_seconds: str = "5"
+    monitor_max_buffer_points: str = "2048"
+    monitor_include_secondary: bool = True
+    monitor_include_state: bool = True
 
     def __post_init__(self) -> None:
         if not isinstance(self.source_mode, ProductSourceMode):
@@ -201,12 +221,26 @@ class DashboardWizardDraft:
             "primary_channel",
             "secondary_channel",
             "state_channel",
+            "frequency_channel",
+            "coefficient_id",
+            "coefficient_version",
         ):
             _text(name, getattr(self, name))
         for name in (
             "sample_count",
             "rising_count",
             "falling_count",
+            "frequency_point_count",
+            "frequency_minimum_hz",
+            "frequency_maximum_hz",
+            "frequency_input_amplitude",
+            "simulated_cutoff_frequency_hz",
+            "target_cutoff_frequency_hz",
+            "cutoff_relative_tolerance",
+            "cutoff_drop_db",
+            "monitor_sample_interval_seconds",
+            "monitor_time_window_seconds",
+            "monitor_max_buffer_points",
             "replay_path",
             "replay_minimum",
             "replay_maximum",
@@ -221,6 +255,10 @@ class DashboardWizardDraft:
             "max_abs_offset",
             "min_r_squared",
             "max_rmse",
+            "max_calibration_rmse",
+            "max_calibration_mean_absolute_error",
+            "max_calibration_absolute_error",
+            "minimum_calibration_rmse_reduction",
             "minimum_high_threshold",
             "maximum_high_threshold",
             "minimum_low_threshold",
@@ -233,6 +271,9 @@ class DashboardWizardDraft:
             _text(name, getattr(self, name), allow_empty=True)
         if not isinstance(self.serial_confirm_read_only, bool):
             raise ProductRequestError("serial_confirm_read_only must be boolean")
+        for name in ("monitor_include_secondary", "monitor_include_state"):
+            if not isinstance(getattr(self, name), bool):
+                raise ProductRequestError(f"{name} must be boolean")
         source = get_product_source(self.source_mode)
         profile = get_product_profile(self.profile_name, self.profile_version)
         if self.job_type not in source.supported_jobs:
@@ -256,6 +297,42 @@ class DashboardWizardDraft:
             "sample_count": _integer("sample_count", self.sample_count),
             "rising_count": _integer("rising_count", self.rising_count),
             "falling_count": _integer("falling_count", self.falling_count),
+            "frequency_channel": self.frequency_channel,
+            "frequency_point_count": _integer(
+                "frequency_point_count", self.frequency_point_count
+            ),
+            "frequency_minimum_hz": _number(
+                "frequency_minimum_hz", self.frequency_minimum_hz
+            ),
+            "frequency_maximum_hz": _number(
+                "frequency_maximum_hz", self.frequency_maximum_hz
+            ),
+            "frequency_input_amplitude": _number(
+                "frequency_input_amplitude", self.frequency_input_amplitude
+            ),
+            "simulated_cutoff_frequency_hz": _number(
+                "simulated_cutoff_frequency_hz",
+                self.simulated_cutoff_frequency_hz,
+            ),
+            "target_cutoff_frequency_hz": _number(
+                "target_cutoff_frequency_hz", self.target_cutoff_frequency_hz
+            ),
+            "cutoff_relative_tolerance": _number(
+                "cutoff_relative_tolerance", self.cutoff_relative_tolerance
+            ),
+            "cutoff_drop_db": _number("cutoff_drop_db", self.cutoff_drop_db),
+            "monitor_sample_interval_seconds": _number(
+                "monitor_sample_interval_seconds",
+                self.monitor_sample_interval_seconds,
+            ),
+            "monitor_time_window_seconds": _number(
+                "monitor_time_window_seconds", self.monitor_time_window_seconds
+            ),
+            "monitor_max_buffer_points": _integer(
+                "monitor_max_buffer_points", self.monitor_max_buffer_points
+            ),
+            "monitor_include_secondary": self.monitor_include_secondary,
+            "monitor_include_state": self.monitor_include_state,
             "low_output_limit": _number("low_output_limit", self.low_output_limit),
             "high_output_limit": _number("high_output_limit", self.high_output_limit),
             "target_gain": _number("target_gain", self.target_gain),
@@ -263,6 +340,23 @@ class DashboardWizardDraft:
             "max_abs_offset": _number("max_abs_offset", self.max_abs_offset),
             "min_r_squared": _number("min_r_squared", self.min_r_squared),
             "max_rmse": _number("max_rmse", self.max_rmse),
+            "coefficient_id": self.coefficient_id,
+            "coefficient_version": self.coefficient_version,
+            "max_calibration_rmse": _number(
+                "max_calibration_rmse", self.max_calibration_rmse
+            ),
+            "max_calibration_mean_absolute_error": _number(
+                "max_calibration_mean_absolute_error",
+                self.max_calibration_mean_absolute_error,
+            ),
+            "max_calibration_absolute_error": _number(
+                "max_calibration_absolute_error",
+                self.max_calibration_absolute_error,
+            ),
+            "minimum_calibration_rmse_reduction": _number(
+                "minimum_calibration_rmse_reduction",
+                self.minimum_calibration_rmse_reduction,
+            ),
             "minimum_high_threshold": _number(
                 "minimum_high_threshold", self.minimum_high_threshold
             ),
@@ -336,6 +430,8 @@ class DashboardWizardState:
     issue: UserIssue | None = None
     export_available: bool = False
     export_message: str = "No finalized analysis export is available."
+    coefficient_available: bool = False
+    coefficient_message: str = "No calibration coefficient artifact is available."
     schema_version: str = DASHBOARD_WIZARD_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
@@ -370,6 +466,9 @@ class DashboardWizardState:
         if not isinstance(self.export_available, bool):
             raise ProductRequestError("export_available must be boolean")
         _text("export_message", self.export_message)
+        if not isinstance(self.coefficient_available, bool):
+            raise ProductRequestError("coefficient_available must be boolean")
+        _text("coefficient_message", self.coefficient_message)
         if self.schema_version != DASHBOARD_WIZARD_SCHEMA_VERSION:
             raise ProductRequestError(
                 f"unsupported Dashboard wizard schema: {self.schema_version}"
@@ -418,6 +517,14 @@ class DashboardWizardState:
     @property
     def can_export(self) -> bool:
         return self.step is DashboardWizardStep.RESULT and self.export_available
+
+    @property
+    def can_save_coefficients(self) -> bool:
+        return self.step is DashboardWizardStep.RESULT and self.coefficient_available
+
+    @property
+    def can_load_coefficients(self) -> bool:
+        return self.step is DashboardWizardStep.RESULT
 
     @property
     def can_modify_setup(self) -> bool:
@@ -482,6 +589,8 @@ class DashboardWizardPresenter:
             discovered_ports=(),
             issue=None,
             export_available=False,
+            coefficient_available=False,
+            coefficient_message="No calibration coefficient artifact is available.",
         )
 
     def select_profile(self, name: str, version: str) -> DashboardWizardState:
@@ -508,8 +617,16 @@ class DashboardWizardPresenter:
             raise ProductCatalogError(
                 f"{source.mode.value} does not support {job_type.value}"
             )
+        draft = replace(self._state.draft, job_type=job_type)
+        if job_type is ProductJobType.LIVE_MONITOR:
+            unit = (
+                MeasurementUnit.MILLIVOLT
+                if draft.unit is MeasurementUnit.BOOLEAN
+                else draft.unit
+            )
+            draft = replace(draft, operation=ReadOperation.ANALOG, unit=unit)
         return self._replace(
-            draft=replace(self._state.draft, job_type=job_type),
+            draft=draft,
             issue=None,
         )
 
@@ -558,6 +675,8 @@ class DashboardWizardPresenter:
             issue=None,
             export_available=False,
             export_message="No finalized analysis export is available.",
+            coefficient_available=False,
+            coefficient_message="No calibration coefficient artifact is available.",
         )
 
     def modify_setup(self) -> DashboardWizardState:
@@ -574,6 +693,8 @@ class DashboardWizardPresenter:
                 "The previous result remains visible for reference. "
                 "Validate the edited setup before running again."
             ),
+            coefficient_available=False,
+            coefficient_message="No calibration coefficient artifact is available.",
         )
 
     def start_new_test(self) -> DashboardWizardState:
@@ -589,6 +710,8 @@ class DashboardWizardPresenter:
             issue=None,
             export_available=False,
             export_message="No finalized analysis export is available.",
+            coefficient_available=False,
+            coefficient_message="No calibration coefficient artifact is available.",
         )
 
     def present_review(
@@ -619,13 +742,22 @@ class DashboardWizardPresenter:
             issue=None,
             export_available=False,
             export_message="The worker is running; no export is finalized yet.",
+            coefficient_available=False,
+            coefficient_message="The worker is running; no coefficient artifact is finalized yet.",
         )
 
-    def finish_run(self, *, export_available: bool) -> DashboardWizardState:
+    def finish_run(
+        self,
+        *,
+        export_available: bool,
+        coefficient_available: bool = False,
+    ) -> DashboardWizardState:
         if self._state.step is not DashboardWizardStep.RUN:
             raise ProductRequestError("only a running workflow can finish")
         if not isinstance(export_available, bool):
             raise ProductRequestError("export_available must be boolean")
+        if not isinstance(coefficient_available, bool):
+            raise ProductRequestError("coefficient_available must be boolean")
         message = (
             "A finalized analysis export is available; choose a new JSON or CSV path."
             if export_available
@@ -635,6 +767,12 @@ class DashboardWizardPresenter:
             step=DashboardWizardStep.RESULT,
             export_available=export_available,
             export_message=message,
+            coefficient_available=coefficient_available,
+            coefficient_message=(
+                "Calibration coefficients are ready to save as a new JSON file."
+                if coefficient_available
+                else "No calibration coefficient artifact is available for this result."
+            ),
         )
 
     def present_ports(self, ports: tuple[SerialPortInfo, ...]) -> DashboardWizardState:
@@ -654,6 +792,16 @@ class DashboardWizardPresenter:
             raise ProductRequestError("no finalized analysis export is available")
         checked = _text("filename", filename)
         return self._replace(export_message=f"Exported safely: {checked}", issue=None)
+
+    def present_coefficient_artifact(self, message: str) -> DashboardWizardState:
+        if self._state.step is not DashboardWizardStep.RESULT:
+            raise ProductRequestError(
+                "calibration coefficient files can only be managed on the Result step"
+            )
+        return self._replace(
+            coefficient_message=_text("coefficient message", message),
+            issue=None,
+        )
 
 
 __all__ = [

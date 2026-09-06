@@ -1,8 +1,8 @@
 # Project Status
 
-**Last updated:** 2026-09-04<br>
-**Current milestone:** Software Phase 6 release engineering — 7 of 8 checkpoints<br>
-**Release maturity:** Audited `0.1.0b1` private-beta baseline with Dashboard UX PR #7 merged to `main` at `b4f0fef`; no tag or Release<br>
+**Last updated:** 2026-09-05<br>
+**Current milestone:** Post-beta product expansion — calibration, frequency-response, and bounded offline live-monitor workflows locally closed and awaiting owner-approved commit review<br>
+**Release maturity:** Audited `0.1.0b1` private-beta baseline on `main`; the combined product increment is not yet committed, merged, tagged, or released<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
 
@@ -10,7 +10,7 @@
 
 The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC implementation, a profile-neutral CRC envelope with a backward-compatible AFE wrapper, the versioned AFE v1 protocol, explicit AFE channel-name mapping, strict non-executable JSON configuration, frozen protocol and replay compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, a configurable deterministic read-only SimulatorAdapter, a strict immutable CSV Replay v1 parser, a read-only CsvReplayAdapter, a shared adapter-neutral read workflow, a profile-neutral bounded byte-stream/sequence foundation, a replaceable serial backend port, deterministic host-tested serial lifecycle, bounded memory-only raw-record provenance, a public serial-profile extension point, independent AFE and read-only MSP430 Equipment Health v1 profiles, a receive-only `SerialAdapter`, an optional packaged pyserial backend that leaves the formal core driver-free, and a Phase 4 machine-readable compatibility freeze.
 
-The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow remains a frozen read-only acquisition API. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, versioned structured result exports, both serial business profiles, their receive-only adapter composition, and a narrow MSP430 UART HIL are implemented. Phase 5 adds immutable product request/result/event contracts, a reviewed source/profile catalog, stable user issues, a bounded single-owner cancellable worker, explicit adapter factories, shared read/DC/hysteresis services and workflow compilation, stable installed Simulator/Replay/receive-only CLI workflows, deterministic human reports that only present finalized results, a runnable six-step local Dashboard, a one-command reproducible synthetic demo with bounded performance/accessibility/privacy acceptance, and an executable product public-contract freeze. A validated physical AFE is not yet implemented.
+The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow now has both frozen finite-read and compatible finite streaming-read entry points. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, versioned structured result exports, both serial business profiles, their receive-only adapter composition, and a narrow MSP430 UART HIL are implemented. Phase 5 adds immutable product request/result/event contracts, a reviewed source/profile catalog, stable user issues, a bounded single-owner cancellable worker, explicit adapter factories, shared services/workflow compilation, stable installed Simulator/Replay/receive-only CLI workflows, deterministic human reports that only present finalized results, a runnable six-step local Dashboard, a one-command reproducible synthetic demo with bounded performance/accessibility/privacy acceptance, and an executable product public-contract freeze. The current combined increment extends that same product path with calibration and frequency-response services, explicit criteria/TestRun mappings, strict coefficient persistence, presentation-only calibration/frequency charts, and a finite `live-monitor.v1` Simulator/Replay workflow with bounded curves, pause/resume, quality totals, and explicit eviction accounting. A validated physical AFE is not yet implemented.
 
 The reviewed Software Phase 5 plan defines a separate `analog_validation_app` product layer, one `analog-validation` command, a bounded single-owner cancellable worker, deterministic HTML/SVG reporting, a local offline Tkinter/ttk Dashboard, a six-step beginner workflow, and an installed-package deterministic demo. All 8 checkpoints are implemented. The final checkpoint freezes product imports, schemas, CLI commands/options and exits, dataclass/function shapes, report/demo fields, worker states, errors/issues, and prior manifest hashes. The workflow defaults to Simulator/AFE, expresses status and criteria in text, prevalidates Replay, and gates Serial behind exact receive-only settings. Architecture tests enforce consumption of the frozen core without copying device/profile or engineering-analysis logic. Software Phase 6 Steps 1–7 now add the release contract, hosted compatibility CI, `0.1.0b1` metadata, a deterministic create-new candidate verifier, an executable beginner tester path, a public-API-only third-party-style read adapter proved from the installed wheel outside the repository, and a complete-history/privacy/license/workbook/claims audit with a four-file private-beta handoff contract.
 
@@ -23,6 +23,30 @@ hierarchy, step-aware keyboard focus, a recruiter-first README, two classified
 Simulator screenshots, repository governance, and a reusable interaction
 design guide. Its final PR head `c9710fe` passed all eight hosted CI jobs in
 Actions run `33933549983` attempt 1.
+
+The local `codex/calibration-workflow` increment now connects the previously
+host-tested calibration and amplitude-response cores to the shared product
+compiler and worker. Calibration evaluates before/after errors and emits a
+strict versioned coefficient artifact. Frequency response acquires explicit
+Hz/input/output triples, evaluates an independently reviewed cutoff target and
+minimum point count, retains all three references per point, and renders a
+logarithmic-frequency gain chart. The bounded live monitor reuses the compatible
+streaming-read API and the same reviewed worker for at most 10,000 observations;
+its ring buffer, quality totals, pause/resume, display window, CLI, and Dashboard
+remain presentation-only and never create an engineering PASS/FAIL. All three
+workflows support Simulator/CSV Replay. All evidence is `SYNTHETIC`, `CSV_REPLAY`,
+or `HOST_TEST`; no serial port, signal source, oscilloscope, or physical hardware
+was accessed. The final local precommit gate passed 2,459 tests with
+13,834/13,834 package statements covered, full Ruff/mypy/dependency checks,
+15/15 bounded product-quality checks, two byte-identical isolated builds,
+fresh base and `[serial]` installs, and installed Simulator/Replay monitor
+chains. The live stress published 10,000 synthetic points in 0.177198 seconds
+with 1.348 MiB peak traced memory, retained 2,048, and accounted for 7,952
+evictions on this host; those timings are not real-time claims. The release
+verifier clears inherited `PYTHONPATH` from every clean-install subprocess so an
+outer checkout cannot make pip skip the candidate wheel. This is not yet a
+commit-bound candidate and has not run hosted CI; formal release-candidate/audit
+execution requires an owner-approved clean commit.
 
 Before merge, GitHub's generated merge ref `70c5bf1` was checked in an
 independent worktree. It passed 174 focused Dashboard/architecture tests, all
@@ -38,7 +62,7 @@ coverage; a failed-job-only rerun then completed all eight hosted jobs
 successfully on attempt 2. All interaction checks remained Simulator/CSV-only
 and did not touch a physical serial port.
 
-Software Phase 3 is complete. Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. Step 8 freezes the 84-symbol Phase 2 top level, 68 analysis exports, 10 runner exports, 28 export symbols, 12 Phase 3 schemas, public enums/signatures/errors, and exact representative DC/hysteresis results. The golden values remain HOST_TEST/SYNTHETIC software evidence.
+Software Phase 3 is complete. Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. The current local calibration/frequency/live product extensions expand the public top-level/analysis/export namespaces to 92/84/38 symbols, 17 Phase 3 schemas, 10 enum sets, and 44 frozen public call shapes; the additive top-level names include the compatible streaming-read entry point rather than new engineering analysis. Exact representative DC/hysteresis results remain unchanged; all golden values remain HOST_TEST/SYNTHETIC software evidence.
 
 Software Phase 4 Step 1 adds `analog_validation.transport`: a device/profile-neutral bounded LF stream state machine and modular sequence tracker. It handles fragmented/coalesced chunks, bounded overlong discard/recovery, disconnect reset, first/in-order/gap/duplicate/out-of-order classification, and AFE 16-bit/MSP430 32-bit wrap under HOST_TEST. No serial backend, COM access, controller profile, SerialAdapter, or HIL claim was added.
 
@@ -104,8 +128,15 @@ port and did not repeat or broaden the Step 7 HIL.
 
 | Gate | Result |
 |---|---|
-| Full pytest suite | 2,277 passed in the latest full local quality run |
-| Formal + optional + product package statement coverage | 100% of 11,911 statements |
+| Calibration + frequency + bounded live-monitor increment full pytest suite | 2,459 passed in the final local precommit code/coverage gate |
+| Combined increment package statement coverage | 100% of 13,834 statements |
+| Combined increment static/dependency checks | Full Ruff PASS; mypy PASS across 218 source files; `pip check` PASS |
+| Combined increment product-quality acceptance | 15/15 PASS; 10,000-record Replay 0.495200 s/13.102 MiB and 10,000-point live buffer 0.177198 s/1.348 MiB on this Windows/Python 3.12 host |
+| Combined increment build/install | PASS — two byte-identical isolated builds; fresh base and `[serial]` installs; injected serial substitute only; inherited `PYTHONPATH` scrubbed |
+| Installed frequency workflow | PASS — default 1000 Hz model/target returned PASS, 63 Measurements, 21 points, 3 references/point and five report artifacts; 2000/1000 Hz mismatch returned engineering FAIL/exit 1 at 1948.014806 Hz |
+| Installed bounded live monitor | PASS — Simulator 15 total/3 retained/12 evicted; CSV Replay 3 total/3 retained/0 evicted; engineering outcome `none`; no port discovery |
+| Merged `main` full pytest baseline | 2,277 passed before the unmerged calibration increment |
+| Merged `main` package statement baseline | 100% of 11,911 statements |
 | Dashboard UX PR #7 | MERGED — final head `c9710fe` passed eight jobs in run `33933549983`; merge commit `b4f0fef` passed eight post-merge jobs in run `33934417152` attempt 2 |
 | Verified merge candidate and audit | PASS / `PASS_WITH_REVIEW` — tested merge ref `70c5bf1`; current-tree privacy findings 0; eight legacy-history review items retained for owner review |
 | Interaction-safety delivery | PASS and merged — adaptive scrolling, native format-aware save selection, suffix validation, fresh result destinations, unsaved-result recovery, button hierarchy, and step focus; physical port discovery/open/write all 0 |
@@ -115,7 +146,7 @@ port and did not repeat or broaden the Step 7 HIL.
 | Phase 6 private-beta tester path | PASS — hosted commit `5dc10db` wheel hash/base install/version/two byte-identical demos/report/create-new/Replay checks passed in a new short repository-external Python 3.12 environment; Dashboard and Serial were explicitly NOT_RUN |
 | Phase 6 public adapter proof | PASS — commit `2c01e7d` example imports only installed top-level public API; fresh base wheel + external `python -I` run completed three SYNTHETIC reads, cleanup, and zero writes; local/hosted candidates are byte-identical |
 | Phase 6 final candidate audit | `PASS_WITH_REVIEW` — commit `f6721b5`; exact private binary beta `READY`; candidate/current tree/workbook/license/claims passed; 8 legacy history review items, 0 high-confidence credentials; local/hosted four-file bundle byte-identical; CI run `33451305940` passed |
-| Phase 5 public compatibility | 15 new tests; 154 complete golden checks; 4 namespaces, 14 schemas, 10 enum sets, 36 dataclasses, 35 signatures, 24 errors, 25 issue mappings, 16 CLI paths, 8 exits, 13 serialized groups, and 6 hashes frozen |
+| Phase 5 public compatibility | 4 namespaces, 15 schemas, 10 enum sets, 40 dataclasses, 40 signatures, 24 errors, 25 issue mappings, 24 CLI paths, 8 exits, 13 serialized groups, and 6 hashes frozen after the calibration/frequency/live extensions |
 | Phase 5 Step 7 reproducible demo and product quality | 186 focused tests; two installed demos in normal/Unicode paths were byte-identical; 10,000-record Replay, 10,000-event bounded queue, privacy/offline, and real Tk scaling/focus smoke passed |
 | Phase 4 golden compatibility | 13 checks; 121 exports, 3 schemas, 12 enum/flag sets, 21 signatures, 17 errors, 5 fixture hashes, and exact AFE/MSP external-backend results frozen |
 | Phase 4 optional pyserial backend and receive-only HIL | 127/127 optional-package statements covered; base/serial external installs passed; 5/5 CRC-valid continuous TEL through COM4, 25 Measurements, zero writes, exact firmware unconfirmed |
@@ -192,6 +223,11 @@ port and did not repeat or broaden the Step 7 HIL.
 | 8 | Public compatibility freeze and software Beta closure | Complete | HOST_TEST / SYNTHETIC / repository-external base and `[serial]` installs |
 
 ## Software Phase 6 checkpoints
+
+Software Phase 6 remains at 7 of 8 checkpoints: Step 8 is deliberately
+owner-gated because repository visibility, final licensing, tagging, and a
+public Release require separate approval. The local calibration/frequency/live
+increment does not change that publication decision.
 
 | Step | Deliverable | Status | Evidence |
 |---:|---|---|---|

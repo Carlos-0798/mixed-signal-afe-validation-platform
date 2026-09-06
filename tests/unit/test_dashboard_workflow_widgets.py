@@ -9,6 +9,7 @@ from analog_validation_app import (
     DashboardWizardDraft,
     DashboardWizardState,
     DashboardWizardStep,
+    ProductJobType,
     ProductRequestError,
     ProductSourceMode,
     UserIssue,
@@ -129,6 +130,10 @@ def callbacks(log: list[object]) -> dict[str, Any]:
         log.append(("choose-export", format_name))
         return f"chosen-result.{format_name}"
 
+    def choose_coefficient_path(mode: str) -> str:
+        log.append(("choose-coefficient", mode))
+        return "chosen-coefficients.json"
+
     return {
         "on_source": lambda value: log.append(("source", value)),
         "on_profile": lambda value: log.append(("profile", value)),
@@ -143,6 +148,9 @@ def callbacks(log: list[object]) -> dict[str, Any]:
         "on_export": lambda path, format_name: log.append(
             ("export", path, format_name)
         ),
+        "on_choose_coefficient_path": choose_coefficient_path,
+        "on_save_coefficients": lambda path: log.append(("save-coefficients", path)),
+        "on_load_coefficients": lambda path: log.append(("load-coefficients", path)),
         "on_modify": lambda: log.append("modify"),
         "on_repeat": lambda: log.append("repeat"),
         "on_new_test": lambda: log.append("new-test"),
@@ -193,6 +201,10 @@ def test_workflow_widgets_render_six_steps_and_emit_only_typed_callbacks() -> No
     widgets.form.export_format.set("json")
     widgets.export_browse_button.kwargs["command"]()
     widgets.export_button.kwargs["command"]()
+    widgets.coefficient_browse_save_button.kwargs["command"]()
+    widgets.coefficient_save_button.kwargs["command"]()
+    widgets.coefficient_browse_load_button.kwargs["command"]()
+    widgets.coefficient_load_button.kwargs["command"]()
     widgets.finish_button.kwargs["command"]()
 
     assert log[0:3] == [
@@ -205,7 +217,11 @@ def test_workflow_widgets_render_six_steps_and_emit_only_typed_callbacks() -> No
     assert isinstance(log[4][1], DashboardWizardDraft)  # type: ignore[index]
     assert log[5] == ("choose-export", "json")
     assert log[6] == ("export", "chosen-result.json", "json")
-    assert log[7] == "close"
+    assert log[7] == ("choose-coefficient", "save")
+    assert log[8] == ("save-coefficients", "chosen-coefficients.json")
+    assert log[9] == ("choose-coefficient", "load")
+    assert log[10] == ("load-coefficients", "chosen-coefficients.json")
+    assert log[11] == "close"
 
 
 def test_workflow_render_shows_review_ports_issue_and_export_permissions() -> None:
@@ -269,6 +285,98 @@ def test_configuration_error_keeps_actionable_issue_panel_visible() -> None:
 
     assert widgets.section_frames["review"].visible is True
     assert "Replay rejected" in widgets.issue_value.value
+
+
+def test_frequency_configuration_uses_dedicated_fields_and_preserves_snapshot() -> None:
+    widgets = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **callbacks([])
+    )
+    draft = DashboardWizardDraft(
+        job_type=ProductJobType.FREQUENCY_RESPONSE_ANALYSIS,
+        frequency_channel="fixture.frequency",
+        primary_channel="fixture.input",
+        secondary_channel="fixture.output",
+        frequency_point_count="41",
+        frequency_minimum_hz="20",
+        frequency_maximum_hz="20000",
+        frequency_input_amplitude="750",
+        simulated_cutoff_frequency_hz="1600",
+        target_cutoff_frequency_hz="1500",
+        cutoff_relative_tolerance="0.08",
+        cutoff_drop_db="3.010299956639812",
+    )
+    wizard = DashboardWizardState(
+        1,
+        DashboardWizardStep.CONFIGURATION,
+        draft,
+    )
+
+    widgets.render(initial_dashboard_state(), wizard)
+
+    assert widgets.section_frames["frequency"].visible is True
+    assert widgets.section_frames["signal"].visible is False
+    assert widgets.section_frames["acceptance"].visible is False
+    assert widgets.section_frames["calibration"].visible is False
+    assert widgets.form.frequency_channel.get() == "fixture.frequency"
+    assert widgets.form.simulated_cutoff_frequency_hz.get() == "1600"
+    assert widgets.form.target_cutoff_frequency_hz.get() == "1500"
+
+    widgets.form.target_cutoff_frequency_hz.set("1550")
+    widgets.form.frequency_point_count.set("61")
+    snapshot = widgets.form.snapshot()
+    assert snapshot.job_type is ProductJobType.FREQUENCY_RESPONSE_ANALYSIS
+    assert snapshot.frequency_channel == "fixture.frequency"
+    assert snapshot.simulated_cutoff_frequency_hz == "1600"
+    assert snapshot.target_cutoff_frequency_hz == "1550"
+    assert snapshot.frequency_point_count == "61"
+
+
+def test_live_monitor_configuration_and_result_controls_are_wired() -> None:
+    log: list[object] = []
+    selected = callbacks(log)
+    selected.update(
+        {
+            "on_pause_live": lambda: log.append("pause-live"),
+            "on_resume_live": lambda: log.append("resume-live"),
+            "on_live_window": lambda seconds: log.append(("live-window", seconds)),
+        }
+    )
+    widgets = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **selected
+    )
+    draft = DashboardWizardDraft(
+        job_type=ProductJobType.LIVE_MONITOR,
+        sample_count="20",
+        monitor_sample_interval_seconds="0.1",
+        monitor_time_window_seconds="5",
+        monitor_max_buffer_points="100",
+        monitor_include_secondary=False,
+        monitor_include_state=True,
+    )
+    widgets.render(
+        initial_dashboard_state(),
+        DashboardWizardState(1, DashboardWizardStep.CONFIGURATION, draft),
+    )
+
+    assert widgets.section_frames["monitor"].visible is True
+    assert widgets.section_frames["frequency"].visible is False
+    snapshot = widgets.form.snapshot()
+    assert snapshot.job_type is ProductJobType.LIVE_MONITOR
+    assert snapshot.sample_count == "20"
+    assert snapshot.monitor_sample_interval_seconds == "0.1"
+    assert snapshot.monitor_max_buffer_points == "100"
+    assert snapshot.monitor_include_secondary is False
+    assert snapshot.monitor_include_state is True
+
+    widgets.result_widgets.pause_button.kwargs["command"]()
+    widgets.result_widgets.resume_button.kwargs["command"]()
+    widgets.result_widgets.live_window_value.set("15")
+    widgets.result_widgets.live_window_select.bindings["<<ComboboxSelected>>"](None)
+    assert log[-3:] == ["pause-live", "resume-live", ("live-window", 15.0)]
+
+    widgets.result_widgets.live_window_value.set("not-a-number")
+    with pytest.raises(ProductRequestError, match="must be numeric"):
+        widgets.result_widgets.live_window_select.bindings["<<ComboboxSelected>>"](None)
 
 
 def test_widget_builders_reject_invalid_optional_host_and_workflow_inputs() -> None:
@@ -465,6 +573,27 @@ def test_export_location_chooser_preserves_path_on_cancel_and_rejects_bad_type()
         invalid.export_browse_button.kwargs["command"]()
 
 
+def test_coefficient_location_chooser_preserves_path_on_cancel_and_rejects_bad_type() -> (
+    None
+):
+    cancel_callbacks = callbacks([])
+    cancel_callbacks["on_choose_coefficient_path"] = lambda _mode: ""
+    cancelled = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **cancel_callbacks
+    )
+    cancelled.coefficient_path.set("existing.json")
+    cancelled.coefficient_browse_save_button.kwargs["command"]()
+    assert cancelled.coefficient_path.get() == "existing.json"
+
+    invalid_callbacks = callbacks([])
+    invalid_callbacks["on_choose_coefficient_path"] = lambda _mode: cast(Any, 42)
+    invalid = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **invalid_callbacks
+    )
+    with pytest.raises(ProductRequestError, match="path string"):
+        invalid.coefficient_browse_load_button.kwargs["command"]()
+
+
 def test_workflow_tabs_select_current_page_and_reset_its_scroll_position() -> None:
     class FakeNotebook(FakeWidget):
         def __init__(self, *args: object, **kwargs: object) -> None:
@@ -494,12 +623,8 @@ def test_workflow_tabs_select_current_page_and_reset_its_scroll_position() -> No
     workflow_canvas = TopTrackingCanvas()
     result_canvas = TopTrackingCanvas()
     widgets.scroll_canvases = (workflow_canvas, result_canvas)
-    source = DashboardWizardState(
-        0, DashboardWizardStep.SOURCE, DashboardWizardDraft()
-    )
-    result = DashboardWizardState(
-        1, DashboardWizardStep.RESULT, DashboardWizardDraft()
-    )
+    source = DashboardWizardState(0, DashboardWizardStep.SOURCE, DashboardWizardDraft())
+    result = DashboardWizardState(1, DashboardWizardStep.RESULT, DashboardWizardDraft())
 
     widgets.render(initial_dashboard_state(), source)
     assert widgets.notebook.selected is widgets.workflow_page

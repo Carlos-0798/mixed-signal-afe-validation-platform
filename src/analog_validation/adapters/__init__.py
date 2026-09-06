@@ -9,6 +9,11 @@ from .csv_replay import (
     ReplayChannelKind,
     ReplayTimingMode,
 )
+from .frequency_response_simulator import (
+    FREQUENCY_RESPONSE_SIMULATOR_CONFIG_SCHEMA_VERSION,
+    FrequencyResponseSimulatorAdapter,
+    FrequencyResponseSimulatorConfig,
+)
 from .simulator import (
     DEFAULT_SIMULATOR_EPOCH,
     SIMULATOR_CONFIG_SCHEMA_VERSION,
@@ -21,11 +26,14 @@ from .simulator import (
 __all__ = [
     "CSV_REPLAY_ADAPTER_CONFIG_SCHEMA_VERSION",
     "DEFAULT_SIMULATOR_EPOCH",
+    "FREQUENCY_RESPONSE_SIMULATOR_CONFIG_SCHEMA_VERSION",
     "SIMULATOR_CONFIG_SCHEMA_VERSION",
     "AdapterState",
     "CsvReplayAdapter",
     "CsvReplayAdapterConfig",
     "DeviceAdapter",
+    "FrequencyResponseSimulatorAdapter",
+    "FrequencyResponseSimulatorConfig",
     "ReplayChannelConfig",
     "ReplayChannelKind",
     "ReplayTimingMode",

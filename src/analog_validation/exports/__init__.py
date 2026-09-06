@@ -1,6 +1,21 @@
 """Versioned, provenance-preserving JSON and CSV result exports."""
 
-from .builders import build_dc_sweep_export, build_hysteresis_export
+from .builders import (
+    build_calibration_export,
+    build_dc_sweep_export,
+    build_frequency_response_export,
+    build_hysteresis_export,
+)
+from .calibration_coefficients import (
+    CALIBRATION_COEFFICIENTS_SCHEMA_VERSION,
+    MAX_CALIBRATION_COEFFICIENT_BYTES,
+    calibration_coefficients_from_dict,
+    calibration_coefficients_to_dict,
+    dump_calibration_coefficients_json,
+    load_calibration_coefficients_json,
+    parse_calibration_coefficients_json,
+    write_calibration_coefficients_json,
+)
 from .csv_v1 import (
     CSV_RESULT_EXPORT_COLUMNS,
     MAX_RESULT_EXPORT_ROWS,
@@ -37,7 +52,9 @@ from .models import (
 )
 
 __all__ = [
+    "CALIBRATION_COEFFICIENTS_SCHEMA_VERSION",
     "CSV_RESULT_EXPORT_COLUMNS",
+    "MAX_CALIBRATION_COEFFICIENT_BYTES",
     "MAX_RESULT_EXPORT_BYTES",
     "MAX_RESULT_EXPORT_ROWS",
     "RESULT_EXPORT_SCHEMA_VERSION",
@@ -53,16 +70,24 @@ __all__ = [
     "ResultExportLimitError",
     "ResultExportPathError",
     "UnsupportedResultExportVersion",
+    "build_calibration_export",
     "build_dc_sweep_export",
+    "build_frequency_response_export",
     "build_hysteresis_export",
+    "calibration_coefficients_from_dict",
+    "calibration_coefficients_to_dict",
+    "dump_calibration_coefficients_json",
     "dump_result_export_csv",
     "dump_result_export_json",
+    "load_calibration_coefficients_json",
     "load_result_export_csv",
     "load_result_export_json",
+    "parse_calibration_coefficients_json",
     "parse_result_export_csv",
     "parse_result_export_json",
     "result_export_from_dict",
     "result_export_to_dict",
+    "write_calibration_coefficients_json",
     "write_result_export_csv",
     "write_result_export_json",
 ]

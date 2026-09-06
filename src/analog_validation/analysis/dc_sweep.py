@@ -25,9 +25,7 @@ from .common import (
 
 DC_SWEEP_ANALYSIS_SCHEMA_VERSION = "dc-sweep-analysis.v1"
 
-_VOLTAGE_UNITS = frozenset(
-    {MeasurementUnit.VOLT, MeasurementUnit.MILLIVOLT}
-)
+_VOLTAGE_UNITS = frozenset({MeasurementUnit.VOLT, MeasurementUnit.MILLIVOLT})
 
 
 class DCSweepPointExclusionReason(str, Enum):
@@ -217,12 +215,8 @@ class DCSweepPointResult:
         self,
         reasons: tuple[DCSweepPointExclusionReason, ...],
     ) -> None:
-        input_included = (
-            self.input_decision.disposition is PointDisposition.INCLUDED
-        )
-        output_included = (
-            self.output_decision.disposition is PointDisposition.INCLUDED
-        )
+        input_included = self.input_decision.disposition is PointDisposition.INCLUDED
+        output_included = self.output_decision.disposition is PointDisposition.INCLUDED
         if input_included == (
             DCSweepPointExclusionReason.INPUT_NOT_INCLUDED in reasons
         ):
@@ -250,9 +244,7 @@ class DCSweepPointResult:
                 )
         elif not reasons:
             raise ValidationError("excluded or invalid point requires reasons")
-        if (
-            self.predicted_output is None
-        ) != (self.residual is None):
+        if (self.predicted_output is None) != (self.residual is None):
             raise ValidationError(
                 "predicted_output and residual must both be present or absent"
             )
@@ -267,15 +259,11 @@ class DCSweepPointResult:
             DCSweepPointExclusionReason.HIGH_SATURATION,
         }
         if saturation_reasons.issubset(reasons):
-            raise ValidationError(
-                "a point cannot be both low- and high-saturated"
-            )
+            raise ValidationError("a point cannot be both low- and high-saturated")
         if saturation_reasons.intersection(reasons) and (
             self.output_decision.normalized_value is None
         ):
-            raise ValidationError(
-                "saturation exclusion requires a finite output value"
-            )
+            raise ValidationError("saturation exclusion requires a finite output value")
 
     @property
     def evidence_source(self) -> EvidenceSource:
@@ -356,8 +344,7 @@ class DCSweepAnalysisResult:
         if any(point.evidence_source is not self.evidence_source for point in points):
             raise ValidationError("point sources must match evidence_source")
         if any(
-            point.normalized_unit is not self.config.normalized_unit
-            for point in points
+            point.normalized_unit is not self.config.normalized_unit for point in points
         ):
             raise ValidationError("point units must match analysis config")
         object.__setattr__(self, "points", points)
@@ -381,9 +368,7 @@ class DCSweepAnalysisResult:
                 "a complete result requires a fit; an incomplete result requires gaps"
             )
         included = tuple(
-            point
-            for point in points
-            if point.disposition is PointDisposition.INCLUDED
+            point for point in points if point.disposition is PointDisposition.INCLUDED
         )
         if self.fit is not None:
             if self.fit.used_points != len(included):
@@ -420,8 +405,7 @@ class DCSweepAnalysisResult:
         """Return the number of points used by a complete fit."""
 
         return sum(
-            point.disposition is PointDisposition.INCLUDED
-            for point in self.points
+            point.disposition is PointDisposition.INCLUDED for point in self.points
         )
 
     @property
@@ -429,8 +413,7 @@ class DCSweepAnalysisResult:
         """Return the number of finite but excluded paired points."""
 
         return sum(
-            point.disposition is PointDisposition.EXCLUDED
-            for point in self.points
+            point.disposition is PointDisposition.EXCLUDED for point in self.points
         )
 
     @property
@@ -438,8 +421,7 @@ class DCSweepAnalysisResult:
         """Return the number of pairs containing invalid input or output."""
 
         return sum(
-            point.disposition is PointDisposition.INVALID
-            for point in self.points
+            point.disposition is PointDisposition.INVALID for point in self.points
         )
 
 
@@ -462,14 +444,10 @@ def pair_dc_sweep_measurements(
             f"batch contains unexpected channels: {','.join(unexpected)}"
         )
     inputs = tuple(
-        value
-        for value in batch.measurements
-        if value.channel == config.input_channel
+        value for value in batch.measurements if value.channel == config.input_channel
     )
     outputs = tuple(
-        value
-        for value in batch.measurements
-        if value.channel == config.output_channel
+        value for value in batch.measurements if value.channel == config.output_channel
     )
     if not inputs or not outputs:
         raise ValidationError("batch requires at least one input and output record")
@@ -507,10 +485,7 @@ def _classify_point(
             reasons.append(DCSweepPointExclusionReason.HIGH_SATURATION)
 
     decisions = (input_decision, output_decision)
-    if any(
-        decision.disposition is PointDisposition.INVALID
-        for decision in decisions
-    ):
+    if any(decision.disposition is PointDisposition.INVALID for decision in decisions):
         disposition = PointDisposition.INVALID
     elif reasons:
         disposition = PointDisposition.EXCLUDED
@@ -530,9 +505,7 @@ def _fit_included_points(
     unit: MeasurementUnit,
 ) -> tuple[DCSweepFitResult, tuple[DCSweepPointResult, ...]]:
     included = tuple(
-        point
-        for point in points
-        if point.disposition is PointDisposition.INCLUDED
+        point for point in points if point.disposition is PointDisposition.INCLUDED
     )
     x_values = tuple(
         float(point.input_decision.normalized_value)  # type: ignore[arg-type]
@@ -556,8 +529,7 @@ def _fit_included_points(
     offset = mean_y - gain * mean_x
     predictions = tuple(gain * value + offset for value in x_values)
     residuals = tuple(
-        actual - predicted
-        for actual, predicted in zip(y_values, predictions)
+        actual - predicted for actual, predicted in zip(y_values, predictions)
     )
     residual_sum_squares = sum(value**2 for value in residuals)
     total_sum_squares = sum((value - mean_y) ** 2 for value in y_values)
@@ -607,21 +579,14 @@ def analyze_dc_sweep(
     pairs = pair_dc_sweep_measurements(batch, config)
     points = tuple(_classify_point(pair, config) for pair in pairs)
     included = tuple(
-        point
-        for point in points
-        if point.disposition is PointDisposition.INCLUDED
+        point for point in points if point.disposition is PointDisposition.INCLUDED
     )
     missing: list[str] = []
     if len(included) < config.minimum_included_points:
         missing.append(
             f"included-points:{len(included)}/{config.minimum_included_points}"
         )
-    distinct_inputs = len(
-        {
-            point.input_decision.normalized_value
-            for point in included
-        }
-    )
+    distinct_inputs = len({point.input_decision.normalized_value for point in included})
     if distinct_inputs < 2:
         missing.append(f"distinct-input-values:{distinct_inputs}/2")
     if missing:

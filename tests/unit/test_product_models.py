@@ -80,6 +80,9 @@ def test_product_enums_and_schema_values_are_explicit() -> None:
         "READ",
         "DC_ANALYSIS",
         "HYSTERESIS_ANALYSIS",
+        "CALIBRATION_ANALYSIS",
+        "FREQUENCY_RESPONSE_ANALYSIS",
+        "LIVE_MONITOR",
     ]
     assert [item.value for item in ProductResultStatus] == [
         "COMPLETED",

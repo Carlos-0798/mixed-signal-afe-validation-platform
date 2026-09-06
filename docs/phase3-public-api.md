@@ -29,22 +29,40 @@ SHA-256 values for the three input/result fixtures are stored in `phase3_public_
 
 The manifest freezes exact `__all__` values for:
 
-- `analog_validation` — the existing 84-symbol Phase 2 top level;
-- `analog_validation.analysis` — 68 symbols;
+- `analog_validation` — 92 symbols after the additive frequency-source and
+  streaming-read extensions;
+- `analog_validation.analysis` — 84 symbols;
 - `analog_validation.runners` — 10 symbols;
-- `analog_validation.exports` — 28 symbols.
+- `analog_validation.exports` — 38 symbols.
 
 It also freezes:
 
-- 12 Phase 3 schema versions;
+- 17 Phase 3 schema versions, including calibration/frequency-response criteria
+  and evaluation plus coefficient persistence;
 - calibration and cutoff method identifiers;
 - CSV result columns and result resource limits;
-- 8 analysis enum value sets;
+- 10 analysis enum value sets;
 - the parameter name/kind/default shape of primary analysis, criteria, plan, runner, calibration, frequency, and export entry points;
 - all 6 result-export error inheritance relationships;
 - implementation ownership inside `analog_validation.*`, not legacy `dashboard.*`.
 
-The manifest intentionally does not re-export Phase 3 names from the Phase 2 top level. Callers use the explicit `analog_validation.analysis`, `.runners`, and `.exports` namespaces. This preserves the already-frozen 84-symbol top-level contract.
+The manifest keeps analysis/evaluator/export names in the explicit
+`analog_validation.analysis`, `.runners`, and `.exports` namespaces. The
+top-level additive frequency-source extension contains only the public
+read-only Simulator adapter/configuration and its schema constant; it does not
+move analysis logic into the adapter surface.
+
+The current local post-beta calibration, frequency-response, and bounded
+live-monitor extensions are
+additive to those explicit namespaces. They freeze `CalibrationAcceptanceCriteria`,
+`CalibrationCriterionName`, `evaluate_calibration`,
+`build_calibration_export`, and the strict `calibration-coefficients.v1`
+load/dump/write functions, plus `FrequencyResponseAcceptanceCriteria`,
+`FrequencyResponseCriterionName`, `evaluate_frequency_response`, and
+`build_frequency_response_export`. The top-level manifest also freezes the
+compatible public `run_streaming_read_workflow` entry point used by bounded
+live monitoring. It adds no analysis schema or hardware-control surface. The
+existing DC and hysteresis fixture bytes remain unchanged.
 
 ## Exact result meaning
 

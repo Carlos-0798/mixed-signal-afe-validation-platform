@@ -1,7 +1,7 @@
 # Analog Validation Studio CLI
 
-**Implemented:** Software Phase 5 Steps 3–7, 2026-08-31<br>
-**Schema:** `product-cli-output.v1`<br>
+**Implemented:** Software Phase 5 plus calibration, frequency-response, and bounded live-monitor product increments<br>
+**Schema:** `product-cli-output.v2`<br>
 **Default source:** deterministic software-only Simulator<br>
 **Physical AFE claim:** none
 
@@ -38,6 +38,9 @@ analog-validation profiles
 analog-validation simulate read --samples 3
 analog-validation simulate dc --points 12 --json
 analog-validation simulate hysteresis
+analog-validation simulate calibration --points 8 --json
+analog-validation simulate frequency --points 21 --json
+analog-validation simulate monitor --cycles 10 --sample-interval 0.1 --json
 analog-validation demo --output .\analog-validation-demo
 analog-validation dashboard
 ```
@@ -46,7 +49,7 @@ These Simulator commands are the safest beginner starting point. They use
 deterministic synthetic observations, open no COM port, and send no bytes. A
 Simulator PASS proves that the software pipeline produced the expected answer
 for its model; it does not prove that a physical circuit has that gain,
-saturation level, or threshold.
+saturation level, threshold, or cutoff frequency.
 
 ## Command map
 
@@ -58,9 +61,16 @@ saturation level, or threshold.
 | `simulate read` | Run a bounded deterministic read workflow | Synthetic software only |
 | `simulate dc` | Read synthetic input/output observations, run formal DC analysis and criteria | No physical stimulus; no output runner |
 | `simulate hysteresis` | Read a synthetic rising/falling cycle, run formal threshold analysis and criteria | No physical stimulus; no output runner |
+| `simulate calibration` | Fit and evaluate a versioned linear mapping from paired synthetic channels | Synthetic software evidence; coefficients are not instrument-traceable |
+| `simulate frequency` | Evaluate a deterministic single-pole amplitude response against an independent cutoff target | Explicit synthetic frequency/amplitude points; no waveform source or instrument |
+| `simulate monitor` | Present a finite set of recent synthetic input/output/state observations | Bounded memory and duration; no engineering PASS/FAIL or hardware claim |
 | `replay read` | Read an explicit local `csv-replay.v1` file | Preserves replay lineage; does not contact hardware |
 | `replay dc` | Project two explicit analog channels and run formal DC analysis | File evidence only |
 | `replay hysteresis` | Project explicit analog/state channels and direction counts | File evidence only |
+| `replay calibration` | Fit paired observed/reference channels from one strict replay dataset | `CSV_REPLAY`; does not repeat or upgrade the original measurement |
+| `replay frequency` | Evaluate three explicit replay channels containing Hz, input amplitude, and output amplitude | `CSV_REPLAY`; no physical sweep is performed |
+| `replay monitor` | Present finite recent points from explicit replay channels | `CSV_REPLAY`; no port is opened and original evidence is not upgraded |
+| `coefficients inspect` | Strictly load and display one `calibration-coefficients.v1` JSON file | Inspection only; never applies coefficients or contacts hardware |
 | `observe` | Run one bounded receive-only serial read | Exact port/profile/channel plus `--confirm-read-only`; no write API |
 | `report` | Turn one finalized JSON/CSV result export into five deterministic human-report files | No adapter, serial port, analysis, or hardware operation |
 | `dashboard` | Launch the local six-step Tkinter/ttk validation workflow | Defaults to Simulator; Replay validates before Run; Serial remains explicit, bounded, and receive-only |
@@ -123,7 +133,8 @@ measurement.
 
 ## Result exports
 
-DC and hysteresis commands can write the finalized core result bundle:
+DC, hysteresis, calibration, and frequency-response commands can write the
+finalized core result bundle:
 
 ```powershell
 analog-validation simulate dc `
@@ -139,9 +150,100 @@ It reports the absolute artifact path, byte count, and SHA-256 after successful
 publication. A failed or data-insufficient job cannot be hidden by an artifact
 error; the original job state remains visible.
 
+## Calibration coefficients
+
+The calibration workflow produces two deliberately separate artifacts:
+
+1. a `result-export.v1` bundle containing the finalized criteria, before/after
+   errors, point dispositions, lineage, evidence source, and limitations; and
+2. a `calibration-coefficients.v1` JSON file containing the mapping identity,
+   version, scale, offset, unit, source labels, and all fit record IDs.
+
+```powershell
+analog-validation simulate calibration `
+  --points 8 `
+  --coefficient-id afe-linear-calibration `
+  --coefficient-version 1 `
+  --output .\calibration-result.json `
+  --coefficients-output .\calibration-coefficients.json `
+  --json
+
+analog-validation coefficients inspect `
+  --input .\calibration-coefficients.json `
+  --json
+```
+
+Both destinations must be new files and must differ. Inspection validates the
+strict bounded schema but reports `applied: false`; this increment does not
+silently alter later observations or write coefficients into firmware. The
+Dashboard exposes the same create-new save and load-for-inspection behavior.
+For the v1 product workflow, observed and reference channels must come from the
+same Simulator run or replay dataset because one `TestRun` has one evidence
+source. The lower-level analysis API still supports separately sourced batches.
+
+## Frequency response
+
+The Simulator creates a bounded logarithmic frequency grid and deterministic
+single-pole amplitudes. The model cutoff and reviewed target are separate:
+
+```powershell
+analog-validation simulate frequency `
+  --points 21 `
+  --frequency-minimum-hz 10 `
+  --frequency-maximum-hz 100000 `
+  --simulated-cutoff-hz 1000 `
+  --target-cutoff-hz 1000 `
+  --cutoff-relative-tolerance 0.15 `
+  --output .\frequency-result.json `
+  --json
+```
+
+The result contains the reference gain, target gain drop, estimated cutoff,
+target cutoff and relative error, plus every frequency/input/output reference.
+`replay frequency` consumes the same three-channel contract from one strict CSV
+dataset. Both paths can produce PASS, FAIL, or INCOMPLETE without changing the
+evidence class.
+
+This is an amplitude-response workflow. It does not generate a sine wave,
+sample raw waveforms, calculate phase, perform an FFT, control an instrument,
+or authorize a serial output. A software PASS therefore validates only the
+selected synthetic/replay dataset and criteria.
+
+## Bounded live monitor
+
+The live monitor is a finite observation workflow, not an analysis or an
+unbounded logger. For example:
+
+```powershell
+analog-validation simulate monitor `
+  --cycles 10 `
+  --sample-interval 0.1 `
+  --time-window 1 `
+  --max-buffer-points 20 `
+  --json
+```
+
+`--secondary` and `--state` include the default secondary analog and boolean
+state channels; `--no-secondary` or `--no-state` removes them. The reviewed
+configuration bounds the number of cycles, total measurements, requested
+duration, interval, and retained points. The terminal result is `COMPLETED`
+with engineering outcome `none`, because merely observing values is not a
+PASS/FAIL criterion.
+
+The CLI JSON includes a `live_monitor` snapshot with retained points and
+acquired/evicted/quality counts. The human output summarizes those counts. It
+does not create a `ResultExportBundle` or human report. The Dashboard adds the
+interactive plot and cooperative Pause/Resume controls described in the
+[live-monitoring guide](live-monitoring.md).
+
+`SERIAL_READ_ONLY` deliberately does not advertise this job yet. Real-device
+monitoring requires separate disconnect/reconnect, soak, data-rate, and
+evidence review before it can be enabled.
+
 ## Human report example
 
-After creating a DC or hysteresis result export, build a readable report:
+After creating a DC, hysteresis, calibration, or frequency-response result
+export, build a readable report:
 
 ```powershell
 analog-validation report `
@@ -156,9 +258,10 @@ must be a new directory and contains `report.txt`, `report.md`, `report.html`,
 `chart.svg`, and `manifest.json`.
 
 The report renderer only copies finalized values. It does not refit a DC line,
-redetect a hysteresis transition, evaluate criteria, or change evidence. The
-command returns the finalized outcome's exit code, so a successfully written
-FAIL report still exits `1`. See the [human-report guide](human-reports.md).
+redetect a hysteresis transition, refit calibration coefficients, re-estimate a
+frequency cutoff, evaluate criteria, or change evidence. The command returns
+the finalized outcome's exit code, so a successfully written FAIL report still
+exits `1`. See the [human-report guide](human-reports.md).
 
 ## Understanding the three result levels
 

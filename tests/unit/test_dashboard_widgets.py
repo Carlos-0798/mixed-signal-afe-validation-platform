@@ -5,6 +5,7 @@ from typing import Any, cast
 
 import pytest
 
+from analog_validation import MeasurementStatus, MeasurementUnit
 from analog_validation.exports import load_result_export_json
 from analog_validation_app import (
     HumanReportPublication,
@@ -15,8 +16,14 @@ from analog_validation_app import (
     UserIssueSeverity,
     build_human_report_view,
 )
-from analog_validation_app.dashboard import DashboardPresenter, initial_dashboard_state
+from analog_validation_app.dashboard import (
+    DashboardLivePanel,
+    DashboardLivePoint,
+    DashboardPresenter,
+    initial_dashboard_state,
+)
 from analog_validation_app.dashboard.widgets import (
+    _render_live_chart,
     configure_dashboard_style,
     create_dashboard_widgets,
 )
@@ -212,9 +219,7 @@ def test_widget_builder_creates_six_text_regions_without_business_actions() -> N
         "values",
     }
     scrollbars = [
-        widget
-        for widget in ttk.created
-        if widget.kwargs.get("orient") == "vertical"
+        widget for widget in ttk.created if widget.kwargs.get("orient") == "vertical"
     ]
     assert len(scrollbars) == 1
     scrollbar = scrollbars[0]
@@ -250,6 +255,16 @@ def test_widget_builder_rejects_missing_toolkit_or_callbacks(
             on_close=cast(Any, close),
         )
 
+    with pytest.raises(ProductRequestError, match="on_pause"):
+        create_dashboard_widgets(
+            FakeRoot(),
+            FakeTk(),
+            FakeTtk(),
+            on_cancel=lambda: None,
+            on_close=lambda: None,
+            on_pause=cast(Any, object()),
+        )
+
 
 def test_render_uses_text_for_state_evidence_and_disables_idle_cancel() -> None:
     widgets = create_dashboard_widgets(
@@ -268,11 +283,160 @@ def test_render_uses_text_for_state_evidence_and_disables_idle_cancel() -> None:
     assert "State: IDLE" in widgets.progress_value.value
     assert widgets.progress_bar.config == {"maximum": 1, "value": 0}
     assert widgets.cancel_button.config["state"] == "disabled"
+    assert widgets.pause_button.config["state"] == "disabled"
+    assert widgets.resume_button.config["state"] == "disabled"
+    assert "Memory eviction is not a transport/event drop" in widgets.live_value.value
     assert "NO_NEW_HARDWARE_VALIDATION" in widgets.result_value.value
     assert widgets.plot_table.rows == {}
 
     with pytest.raises(ProductRequestError, match="DashboardState"):
         widgets.render(cast(Any, object()))
+
+
+def test_live_chart_draws_analog_and_boolean_traces_without_analysis() -> None:
+    class ChartCanvas:
+        def __init__(self) -> None:
+            self.deleted: list[object] = []
+            self.lines: list[tuple[tuple[object, ...], dict[str, object]]] = []
+            self.text: list[dict[str, object]] = []
+
+        def delete(self, value: object) -> None:
+            self.deleted.append(value)
+
+        def create_line(self, *values: object, **kwargs: object) -> None:
+            self.lines.append((values, dict(kwargs)))
+
+        def create_text(self, *values: object, **kwargs: object) -> None:
+            self.text.append(dict(kwargs))
+
+        def winfo_width(self) -> int:
+            return 640
+
+        def winfo_height(self) -> int:
+            return 220
+
+    points = (
+        DashboardLivePoint(
+            1,
+            0,
+            0.0,
+            "afe.ch0.input",
+            100.0,
+            MeasurementUnit.MILLIVOLT,
+            MeasurementStatus.VALID,
+        ),
+        DashboardLivePoint(
+            2,
+            1,
+            1.0,
+            "afe.ch0.input",
+            200.0,
+            MeasurementUnit.MILLIVOLT,
+            MeasurementStatus.VALID,
+        ),
+        DashboardLivePoint(
+            3,
+            1,
+            1.0,
+            "afe.ch0.threshold",
+            1.0,
+            MeasurementUnit.BOOLEAN,
+            MeasurementStatus.VALID,
+        ),
+    )
+    panel = DashboardLivePanel(
+        False,
+        False,
+        False,
+        False,
+        "Live monitor finished.",
+        points,
+        3,
+        3,
+        0,
+        3,
+        0,
+        0,
+        0,
+        5.0,
+    )
+    canvas = ChartCanvas()
+
+    _render_live_chart(canvas, panel)
+
+    assert canvas.deleted == ["all"]
+    assert len(canvas.lines) >= 3
+    labels = {str(item.get("text")) for item in canvas.text}
+    assert "afe.ch0.input (mV)" in labels
+    assert "afe.ch0.threshold (bool)" in labels
+
+
+def test_live_chart_handles_empty_and_single_constant_series_with_fallback_size() -> (
+    None
+):
+    class MinimalCanvas:
+        def __init__(self) -> None:
+            self.lines: list[tuple[object, ...]] = []
+            self.text: list[str] = []
+
+        def delete(self, value: object) -> None:
+            assert value == "all"
+
+        def create_line(self, *values: object, **kwargs: object) -> None:
+            self.lines.append(values)
+
+        def create_text(self, *values: object, **kwargs: object) -> None:
+            self.text.append(str(kwargs.get("text")))
+
+    empty = DashboardLivePanel(
+        False,
+        False,
+        False,
+        False,
+        "Live monitor has no points.",
+        (),
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        5.0,
+    )
+    empty_canvas = MinimalCanvas()
+    _render_live_chart(empty_canvas, empty)
+    assert "No live samples in the selected time window." in empty_canvas.text
+
+    point = DashboardLivePoint(
+        1,
+        0,
+        0.0,
+        "afe.ch0.input",
+        100.0,
+        MeasurementUnit.MILLIVOLT,
+        MeasurementStatus.VALID,
+    )
+    single = DashboardLivePanel(
+        False,
+        False,
+        False,
+        False,
+        "Live monitor finished.",
+        (point,),
+        1,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        5.0,
+    )
+    single_canvas = MinimalCanvas()
+    _render_live_chart(single_canvas, single)
+    assert len(single_canvas.lines) >= 2
+    assert "afe.ch0.input (mV)" in single_canvas.text
 
 
 def test_render_copies_report_rows_artifacts_and_structured_issue() -> None:

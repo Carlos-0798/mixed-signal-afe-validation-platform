@@ -4,6 +4,25 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Software checkpoint reports (each report states its own evidence level):
 
+- `calibration-frequency-live-precommit-review-2026-09-06.md` — combined local
+  precommit review of calibration, frequency response, and bounded live
+  monitoring, including two defensive code fixes, full regression, public
+  contract, quality, real-Tk, documentation, deterministic-build, fresh-install,
+  and explicit no-serial/no-hardware evidence boundaries.
+- `live-monitor-product-workflow-2026-09-05.md` — finite offline
+  Simulator/CSV Replay live-observation chain, bounded ring buffer, quality and
+  eviction accounting, cooperative pause/resume, Dashboard curves, installed
+  package and 10,000-point stress gates, and explicit no-serial/no-hardware
+  boundary.
+- `frequency-response-product-workflow-2026-09-05.md` — complete local
+  host-side amplitude-response product chain, independent model/target cutoff,
+  criteria/TestRun mapping, three-reference lineage, Simulator/Replay,
+  CLI/Dashboard/report integration, quality gates, and explicit no-hardware
+  boundary.
+- `calibration-product-workflow-2026-09-05.md` — complete local host-side
+  calibration product chain, criteria/TestRun mapping, strict coefficient
+  persistence and validation-only loading, CLI/Dashboard/report integration,
+  full regression/build/install evidence, and explicit no-hardware boundary.
 - `PROJECT_MILESTONE_UPDATE_2026-09-04.md` — current post-PR #7 delivery
   identity, verification record, product capability summary, evidence limits,
   remaining owner decisions, and next-agent handoff.

@@ -24,10 +24,16 @@ from analog_validation import (
     __version__,
 )
 from analog_validation.exports import (
+    CALIBRATION_COEFFICIENTS_SCHEMA_VERSION,
     ResultExportBundle,
+    ResultExportExistsError,
+    ResultExportPathError,
+    calibration_coefficients_to_dict,
+    load_calibration_coefficients_json,
     load_result_export_csv,
     load_result_export_json,
     result_export_to_dict,
+    write_calibration_coefficients_json,
     write_result_export_csv,
     write_result_export_json,
 )
@@ -68,7 +74,7 @@ from .services import (
 if TYPE_CHECKING:
     from .dashboard.app import DashboardSessionResult
 
-CLI_OUTPUT_SCHEMA_VERSION = "product-cli-output.v1"
+CLI_OUTPUT_SCHEMA_VERSION = "product-cli-output.v2"
 CLI_USAGE_EXIT_CODE = 2
 CLI_ENGINEERING_FAIL_EXIT_CODE = 1
 CLI_INCOMPLETE_EXIT_CODE = 3
@@ -218,6 +224,69 @@ def _add_read_options(
     _add_machine_view(parser)
 
 
+def _add_live_monitor_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--primary-channel", default="afe.ch0.input")
+    parser.add_argument("--secondary-channel", default="afe.ch0.output")
+    parser.add_argument("--state-channel", default="afe.ch0.threshold")
+    parser.add_argument(
+        "--unit",
+        choices=(MeasurementUnit.MILLIVOLT.value, MeasurementUnit.VOLT.value),
+        default=MeasurementUnit.MILLIVOLT.value,
+    )
+    parser.add_argument(
+        "--cycles",
+        type=_bounded_integer("cycles", 1, MAX_CLI_SAMPLES),
+        default=50,
+        help="finite number of sample cycles; this command never runs forever",
+    )
+    parser.add_argument(
+        "--sample-interval",
+        type=_finite_number("sample-interval"),
+        default=0.02,
+        help="seconds between complete sample cycles",
+    )
+    parser.add_argument(
+        "--time-window",
+        type=_finite_number("time-window"),
+        default=5.0,
+        help="trailing seconds selected for presentation",
+    )
+    parser.add_argument(
+        "--max-buffer-points",
+        type=_bounded_integer("max-buffer-points", 1, MAX_CLI_SAMPLES),
+        default=2048,
+        help="hard upper bound for retained live-view points",
+    )
+    secondary = parser.add_mutually_exclusive_group()
+    secondary.add_argument(
+        "--secondary",
+        action="store_true",
+        dest="include_secondary",
+        help="include the secondary analog channel (default)",
+    )
+    secondary.add_argument(
+        "--no-secondary",
+        action="store_false",
+        dest="include_secondary",
+        help="omit the secondary analog channel",
+    )
+    state = parser.add_mutually_exclusive_group()
+    state.add_argument(
+        "--state",
+        action="store_true",
+        dest="include_state",
+        help="include the boolean state channel (default)",
+    )
+    state.add_argument(
+        "--no-state",
+        action="store_false",
+        dest="include_state",
+        help="omit the boolean state channel",
+    )
+    parser.set_defaults(include_secondary=True, include_state=True)
+    _add_machine_view(parser)
+
+
 def _add_dc_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--input-channel", default="afe.ch0.input")
     parser.add_argument("--output-channel", default="afe.ch0.output")
@@ -309,6 +378,106 @@ def _add_hysteresis_options(parser: argparse.ArgumentParser) -> None:
     _add_export(parser)
 
 
+def _add_calibration_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--observed-channel", default="afe.ch0.input")
+    parser.add_argument("--reference-channel", default="afe.ch0.output")
+    parser.add_argument(
+        "--unit",
+        choices=(MeasurementUnit.MILLIVOLT.value, MeasurementUnit.VOLT.value),
+        default=MeasurementUnit.MILLIVOLT.value,
+    )
+    parser.add_argument(
+        "--points",
+        type=_bounded_integer("points", 2, MAX_CLI_SAMPLES),
+        default=8,
+    )
+    parser.add_argument("--coefficient-id", default="afe-linear-calibration")
+    parser.add_argument("--coefficient-version", default="1")
+    parser.add_argument(
+        "--max-after-rmse",
+        type=_finite_number("max-after-rmse"),
+        default=1.0,
+    )
+    parser.add_argument(
+        "--max-after-mean-absolute-error",
+        type=_finite_number("max-after-mean-absolute-error"),
+        default=1.0,
+    )
+    parser.add_argument(
+        "--max-after-absolute-error",
+        type=_finite_number("max-after-absolute-error"),
+        default=2.0,
+    )
+    parser.add_argument(
+        "--minimum-rmse-reduction",
+        type=_finite_number("minimum-rmse-reduction"),
+        default=0.0,
+    )
+    parser.add_argument(
+        "--coefficients-output",
+        type=Path,
+        help="write versioned coefficient JSON; existing files are rejected",
+    )
+    _add_machine_view(parser)
+    _add_export(parser)
+
+
+def _add_frequency_response_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--frequency-channel", default="afe.ch0.frequency")
+    parser.add_argument("--input-amplitude-channel", default="afe.ch0.input")
+    parser.add_argument("--output-amplitude-channel", default="afe.ch0.output")
+    parser.add_argument(
+        "--unit",
+        choices=(MeasurementUnit.MILLIVOLT.value, MeasurementUnit.VOLT.value),
+        default=MeasurementUnit.MILLIVOLT.value,
+    )
+    parser.add_argument(
+        "--points",
+        type=_bounded_integer("points", 10, MAX_CLI_SAMPLES),
+        default=21,
+    )
+    parser.add_argument(
+        "--frequency-minimum-hz",
+        type=_finite_number("frequency-minimum-hz"),
+        default=10.0,
+    )
+    parser.add_argument(
+        "--frequency-maximum-hz",
+        type=_finite_number("frequency-maximum-hz"),
+        default=100_000.0,
+    )
+    parser.add_argument(
+        "--input-amplitude",
+        type=_finite_number("input-amplitude"),
+        default=1000.0,
+        help="synthetic input amplitude; replay uses amplitudes from the CSV",
+    )
+    parser.add_argument(
+        "--simulated-cutoff-hz",
+        type=_finite_number("simulated-cutoff-hz"),
+        default=1000.0,
+        help="Simulator model cutoff; replay ignores this value",
+    )
+    parser.add_argument(
+        "--target-cutoff-hz",
+        type=_finite_number("target-cutoff-hz"),
+        default=1000.0,
+    )
+    parser.add_argument(
+        "--cutoff-relative-tolerance",
+        type=_finite_number("cutoff-relative-tolerance"),
+        default=0.15,
+        help="fractional tolerance, for example 0.15 means +/-15 percent",
+    )
+    parser.add_argument(
+        "--cutoff-drop-db",
+        type=_finite_number("cutoff-drop-db"),
+        default=3.010299956639812,
+    )
+    _add_machine_view(parser)
+    _add_export(parser)
+
+
 def _add_source_workflows(
     commands: argparse._SubParsersAction[_CliParser],
     source: str,
@@ -355,6 +524,51 @@ def _add_source_workflows(
         )
     _add_hysteresis_options(hysteresis_parser)
 
+    calibration_parser = workflows.add_parser(
+        "calibration",
+        help="fit and evaluate versioned linear calibration coefficients",
+    )
+    _add_profile(calibration_parser)
+    if source == "replay":
+        calibration_parser.add_argument("--input", required=True, type=Path)
+        calibration_parser.add_argument(
+            "--minimum", type=_finite_number("minimum"), default=0.0
+        )
+        calibration_parser.add_argument(
+            "--maximum", type=_finite_number("maximum"), default=3300.0
+        )
+    _add_calibration_options(calibration_parser)
+
+    frequency_parser = workflows.add_parser(
+        "frequency",
+        help="evaluate an explicit amplitude response and -3 dB cutoff",
+    )
+    _add_profile(frequency_parser)
+    if source == "replay":
+        frequency_parser.add_argument("--input", required=True, type=Path)
+        frequency_parser.add_argument(
+            "--minimum", type=_finite_number("minimum"), default=0.0
+        )
+        frequency_parser.add_argument(
+            "--maximum", type=_finite_number("maximum"), default=3300.0
+        )
+    _add_frequency_response_options(frequency_parser)
+
+    monitor_parser = workflows.add_parser(
+        "monitor",
+        help="run a finite live-view session with a bounded in-memory trace",
+    )
+    _add_profile(monitor_parser)
+    if source == "replay":
+        monitor_parser.add_argument("--input", required=True, type=Path)
+        monitor_parser.add_argument(
+            "--minimum", type=_finite_number("minimum"), default=0.0
+        )
+        monitor_parser.add_argument(
+            "--maximum", type=_finite_number("maximum"), default=3300.0
+        )
+    _add_live_monitor_options(monitor_parser)
+
 
 def build_parser() -> argparse.ArgumentParser:
     """Build one CLI without importing pyserial or Tkinter at startup."""
@@ -388,6 +602,21 @@ def build_parser() -> argparse.ArgumentParser:
         "ports", help="discover logical serial ports without opening them"
     )
     _add_machine_view(ports_parser)
+
+    coefficients_parser = commands.add_parser(
+        "coefficients",
+        help="manage versioned calibration coefficient artifacts",
+    )
+    coefficient_commands = coefficients_parser.add_subparsers(
+        dest="coefficient_command",
+        metavar="ACTION",
+    )
+    inspect_coefficients_parser = coefficient_commands.add_parser(
+        "inspect",
+        help="strictly load and inspect a coefficient JSON without applying it",
+    )
+    inspect_coefficients_parser.add_argument("--input", required=True, type=Path)
+    _add_machine_view(inspect_coefficients_parser)
 
     _add_source_workflows(
         commands, "simulate", "run deterministic software-only workflows"
@@ -503,6 +732,45 @@ def _profile_document() -> dict[str, object]:
     }
 
 
+def _coefficient_document(path: Path) -> dict[str, object]:
+    coefficients = load_calibration_coefficients_json(path)
+    return {
+        "schema_version": CLI_OUTPUT_SCHEMA_VERSION,
+        "command": "coefficients inspect",
+        "product": PRODUCT_DISPLAY_NAME,
+        "software_version": __version__,
+        "coefficient_file": {
+            "path": str(path.resolve()),
+            "validated": True,
+            "applied": False,
+        },
+        "coefficients": calibration_coefficients_to_dict(coefficients),
+        "hardware_claim": "NO_PERFORMANCE_VALIDATION",
+    }
+
+
+def _write_coefficient_inspection(document: dict[str, object], stream: TextIO) -> None:
+    coefficients = document["coefficients"]
+    if not isinstance(coefficients, dict):  # pragma: no cover - internal invariant
+        raise ProductServiceError("coefficient inspection document is malformed")
+    stream.write(
+        "Calibration coefficients: "
+        f"{coefficients['coefficient_id']}/{coefficients['coefficient_version']}\n"
+    )
+    stream.write(
+        "Mapping: reference = "
+        f"{coefficients['scale']:g} * observed + {coefficients['offset']:g} "
+        f"{coefficients['unit']}\n"
+    )
+    stream.write(
+        f"Evidence: observed={coefficients['observed_source']}; "
+        f"reference={coefficients['reference_source']}\n"
+    )
+    stream.write("Loaded and schema-validated: YES\n")
+    stream.write("Applied to measurements: NO\n")
+    stream.write("Hardware performance validation: NOT CLAIMED\n")
+
+
 def _launch_dashboard(dependencies: CliDependencies) -> DashboardSessionResult:
     from .dashboard.app import DashboardSessionResult, launch_dashboard
 
@@ -565,6 +833,7 @@ def _issue_document(issue: UserIssue) -> dict[str, object]:
         "product": PRODUCT_DISPLAY_NAME,
         "software_version": __version__,
         "issue": user_issue_to_dict(issue),
+        "hardware_claim": "NO_PERFORMANCE_VALIDATION",
     }
 
 
@@ -624,6 +893,53 @@ def _execute_workflow(
             "maximum_width": arguments.maximum_width,
             "maximum_width_span": arguments.maximum_width_span,
         }
+    elif arguments.workflow == "calibration":
+        job_type = ProductJobType.CALIBRATION_ANALYSIS
+        values = {
+            "primary_channel": arguments.observed_channel,
+            "secondary_channel": arguments.reference_channel,
+            "unit": _unit(arguments.unit),
+            "sample_count": arguments.points,
+            "coefficient_id": arguments.coefficient_id,
+            "coefficient_version": arguments.coefficient_version,
+            "max_calibration_rmse": arguments.max_after_rmse,
+            "max_calibration_mean_absolute_error": (
+                arguments.max_after_mean_absolute_error
+            ),
+            "max_calibration_absolute_error": arguments.max_after_absolute_error,
+            "minimum_calibration_rmse_reduction": (arguments.minimum_rmse_reduction),
+        }
+    elif arguments.workflow == "frequency":
+        job_type = ProductJobType.FREQUENCY_RESPONSE_ANALYSIS
+        values = {
+            "frequency_channel": arguments.frequency_channel,
+            "primary_channel": arguments.input_amplitude_channel,
+            "secondary_channel": arguments.output_amplitude_channel,
+            "unit": _unit(arguments.unit),
+            "frequency_point_count": arguments.points,
+            "frequency_minimum_hz": arguments.frequency_minimum_hz,
+            "frequency_maximum_hz": arguments.frequency_maximum_hz,
+            "frequency_input_amplitude": arguments.input_amplitude,
+            "simulated_cutoff_frequency_hz": arguments.simulated_cutoff_hz,
+            "target_cutoff_frequency_hz": arguments.target_cutoff_hz,
+            "cutoff_relative_tolerance": arguments.cutoff_relative_tolerance,
+            "cutoff_drop_db": arguments.cutoff_drop_db,
+        }
+    elif arguments.workflow == "monitor":
+        job_type = ProductJobType.LIVE_MONITOR
+        values = {
+            "primary_channel": arguments.primary_channel,
+            "secondary_channel": arguments.secondary_channel,
+            "state_channel": arguments.state_channel,
+            "operation": ReadOperation.ANALOG,
+            "unit": _unit(arguments.unit),
+            "sample_count": arguments.cycles,
+            "monitor_sample_interval_seconds": arguments.sample_interval,
+            "monitor_time_window_seconds": arguments.time_window,
+            "monitor_max_buffer_points": arguments.max_buffer_points,
+            "monitor_include_secondary": arguments.include_secondary,
+            "monitor_include_state": arguments.include_state,
+        }
     else:
         raise CliUsageError(f"{arguments.command} requires a workflow")
     if source_mode is ProductSourceMode.CSV_REPLAY:
@@ -647,8 +963,20 @@ def _execute_workflow(
         backend_factory=dependencies.serial_backend_factory,
         prevalidate_replay=False,
     )
+    join_timeout_s = 5.0
+    if job_type is ProductJobType.LIVE_MONITOR:
+        duration_seconds = max(0, config.sample_count - 1) * (
+            config.monitor_sample_interval_seconds
+        )
+        join_timeout_s = min(
+            60.0,
+            max(5.0, duration_seconds + 5.0),
+        )
     return execute_product_job(
-        prepared.request, prepared.service_factory, prepared.output_slot
+        prepared.request,
+        prepared.service_factory,
+        prepared.output_slot,
+        join_timeout_s=join_timeout_s,
     )
 
 
@@ -708,6 +1036,7 @@ def _execution_document(
     command: str,
     execution: ProductJobExecution,
     artifact: dict[str, object] | None,
+    coefficient_artifact: dict[str, object] | None = None,
 ) -> dict[str, object]:
     request = execution.request
     result = execution.result
@@ -769,7 +1098,35 @@ def _execution_document(
         "result_export": None
         if output is None or output.result_export is None
         else result_export_to_dict(output.result_export),
+        "calibration_coefficients": None
+        if output is None or output.calibration_coefficients is None
+        else calibration_coefficients_to_dict(output.calibration_coefficients),
+        "live_monitor": None
+        if output is None or output.live_monitor is None
+        else {
+            "schema_version": output.live_monitor.schema_version,
+            "total_points": output.live_monitor.total_points,
+            "retained_points": len(output.live_monitor.points),
+            "visible_points": len(output.live_monitor.visible_points),
+            "evicted_points": output.live_monitor.evicted_points,
+            "paused": output.live_monitor.paused,
+            "pause_count": output.live_monitor.pause_count,
+            "time_window_seconds": output.live_monitor.time_window_seconds,
+            "valid_points": output.live_monitor.valid_points,
+            "suspect_points": output.live_monitor.suspect_points,
+            "invalid_points": output.live_monitor.invalid_points,
+            "points": [
+                {
+                    "index": point.index,
+                    "cycle_index": point.cycle_index,
+                    "elapsed_seconds": point.elapsed_seconds,
+                    "measurement": _measurement_document(point.measurement),
+                }
+                for point in output.live_monitor.points
+            ],
+        },
         "artifact": artifact,
+        "coefficient_artifact": coefficient_artifact,
         "hardware_claim": "NO_PERFORMANCE_VALIDATION",
     }
 
@@ -781,8 +1138,10 @@ def _write_execution(execution: ProductJobExecution, stream: TextIO) -> None:
     if result is not None:
         stream.write(f"Product status: {result.status.value}\n")
         stream.write(f"Evidence source: {result.evidence_source.value}\n")
-        if result.test_run_outcome is not None:
-            stream.write(f"Engineering outcome: {result.test_run_outcome.value}\n")
+        outcome = (
+            "none" if result.test_run_outcome is None else result.test_run_outcome.value
+        )
+        stream.write(f"Engineering outcome: {outcome}\n")
         stream.writelines(
             f"Limitation: {limitation}\n" for limitation in result.limitations
         )
@@ -793,6 +1152,56 @@ def _write_execution(execution: ProductJobExecution, stream: TextIO) -> None:
         stream.writelines(
             f"Missing: {missing}\n" for missing in read.missing_requirements
         )
+        coefficients = execution.output.calibration_coefficients
+        if coefficients is not None:
+            stream.write(
+                "Calibration coefficients: "
+                f"{coefficients.coefficient_id}/{coefficients.coefficient_version}\n"
+            )
+            stream.write(
+                f"Calibration mapping: reference = {coefficients.scale:g} * "
+                f"observed + {coefficients.offset:g} {coefficients.unit.value}\n"
+            )
+        live_monitor = execution.output.live_monitor
+        if live_monitor is not None:
+            stream.write(
+                "Live monitor: "
+                f"{live_monitor.total_points} acquired; "
+                f"{len(live_monitor.points)} retained; "
+                f"{live_monitor.evicted_points} oldest points evicted by the "
+                "memory bound.\n"
+            )
+            stream.write(
+                f"Live view window: {live_monitor.time_window_seconds:g} s; "
+                f"pause actions: {live_monitor.pause_count}.\n"
+            )
+            stream.write(
+                "Measurement status totals: "
+                f"VALID={live_monitor.valid_points}; "
+                f"SUSPECT={live_monitor.suspect_points}; "
+                f"INVALID={live_monitor.invalid_points}.\n"
+            )
+        if (
+            execution.request.job_type is ProductJobType.FREQUENCY_RESPONSE_ANALYSIS
+            and execution.output.result_export is not None
+        ):
+            metrics = {
+                value.name: value for value in execution.output.result_export.metrics
+            }
+            cutoff = metrics.get("cutoff_frequency")
+            reference = metrics.get("reference_gain")
+            if (
+                cutoff is not None
+                and isinstance(cutoff.value, (int, float))
+                and not isinstance(cutoff.value, bool)
+            ):
+                stream.write(f"Estimated cutoff: {cutoff.value:g} {cutoff.unit}\n")
+            if (
+                reference is not None
+                and isinstance(reference.value, (int, float))
+                and not isinstance(reference.value, bool)
+            ):
+                stream.write(f"Reference gain: {reference.value:g} {reference.unit}\n")
     stream.write("Hardware performance validation: NOT CLAIMED\n")
 
 
@@ -812,7 +1221,7 @@ def _write_artifact(
         ):
             return None
         raise ProductServiceError(
-            "a finalized DC or hysteresis job did not publish its result export"
+            "a finalized analysis job did not publish its result export"
         )
     bundle = execution.output.result_export
     if arguments.output_format == "json":
@@ -823,6 +1232,59 @@ def _write_artifact(
     return {
         "path": str(written.resolve()),
         "format": arguments.output_format,
+        "size_bytes": len(payload),
+        "sha256": hashlib.sha256(payload).hexdigest(),
+        "overwrite": False,
+    }
+
+
+def _preflight_artifact_paths(arguments: argparse.Namespace) -> None:
+    paths = tuple(
+        value
+        for value in (
+            getattr(arguments, "output", None),
+            getattr(arguments, "coefficients_output", None),
+        )
+        if value is not None
+    )
+    if len(paths) == 2 and paths[0].resolve() == paths[1].resolve():
+        raise CliUsageError(
+            "--output and --coefficients-output must identify different files"
+        )
+    for path in paths:
+        if path.exists():
+            raise ResultExportExistsError("destination already exists")
+        if not path.parent.exists() or not path.parent.is_dir():
+            raise ResultExportPathError("destination parent directory must exist")
+
+
+def _write_coefficient_artifact(
+    arguments: argparse.Namespace,
+    execution: ProductJobExecution,
+) -> dict[str, object] | None:
+    output_path = getattr(arguments, "coefficients_output", None)
+    if output_path is None:
+        return None
+    if execution.worker_state is not ProductWorkerState.SUCCEEDED:
+        return None
+    output = execution.output
+    if output is None or output.calibration_coefficients is None:
+        if (
+            execution.result is not None
+            and execution.result.status is not ProductResultStatus.COMPLETED
+        ):
+            return None
+        raise ProductServiceError(
+            "a finalized calibration job did not publish coefficients"
+        )
+    written = write_calibration_coefficients_json(
+        output_path, output.calibration_coefficients
+    )
+    payload = written.read_bytes()
+    return {
+        "path": str(written.resolve()),
+        "format": "json",
+        "schema_version": CALIBRATION_COEFFICIENTS_SCHEMA_VERSION,
         "size_bytes": len(payload),
         "sha256": hashlib.sha256(payload).hexdigest(),
         "overwrite": False,
@@ -1040,6 +1502,15 @@ def main(
                 if not ports:
                     output.write("- none\n")
             return 0
+        if arguments.command == "coefficients":
+            if arguments.coefficient_command != "inspect":
+                raise CliUsageError("coefficients requires an ACTION")
+            document = _coefficient_document(arguments.input)
+            if arguments.as_json:
+                _write_json(document, output)
+            else:
+                _write_coefficient_inspection(document, output)
+            return 0
         if arguments.command == "report":
             report_view = build_human_report_view(_load_report_input(arguments))
             publication = publish_human_report(arguments.output, report_view)
@@ -1067,6 +1538,7 @@ def main(
                 output.write(f"Hardware claim: {session.hardware_claim}\n")
             return 0
         if arguments.command in {"simulate", "replay"}:
+            _preflight_artifact_paths(arguments)
             execution = _execute_workflow(arguments, injected)
         elif arguments.command == "observe":
             execution = _execute_observe(arguments, injected)
@@ -1074,15 +1546,25 @@ def main(
             raise CliUsageError("argparse returned an unknown command")
 
         artifact = _write_artifact(arguments, execution)
+        coefficient_artifact = _write_coefficient_artifact(arguments, execution)
         if arguments.as_json:
             _write_json(
-                _execution_document(arguments.command, execution, artifact), output
+                _execution_document(
+                    arguments.command,
+                    execution,
+                    artifact,
+                    coefficient_artifact,
+                ),
+                output,
             )
         else:
             _write_execution(execution, output)
             if artifact is not None:
                 output.write(f"Artifact: {artifact['path']}\n")
                 output.write(f"SHA-256: {artifact['sha256']}\n")
+            if coefficient_artifact is not None:
+                output.write(f"Coefficient artifact: {coefficient_artifact['path']}\n")
+                output.write(f"Coefficient SHA-256: {coefficient_artifact['sha256']}\n")
             if execution.issue is not None:
                 _write_issue(execution.issue, errors)
         return _execution_exit_code(execution)

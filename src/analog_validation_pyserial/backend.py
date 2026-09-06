@@ -39,7 +39,9 @@ def _clean_description(value: object) -> str | None:
     if not isinstance(value, str):
         return None
     normalized = " ".join(value.split())
-    normalized = "".join(character for character in normalized if character.isprintable())
+    normalized = "".join(
+        character for character in normalized if character.isprintable()
+    )
     if not normalized:
         return None
     return normalized[:MAX_SERIAL_TEXT_CHARS]
@@ -91,9 +93,7 @@ class PySerialBackend:
         """Configure one port completely before performing the actual open."""
 
         if not isinstance(settings, SerialConnectionSettings):
-            raise PySerialBackendStateError(
-                "settings must be SerialConnectionSettings"
-            )
+            raise PySerialBackendStateError("settings must be SerialConnectionSettings")
         if self._port is not None:
             raise PySerialBackendStateError("pyserial backend is already open")
 
@@ -138,9 +138,7 @@ class PySerialBackend:
             concrete.port = settings.port_id
             concrete.open()
             if not bool(getattr(concrete, "is_open", False)):
-                raise PySerialBackendStateError(
-                    "pyserial did not report an open port"
-                )
+                raise PySerialBackendStateError("pyserial did not report an open port")
         except Exception:
             if concrete is not None:
                 try:
@@ -183,9 +181,7 @@ class PySerialBackend:
                 ) from error
             raise
         if not isinstance(raw, (bytes, bytearray, memoryview)):
-            raise PySerialBackendStateError(
-                "pyserial read must return bytes-like data"
-            )
+            raise PySerialBackendStateError("pyserial read must return bytes-like data")
         result = bytes(raw)
         if len(result) > max_bytes:
             raise PySerialBackendStateError(

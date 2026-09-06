@@ -79,6 +79,7 @@ def test_cli_parser_has_one_product_name_and_stable_step3_commands() -> None:
         "version",
         "profiles",
         "ports",
+        "coefficients",
         "simulate",
         "replay",
         "observe",
@@ -945,3 +946,48 @@ def test_output_request_never_masks_failed_or_incomplete_execution(
         is None
     )
     assert not arguments.output.exists()
+
+
+def test_calibration_artifact_preflight_and_absent_outputs_fail_closed(
+    tmp_path: Path,
+) -> None:
+    same_path = tmp_path / "same.json"
+    with pytest.raises(cli_module.CliUsageError, match="different files"):
+        cli_module._preflight_artifact_paths(
+            argparse.Namespace(output=same_path, coefficients_output=same_path)
+        )
+    with pytest.raises(cli_module.ResultExportPathError, match="parent directory"):
+        cli_module._preflight_artifact_paths(
+            argparse.Namespace(
+                output=None,
+                coefficients_output=tmp_path / "missing" / "coefficients.json",
+            )
+        )
+
+    arguments = argparse.Namespace(coefficients_output=tmp_path / "unused.json")
+    assert (
+        cli_module._write_coefficient_artifact(
+            arguments,
+            _execution_for_status(None, worker_state=ProductWorkerState.FAILED),
+        )
+        is None
+    )
+    assert (
+        cli_module._write_coefficient_artifact(
+            arguments,
+            _execution_for_status(ProductResultStatus.INCOMPLETE),
+        )
+        is None
+    )
+    with pytest.raises(ProductServiceError, match="did not publish coefficients"):
+        cli_module._write_coefficient_artifact(
+            arguments,
+            _execution_for_status(ProductResultStatus.COMPLETED),
+        )
+    assert not arguments.coefficients_output.exists()
+
+
+def test_coefficients_command_requires_an_action() -> None:
+    errors = io.StringIO()
+    assert cli_module.main(["coefficients"], stderr=errors) == CLI_USAGE_EXIT_CODE
+    assert "requires an ACTION" in errors.getvalue()

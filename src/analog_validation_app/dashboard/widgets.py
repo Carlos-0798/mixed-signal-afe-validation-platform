@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from ..errors import ProductRequestError
-from .state import DashboardState
+from .state import DashboardLivePanel, DashboardState
 from .wizard import (
     DashboardExportFormat,
     DashboardWizardDraft,
@@ -210,6 +210,115 @@ def _artifact_text(state: DashboardState) -> str:
     return "\n".join(lines)
 
 
+_LIVE_TRACE_COLORS = (
+    "#2563eb",
+    "#0f766e",
+    "#c2410c",
+    "#7c3aed",
+    "#be123c",
+)
+
+
+def _canvas_dimension(canvas: Any, name: str, fallback: int) -> int:
+    getter = getattr(canvas, name, None)
+    if not callable(getter):
+        return fallback
+    value = getter()
+    return value if isinstance(value, int) and value > 1 else fallback
+
+
+def _render_live_chart(canvas: Any, panel: DashboardLivePanel) -> None:
+    """Draw copied live points only; this renderer never evaluates measurements."""
+
+    delete = getattr(canvas, "delete", None)
+    create_line = getattr(canvas, "create_line", None)
+    create_text = getattr(canvas, "create_text", None)
+    if not callable(delete) or not callable(create_line) or not callable(create_text):
+        return
+    delete("all")
+    width = _canvas_dimension(canvas, "winfo_width", 920)
+    height = _canvas_dimension(canvas, "winfo_height", 220)
+    left, right, top, bottom = 58.0, float(width - 18), 26.0, float(height - 34)
+    create_line(left, top, left, bottom, right, bottom, fill="#94a3b8", width=1)
+    create_text(left, 12, text="value", anchor="w", fill=_MUTED)
+    create_text(right, height - 13, text="elapsed time (s)", anchor="e", fill=_MUTED)
+    points = tuple(point for point in panel.points if point.value is not None)
+    if not points:
+        create_text(
+            (left + right) / 2,
+            (top + bottom) / 2,
+            text="No live samples in the selected time window.",
+            fill=_MUTED,
+        )
+        return
+
+    x_values = tuple(point.elapsed_seconds for point in points)
+    x_min, x_max = min(x_values), max(x_values)
+    if x_max <= x_min:
+        x_min = float(min(point.index for point in points))
+        x_max = float(max(point.index for point in points))
+        if x_max <= x_min:
+            x_max = x_min + 1.0
+
+        def x_value(point: Any) -> float:
+            return float(point.index)
+
+    else:
+
+        def x_value(point: Any) -> float:
+            return float(point.elapsed_seconds)
+
+    analog_values = tuple(
+        float(point.value)
+        for point in points
+        if point.unit.value != "bool" and point.value is not None
+    )
+    y_min = min(analog_values) if analog_values else 0.0
+    y_max = max(analog_values) if analog_values else 1.0
+    if y_max <= y_min:
+        padding = max(abs(y_min) * 0.05, 1.0)
+        y_min -= padding
+        y_max += padding
+
+    def x_coordinate(point: Any) -> float:
+        return left + ((x_value(point) - x_min) / (x_max - x_min)) * (right - left)
+
+    def y_coordinate(point: Any) -> float:
+        value = float(point.value)
+        if point.unit.value == "bool":
+            return top + (0.18 if value else 0.82) * (bottom - top)
+        return bottom - ((value - y_min) / (y_max - y_min)) * (bottom - top)
+
+    channels = tuple(dict.fromkeys(point.channel for point in points))
+    for index, channel in enumerate(channels):
+        color = _LIVE_TRACE_COLORS[index % len(_LIVE_TRACE_COLORS)]
+        channel_points = tuple(point for point in points if point.channel == channel)
+        coordinates = tuple(
+            coordinate
+            for point in channel_points
+            for coordinate in (x_coordinate(point), y_coordinate(point))
+        )
+        if len(channel_points) >= 2:
+            create_line(*coordinates, fill=color, width=2, smooth=False)
+        elif channel_points:
+            x_coord, y_coord = coordinates
+            create_line(
+                x_coord - 2,
+                y_coord,
+                x_coord + 2,
+                y_coord,
+                fill=color,
+                width=3,
+            )
+        create_text(
+            left + index * 190,
+            height - 13,
+            text=f"{channel} ({channel_points[0].unit.value})",
+            anchor="w",
+            fill=color,
+        )
+
+
 @dataclass(slots=True)
 class DashboardWidgets:
     """Widget references updated from one immutable DashboardState."""
@@ -221,13 +330,25 @@ class DashboardWidgets:
     configuration_value: Any
     safety_value: Any
     progress_value: Any
+    live_value: Any
+    live_window_value: Any
     plot_value: Any
     result_value: Any
     artifacts_value: Any
     progress_bar: Any
     cancel_button: Any
+    pause_button: Any
+    resume_button: Any
+    live_window_select: Any
+    live_frame: Any
+    live_canvas: Any
     plot_table: Any
     _rendered_revision: int = -1
+    _last_live_panel: DashboardLivePanel | None = None
+
+    def redraw_live_chart(self) -> None:
+        if self._last_live_panel is not None:
+            _render_live_chart(self.live_canvas, self._last_live_panel)
 
     def render(self, state: DashboardState) -> None:
         """Render text and copied report rows; never infer engineering state."""
@@ -270,6 +391,28 @@ class DashboardWidgets:
         self.cancel_button.configure(
             state="normal" if progress.can_cancel else "disabled"
         )
+        live = state.live
+        self.live_value.set(
+            f"{live.summary}\n"
+            f"Measurement status totals — valid: {live.valid_points}; "
+            f"suspect: {live.suspect_points}; invalid: {live.invalid_points}. "
+            f"Pause actions: {live.pause_count}. "
+            "Memory eviction is not a transport/event drop."
+        )
+        self.live_window_value.set(format(live.time_window_seconds, "g"))
+        self.pause_button.configure(state="normal" if live.can_pause else "disabled")
+        self.resume_button.configure(state="normal" if live.can_resume else "disabled")
+        self.live_window_select.configure(
+            state="readonly"
+            if state.configuration.job_type.value == "LIVE_MONITOR"
+            else "disabled"
+        )
+        _set_grid_visible(
+            self.live_frame,
+            state.configuration.job_type.value == "LIVE_MONITOR",
+        )
+        self._last_live_panel = live
+        self.redraw_live_chart()
         self.plot_value.set(state.plot.summary)
         for item in self.plot_table.get_children():
             self.plot_table.delete(item)
@@ -296,6 +439,9 @@ def create_dashboard_widgets(
     *,
     on_cancel: Callable[[], object],
     on_close: Callable[[], object],
+    on_pause: Callable[[], object] | None = None,
+    on_resume: Callable[[], object] | None = None,
+    on_live_window: Callable[[float], object] | None = None,
     parent: Any | None = None,
     configure_window: bool = True,
 ) -> DashboardWidgets:
@@ -303,6 +449,16 @@ def create_dashboard_widgets(
 
     cancel = _callback("on_cancel", on_cancel)
     close = _callback("on_close", on_close)
+    for name, callback in (
+        ("on_pause", on_pause),
+        ("on_resume", on_resume),
+        ("on_live_window", on_live_window),
+    ):
+        if callback is not None and not callable(callback):
+            raise ProductRequestError(f"{name} must be callable or None")
+    pause = on_pause or (lambda: None)
+    resume = on_resume or (lambda: None)
+    change_window = on_live_window or (lambda _seconds: None)
     if root is None or tk_module is None or ttk_module is None:
         raise ProductRequestError("root, tk_module, and ttk_module are required")
     tk = tk_module
@@ -330,6 +486,8 @@ def create_dashboard_widgets(
     configuration_value = tk.StringVar(master=root, value="")
     safety_value = tk.StringVar(master=root, value="")
     progress_value = tk.StringVar(master=root, value="")
+    live_value = tk.StringVar(master=root, value="")
+    live_window_value = tk.StringVar(master=root, value="5")
     plot_value = tk.StringVar(master=root, value="")
     result_value = tk.StringVar(master=root, value="")
     artifacts_value = tk.StringVar(master=root, value="")
@@ -346,33 +504,25 @@ def create_dashboard_widgets(
         textvariable=source_value,
         wraplength=500,
         style="Body.TLabel",
-    ).grid(
-        row=0, column=0, sticky="w"
-    )
+    ).grid(row=0, column=0, sticky="w")
     ttk.Label(
         source_frame,
         textvariable=profile_value,
         wraplength=500,
         style="Muted.TLabel",
-    ).grid(
-        row=1, column=0, sticky="w", pady=(4, 0)
-    )
+    ).grid(row=1, column=0, sticky="w", pady=(4, 0))
     ttk.Label(
         source_frame,
         textvariable=connection_value,
         wraplength=500,
         style="Muted.TLabel",
-    ).grid(
-        row=2, column=0, sticky="w", pady=(4, 0)
-    )
+    ).grid(row=2, column=0, sticky="w", pady=(4, 0))
     ttk.Label(
         source_frame,
         textvariable=evidence_value,
         wraplength=500,
         style="Muted.TLabel",
-    ).grid(
-        row=3, column=0, sticky="w", pady=(4, 0)
-    )
+    ).grid(row=3, column=0, sticky="w", pady=(4, 0))
 
     config_frame = ttk.LabelFrame(
         container,
@@ -386,17 +536,13 @@ def create_dashboard_widgets(
         textvariable=configuration_value,
         wraplength=500,
         style="Body.TLabel",
-    ).grid(
-        row=0, column=0, sticky="w"
-    )
+    ).grid(row=0, column=0, sticky="w")
     ttk.Label(
         config_frame,
         textvariable=safety_value,
         wraplength=500,
         style="Muted.TLabel",
-    ).grid(
-        row=1, column=0, sticky="w", pady=(6, 0)
-    )
+    ).grid(row=1, column=0, sticky="w", pady=(6, 0))
 
     progress_frame = ttk.LabelFrame(
         container,
@@ -411,9 +557,7 @@ def create_dashboard_widgets(
         textvariable=progress_value,
         wraplength=900,
         style="Body.TLabel",
-    ).grid(
-        row=0, column=0, sticky="w"
-    )
+    ).grid(row=0, column=0, sticky="w")
     progress_bar = ttk.Progressbar(progress_frame, mode="determinate")
     progress_bar.grid(row=1, column=0, sticky="ew", pady=(6, 0))
     cancel_button = ttk.Button(
@@ -433,6 +577,72 @@ def create_dashboard_widgets(
             style="Secondary.TButton",
         ).grid(row=1, column=1, padx=(8, 0), pady=(6, 0))
 
+    live_frame = ttk.LabelFrame(
+        container,
+        text="Live traces — presentation only",
+        padding=12,
+        style="Card.TLabelframe",
+    )
+    live_frame.grid(row=2, column=0, columnspan=2, sticky="nsew", pady=6)
+    live_frame.columnconfigure(0, weight=1)
+    ttk.Label(
+        live_frame,
+        textvariable=live_value,
+        wraplength=820,
+        justify="left",
+        style="Muted.TLabel",
+    ).grid(row=0, column=0, sticky="w")
+    pause_button = ttk.Button(
+        live_frame,
+        text="Pause display acquisition",
+        command=pause,
+        takefocus=True,
+        style="Secondary.TButton",
+    )
+    pause_button.grid(row=0, column=1, padx=(8, 0))
+    resume_button = ttk.Button(
+        live_frame,
+        text="Resume acquisition",
+        command=resume,
+        takefocus=True,
+        style="Primary.TButton",
+    )
+    resume_button.grid(row=0, column=2, padx=(8, 0))
+    ttk.Label(live_frame, text="Visible window (s)", style="Muted.TLabel").grid(
+        row=0, column=3, padx=(12, 4)
+    )
+    combobox_factory = getattr(ttk, "Combobox", ttk.Frame)
+    live_window_select = combobox_factory(
+        live_frame,
+        textvariable=live_window_value,
+        values=("0.5", "1", "5", "15", "30", "60"),
+        state="readonly",
+        width=8,
+        takefocus=True,
+    )
+    live_window_select.grid(row=0, column=4, sticky="e")
+
+    def apply_live_window() -> object:
+        try:
+            seconds = float(live_window_value.get())
+        except (TypeError, ValueError) as error:
+            raise ProductRequestError("live time window must be numeric") from error
+        return change_window(seconds)
+
+    _bind_selection(live_window_select, apply_live_window)
+    canvas_factory = getattr(tk, "Canvas", None)
+    if callable(canvas_factory):
+        live_canvas = canvas_factory(
+            live_frame,
+            height=220,
+            background=_SURFACE,
+            highlightthickness=1,
+            highlightbackground=_BORDER,
+        )
+    else:
+        live_canvas = ttk.Frame(live_frame, height=220, style="Card.TFrame")
+    live_canvas.grid(row=1, column=0, columnspan=5, sticky="nsew", pady=(8, 0))
+
     plot_frame = ttk.LabelFrame(
         container,
         text="Observations / finalized analysis points",
@@ -447,9 +657,7 @@ def create_dashboard_widgets(
         textvariable=plot_value,
         wraplength=1020,
         style="Muted.TLabel",
-    ).grid(
-        row=0, column=0, sticky="w"
-    )
+    ).grid(row=0, column=0, sticky="w")
     columns = ("index", "label", "disposition", "values")
     plot_table = ttk.Treeview(
         plot_frame,
@@ -509,21 +717,32 @@ def create_dashboard_widgets(
         style="Body.TLabel",
     ).grid(row=0, column=0, sticky="nw")
 
-    return DashboardWidgets(
-        source_value,
-        profile_value,
-        connection_value,
-        evidence_value,
-        configuration_value,
-        safety_value,
-        progress_value,
-        plot_value,
-        result_value,
-        artifacts_value,
-        progress_bar,
-        cancel_button,
-        plot_table,
+    widgets = DashboardWidgets(
+        source_value=source_value,
+        profile_value=profile_value,
+        connection_value=connection_value,
+        evidence_value=evidence_value,
+        configuration_value=configuration_value,
+        safety_value=safety_value,
+        progress_value=progress_value,
+        live_value=live_value,
+        live_window_value=live_window_value,
+        plot_value=plot_value,
+        result_value=result_value,
+        artifacts_value=artifacts_value,
+        progress_bar=progress_bar,
+        cancel_button=cancel_button,
+        pause_button=pause_button,
+        resume_button=resume_button,
+        live_window_select=live_window_select,
+        live_frame=live_frame,
+        live_canvas=live_canvas,
+        plot_table=plot_table,
     )
+    bind_canvas = getattr(live_canvas, "bind", None)
+    if callable(bind_canvas):
+        bind_canvas("<Configure>", lambda _event: widgets.redraw_live_chart())
+    return widgets
 
 
 @dataclass(slots=True)
@@ -556,6 +775,12 @@ class DashboardFormVariables:
     max_abs_offset: Any
     min_r_squared: Any
     max_rmse: Any
+    coefficient_id: Any
+    coefficient_version: Any
+    max_calibration_rmse: Any
+    max_calibration_mean_absolute_error: Any
+    max_calibration_absolute_error: Any
+    minimum_calibration_rmse_reduction: Any
     minimum_high_threshold: Any
     maximum_high_threshold: Any
     minimum_low_threshold: Any
@@ -565,6 +790,20 @@ class DashboardFormVariables:
     maximum_width_span: Any
     export_path: Any
     export_format: Any
+    frequency_channel: Any
+    frequency_point_count: Any
+    frequency_minimum_hz: Any
+    frequency_maximum_hz: Any
+    frequency_input_amplitude: Any
+    simulated_cutoff_frequency_hz: Any
+    target_cutoff_frequency_hz: Any
+    cutoff_relative_tolerance: Any
+    cutoff_drop_db: Any
+    monitor_sample_interval_seconds: Any
+    monitor_time_window_seconds: Any
+    monitor_max_buffer_points: Any
+    monitor_include_secondary: Any
+    monitor_include_state: Any
     _base_draft: DashboardWizardDraft = field(
         default_factory=DashboardWizardDraft, init=False
     )
@@ -576,9 +815,21 @@ class DashboardFormVariables:
             "primary_channel",
             "secondary_channel",
             "state_channel",
+            "frequency_channel",
             "sample_count",
             "rising_count",
             "falling_count",
+            "frequency_point_count",
+            "frequency_minimum_hz",
+            "frequency_maximum_hz",
+            "frequency_input_amplitude",
+            "simulated_cutoff_frequency_hz",
+            "target_cutoff_frequency_hz",
+            "cutoff_relative_tolerance",
+            "cutoff_drop_db",
+            "monitor_sample_interval_seconds",
+            "monitor_time_window_seconds",
+            "monitor_max_buffer_points",
             "replay_path",
             "replay_minimum",
             "replay_maximum",
@@ -593,6 +844,12 @@ class DashboardFormVariables:
             "max_abs_offset",
             "min_r_squared",
             "max_rmse",
+            "coefficient_id",
+            "coefficient_version",
+            "max_calibration_rmse",
+            "max_calibration_mean_absolute_error",
+            "max_calibration_absolute_error",
+            "minimum_calibration_rmse_reduction",
             "minimum_high_threshold",
             "maximum_high_threshold",
             "minimum_low_threshold",
@@ -609,6 +866,8 @@ class DashboardFormVariables:
         self.operation.set(draft.operation.value)
         self.unit.set(draft.unit.value)
         self.serial_confirm_read_only.set(draft.serial_confirm_read_only)
+        self.monitor_include_secondary.set(draft.monitor_include_secondary)
+        self.monitor_include_state.set(draft.monitor_include_state)
         self.export_format.set(draft.export_format.value)
         self._base_draft = draft
 
@@ -620,9 +879,21 @@ class DashboardFormVariables:
                 "primary_channel",
                 "secondary_channel",
                 "state_channel",
+                "frequency_channel",
                 "sample_count",
                 "rising_count",
                 "falling_count",
+                "frequency_point_count",
+                "frequency_minimum_hz",
+                "frequency_maximum_hz",
+                "frequency_input_amplitude",
+                "simulated_cutoff_frequency_hz",
+                "target_cutoff_frequency_hz",
+                "cutoff_relative_tolerance",
+                "cutoff_drop_db",
+                "monitor_sample_interval_seconds",
+                "monitor_time_window_seconds",
+                "monitor_max_buffer_points",
                 "replay_path",
                 "replay_minimum",
                 "replay_maximum",
@@ -637,6 +908,12 @@ class DashboardFormVariables:
                 "max_abs_offset",
                 "min_r_squared",
                 "max_rmse",
+                "coefficient_id",
+                "coefficient_version",
+                "max_calibration_rmse",
+                "max_calibration_mean_absolute_error",
+                "max_calibration_absolute_error",
+                "minimum_calibration_rmse_reduction",
                 "minimum_high_threshold",
                 "maximum_high_threshold",
                 "minimum_low_threshold",
@@ -655,6 +932,8 @@ class DashboardFormVariables:
             operation=type(base.operation)(str(self.operation.get())),
             unit=type(base.unit)(str(self.unit.get())),
             serial_confirm_read_only=bool(self.serial_confirm_read_only.get()),
+            monitor_include_secondary=bool(self.monitor_include_secondary.get()),
+            monitor_include_state=bool(self.monitor_include_state.get()),
             export_format=DashboardExportFormat(str(self.export_format.get())),
             **values,
         )
@@ -673,6 +952,7 @@ class DashboardWorkflowWidgets:
     issue_value: Any
     ports_value: Any
     export_value: Any
+    coefficient_value: Any
     next_steps_value: Any
     source_select: Any
     profile_select: Any
@@ -682,6 +962,12 @@ class DashboardWorkflowWidgets:
     export_path_input: Any
     export_browse_button: Any
     export_format_select: Any
+    coefficient_path: Any
+    coefficient_path_input: Any
+    coefficient_browse_save_button: Any
+    coefficient_browse_load_button: Any
+    coefficient_save_button: Any
+    coefficient_load_button: Any
     back_button: Any
     next_button: Any
     review_button: Any
@@ -767,10 +1053,10 @@ class DashboardWorkflowWidgets:
         )
         self.export_value.set(
             "Export not completed.\n" + issue_text
-            if wizard.step is DashboardWizardStep.RESULT
-            and wizard.issue is not None
+            if wizard.step is DashboardWizardStep.RESULT and wizard.issue is not None
             else wizard.export_message
         )
+        self.coefficient_value.set(wizard.coefficient_message)
         self.next_steps_value.set(
             (
                 "Run complete. Save the analysis first if needed, then choose exactly "
@@ -792,23 +1078,17 @@ class DashboardWorkflowWidgets:
         )
         self.source_select.configure(
             state=(
-                "readonly"
-                if wizard.step is DashboardWizardStep.SOURCE
-                else "disabled"
+                "readonly" if wizard.step is DashboardWizardStep.SOURCE else "disabled"
             )
         )
         self.profile_select.configure(
             state=(
-                "readonly"
-                if wizard.step is DashboardWizardStep.SOURCE
-                else "disabled"
+                "readonly" if wizard.step is DashboardWizardStep.SOURCE else "disabled"
             )
         )
         self.job_select.configure(
             state=(
-                "readonly"
-                if wizard.step is DashboardWizardStep.TEST
-                else "disabled"
+                "readonly" if wizard.step is DashboardWizardStep.TEST else "disabled"
             )
         )
         for control, active_state, jobs, sources in self.editable_controls:
@@ -823,6 +1103,21 @@ class DashboardWorkflowWidgets:
         self.export_browse_button.configure(state=export_state)
         self.export_format_select.configure(
             state="readonly" if wizard.can_export else "disabled"
+        )
+        self.coefficient_path_input.configure(
+            state="normal" if wizard.can_load_coefficients else "disabled"
+        )
+        self.coefficient_browse_save_button.configure(
+            state="normal" if wizard.can_save_coefficients else "disabled"
+        )
+        self.coefficient_browse_load_button.configure(
+            state="normal" if wizard.can_load_coefficients else "disabled"
+        )
+        self.coefficient_save_button.configure(
+            state="normal" if wizard.can_save_coefficients else "disabled"
+        )
+        self.coefficient_load_button.configure(
+            state="normal" if wizard.can_load_coefficients else "disabled"
         )
         for button, enabled in (
             (
@@ -856,12 +1151,26 @@ class DashboardWorkflowWidgets:
         )
         _set_grid_visible(
             self.section_frames["signal"],
-            step is DashboardWizardStep.CONFIGURATION,
+            step is DashboardWizardStep.CONFIGURATION
+            and job != "FREQUENCY_RESPONSE_ANALYSIS",
         )
         _set_grid_visible(
             self.section_frames["acceptance"],
             step is DashboardWizardStep.CONFIGURATION
             and job in {"DC_ANALYSIS", "HYSTERESIS_ANALYSIS"},
+        )
+        _set_grid_visible(
+            self.section_frames["calibration"],
+            step is DashboardWizardStep.CONFIGURATION and job == "CALIBRATION_ANALYSIS",
+        )
+        _set_grid_visible(
+            self.section_frames["frequency"],
+            step is DashboardWizardStep.CONFIGURATION
+            and job == "FREQUENCY_RESPONSE_ANALYSIS",
+        )
+        _set_grid_visible(
+            self.section_frames["monitor"],
+            step is DashboardWizardStep.CONFIGURATION and job == "LIVE_MONITOR",
         )
         _set_grid_visible(
             self.section_frames["source_connection"],
@@ -888,6 +1197,10 @@ class DashboardWorkflowWidgets:
         )
         _set_grid_visible(
             self.section_frames["export"],
+            step is DashboardWizardStep.RESULT,
+        )
+        _set_grid_visible(
+            self.section_frames["coefficients"],
             step is DashboardWizardStep.RESULT,
         )
         _set_grid_visible(
@@ -1089,6 +1402,12 @@ def create_dashboard_workflow_widgets(
     on_repeat: Callable[[], object],
     on_new_test: Callable[[], object],
     on_close: Callable[[], object],
+    on_choose_coefficient_path: Callable[[str], str | None] | None = None,
+    on_save_coefficients: Callable[[str], object] | None = None,
+    on_load_coefficients: Callable[[str], object] | None = None,
+    on_pause_live: Callable[[], object] | None = None,
+    on_resume_live: Callable[[], object] | None = None,
+    on_live_window: Callable[[float], object] | None = None,
 ) -> DashboardWorkflowWidgets:
     """Create the guided UI while keeping every decision in headless layers."""
 
@@ -1115,6 +1434,22 @@ def create_dashboard_workflow_widgets(
     for name, callback in callbacks.items():
         if not callable(callback):
             raise ProductRequestError(f"{name} must be callable")
+    for optional_name, optional_callback in (
+        ("on_choose_coefficient_path", on_choose_coefficient_path),
+        ("on_save_coefficients", on_save_coefficients),
+        ("on_load_coefficients", on_load_coefficients),
+        ("on_pause_live", on_pause_live),
+        ("on_resume_live", on_resume_live),
+        ("on_live_window", on_live_window),
+    ):
+        if optional_callback is not None and not callable(optional_callback):
+            raise ProductRequestError(f"{optional_name} must be callable or None")
+    choose_coefficient_path_callback = on_choose_coefficient_path or (lambda _mode: "")
+    save_coefficients_callback = on_save_coefficients or (lambda _path: None)
+    load_coefficients_callback = on_load_coefficients or (lambda _path: None)
+    pause_live_callback = on_pause_live or (lambda: None)
+    resume_live_callback = on_resume_live or (lambda: None)
+    live_window_callback = on_live_window or (lambda _seconds: None)
     if root is None or tk_module is None or ttk_module is None:
         raise ProductRequestError("root, tk_module, and ttk_module are required")
     tk = tk_module
@@ -1158,9 +1493,7 @@ def create_dashboard_workflow_widgets(
         workflow_page, workflow_scroll_canvas = _create_scrollable_page(
             workflow_tab, tk, ttk
         )
-        result_host, result_scroll_canvas = _create_scrollable_page(
-            result_tab, tk, ttk
-        )
+        result_host, result_scroll_canvas = _create_scrollable_page(result_tab, tk, ttk)
         workflow_grid_row = 0
     else:
         notebook = None
@@ -1175,7 +1508,7 @@ def create_dashboard_workflow_widgets(
     workflow_page.columnconfigure(0, weight=1)
     result_host.columnconfigure(0, weight=1)
     result_content_host = ttk.Frame(result_host, style="App.TFrame")
-    result_content_host.grid(row=2, column=0, sticky="nsew")
+    result_content_host.grid(row=3, column=0, sticky="nsew")
     result_content_host.columnconfigure(0, weight=1)
     result_content_host.rowconfigure(0, weight=1)
     result_widgets = create_dashboard_widgets(
@@ -1184,17 +1517,75 @@ def create_dashboard_workflow_widgets(
         ttk,
         on_cancel=on_cancel,
         on_close=on_close,
+        on_pause=pause_live_callback,
+        on_resume=resume_live_callback,
+        on_live_window=live_window_callback,
         parent=result_content_host,
         configure_window=False,
     )
 
     string_var = tk.StringVar
     boolean_var = getattr(tk, "BooleanVar", string_var)
-    form = DashboardFormVariables(  # type: ignore[call-arg]
-        *(string_var(master=root, value="") for _ in range(18)),
-        boolean_var(master=root, value=False),
-        *(string_var(master=root, value="") for _ in range(15)),
-        string_var(master=root, value="json"),
+
+    def text_variable() -> Any:
+        return string_var(master=root, value="")
+
+    form = DashboardFormVariables(
+        source=text_variable(),
+        profile=text_variable(),
+        job=text_variable(),
+        primary_channel=text_variable(),
+        secondary_channel=text_variable(),
+        state_channel=text_variable(),
+        operation=text_variable(),
+        unit=text_variable(),
+        sample_count=text_variable(),
+        rising_count=text_variable(),
+        falling_count=text_variable(),
+        replay_path=text_variable(),
+        replay_minimum=text_variable(),
+        replay_maximum=text_variable(),
+        serial_port=text_variable(),
+        serial_baud_rate=text_variable(),
+        serial_read_timeout=text_variable(),
+        serial_max_polls=text_variable(),
+        serial_confirm_read_only=boolean_var(master=root, value=False),
+        low_output_limit=text_variable(),
+        high_output_limit=text_variable(),
+        target_gain=text_variable(),
+        gain_tolerance=text_variable(),
+        max_abs_offset=text_variable(),
+        min_r_squared=text_variable(),
+        max_rmse=text_variable(),
+        coefficient_id=text_variable(),
+        coefficient_version=text_variable(),
+        max_calibration_rmse=text_variable(),
+        max_calibration_mean_absolute_error=text_variable(),
+        max_calibration_absolute_error=text_variable(),
+        minimum_calibration_rmse_reduction=text_variable(),
+        minimum_high_threshold=text_variable(),
+        maximum_high_threshold=text_variable(),
+        minimum_low_threshold=text_variable(),
+        maximum_low_threshold=text_variable(),
+        minimum_width=text_variable(),
+        maximum_width=text_variable(),
+        maximum_width_span=text_variable(),
+        export_path=text_variable(),
+        export_format=string_var(master=root, value="json"),
+        frequency_channel=text_variable(),
+        frequency_point_count=text_variable(),
+        frequency_minimum_hz=text_variable(),
+        frequency_maximum_hz=text_variable(),
+        frequency_input_amplitude=text_variable(),
+        simulated_cutoff_frequency_hz=text_variable(),
+        target_cutoff_frequency_hz=text_variable(),
+        cutoff_relative_tolerance=text_variable(),
+        cutoff_drop_db=text_variable(),
+        monitor_sample_interval_seconds=text_variable(),
+        monitor_time_window_seconds=text_variable(),
+        monitor_max_buffer_points=text_variable(),
+        monitor_include_secondary=boolean_var(master=root, value=True),
+        monitor_include_state=boolean_var(master=root, value=True),
     )
     step_value = string_var(master=root, value="")
     guidance_value = string_var(master=root, value="")
@@ -1203,6 +1594,8 @@ def create_dashboard_workflow_widgets(
     issue_value = string_var(master=root, value="")
     ports_value = string_var(master=root, value="")
     export_value = string_var(master=root, value="")
+    coefficient_value = string_var(master=root, value="")
+    coefficient_path = string_var(master=root, value="")
     next_steps_value = string_var(master=root, value="")
 
     entry = getattr(ttk, "Entry", ttk.Label)
@@ -1229,9 +1622,7 @@ def create_dashboard_workflow_widgets(
         textvariable=step_value,
         justify="left",
         style="Title.TLabel",
-    ).grid(
-        row=0, column=0, columnspan=6, sticky="w"
-    )
+    ).grid(row=0, column=0, columnspan=6, sticky="w")
     ttk.Label(
         wizard_frame,
         textvariable=guidance_value,
@@ -1319,7 +1710,7 @@ def create_dashboard_workflow_widgets(
     ttk.Label(
         signal_frame,
         text=(
-            "Count limits: READ/DC 1–10,000; hysteresis at least 2 per direction "
+            "Count limits: READ/DC/calibration 1–10,000; hysteresis at least 2 per direction "
             "and 10,000 combined."
         ),
         style="Muted.TLabel",
@@ -1332,9 +1723,7 @@ def create_dashboard_workflow_widgets(
         padding=10,
         style="Card.TLabelframe",
     )
-    acceptance_frame.grid(
-        row=4, column=0, columnspan=6, sticky="ew", pady=(8, 0)
-    )
+    acceptance_frame.grid(row=4, column=0, columnspan=6, sticky="ew", pady=(8, 0))
     for column in range(6):
         acceptance_frame.columnconfigure(column, weight=1)
     acceptance_fields = (
@@ -1359,23 +1748,180 @@ def create_dashboard_workflow_widgets(
             row=row, column=column, sticky="w"
         )
         selected_input = entry(acceptance_frame, textvariable=variable)
-        selected_input.grid(
-            row=row + 1, column=column, sticky="ew", padx=(0, 6)
-        )
+        selected_input.grid(row=row + 1, column=column, sticky="ew", padx=(0, 6))
         acceptance_inputs.append(selected_input)
     ttk.Label(
         acceptance_frame,
         text="Maximum width span",
         style="Muted.TLabel",
-    ).grid(
-        row=4, column=0, sticky="w"
-    )
+    ).grid(row=4, column=0, sticky="w")
     maximum_width_span_input = entry(
         acceptance_frame, textvariable=form.maximum_width_span
     )
-    maximum_width_span_input.grid(
-        row=5, column=0, sticky="ew", padx=(0, 6)
+    maximum_width_span_input.grid(row=5, column=0, sticky="ew", padx=(0, 6))
+
+    calibration_frame = ttk.LabelFrame(
+        wizard_frame,
+        text="Calibration identity & acceptance criteria",
+        padding=10,
+        style="Card.TLabelframe",
     )
+    calibration_frame.grid(row=5, column=0, columnspan=6, sticky="ew", pady=(8, 0))
+    for column in range(6):
+        calibration_frame.columnconfigure(column, weight=1)
+    calibration_fields = (
+        ("Coefficient ID", form.coefficient_id),
+        ("Coefficient version", form.coefficient_version),
+        ("Max after RMSE", form.max_calibration_rmse),
+        (
+            "Max after mean absolute error",
+            form.max_calibration_mean_absolute_error,
+        ),
+        ("Max after absolute error", form.max_calibration_absolute_error),
+        ("Minimum RMSE reduction", form.minimum_calibration_rmse_reduction),
+    )
+    calibration_inputs: list[Any] = []
+    for column, (label, variable) in enumerate(calibration_fields):
+        ttk.Label(calibration_frame, text=label, style="Muted.TLabel").grid(
+            row=0, column=column, sticky="w"
+        )
+        selected_input = entry(calibration_frame, textvariable=variable)
+        selected_input.grid(row=1, column=column, sticky="ew", padx=(0, 6))
+        calibration_inputs.append(selected_input)
+    ttk.Label(
+        calibration_frame,
+        text=(
+            "Primary channel = observed values; secondary channel = trusted reference "
+            "values. Both remain explicitly labeled by the selected evidence source."
+        ),
+        style="Muted.TLabel",
+        justify="left",
+    ).grid(row=2, column=0, columnspan=6, sticky="w", pady=(6, 0))
+
+    frequency_frame = ttk.LabelFrame(
+        wizard_frame,
+        text="Frequency sweep model & cutoff acceptance",
+        padding=10,
+        style="Card.TLabelframe",
+    )
+    frequency_frame.grid(row=6, column=0, columnspan=6, sticky="ew", pady=(8, 0))
+    for column in range(6):
+        frequency_frame.columnconfigure(column, weight=1)
+    frequency_channel_input = entry(
+        frequency_frame, textvariable=form.frequency_channel
+    )
+    frequency_unit_select = combobox(
+        frequency_frame,
+        textvariable=form.unit,
+        values=("V", "mV"),
+        state="readonly",
+        takefocus=True,
+    )
+    frequency_point_count_input = entry(
+        frequency_frame, textvariable=form.frequency_point_count
+    )
+    frequency_minimum_input = entry(
+        frequency_frame, textvariable=form.frequency_minimum_hz
+    )
+    frequency_maximum_input = entry(
+        frequency_frame, textvariable=form.frequency_maximum_hz
+    )
+    frequency_input_amplitude_input = entry(
+        frequency_frame, textvariable=form.frequency_input_amplitude
+    )
+    simulated_cutoff_input = entry(
+        frequency_frame, textvariable=form.simulated_cutoff_frequency_hz
+    )
+    target_cutoff_input = entry(
+        frequency_frame, textvariable=form.target_cutoff_frequency_hz
+    )
+    cutoff_tolerance_input = entry(
+        frequency_frame, textvariable=form.cutoff_relative_tolerance
+    )
+    cutoff_drop_input = entry(frequency_frame, textvariable=form.cutoff_drop_db)
+    frequency_fields = (
+        ("Frequency channel", frequency_channel_input),
+        ("Amplitude unit", frequency_unit_select),
+        ("Log points (10–10k)", frequency_point_count_input),
+        ("Minimum frequency (Hz)", frequency_minimum_input),
+        ("Maximum frequency (Hz)", frequency_maximum_input),
+        ("Simulator input amplitude", frequency_input_amplitude_input),
+        ("Simulator model cutoff (Hz)", simulated_cutoff_input),
+        ("Acceptance target cutoff (Hz)", target_cutoff_input),
+        ("Relative tolerance (0–1)", cutoff_tolerance_input),
+        ("Cutoff drop (dB)", cutoff_drop_input),
+    )
+    for index, (label, widget) in enumerate(frequency_fields):
+        row = (index // 6) * 2
+        column = index % 6
+        ttk.Label(frequency_frame, text=label, style="Muted.TLabel").grid(
+            row=row, column=column, sticky="w", pady=((6, 0) if row else 0)
+        )
+        widget.grid(row=row + 1, column=column, sticky="ew", padx=(0, 6))
+    ttk.Label(
+        frequency_frame,
+        text=(
+            "Primary and secondary channels are input and output amplitudes. "
+            "Simulator model values generate SYNTHETIC observations; the acceptance "
+            "target is evaluated independently. CSV Replay ignores simulator-only fields."
+        ),
+        style="Muted.TLabel",
+        justify="left",
+    ).grid(row=4, column=0, columnspan=6, sticky="w", pady=(6, 0))
+
+    monitor_frame = ttk.LabelFrame(
+        wizard_frame,
+        text="Live monitor — finite session and bounded memory",
+        padding=10,
+        style="Card.TLabelframe",
+    )
+    monitor_frame.grid(row=7, column=0, columnspan=6, sticky="ew", pady=(8, 0))
+    for column in range(6):
+        monitor_frame.columnconfigure(column, weight=1)
+    monitor_interval_input = entry(
+        monitor_frame, textvariable=form.monitor_sample_interval_seconds
+    )
+    monitor_window_input = entry(
+        monitor_frame, textvariable=form.monitor_time_window_seconds
+    )
+    monitor_buffer_input = entry(
+        monitor_frame, textvariable=form.monitor_max_buffer_points
+    )
+    for column, (label, widget) in enumerate(
+        (
+            ("Cycle interval (seconds)", monitor_interval_input),
+            ("Visible time window (seconds)", monitor_window_input),
+            ("Maximum retained points", monitor_buffer_input),
+        )
+    ):
+        ttk.Label(monitor_frame, text=label, style="Muted.TLabel").grid(
+            row=0, column=column, sticky="w"
+        )
+        widget.grid(row=1, column=column, sticky="ew", padx=(0, 8), pady=(3, 0))
+    monitor_secondary = checkbutton(
+        monitor_frame,
+        text="Include secondary analog trace",
+        variable=form.monitor_include_secondary,
+        takefocus=True,
+    )
+    monitor_secondary.grid(row=1, column=3, sticky="w", padx=(0, 8))
+    monitor_state = checkbutton(
+        monitor_frame,
+        text="Include boolean state trace",
+        variable=form.monitor_include_state,
+        takefocus=True,
+    )
+    monitor_state.grid(row=1, column=4, sticky="w", padx=(0, 8))
+    ttk.Label(
+        monitor_frame,
+        text=(
+            "This is a finite acquisition, not a background daemon. Pause stops at "
+            "safe checkpoints; the oldest display points are evicted when the memory "
+            "bound is reached."
+        ),
+        style="Muted.TLabel",
+        justify="left",
+    ).grid(row=2, column=0, columnspan=6, sticky="w", pady=(6, 0))
 
     source_frame = ttk.LabelFrame(
         wizard_frame,
@@ -1383,7 +1929,7 @@ def create_dashboard_workflow_widgets(
         padding=10,
         style="Card.TLabelframe",
     )
-    source_frame.grid(row=5, column=0, columnspan=6, sticky="ew", pady=(8, 0))
+    source_frame.grid(row=8, column=0, columnspan=6, sticky="ew", pady=(8, 0))
     for column in range(6):
         source_frame.columnconfigure(column, weight=1)
 
@@ -1408,9 +1954,7 @@ def create_dashboard_workflow_widgets(
         takefocus=True,
     )
     serial_baud_input = entry(source_frame, textvariable=form.serial_baud_rate)
-    serial_timeout_input = entry(
-        source_frame, textvariable=form.serial_read_timeout
-    )
+    serial_timeout_input = entry(source_frame, textvariable=form.serial_read_timeout)
     serial_polls_input = entry(source_frame, textvariable=form.serial_max_polls)
     serial_fields = (
         ("Serial port", serial_port_select),
@@ -1447,7 +1991,7 @@ def create_dashboard_workflow_widgets(
     ).grid(row=5, column=0, columnspan=6, sticky="w", pady=(6, 0))
 
     review_frame = ttk.Frame(wizard_frame, style="Card.TFrame")
-    review_frame.grid(row=6, column=0, columnspan=6, sticky="ew", pady=(8, 0))
+    review_frame.grid(row=9, column=0, columnspan=6, sticky="ew", pady=(8, 0))
     review_frame.columnconfigure(0, weight=1)
     review_frame.columnconfigure(1, weight=1)
     review_summary = ttk.LabelFrame(
@@ -1480,7 +2024,7 @@ def create_dashboard_workflow_widgets(
     ).grid(row=0, column=0, sticky="nw")
 
     action_frame = ttk.Frame(wizard_frame, style="Card.TFrame")
-    action_frame.grid(row=7, column=0, columnspan=6, sticky="ew", pady=(10, 0))
+    action_frame.grid(row=10, column=0, columnspan=6, sticky="ew", pady=(10, 0))
     for column in range(5):
         action_frame.columnconfigure(column, weight=1)
     back_button = ttk.Button(
@@ -1549,9 +2093,7 @@ def create_dashboard_workflow_widgets(
         row=0, column=3, columnspan=2, sticky="w"
     )
     export_path_input = entry(export_frame, textvariable=form.export_path)
-    export_path_input.grid(
-        row=1, column=3, sticky="ew", padx=(0, 8), pady=(3, 0)
-    )
+    export_path_input.grid(row=1, column=3, sticky="ew", padx=(0, 8), pady=(3, 0))
 
     def choose_export_path() -> None:
         selected = on_choose_export_path(str(form.export_format.get()))
@@ -1568,9 +2110,7 @@ def create_dashboard_workflow_widgets(
         takefocus=True,
         style="Secondary.TButton",
     )
-    export_browse_button.grid(
-        row=1, column=4, sticky="ew", padx=(0, 8), pady=(3, 0)
-    )
+    export_browse_button.grid(row=1, column=4, sticky="ew", padx=(0, 8), pady=(3, 0))
     ttk.Label(export_frame, text="Format", style="Muted.TLabel").grid(
         row=0, column=5, sticky="w"
     )
@@ -1593,15 +2133,94 @@ def create_dashboard_workflow_widgets(
     )
     export_button.grid(row=1, column=6, sticky="ew", padx=(8, 0), pady=(3, 0))
 
+    coefficient_frame = ttk.LabelFrame(
+        result_host,
+        text="Calibration coefficient artifact — strict JSON, never auto-applied",
+        padding=10,
+        style="Card.TLabelframe",
+    )
+    coefficient_frame.grid(row=1, column=0, sticky="ew", padx=18, pady=(8, 0))
+    for column in range(8):
+        coefficient_frame.columnconfigure(column, weight=1)
+    ttk.Label(
+        coefficient_frame,
+        textvariable=coefficient_value,
+        wraplength=520,
+        justify="left",
+        style="Muted.TLabel",
+    ).grid(row=0, column=0, rowspan=2, columnspan=2, sticky="w")
+    ttk.Label(
+        coefficient_frame,
+        text="Coefficient JSON path",
+        style="Muted.TLabel",
+    ).grid(row=0, column=2, columnspan=2, sticky="w")
+    coefficient_path_input = entry(
+        coefficient_frame,
+        textvariable=coefficient_path,
+    )
+    coefficient_path_input.grid(
+        row=1,
+        column=2,
+        columnspan=2,
+        sticky="ew",
+        padx=(0, 8),
+        pady=(3, 0),
+    )
+
+    def choose_coefficient_path(mode: str) -> None:
+        selected = choose_coefficient_path_callback(mode)
+        if selected is None or selected == "":
+            return
+        if not isinstance(selected, str):
+            raise ProductRequestError(
+                "on_choose_coefficient_path must return a path string"
+            )
+        coefficient_path.set(selected)
+
+    coefficient_browse_save_button = ttk.Button(
+        coefficient_frame,
+        text="Choose save location...",
+        command=lambda: choose_coefficient_path("save"),
+        takefocus=True,
+        style="Secondary.TButton",
+    )
+    coefficient_browse_save_button.grid(
+        row=1, column=4, sticky="ew", padx=(0, 8), pady=(3, 0)
+    )
+    coefficient_save_button = ttk.Button(
+        coefficient_frame,
+        text="Save coefficients",
+        command=lambda: save_coefficients_callback(str(coefficient_path.get())),
+        takefocus=True,
+        style="Primary.TButton",
+    )
+    coefficient_save_button.grid(row=1, column=5, sticky="ew", padx=(0, 8), pady=(3, 0))
+    coefficient_browse_load_button = ttk.Button(
+        coefficient_frame,
+        text="Choose existing file...",
+        command=lambda: choose_coefficient_path("load"),
+        takefocus=True,
+        style="Secondary.TButton",
+    )
+    coefficient_browse_load_button.grid(
+        row=1, column=6, sticky="ew", padx=(0, 8), pady=(3, 0)
+    )
+    coefficient_load_button = ttk.Button(
+        coefficient_frame,
+        text="Load & validate",
+        command=lambda: load_coefficients_callback(str(coefficient_path.get())),
+        takefocus=True,
+        style="Secondary.TButton",
+    )
+    coefficient_load_button.grid(row=1, column=7, sticky="ew", pady=(3, 0))
+
     next_steps_frame = ttk.LabelFrame(
         result_host,
         text="What would you like to do next?",
         padding=10,
         style="Card.TLabelframe",
     )
-    next_steps_frame.grid(
-        row=1, column=0, sticky="ew", padx=18, pady=(8, 0)
-    )
+    next_steps_frame.grid(row=2, column=0, sticky="ew", padx=18, pady=(8, 0))
     for column in range(4):
         next_steps_frame.columnconfigure(column, weight=1)
     ttk.Label(
@@ -1644,14 +2263,41 @@ def create_dashboard_workflow_widgets(
     ):
         button.grid(row=1, column=column, sticky="ew", padx=(0, 8))
 
-    all_jobs = ("READ", "DC_ANALYSIS", "HYSTERESIS_ANALYSIS")
+    all_jobs = (
+        "READ",
+        "DC_ANALYSIS",
+        "HYSTERESIS_ANALYSIS",
+        "CALIBRATION_ANALYSIS",
+        "FREQUENCY_RESPONSE_ANALYSIS",
+        "LIVE_MONITOR",
+    )
     editable_controls = (
         (primary_channel_input, "normal", all_jobs, ()),
-        (secondary_channel_input, "normal", ("DC_ANALYSIS",), ()),
-        (state_channel_input, "normal", ("HYSTERESIS_ANALYSIS",), ()),
+        (
+            secondary_channel_input,
+            "normal",
+            (
+                "DC_ANALYSIS",
+                "CALIBRATION_ANALYSIS",
+                "FREQUENCY_RESPONSE_ANALYSIS",
+                "LIVE_MONITOR",
+            ),
+            (),
+        ),
+        (
+            state_channel_input,
+            "normal",
+            ("HYSTERESIS_ANALYSIS", "LIVE_MONITOR"),
+            (),
+        ),
         (operation_select, "readonly", ("READ",), ()),
         (unit_select, "readonly", all_jobs, ()),
-        (sample_count_input, "normal", ("READ", "DC_ANALYSIS"), ()),
+        (
+            sample_count_input,
+            "normal",
+            ("READ", "DC_ANALYSIS", "CALIBRATION_ANALYSIS", "LIVE_MONITOR"),
+            (),
+        ),
         (rising_count_input, "normal", ("HYSTERESIS_ANALYSIS",), ()),
         (falling_count_input, "normal", ("HYSTERESIS_ANALYSIS",), ()),
         (target_gain_input, "normal", ("DC_ANALYSIS",), ()),
@@ -1662,6 +2308,55 @@ def create_dashboard_workflow_widgets(
         *tuple(
             (control, "normal", ("HYSTERESIS_ANALYSIS",), ())
             for control in (*acceptance_inputs[6:], maximum_width_span_input)
+        ),
+        *tuple(
+            (control, "normal", ("CALIBRATION_ANALYSIS",), ())
+            for control in calibration_inputs
+        ),
+        (
+            frequency_channel_input,
+            "normal",
+            ("FREQUENCY_RESPONSE_ANALYSIS",),
+            (),
+        ),
+        (
+            frequency_unit_select,
+            "readonly",
+            ("FREQUENCY_RESPONSE_ANALYSIS",),
+            (),
+        ),
+        *tuple(
+            (control, "normal", ("FREQUENCY_RESPONSE_ANALYSIS",), ())
+            for control in (
+                frequency_point_count_input,
+                frequency_minimum_input,
+                frequency_maximum_input,
+                target_cutoff_input,
+                cutoff_tolerance_input,
+                cutoff_drop_input,
+            )
+        ),
+        *tuple(
+            (control, "normal", ("LIVE_MONITOR",), ())
+            for control in (
+                monitor_interval_input,
+                monitor_window_input,
+                monitor_buffer_input,
+                monitor_secondary,
+                monitor_state,
+            )
+        ),
+        *tuple(
+            (
+                control,
+                "normal",
+                ("FREQUENCY_RESPONSE_ANALYSIS",),
+                ("SIMULATOR",),
+            )
+            for control in (
+                frequency_input_amplitude_input,
+                simulated_cutoff_input,
+            )
         ),
         (replay_path_input, "normal", all_jobs, ("CSV_REPLAY",)),
         (replay_minimum_input, "normal", all_jobs, ("CSV_REPLAY",)),
@@ -1683,6 +2378,7 @@ def create_dashboard_workflow_widgets(
         issue_value=issue_value,
         ports_value=ports_value,
         export_value=export_value,
+        coefficient_value=coefficient_value,
         next_steps_value=next_steps_value,
         source_select=source_select,
         profile_select=profile_select,
@@ -1692,6 +2388,12 @@ def create_dashboard_workflow_widgets(
         export_path_input=export_path_input,
         export_browse_button=export_browse_button,
         export_format_select=export_format_select,
+        coefficient_path=coefficient_path,
+        coefficient_path_input=coefficient_path_input,
+        coefficient_browse_save_button=coefficient_browse_save_button,
+        coefficient_browse_load_button=coefficient_browse_load_button,
+        coefficient_save_button=coefficient_save_button,
+        coefficient_load_button=coefficient_load_button,
         back_button=back_button,
         next_button=next_button,
         review_button=review_button,
@@ -1709,10 +2411,14 @@ def create_dashboard_workflow_widgets(
             "setup": setup_frame,
             "signal": signal_frame,
             "acceptance": acceptance_frame,
+            "calibration": calibration_frame,
+            "frequency": frequency_frame,
+            "monitor": monitor_frame,
             "source_connection": source_frame,
             "review": review_frame,
             "workflow_actions": action_frame,
             "export": export_frame,
+            "coefficients": coefficient_frame,
             "result_actions": next_steps_frame,
         },
         scroll_canvases=(workflow_scroll_canvas, result_scroll_canvas),

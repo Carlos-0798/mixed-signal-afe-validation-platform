@@ -23,10 +23,18 @@ from analog_validation_app import (
     DASHBOARD_HARDWARE_CLAIM,
     DASHBOARD_STATE_SCHEMA_VERSION,
     DASHBOARD_WIZARD_SCHEMA_VERSION,
+    DEFAULT_LIVE_MONITOR_MAX_POINTS,
     DEFAULT_PRODUCT_EVENT_QUEUE_SIZE,
     DEFAULT_PRODUCT_JOIN_TIMEOUT_S,
     HUMAN_REPORT_MANIFEST_SCHEMA_VERSION,
     HUMAN_REPORT_SCHEMA_VERSION,
+    LIVE_MONITOR_CONTROL_POLL_SECONDS,
+    LIVE_MONITOR_SCHEMA_VERSION,
+    MAX_LIVE_MONITOR_DURATION_SECONDS,
+    MAX_LIVE_MONITOR_INTERVAL_SECONDS,
+    MAX_LIVE_MONITOR_MAX_POINTS,
+    MAX_LIVE_MONITOR_WINDOW_SECONDS,
+    MIN_LIVE_MONITOR_WINDOW_SECONDS,
     PORTFOLIO_DEMO_CONFIG_SCHEMA_VERSION,
     PORTFOLIO_DEMO_EPOCH,
     PORTFOLIO_DEMO_JOB_ID,
@@ -77,6 +85,7 @@ SCHEMAS = {
     "DASHBOARD_WIZARD_SCHEMA_VERSION": DASHBOARD_WIZARD_SCHEMA_VERSION,
     "HUMAN_REPORT_MANIFEST_SCHEMA_VERSION": HUMAN_REPORT_MANIFEST_SCHEMA_VERSION,
     "HUMAN_REPORT_SCHEMA_VERSION": HUMAN_REPORT_SCHEMA_VERSION,
+    "LIVE_MONITOR_SCHEMA_VERSION": LIVE_MONITOR_SCHEMA_VERSION,
     "PORTFOLIO_DEMO_CONFIG_SCHEMA_VERSION": PORTFOLIO_DEMO_CONFIG_SCHEMA_VERSION,
     "PORTFOLIO_DEMO_SCHEMA_VERSION": PORTFOLIO_DEMO_SCHEMA_VERSION,
     "PRODUCT_CATALOG_SCHEMA_VERSION": PRODUCT_CATALOG_SCHEMA_VERSION,
@@ -108,6 +117,8 @@ DATACLASS_NAMES = (
     "DashboardArtifactView",
     "DashboardArtifactsPanel",
     "DashboardConfigurationPanel",
+    "DashboardLivePanel",
+    "DashboardLivePoint",
     "DashboardPlotPanel",
     "DashboardPlotPoint",
     "DashboardProgressPanel",
@@ -120,6 +131,8 @@ DATACLASS_NAMES = (
     "DemoArtifact",
     "HumanReportPublication",
     "HumanReportView",
+    "LiveMonitorSnapshot",
+    "LiveTracePoint",
     "PortfolioDemoPublication",
     "PreparedProductJob",
     "ProductJobEvent",
@@ -153,6 +166,8 @@ SIGNATURE_NAMES = (
     "DemoArtifact",
     "HumanReportPublication",
     "HumanReportView",
+    "LiveMonitorJobService",
+    "LiveMonitorSession",
     "PortfolioDemoPublication",
     "PreparedProductJob",
     "ProductJobEvent",
@@ -170,8 +185,11 @@ SIGNATURE_NAMES = (
     "execute_product_job",
     "initial_dashboard_state",
     "issue_from_exception",
+    "make_calibration_service_factory",
     "make_dc_sweep_service_factory",
+    "make_frequency_response_service_factory",
     "make_hysteresis_service_factory",
+    "make_live_monitor_service_factory",
     "make_read_service_factory",
     "prepare_product_job",
     "publish_human_report",
@@ -314,7 +332,9 @@ def _run_json(argv: list[str]) -> dict[str, Any]:
     stderr = io.StringIO()
     status = product_cli.main(argv, stdout=stdout, stderr=stderr)
     if status != 0:
-        raise AssertionError(f"CLI contract command failed ({status}): {stderr.getvalue()}")
+        raise AssertionError(
+            f"CLI contract command failed ({status}): {stderr.getvalue()}"
+        )
     return json.loads(stdout.getvalue())
 
 
@@ -322,9 +342,7 @@ def _serialized_fields(output_parent: Path) -> dict[str, list[str]]:
     version = _run_json(["version", "--json"])
     profiles = _run_json(["profiles", "--json"])
     demo_directory = output_parent / "demo"
-    demo_cli = _run_json(
-        ["demo", "--output", str(demo_directory), "--json"]
-    )
+    demo_cli = _run_json(["demo", "--output", str(demo_directory), "--json"])
     demo_manifest = json.loads(
         (demo_directory / "manifest.json").read_text(encoding="utf-8")
     )
@@ -384,6 +402,15 @@ def _actual_manifest(output_parent: Path) -> dict[str, object]:
                 "event_queue_size": DEFAULT_PRODUCT_EVENT_QUEUE_SIZE,
                 "join_timeout_seconds": DEFAULT_PRODUCT_JOIN_TIMEOUT_S,
             },
+            "live_monitor": {
+                "default_max_points": DEFAULT_LIVE_MONITOR_MAX_POINTS,
+                "max_points": MAX_LIVE_MONITOR_MAX_POINTS,
+                "minimum_window_seconds": MIN_LIVE_MONITOR_WINDOW_SECONDS,
+                "maximum_window_seconds": MAX_LIVE_MONITOR_WINDOW_SECONDS,
+                "maximum_interval_seconds": MAX_LIVE_MONITOR_INTERVAL_SECONDS,
+                "maximum_duration_seconds": MAX_LIVE_MONITOR_DURATION_SECONDS,
+                "control_poll_seconds": LIVE_MONITOR_CONTROL_POLL_SECONDS,
+            },
             "report_filenames": [
                 REPORT_TEXT_FILENAME,
                 REPORT_MARKDOWN_FILENAME,
@@ -392,9 +419,7 @@ def _actual_manifest(output_parent: Path) -> dict[str, object]:
                 REPORT_MANIFEST_FILENAME,
             ],
             "demo_identity": {
-                "epoch_utc": PORTFOLIO_DEMO_EPOCH.strftime(
-                    "%Y-%m-%dT%H:%M:%S.%fZ"
-                ),
+                "epoch_utc": PORTFOLIO_DEMO_EPOCH.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                 "job_id": PORTFOLIO_DEMO_JOB_ID,
                 "manifest_filename": PORTFOLIO_DEMO_MANIFEST_FILENAME,
                 "point_count": PORTFOLIO_DEMO_POINT_COUNT,
@@ -511,8 +536,14 @@ def test_phase5_freeze_keeps_receive_only_and_hardware_claim_boundaries() -> Non
     }
     assert all(profile["product_read_only"] for profile in constants["profiles"])
     serial_source = next(
-        value
-        for value in constants["sources"]
-        if value["mode"] == "SERIAL_READ_ONLY"
+        value for value in constants["sources"] if value["mode"] == "SERIAL_READ_ONLY"
     )
     assert serial_source["supported_jobs"] == ["READ"]
+    offline_sources = {
+        value["mode"]: value
+        for value in constants["sources"]
+        if value["mode"] in {"SIMULATOR", "CSV_REPLAY"}
+    }
+    assert "LIVE_MONITOR" in offline_sources["SIMULATOR"]["supported_jobs"]
+    assert "LIVE_MONITOR" in offline_sources["CSV_REPLAY"]["supported_jobs"]
+    assert constants["live_monitor"]["maximum_duration_seconds"] == 55.0

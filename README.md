@@ -32,14 +32,16 @@ runtime, or product identity.
 | Delivery stage | Software Phase 6 release engineering — 7/8 checkpoints |
 | Interfaces | Installed CLI, local Tk Dashboard, JSON/CSV exports, text/Markdown/HTML/SVG reports |
 | Data sources | Deterministic Simulator, strict CSV Replay, receive-only serial profiles |
-| Analyses | DC gain/offset/linearity with saturation exclusion; directional hysteresis; calibration and offline frequency response |
+| Workflows | Bounded read/live monitoring plus DC gain/offset/linearity, directional hysteresis, linear calibration, and amplitude-frequency response |
 | Extension model | Public `DeviceAdapter` and serial-profile contracts |
-| Latest local quality run | 2,277 tests passed; 11,911/11,911 package statements covered |
+| Latest local product-expansion gate | 2,459 tests passed; 13,834/13,834 package statements covered; full Ruff, mypy, dependency, 15/15 product-quality, repeated-build, fresh-install, and installed Simulator/Replay monitor gates passed |
 | Latest merged delivery | Dashboard UX PR #7 merged to `main`; post-merge CI passed all eight jobs |
 | Hardware claim | `NO_NEW_HARDWARE_VALIDATION` — physical AFE not built or measured |
 
 [Detailed status](docs/PROJECT_STATUS.md) ·
+[Combined precommit review](reports/calibration-frequency-live-precommit-review-2026-09-06.md) ·
 [Current milestone handoff](reports/PROJECT_MILESTONE_UPDATE_2026-09-04.md) ·
+[Live-monitor verification](reports/live-monitor-product-workflow-2026-09-05.md) ·
 [Installation](docs/INSTALLATION.md) ·
 [Tester guide](docs/USER_TESTING_GUIDE.md) ·
 [Changelog](CHANGELOG.md)
@@ -84,19 +86,20 @@ builds a reusable product boundary around that work:
 |---|---|
 | Domain and protocol | Immutable measurements/capabilities/test runs; bounded ASCII framing; CRC-16/CCITT-FALSE; AFE v1 and MSP430 Equipment Health v1 receive-only parsing |
 | Sources and adapters | Deterministic Simulator, immutable CSV Replay, bounded serial lifecycle, public adapter/profile contracts |
-| Test execution | Shared read workflow; safety-gated DC and hysteresis runners; bounded single-owner worker |
+| Test execution | Shared finite read and streaming-read workflows; safety-gated DC and hysteresis runners; bounded single-owner worker |
 | Analysis | Unit normalization, saturation/quality exclusion, OLS gain/offset/R²/RMSE, hysteresis thresholds/width, calibration, offline frequency response |
-| Product surfaces | Installed `analog-validation` CLI, guided Dashboard, deterministic demo, structured exports, human-readable reports |
+| Product surfaces | Installed `analog-validation` CLI, guided Dashboard, bounded live curves, calibration-coefficient manager, deterministic demo, structured exports, human-readable reports |
 | Release engineering | Hosted matrix CI, compatibility manifests, reproducible wheel/sdist checks, isolated base/serial installs, privacy and evidence audits |
 
 Full feature-level evidence is maintained in
 [Project Status](docs/PROJECT_STATUS.md) and
 [Requirements Traceability](docs/REQUIREMENTS_TRACEABILITY.md).
 
-Not yet complete: calibration/frequency-response `TestRun` export mappings,
-real-time runner deadlines, long-duration physical transport testing, a
-validated configurable AFE, reference-controller output hardware, and v1.0
-publication.
+Not yet complete: real-device/long-duration live acquisition, phase-response
+analysis, instrument-controlled physical sweeps, a validated configurable AFE,
+reference-controller output hardware, and v1.0 publication. The implemented
+live view is a finite Simulator/CSV Replay workflow, not a hard-real-time or
+physical-device claim.
 
 ## 60-second software demo
 
@@ -159,8 +162,8 @@ saturation exclusion, threshold calculation, or PASS/FAIL logic.
 
 | Source/profile | Product operation | Evidence | Current boundary |
 |---|---|---|---|
-| Simulator / `afe/1` | Read, synthetic DC, synthetic hysteresis | `SYNTHETIC` | Default, deterministic, no hardware |
-| CSV Replay | Read, DC, hysteresis | `CSV_REPLAY` | Strict local file; historical source is not promoted |
+| Simulator / `afe/1` | Read, bounded live monitor, synthetic DC, hysteresis, calibration, frequency response | `SYNTHETIC` | Default, deterministic, no hardware |
+| CSV Replay | Read, bounded live monitor, DC, hysteresis, calibration, frequency response | `CSV_REPLAY` | Strict local file; historical source is not promoted |
 | AFE v1 serial | Receive-only observations | Depends on declared capture | Protocol/profile host-tested; future physical AFE not validated |
 | MSP430 Equipment Health v1 | Receive-only observations | `HOST_TEST` or narrow `BENCH_CONTROLLER` capture | Independent peer product; no command encoder or write surface |
 | Third-party adapter | Shared public read workflow | Adapter-declared and checked | Demonstrated from an installed wheel using only public API |
@@ -174,7 +177,8 @@ OSU Lab Bench Monitor Senior Capstone.
 
 | Gate | Verified result |
 |---|---|
-| Local software gate | 2,277 passed; 100% statement coverage across 11,911 package statements; Ruff and mypy passed |
+| Local calibration + frequency-response + bounded live-monitor increment (unmerged) | 2,459 passed; 100% statement coverage across 13,834 package statements; full Ruff, mypy, dependency, 15/15 product-quality, repeated-build, fresh base/serial install, and installed Simulator/Replay monitor gates passed; formal candidate/hosted CI await an approved commit/push |
+| Merged `main` software baseline | 2,277 tests passed; 11,911/11,911 package statements covered; Ruff and mypy passed |
 | Hosted Dashboard gate | PR head `c9710fe` passed eight jobs in run `33933549983`; merged `main` commit `b4f0fef` passed eight post-merge jobs in run `33934417152` attempt 2 |
 | Reproducible candidate baseline | Local/hosted four-file `0.1.0b1` candidate matched byte-for-byte at audited commit `f6721b5` |
 | Release audit | `PASS_WITH_REVIEW`; zero current-tree privacy findings, eight legacy-history review items, zero high-confidence credentials |
@@ -196,6 +200,7 @@ reports retain the exact counts and evidence available when they were written.
 | Stage | Status | Exit condition |
 |---|---|---|
 | Software Phases 0–5 | Complete | Core, adapters, analyses, CLI/Dashboard/reports/demo, compatibility freeze |
+| Post-beta product workflows | In local validation | Calibration, amplitude response, and bounded offline live monitoring share the reviewed compiler/worker path |
 | Software Phase 6 | 7/8 | Dashboard UX delivered; owner-controlled history, license, visibility, tag, and release decisions remain |
 | Hardware design preparation | Deferred | Confirmed requirements, tools, instruments, components, safety review |
 | Breadboard AFE | Not started | Power/protection/buffer/gain/filter/Schmitt tests with raw bench evidence |
@@ -230,7 +235,8 @@ media/                      classified software visuals; future bench media is s
 - Engineering: [Theory](docs/theory.md),
   [protocol](docs/protocol.md), [CRC/framing](docs/framing-and-crc.md),
   [DC analysis](docs/dc-sweep-analysis.md),
-  [hysteresis](docs/hysteresis-analysis-and-runner.md), and
+  [hysteresis](docs/hysteresis-analysis-and-runner.md),
+  [bounded live monitoring](docs/live-monitoring.md), and
   [result exports](docs/result-exports.md).
 - Product governance: [Project status](docs/PROJECT_STATUS.md),
   [product plan](docs/PRODUCT_PLAN.md),

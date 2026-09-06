@@ -121,8 +121,12 @@ class Msp430Telemetry:
     def __post_init__(self) -> None:
         _require_int("sequence", self.sequence, 0, 0xFFFFFFFF)
         _require_int("uptime_ms", self.uptime_ms, 0, 0xFFFFFFFF)
-        _require_int("temperature_ds_deci_c", self.temperature_ds_deci_c, -0x8000, 0x7FFF)
-        _require_int("temperature_ntc_deci_c", self.temperature_ntc_deci_c, -0x8000, 0x7FFF)
+        _require_int(
+            "temperature_ds_deci_c", self.temperature_ds_deci_c, -0x8000, 0x7FFF
+        )
+        _require_int(
+            "temperature_ntc_deci_c", self.temperature_ntc_deci_c, -0x8000, 0x7FFF
+        )
         _require_int("bus_mv", self.bus_mv, 0, 0xFFFF)
         _require_int("current_ma", self.current_ma, -0x8000, 0x7FFF)
         _require_int("power_mw", self.power_mw, 0, 0xFFFFFFFF)
@@ -298,9 +302,7 @@ def _decode_fields(record: str | bytes) -> tuple[str, ...]:
         raise FramingError("record must be str or bytes")
 
     if len(raw) > MSP430_HEALTH_MAX_RECORD_BYTES:
-        raise FrameTooLong(
-            f"record exceeds {MSP430_HEALTH_MAX_RECORD_BYTES} bytes"
-        )
+        raise FrameTooLong(f"record exceeds {MSP430_HEALTH_MAX_RECORD_BYTES} bytes")
     if not raw.endswith(b"\n"):
         raise FramingError("MSP430 record must be LF-terminated")
 
@@ -477,10 +479,17 @@ def parse_msp430_message(record: str | bytes) -> Msp430Message:
 def _message_fields(message: Msp430Message) -> tuple[object, ...]:
     if isinstance(message, Msp430Telemetry):
         return (
-            "TEL", message.sequence, message.uptime_ms,
-            message.temperature_ds_deci_c, message.temperature_ntc_deci_c,
-            message.bus_mv, message.current_ma, message.power_mw,
-            message.pwm_permille, message.state.value, f"{message.fault_flags:04X}",
+            "TEL",
+            message.sequence,
+            message.uptime_ms,
+            message.temperature_ds_deci_c,
+            message.temperature_ntc_deci_c,
+            message.bus_mv,
+            message.current_ma,
+            message.power_mw,
+            message.pwm_permille,
+            message.state.value,
+            f"{message.fault_flags:04X}",
         )
     if isinstance(message, Msp430Ack):
         if message.ok:
@@ -489,24 +498,42 @@ def _message_fields(message: Msp430Message) -> tuple[object, ...]:
         return ("ACK", message.sequence, "ERR", message.error_code)
     if isinstance(message, Msp430Status):
         return (
-            "STS", message.request_sequence, message.uptime_ms, message.mode.value,
-            message.manual_pwm_permille, message.state.value,
+            "STS",
+            message.request_sequence,
+            message.uptime_ms,
+            message.mode.value,
+            message.manual_pwm_permille,
+            message.state.value,
             f"{message.fault_flags:04X}",
         )
     if isinstance(message, Msp430Config):
         return (
-            "CFG", message.request_sequence, message.storage_sequence,
-            message.t_low_on_deci_c, message.t_high_on_deci_c,
-            message.t_warning_deci_c, message.t_critical_deci_c,
-            message.hysteresis_deci_c, message.pwm_low_permille,
-            message.pwm_high_permille, message.start_boost_ms,
-            message.manual_timeout_s, message.fan_baseline_ma,
+            "CFG",
+            message.request_sequence,
+            message.storage_sequence,
+            message.t_low_on_deci_c,
+            message.t_high_on_deci_c,
+            message.t_warning_deci_c,
+            message.t_critical_deci_c,
+            message.hysteresis_deci_c,
+            message.pwm_low_permille,
+            message.pwm_high_permille,
+            message.start_boost_ms,
+            message.manual_timeout_s,
+            message.fan_baseline_ma,
         )
     if isinstance(message, Msp430LogRecord):
         return (
-            "LOG", message.request_sequence, message.offset, message.timestamp_s,
-            message.event_code, message.state_code, f"{message.flags:02X}",
-            message.temperature_deci_c, message.current_ma, message.bus_mv,
+            "LOG",
+            message.request_sequence,
+            message.offset,
+            message.timestamp_s,
+            message.event_code,
+            message.state_code,
+            f"{message.flags:02X}",
+            message.temperature_deci_c,
+            message.current_ma,
+            message.bus_mv,
         )
     raise ProtocolError("message must be a supported MSP430 device record")
 

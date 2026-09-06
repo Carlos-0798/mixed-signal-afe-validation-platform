@@ -276,6 +276,70 @@ def _axes(
     return lines
 
 
+def _frequency_tick_label(log_value: float) -> str:
+    frequency = 10.0**log_value
+    if frequency >= 1_000_000.0:
+        return f"{frequency / 1_000_000.0:.4g}M"
+    if frequency >= 1_000.0:
+        return f"{frequency / 1_000.0:.4g}k"
+    return f"{frequency:.4g}"
+
+
+def _frequency_axes(
+    x_minimum: float,
+    x_maximum: float,
+    y_minimum: float,
+    y_maximum: float,
+) -> list[str]:
+    lines = [
+        f'<line x1="{_LEFT:.2f}" y1="{_BOTTOM:.2f}" x2="{_RIGHT:.2f}" y2="{_BOTTOM:.2f}" stroke="#334155"/>',
+        f'<line x1="{_LEFT:.2f}" y1="{_TOP:.2f}" x2="{_LEFT:.2f}" y2="{_BOTTOM:.2f}" stroke="#334155"/>',
+    ]
+    for index in range(5):
+        fraction = index / 4
+        x_value = x_minimum + (x_maximum - x_minimum) * fraction
+        y_value = y_minimum + (y_maximum - y_minimum) * fraction
+        x_coord = _LEFT + (_RIGHT - _LEFT) * fraction
+        y_coord = _BOTTOM - (_BOTTOM - _TOP) * fraction
+        lines.extend(
+            (
+                f'<line x1="{x_coord:.2f}" y1="{_TOP:.2f}" x2="{x_coord:.2f}" y2="{_BOTTOM:.2f}" stroke="#e2e8f0"/>',
+                f'<line x1="{_LEFT:.2f}" y1="{y_coord:.2f}" x2="{_RIGHT:.2f}" y2="{y_coord:.2f}" stroke="#e2e8f0"/>',
+                _svg_text(
+                    x_coord,
+                    _BOTTOM + 20,
+                    _frequency_tick_label(x_value),
+                    fill="#475569",
+                    **{"font-size": "11", "text-anchor": "middle"},
+                ),
+                _svg_text(
+                    _LEFT - 10,
+                    y_coord + 4,
+                    format(y_value, ".6g"),
+                    fill="#475569",
+                    **{"font-size": "11", "text-anchor": "end"},
+                ),
+            )
+        )
+    lines.extend(
+        (
+            _svg_text(
+                (_LEFT + _RIGHT) / 2,
+                480,
+                "Frequency (Hz, logarithmic)",
+                fill="#0f172a",
+                **{"font-size": "13", "text-anchor": "middle"},
+            ),
+            (
+                f'<text x="24" y="{(_TOP + _BOTTOM) / 2:.2f}" fill="#0f172a" '
+                'font-size="13" text-anchor="middle" '
+                f'transform="rotate(-90 24 {(_TOP + _BOTTOM) / 2:.2f})">Gain (dB)</text>'
+            ),
+        )
+    )
+    return lines
+
+
 def _point_marker(point: ReportPointView, x_coord: float, y_coord: float) -> str:
     if point.disposition == "INCLUDED":
         return f'<circle cx="{x_coord:.2f}" cy="{y_coord:.2f}" r="4" fill="#2563eb" stroke="#1e3a8a"/>'
@@ -516,6 +580,174 @@ def _render_hysteresis_svg(view: HumanReportView) -> str:
     return "\n".join(lines) + "\n"
 
 
+def _render_calibration_svg(view: HumanReportView) -> str:
+    plotted = tuple(
+        (point, before_error, after_error)
+        for point in view.points
+        for before_error in [_numeric(point, "before_error")]
+        for after_error in [_numeric(point, "after_error")]
+        if before_error is not None and after_error is not None
+    )
+    x_minimum, x_maximum = _bounds(float(point.index) for point, _, _ in plotted)
+    y_values = [value for _, before, after in plotted for value in (before, after)]
+    y_minimum, y_maximum = _bounds(y_values)
+    lines = _svg_header(
+        view,
+        "Signed before- and after-calibration errors copied from the finalized result bundle.",
+    )
+    lines.extend(
+        _axes(
+            x_minimum,
+            x_maximum,
+            y_minimum,
+            y_maximum,
+            "Calibration point index",
+            f"Signed error ({_unit(view, 'before_error')})",
+        )
+    )
+    if y_minimum <= 0.0 <= y_maximum:
+        zero_y = _y(0.0, y_minimum, y_maximum)
+        lines.append(
+            f'<line x1="{_LEFT:.2f}" y1="{zero_y:.2f}" x2="{_RIGHT:.2f}" '
+            f'y2="{zero_y:.2f}" stroke="#64748b" stroke-dasharray="4 4"/>'
+        )
+    for value_index, (name, color) in enumerate(
+        (("before", "#c2410c"), ("after", "#047857")),
+        start=1,
+    ):
+        coordinates = " ".join(
+            f"{_x(float(point.index), x_minimum, x_maximum):.2f},"
+            f"{_y(before if name == 'before' else after, y_minimum, y_maximum):.2f}"
+            for point, before, after in plotted
+        )
+        if coordinates:
+            lines.append(
+                f'<polyline points="{coordinates}" fill="none" stroke="{color}" '
+                f'stroke-width="2" data-series="{name}"/>'
+            )
+        legend_y = 90 + value_index * 20
+        lines.append(
+            f'<line x1="650" y1="{legend_y}" x2="670" y2="{legend_y}" '
+            f'stroke="{color}" stroke-width="3"/>'
+        )
+        lines.append(
+            _svg_text(
+                676,
+                legend_y + 4,
+                f"{name.capitalize()} calibration error",
+                fill="#0f172a",
+                **{"font-size": "11"},
+            )
+        )
+    if not plotted:
+        lines.append(
+            _svg_text(
+                500,
+                250,
+                "No finite plottable calibration errors are present in this result.",
+                fill="#7c2d12",
+                **{"font-size": "15", "text-anchor": "middle"},
+            )
+        )
+    lines.extend(_svg_footer(view))
+    return "\n".join(lines) + "\n"
+
+
+def _render_frequency_response_svg(view: HumanReportView) -> str:
+    plotted = tuple(
+        (point, frequency, gain)
+        for point in view.points
+        for frequency in [_numeric(point, "frequency")]
+        for gain in [_numeric(point, "gain")]
+        if frequency is not None and frequency > 0.0 and gain is not None
+    )
+    log_frequencies = [math.log10(frequency) for _, frequency, _ in plotted]
+    x_minimum, x_maximum = _bounds(log_frequencies)
+    reference_gain = _metric(view, "reference_gain")
+    cutoff_target = _metric(view, "cutoff_target_gain")
+    cutoff_frequency = _metric(view, "cutoff_frequency")
+    gain_values = [gain for _, _, gain in plotted]
+    gain_values.extend(
+        value for value in (reference_gain, cutoff_target) if value is not None
+    )
+    y_minimum, y_maximum = _bounds(gain_values)
+    lines = _svg_header(
+        view,
+        "Log-frequency magnitude response and finalized cutoff copied from the result bundle.",
+    )
+    lines.extend(_frequency_axes(x_minimum, x_maximum, y_minimum, y_maximum))
+    included_coordinates = " ".join(
+        f"{_x(math.log10(frequency), x_minimum, x_maximum):.2f},"
+        f"{_y(gain, y_minimum, y_maximum):.2f}"
+        for point, frequency, gain in plotted
+        if point.disposition == "INCLUDED"
+    )
+    if included_coordinates:
+        lines.append(
+            f'<polyline points="{included_coordinates}" fill="none" stroke="#2563eb" '
+            'stroke-width="2.5" data-series="gain"/>'
+        )
+    if cutoff_target is not None:
+        target_y = _y(cutoff_target, y_minimum, y_maximum)
+        lines.append(
+            f'<line x1="{_LEFT:.2f}" y1="{target_y:.2f}" x2="{_RIGHT:.2f}" '
+            'y2="{target_y:.2f}" stroke="#c2410c" stroke-width="2" '
+            'stroke-dasharray="6 4" data-marker="cutoff-target"/>'
+        )
+    if (
+        cutoff_frequency is not None
+        and cutoff_frequency > 0.0
+        and x_minimum <= math.log10(cutoff_frequency) <= x_maximum
+    ):
+        cutoff_x = _x(math.log10(cutoff_frequency), x_minimum, x_maximum)
+        lines.append(
+            f'<line x1="{cutoff_x:.2f}" y1="{_TOP:.2f}" x2="{cutoff_x:.2f}" '
+            'y2="{_BOTTOM:.2f}" stroke="#047857" stroke-width="2" '
+            'stroke-dasharray="6 4" data-marker="cutoff-frequency"/>'
+        )
+        lines.append(
+            _svg_text(
+                cutoff_x + 6,
+                _TOP + 50,
+                f"Estimated cutoff: {format(cutoff_frequency, '.6g')} Hz",
+                fill="#047857",
+                **{"font-size": "11", "font-weight": "600"},
+            )
+        )
+    for point, frequency, gain in plotted:
+        lines.append(
+            _point_marker(
+                point,
+                _x(math.log10(frequency), x_minimum, x_maximum),
+                _y(gain, y_minimum, y_maximum),
+            )
+        )
+    if not plotted:
+        lines.append(
+            _svg_text(
+                500,
+                250,
+                "No finite plottable frequency-response points are present in this result.",
+                fill="#7c2d12",
+                **{"font-size": "15", "text-anchor": "middle"},
+            )
+        )
+    lines.extend(
+        (
+            '<line x1="650" y1="92" x2="670" y2="92" stroke="#2563eb" stroke-width="3"/>',
+            _svg_text(
+                676, 96, "Magnitude response", fill="#0f172a", **{"font-size": "11"}
+            ),
+            '<line x1="650" y1="112" x2="670" y2="112" stroke="#c2410c" stroke-width="2" stroke-dasharray="6 4"/>',
+            _svg_text(
+                676, 116, "Cutoff gain target", fill="#0f172a", **{"font-size": "11"}
+            ),
+        )
+    )
+    lines.extend(_svg_footer(view))
+    return "\n".join(lines) + "\n"
+
+
 def _render_empty_svg(view: HumanReportView) -> str:
     lines = _svg_header(
         view,
@@ -539,8 +771,12 @@ def render_human_report_svg(view: HumanReportView) -> str:
 
     if not isinstance(view, HumanReportView):
         raise ProductReportFormatError("view must be a HumanReportView")
+    if view.chart_kind is ReportChartKind.CALIBRATION:
+        return _render_calibration_svg(view)
     if view.chart_kind is ReportChartKind.DC_SWEEP:
         return _render_dc_svg(view)
+    if view.chart_kind is ReportChartKind.FREQUENCY_RESPONSE:
+        return _render_frequency_response_svg(view)
     if view.chart_kind is ReportChartKind.HYSTERESIS:
         return _render_hysteresis_svg(view)
     return _render_empty_svg(view)

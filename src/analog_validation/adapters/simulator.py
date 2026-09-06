@@ -128,9 +128,7 @@ class SimulatorConfig:
 
         gain = _require_number("gain", self.gain, strictly_positive=True)
         offset = _require_number("offset_mv", self.offset_mv)
-        noise = _require_number(
-            "noise_stddev_mv", self.noise_stddev_mv, minimum=0.0
-        )
+        noise = _require_number("noise_stddev_mv", self.noise_stddev_mv, minimum=0.0)
         saturation_min = _require_number(
             "saturation_min_mv", self.saturation_min_mv, minimum=0.0
         )
@@ -292,9 +290,7 @@ class SimulatorAdapter(DeviceAdapter):
             )
         }
         self._read_indices = dict.fromkeys(channels, 0)
-        self._hysteresis_states = {
-            self._simulator_config.threshold_channel: False
-        }
+        self._hysteresis_states = {self._simulator_config.threshold_channel: False}
 
     def _disconnect(self) -> None:
         self._streams.clear()
@@ -319,7 +315,9 @@ class SimulatorAdapter(DeviceAdapter):
         else:
             noise_rng = self._noise_rngs.get(channel)
             if noise_rng is None:
-                raise AdapterStateError("simulator output noise source is not connected")
+                raise AdapterStateError(
+                    "simulator output noise source is not connected"
+                )
             raw_value = (
                 self._simulator_config.gain * message.input_mv
                 + self._simulator_config.offset_mv
@@ -395,9 +393,7 @@ class SimulatorAdapter(DeviceAdapter):
                 None,
                 unit,
                 MeasurementStatus.INVALID,
-                frozenset(
-                    {QualityFlag.COMMUNICATION_ERROR, QualityFlag.MISSING}
-                ),
+                frozenset({QualityFlag.COMMUNICATION_ERROR, QualityFlag.MISSING}),
             )
         if mode is SimulatorFaultMode.COMMUNICATION_ERROR:
             raise AdapterError("injected simulator communication error")

@@ -9,6 +9,7 @@ from pathlib import Path
 from analog_validation import (
     ChannelReadRequest,
     CsvReplayAdapterConfig,
+    FrequencyResponseSimulatorConfig,
     MeasurementUnit,
     ReadOperation,
     ReadWorkflowRequest,
@@ -18,8 +19,12 @@ from analog_validation import (
     SimulatorConfig,
 )
 from analog_validation.analysis import (
+    CalibrationAcceptanceCriteria,
+    CalibrationFitConfig,
     DCSweepAcceptanceCriteria,
     DCSweepAnalysisConfig,
+    FrequencyResponseAcceptanceCriteria,
+    FrequencyResponseAnalysisConfig,
     HysteresisAcceptanceCriteria,
     HysteresisAnalysisConfig,
 )
@@ -34,15 +39,27 @@ from .factories import (
     default_serial_backend_factory,
     make_csv_replay_adapter_factory,
     make_csv_replay_dataset_adapter_factory,
+    make_frequency_response_simulator_adapter_factory,
     make_serial_adapter_factory,
     make_simulator_adapter_factory,
+)
+from .live import (
+    DEFAULT_LIVE_MONITOR_MAX_POINTS,
+    MAX_LIVE_MONITOR_DURATION_SECONDS,
+    MAX_LIVE_MONITOR_INTERVAL_SECONDS,
+    MAX_LIVE_MONITOR_WINDOW_SECONDS,
+    MIN_LIVE_MONITOR_WINDOW_SECONDS,
+    LiveMonitorSession,
 )
 from .models import ProductJobRequest, ProductJobType, ProductSourceMode
 from .services import (
     Clock,
     ProductServiceOutputSlot,
+    make_calibration_service_factory,
     make_dc_sweep_service_factory,
+    make_frequency_response_service_factory,
     make_hysteresis_service_factory,
+    make_live_monitor_service_factory,
     make_read_service_factory,
 )
 from .worker import ProductJobServiceFactory
@@ -124,6 +141,12 @@ class ProductWorkflowConfiguration:
     max_abs_offset: float = 25.0
     min_r_squared: float = 0.999
     max_rmse: float = 1.0
+    coefficient_id: str = "afe-linear-calibration"
+    coefficient_version: str = "1"
+    max_calibration_rmse: float = 1.0
+    max_calibration_mean_absolute_error: float = 1.0
+    max_calibration_absolute_error: float = 2.0
+    minimum_calibration_rmse_reduction: float = 0.0
     minimum_high_threshold: float = 900.0
     maximum_high_threshold: float = 1100.0
     minimum_low_threshold: float = 800.0
@@ -132,6 +155,20 @@ class ProductWorkflowConfiguration:
     maximum_width: float = 200.0
     maximum_width_span: float = 0.0
     schema_version: str = PRODUCT_WORKFLOW_CONFIG_SCHEMA_VERSION
+    frequency_channel: str = "afe.ch0.frequency"
+    frequency_point_count: int = 21
+    frequency_minimum_hz: float = 10.0
+    frequency_maximum_hz: float = 100_000.0
+    frequency_input_amplitude: float = 1_000.0
+    simulated_cutoff_frequency_hz: float = 1_000.0
+    target_cutoff_frequency_hz: float = 1_000.0
+    cutoff_relative_tolerance: float = 0.15
+    cutoff_drop_db: float = 3.010299956639812
+    monitor_sample_interval_seconds: float = 0.05
+    monitor_time_window_seconds: float = 5.0
+    monitor_max_buffer_points: int = DEFAULT_LIVE_MONITOR_MAX_POINTS
+    monitor_include_secondary: bool = True
+    monitor_include_state: bool = True
 
     def __post_init__(self) -> None:
         if not isinstance(self.source_mode, ProductSourceMode):
@@ -144,6 +181,9 @@ class ProductWorkflowConfiguration:
             "primary_channel",
             "secondary_channel",
             "state_channel",
+            "frequency_channel",
+            "coefficient_id",
+            "coefficient_version",
         ):
             _text(name, getattr(self, name))
         if not isinstance(self.operation, ReadOperation):
@@ -153,6 +193,7 @@ class ProductWorkflowConfiguration:
         _sample_count("sample_count", self.sample_count)
         _sample_count("rising_count", self.rising_count, minimum=2)
         _sample_count("falling_count", self.falling_count, minimum=2)
+        _sample_count("frequency_point_count", self.frequency_point_count, minimum=10)
         if self.rising_count + self.falling_count > MAX_PRODUCT_WORKFLOW_SAMPLES:
             raise ProductRequestError(
                 "rising_count plus falling_count exceeds the workflow sample limit"
@@ -171,6 +212,10 @@ class ProductWorkflowConfiguration:
             "max_abs_offset",
             "min_r_squared",
             "max_rmse",
+            "max_calibration_rmse",
+            "max_calibration_mean_absolute_error",
+            "max_calibration_absolute_error",
+            "minimum_calibration_rmse_reduction",
             "minimum_high_threshold",
             "maximum_high_threshold",
             "minimum_low_threshold",
@@ -178,8 +223,21 @@ class ProductWorkflowConfiguration:
             "minimum_width",
             "maximum_width",
             "maximum_width_span",
+            "frequency_minimum_hz",
+            "frequency_maximum_hz",
+            "frequency_input_amplitude",
+            "simulated_cutoff_frequency_hz",
+            "target_cutoff_frequency_hz",
+            "cutoff_relative_tolerance",
+            "cutoff_drop_db",
+            "monitor_sample_interval_seconds",
+            "monitor_time_window_seconds",
         ):
             _finite(name, getattr(self, name))
+        _sample_count("monitor_max_buffer_points", self.monitor_max_buffer_points)
+        for name in ("monitor_include_secondary", "monitor_include_state"):
+            if not isinstance(getattr(self, name), bool):
+                raise ProductRequestError(f"{name} must be boolean")
         source = get_product_source(self.source_mode)
         profile = get_product_profile(self.profile_name, self.profile_version)
         if self.source_mode not in profile.source_modes:
@@ -239,6 +297,116 @@ class ProductWorkflowConfiguration:
             if self.primary_channel == self.secondary_channel:
                 raise ProductRequestError("DC input and output channels must differ")
             return
+        if self.job_type is ProductJobType.CALIBRATION_ANALYSIS:
+            if self.primary_channel == self.secondary_channel:
+                raise ProductRequestError(
+                    "calibration observed and reference channels must differ"
+                )
+            if any(
+                value < 0.0
+                for value in (
+                    self.max_calibration_rmse,
+                    self.max_calibration_mean_absolute_error,
+                    self.max_calibration_absolute_error,
+                    self.minimum_calibration_rmse_reduction,
+                )
+            ):
+                raise ProductRequestError(
+                    "calibration error limits and reduction cannot be negative"
+                )
+            return
+        if self.job_type is ProductJobType.FREQUENCY_RESPONSE_ANALYSIS:
+            channels = (
+                self.frequency_channel,
+                self.primary_channel,
+                self.secondary_channel,
+            )
+            if len(set(channels)) != 3:
+                raise ProductRequestError(
+                    "frequency, input-amplitude, and output-amplitude channels must differ"
+                )
+            if not (
+                0.0
+                < self.frequency_minimum_hz
+                < self.target_cutoff_frequency_hz
+                < self.frequency_maximum_hz
+            ):
+                raise ProductRequestError(
+                    "frequency bounds must satisfy 0 < minimum < target cutoff < maximum"
+                )
+            if not (
+                self.frequency_minimum_hz
+                < self.simulated_cutoff_frequency_hz
+                < self.frequency_maximum_hz
+            ):
+                raise ProductRequestError(
+                    "frequency bounds must contain the simulated cutoff"
+                )
+            if not 0.0 <= self.cutoff_relative_tolerance < 1.0:
+                raise ProductRequestError(
+                    "cutoff_relative_tolerance must be at least zero and below one"
+                )
+            if self.cutoff_drop_db <= 0.0:
+                raise ProductRequestError("cutoff_drop_db must be positive")
+            amplitude_maximum = 3.3 if self.unit is MeasurementUnit.VOLT else 3300.0
+            if not 0.0 < self.frequency_input_amplitude <= amplitude_maximum:
+                raise ProductRequestError(
+                    "frequency_input_amplitude must be positive and within 3.3 V"
+                )
+            return
+        if self.job_type is ProductJobType.LIVE_MONITOR:
+            if self.operation is not ReadOperation.ANALOG:
+                raise ProductRequestError(
+                    "live monitor primary channel must use analog operation"
+                )
+            if (
+                not 0.0
+                <= self.monitor_sample_interval_seconds
+                <= (MAX_LIVE_MONITOR_INTERVAL_SECONDS)
+            ):
+                raise ProductRequestError(
+                    "monitor_sample_interval_seconds must be between 0 and "
+                    f"{MAX_LIVE_MONITOR_INTERVAL_SECONDS:g}"
+                )
+            if (
+                not MIN_LIVE_MONITOR_WINDOW_SECONDS
+                <= (self.monitor_time_window_seconds)
+                <= MAX_LIVE_MONITOR_WINDOW_SECONDS
+            ):
+                raise ProductRequestError(
+                    "monitor_time_window_seconds must be between "
+                    f"{MIN_LIVE_MONITOR_WINDOW_SECONDS:g} and "
+                    f"{MAX_LIVE_MONITOR_WINDOW_SECONDS:g}"
+                )
+            duration_seconds = (
+                max(0, self.sample_count - 1) * self.monitor_sample_interval_seconds
+            )
+            if duration_seconds > MAX_LIVE_MONITOR_DURATION_SECONDS:
+                raise ProductRequestError(
+                    "live monitor requested duration exceeds the interactive "
+                    f"limit of {MAX_LIVE_MONITOR_DURATION_SECONDS:g} seconds"
+                )
+            channel_identities = (
+                self.primary_channel,
+                self.secondary_channel,
+                self.state_channel,
+            )
+            if len(channel_identities) != len(set(channel_identities)):
+                raise ProductRequestError(
+                    "live monitor channel identities must be distinct"
+                )
+            enabled_channel_count = (
+                1
+                + int(self.monitor_include_secondary)
+                + int(self.monitor_include_state)
+            )
+            total_measurements = self.sample_count * enabled_channel_count
+            if total_measurements > MAX_PRODUCT_WORKFLOW_SAMPLES:
+                raise ProductRequestError(
+                    "live monitor cycles multiplied by enabled channels exceeds "
+                    "the workflow sample limit"
+                )
+            return
         if self.primary_channel == self.state_channel:
             raise ProductRequestError("hysteresis input and state channels must differ")
 
@@ -251,6 +419,7 @@ class PreparedProductJob:
     service_factory: ProductJobServiceFactory
     output_slot: ProductServiceOutputSlot
     review_lines: tuple[str, ...]
+    live_monitor_session: LiveMonitorSession | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.request, ProductJobRequest):
@@ -263,6 +432,18 @@ class PreparedProductJob:
             raise ProductRequestError("review_lines must be a non-empty tuple")
         for line in self.review_lines:
             _text("review line", line)
+        if self.live_monitor_session is not None and not isinstance(
+            self.live_monitor_session, LiveMonitorSession
+        ):
+            raise ProductRequestError(
+                "live_monitor_session must be a LiveMonitorSession or None"
+            )
+        if (self.request.job_type is ProductJobType.LIVE_MONITOR) != (
+            self.live_monitor_session is not None
+        ):
+            raise ProductRequestError(
+                "only LIVE_MONITOR jobs require a live_monitor_session"
+            )
 
 
 def _replay_channel(
@@ -284,10 +465,43 @@ def _adapter_factory(
     prevalidate_replay: bool,
 ) -> tuple[AdapterFactory, tuple[str, ...]]:
     if config.source_mode is ProductSourceMode.SIMULATOR:
-        simulator = SimulatorConfig(
-            profile_name=config.profile_name,
-            profile_version=config.profile_version,
-        )
+        if config.job_type is ProductJobType.FREQUENCY_RESPONSE_ANALYSIS:
+            frequency_simulator = FrequencyResponseSimulatorConfig(
+                point_count=config.frequency_point_count,
+                frequency_minimum_hz=config.frequency_minimum_hz,
+                frequency_maximum_hz=config.frequency_maximum_hz,
+                cutoff_frequency_hz=config.simulated_cutoff_frequency_hz,
+                input_amplitude=config.frequency_input_amplitude,
+                amplitude_unit=config.unit,
+                profile_name=config.profile_name,
+                profile_version=config.profile_version,
+                frequency_channel=config.frequency_channel,
+                input_amplitude_channel=config.primary_channel,
+                output_amplitude_channel=config.secondary_channel,
+            )
+            return make_frequency_response_simulator_adapter_factory(
+                frequency_simulator
+            ), (
+                "Source: deterministic frequency-response Simulator; evidence remains SYNTHETIC.",
+                (
+                    "Simulator model: reference-normalized single-pole low-pass; "
+                    f"modeled cutoff {config.simulated_cutoff_frequency_hz:g} Hz; "
+                    "no stimulus was driven."
+                ),
+            )
+        if config.job_type is ProductJobType.LIVE_MONITOR:
+            simulator = SimulatorConfig(
+                profile_name=config.profile_name,
+                profile_version=config.profile_version,
+                analog_channel=config.primary_channel,
+                output_channel=config.secondary_channel,
+                threshold_channel=config.state_channel,
+            )
+        else:
+            simulator = SimulatorConfig(
+                profile_name=config.profile_name,
+                profile_version=config.profile_version,
+            )
         return make_simulator_adapter_factory(simulator), (
             "Source: deterministic Simulator; evidence remains SYNTHETIC.",
         )
@@ -317,8 +531,66 @@ def _adapter_factory(
                 config.replay_maximum,
             ),
         )
-    elif config.job_type is ProductJobType.DC_ANALYSIS:
+    elif config.job_type is ProductJobType.LIVE_MONITOR:
+        live_channels = [
+            _replay_channel(
+                config.primary_channel,
+                ReplayChannelKind.ANALOG,
+                config.unit,
+                config.replay_minimum,
+                config.replay_maximum,
+            )
+        ]
+        if config.monitor_include_secondary:
+            live_channels.append(
+                _replay_channel(
+                    config.secondary_channel,
+                    ReplayChannelKind.ANALOG,
+                    config.unit,
+                    config.replay_minimum,
+                    config.replay_maximum,
+                )
+            )
+        if config.monitor_include_state:
+            live_channels.append(
+                _replay_channel(
+                    config.state_channel,
+                    ReplayChannelKind.DIGITAL,
+                    MeasurementUnit.BOOLEAN,
+                    config.replay_minimum,
+                    config.replay_maximum,
+                )
+            )
+        channels = tuple(live_channels)
+    elif config.job_type in {
+        ProductJobType.DC_ANALYSIS,
+        ProductJobType.CALIBRATION_ANALYSIS,
+    }:
         channels = (
+            _replay_channel(
+                config.primary_channel,
+                ReplayChannelKind.ANALOG,
+                config.unit,
+                config.replay_minimum,
+                config.replay_maximum,
+            ),
+            _replay_channel(
+                config.secondary_channel,
+                ReplayChannelKind.ANALOG,
+                config.unit,
+                config.replay_minimum,
+                config.replay_maximum,
+            ),
+        )
+    elif config.job_type is ProductJobType.FREQUENCY_RESPONSE_ANALYSIS:
+        channels = (
+            _replay_channel(
+                config.frequency_channel,
+                ReplayChannelKind.ANALOG,
+                MeasurementUnit.HERTZ,
+                config.frequency_minimum_hz,
+                config.frequency_maximum_hz,
+            ),
             _replay_channel(
                 config.primary_channel,
                 ReplayChannelKind.ANALOG,
@@ -381,6 +653,41 @@ def _read_workflow(config: ProductWorkflowConfiguration) -> ReadWorkflowRequest:
     )
 
 
+def _live_monitor_workflow(
+    config: ProductWorkflowConfiguration,
+) -> ReadWorkflowRequest:
+    requirements = [
+        ChannelReadRequest(
+            config.primary_channel,
+            ReadOperation.ANALOG,
+            config.unit,
+            config.sample_count,
+        )
+    ]
+    if config.monitor_include_secondary:
+        requirements.append(
+            ChannelReadRequest(
+                config.secondary_channel,
+                ReadOperation.ANALOG,
+                config.unit,
+                config.sample_count,
+            )
+        )
+    if config.monitor_include_state:
+        requirements.append(
+            ChannelReadRequest(
+                config.state_channel,
+                ReadOperation.DIGITAL,
+                MeasurementUnit.BOOLEAN,
+                config.sample_count,
+            )
+        )
+    return ReadWorkflowRequest(
+        tuple(requirements),
+        request_id="product-live-monitor",
+    )
+
+
 def _dc_parts(
     config: ProductWorkflowConfiguration,
 ) -> tuple[ReadWorkflowRequest, DCSweepAnalysisConfig, DCSweepAcceptanceCriteria]:
@@ -418,6 +725,99 @@ def _dc_parts(
         config.max_rmse,
         3,
         config.unit,
+    )
+    return workflow, analysis, criteria
+
+
+def _calibration_parts(
+    config: ProductWorkflowConfiguration,
+) -> tuple[
+    ReadWorkflowRequest,
+    CalibrationFitConfig,
+    CalibrationAcceptanceCriteria,
+]:
+    workflow = ReadWorkflowRequest(
+        (
+            ChannelReadRequest(
+                config.primary_channel,
+                ReadOperation.ANALOG,
+                config.unit,
+                config.sample_count,
+            ),
+            ChannelReadRequest(
+                config.secondary_channel,
+                ReadOperation.ANALOG,
+                config.unit,
+                config.sample_count,
+            ),
+        ),
+        request_id="product-calibration",
+    )
+    analysis = CalibrationFitConfig(
+        config.primary_channel,
+        config.secondary_channel,
+        config.coefficient_id,
+        config.coefficient_version,
+        config.unit,
+        3,
+    )
+    criteria = CalibrationAcceptanceCriteria(
+        "product-calibration-default",
+        "1",
+        config.max_calibration_rmse,
+        config.max_calibration_mean_absolute_error,
+        config.max_calibration_absolute_error,
+        config.minimum_calibration_rmse_reduction,
+        3,
+        config.unit,
+    )
+    return workflow, analysis, criteria
+
+
+def _frequency_response_parts(
+    config: ProductWorkflowConfiguration,
+) -> tuple[
+    ReadWorkflowRequest,
+    FrequencyResponseAnalysisConfig,
+    FrequencyResponseAcceptanceCriteria,
+]:
+    workflow = ReadWorkflowRequest(
+        (
+            ChannelReadRequest(
+                config.frequency_channel,
+                ReadOperation.ANALOG,
+                MeasurementUnit.HERTZ,
+                config.frequency_point_count,
+            ),
+            ChannelReadRequest(
+                config.primary_channel,
+                ReadOperation.ANALOG,
+                config.unit,
+                config.frequency_point_count,
+            ),
+            ChannelReadRequest(
+                config.secondary_channel,
+                ReadOperation.ANALOG,
+                config.unit,
+                config.frequency_point_count,
+            ),
+        ),
+        request_id="product-frequency-response",
+    )
+    analysis = FrequencyResponseAnalysisConfig(
+        config.frequency_channel,
+        config.primary_channel,
+        config.secondary_channel,
+        config.unit,
+        config.cutoff_drop_db,
+        10,
+    )
+    criteria = FrequencyResponseAcceptanceCriteria(
+        "product-frequency-response-default",
+        "1",
+        config.target_cutoff_frequency_hz,
+        config.cutoff_relative_tolerance,
+        10,
     )
     return workflow, analysis, criteria
 
@@ -500,6 +900,7 @@ def prepare_product_job(
         prevalidate_replay=prevalidate_replay,
     )
     slot = ProductServiceOutputSlot()
+    live_session: LiveMonitorSession | None = None
     limitations = {
         ProductSourceMode.SIMULATOR: SIMULATOR_LIMITATIONS,
         ProductSourceMode.CSV_REPLAY: REPLAY_LIMITATIONS,
@@ -542,6 +943,96 @@ def prepare_product_job(
             f"Reviewed target gain: {config.target_gain:g} +/- {config.gain_tolerance:g}.",
             f"Fit criteria: abs offset <= {config.max_abs_offset:g} {config.unit.value}; R^2 >= {config.min_r_squared:g}; RMSE <= {config.max_rmse:g} {config.unit.value}.",
         )
+    elif config.job_type is ProductJobType.CALIBRATION_ANALYSIS:
+        calibration_workflow, calibration_analysis, calibration_criteria = (
+            _calibration_parts(config)
+        )
+        if service_clock is None:
+            service_factory = make_calibration_service_factory(
+                adapter_factory,
+                calibration_workflow,
+                calibration_analysis,
+                calibration_criteria,
+                limitations,
+                slot,
+            )
+        else:
+            service_factory = make_calibration_service_factory(
+                adapter_factory,
+                calibration_workflow,
+                calibration_analysis,
+                calibration_criteria,
+                limitations,
+                slot,
+                clock=service_clock,
+            )
+        workflow_review = (
+            f"Test: CALIBRATION_ANALYSIS; {config.sample_count} observed/reference pairs.",
+            f"Channels: observed {config.primary_channel}; reference {config.secondary_channel} ({config.unit.value}).",
+            f"Coefficient: {config.coefficient_id}/{config.coefficient_version}; linear reference fit.",
+            f"After-error limits: RMSE <= {config.max_calibration_rmse:g}, mean absolute <= {config.max_calibration_mean_absolute_error:g}, max absolute <= {config.max_calibration_absolute_error:g} {config.unit.value}.",
+            f"Required RMSE reduction: >= {config.minimum_calibration_rmse_reduction:g} {config.unit.value}.",
+        )
+    elif config.job_type is ProductJobType.FREQUENCY_RESPONSE_ANALYSIS:
+        frequency_workflow, frequency_analysis, frequency_criteria = (
+            _frequency_response_parts(config)
+        )
+        if service_clock is None:
+            service_factory = make_frequency_response_service_factory(
+                adapter_factory,
+                frequency_workflow,
+                frequency_analysis,
+                frequency_criteria,
+                limitations,
+                slot,
+            )
+        else:
+            service_factory = make_frequency_response_service_factory(
+                adapter_factory,
+                frequency_workflow,
+                frequency_analysis,
+                frequency_criteria,
+                limitations,
+                slot,
+                clock=service_clock,
+            )
+        workflow_review = (
+            f"Test: FREQUENCY_RESPONSE_ANALYSIS; {config.frequency_point_count} logarithmic points.",
+            f"Channels: frequency {config.frequency_channel}; input {config.primary_channel}; output {config.secondary_channel} (Hz/{config.unit.value}).",
+            f"Frequency window: {config.frequency_minimum_hz:g} to {config.frequency_maximum_hz:g} Hz.",
+            f"Cutoff definition: reference gain minus {config.cutoff_drop_db:g} dB.",
+            f"Reviewed cutoff target: {config.target_cutoff_frequency_hz:g} Hz +/- {config.cutoff_relative_tolerance * 100:g}%.",
+            (
+                "At least 10 frequency points are required; every requested point "
+                "must be usable and strictly increasing for v1 cutoff publication."
+            ),
+        )
+    elif config.job_type is ProductJobType.LIVE_MONITOR:
+        live_session = LiveMonitorSession(
+            max_points=config.monitor_max_buffer_points,
+            time_window_seconds=config.monitor_time_window_seconds,
+        )
+        service_factory = make_live_monitor_service_factory(
+            adapter_factory,
+            _live_monitor_workflow(config),
+            limitations,
+            slot,
+            live_session,
+            sample_interval_seconds=config.monitor_sample_interval_seconds,
+        )
+        enabled_channels = [config.primary_channel]
+        if config.monitor_include_secondary:
+            enabled_channels.append(config.secondary_channel)
+        if config.monitor_include_state:
+            enabled_channels.append(config.state_channel)
+        workflow_review = (
+            f"Test: LIVE_MONITOR; {config.sample_count} finite sample cycles.",
+            f"Enabled channels: {', '.join(enabled_channels)}.",
+            f"Cadence: {config.monitor_sample_interval_seconds:g} s between cycles.",
+            f"Requested duration: {max(0, config.sample_count - 1) * config.monitor_sample_interval_seconds:g} s (finite interactive session).",
+            f"Presentation window: {config.monitor_time_window_seconds:g} s; retained-point limit: {config.monitor_max_buffer_points}.",
+            "Pause/resume controls acquisition checkpoints; no background acquisition survives completion.",
+        )
     else:
         hysteresis_workflow, hysteresis_analysis, hysteresis_criteria = (
             _hysteresis_parts(config)
@@ -583,7 +1074,7 @@ def prepare_product_job(
         "Output permission: DENIED; this product workflow is read-only.",
         "Hardware performance validation: NOT CLAIMED.",
     )
-    return PreparedProductJob(request, service_factory, slot, review)
+    return PreparedProductJob(request, service_factory, slot, review, live_session)
 
 
 __all__ = [

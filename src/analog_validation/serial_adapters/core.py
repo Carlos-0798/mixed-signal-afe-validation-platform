@@ -134,9 +134,7 @@ def _range_signature(
     output: bool,
 ) -> tuple[tuple[float, float, str], ...]:
     ranges = (
-        capabilities.safe_output_ranges
-        if output
-        else capabilities.safe_input_ranges
+        capabilities.safe_output_ranges if output else capabilities.safe_input_ranges
     )
     return tuple(
         sorted(
@@ -358,7 +356,10 @@ class SerialAdapter(DeviceAdapter):
     ) -> DeviceCapabilities:
         if not isinstance(native, DeviceCapabilities):
             raise AdapterDataError("serial profile returned invalid capabilities")
-        if self._native_capabilities is not None and native != self._native_capabilities:
+        if (
+            self._native_capabilities is not None
+            and native != self._native_capabilities
+        ):
             raise AdapterDataError("serial profile capabilities changed in-session")
         try:
             projected = self._capability_projector(native)
@@ -407,11 +408,10 @@ class SerialAdapter(DeviceAdapter):
             raise AdapterDataError(
                 "serial capability projection must alias every declared channel"
             )
-        if (
-            _range_signature(native, output=False)
-            != _range_signature(projected, output=False)
-            or _range_signature(native, output=True)
-            != _range_signature(projected, output=True)
+        if _range_signature(native, output=False) != _range_signature(
+            projected, output=False
+        ) or _range_signature(native, output=True) != _range_signature(
+            projected, output=True
         ):
             raise AdapterDataError(
                 "serial capability projection changed a declared numeric range"

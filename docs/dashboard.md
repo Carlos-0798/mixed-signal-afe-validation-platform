@@ -11,14 +11,24 @@
 fixed six-step validation workflow:
 
 1. **Source** — select Simulator, CSV Replay, or Serial (read-only).
-2. **Test** — select bounded read, DC analysis, or hysteresis analysis.
+2. **Test** — select bounded read, bounded live monitoring, DC analysis,
+   hysteresis analysis, linear calibration, or frequency-response analysis.
 3. **Configure** — enter channels, units, counts, limits, and source-specific
-   settings.
+   settings. Frequency response has a dedicated panel that keeps the Simulator
+   model cutoff separate from the reviewed target cutoff. Live monitoring has
+   explicit finite cycles, interval, time window, retained-point bound, and
+   channel-selection controls.
 4. **Review** — compile and validate the exact request before a worker starts.
 5. **Run** — give the reviewed request to the existing single-owner worker and
    show bounded progress; Cancel uses cooperative cleanup.
-6. **Result** — show outcome, evidence, limitations, points, and create-new
-   JSON/CSV export when an analysis result exists.
+6. **Result** — show outcome, evidence, limitations, points, create-new
+   JSON/CSV export, and separate calibration-coefficient save/inspection when
+   applicable.
+
+During a reviewed live-monitor run, the Results tab adds a bounded chart,
+acquired/retained/visible/evicted and quality counts, cooperative Pause/Resume,
+and a presentation-only trailing-window selector. The job always terminates at
+its reviewed cycle bound and has no engineering PASS/FAIL outcome.
 
 The window separates the workflow into **Setup & run** and
 **Results & evidence** tabs. A vertical scrollbar appears only when the active
@@ -129,13 +139,23 @@ source/profile,
 configuration/safe review, progress, finalized point table, result/evidence,
 and artifacts. Result actions make the end of a run explicit: **Modify setup**,
 **Review same setup**, **Start new test**, or **Finish & close**. The Step 6
-wizard exposes the acceptance criteria used for DC or hysteresis evaluation.
+wizard exposes the acceptance criteria used for DC, hysteresis, calibration,
+or frequency-response evaluation.
 Evidence source, worker state, engineering outcome, limitations, exclusions,
 and issues are written as text; meaning is not conveyed by color alone.
 
-A bounded read can finish successfully without an analysis export. DC and
-hysteresis results can expose the existing finalized `ResultExportBundle` and
-write JSON or CSV. The Dashboard does not recompute that bundle.
+A bounded read can finish successfully without an analysis export. DC,
+hysteresis, calibration, and frequency-response results can expose the existing
+finalized `ResultExportBundle` and write JSON or CSV. Calibration additionally exposes a
+strict `calibration-coefficients.v1` file. Result and coefficient destinations
+are independent and create-new. Loading coefficients validates and displays
+them for inspection only; it does not apply them, rerun analysis, or write
+firmware. The Dashboard does not recompute either artifact.
+
+A live-monitor result also finishes without an analysis export. Its final
+visible table and `live-monitor.v1` snapshot are observation evidence, not a
+criteria evaluation. Oldest-point eviction is reported separately from worker
+event drops and invalid/suspect measurement counts.
 
 The reusable interaction rules, acceptance cases, and design rationale are
 recorded in the [software interaction design guide](SOFTWARE_INTERACTION_DESIGN_GUIDE.md)
@@ -145,6 +165,17 @@ and [Dashboard interaction design audit](UX_DESIGN_AUDIT.md).
 
 - CLI and Dashboard produced equivalent finalized results for the same 24-point
   Simulator DC configuration.
+- The calibration workflow reached the same product compiler, worker, core
+  fit/evaluator, result export, coefficient writer, and report path for
+  Simulator and CSV Replay while retaining `SYNTHETIC`/`CSV_REPLAY` evidence.
+- The frequency-response workflow reached the same compiler and worker for
+  Simulator and CSV Replay, retained three references per point, evaluated an
+  independently reviewed cutoff target, and displayed a logarithmic-frequency
+  dB chart without opening a serial source or controlling an instrument.
+- The live-monitor workflow reached the same compiler, worker, Simulator/Replay
+  adapters, terminal result, and Dashboard state; finite duration, ring-buffer
+  eviction, pause/resume, time-window changes, status counts, and CLI JSON/human
+  views were host-tested without enabling a serial live-monitor job.
 - Missing/invalid Replay input failed during Review, before worker start.
 - A memory-backed MSP430 receive-only chain opened once during Run, closed once,
   and made zero write calls; no physical port was involved.
@@ -160,10 +191,12 @@ and [Dashboard interaction design audit](UX_DESIGN_AUDIT.md).
   no-overwrite export; immediate rerun; result actions; scrolling; and clean
   window close. The executed observations remain `SYNTHETIC` or `CSV_REPLAY`
   software evidence only.
-- The current local follow-up gate passed 2,277 tests and covered
-  11,911/11,911 executable package statements. Two isolated builds were
-  byte-identical, and fresh base and `[serial]` installations passed using only
-  an injected serial substitute.
+- The final local calibration + frequency-response + bounded live-monitor
+  precommit gate passed 2,459 tests and covered 13,834/13,834 executable package
+  statements. Full Ruff, mypy across 218 source files, dependency, 15/15 product-
+  quality, repeated-build, fresh-install, and installed Simulator/Replay monitor
+  checks also passed; commit-bound candidate/audit and hosted CI remain separate
+  owner-gated actions.
 
 ## Current limitations
 

@@ -130,7 +130,8 @@ Do not power the analog assembly until the open toolchain, inventory, permission
   services, and explicit timeout for a non-cooperative service. Job-specific
   duration/record bounds remain application-service responsibilities.
 - **Step 3 complete:** freeze the installed `version`, `profiles`, `ports`,
-  Simulator/Replay `read`/`dc`/`hysteresis`, and receive-only `observe`
+  Simulator/Replay `read`/`monitor`/`dc`/`hysteresis`/`calibration`/`frequency`, coefficient
+  inspection, and receive-only `observe`
   commands; verify stable human/JSON output and exits 0/1/2/3/4/5/70/130.
 - **Step 3 complete:** exercise Simulator, CSV Replay, and receive-only
   SerialAdapter product chains
@@ -145,9 +146,11 @@ Do not power the analog assembly until the open toolchain, inventory, permission
   boundary. Interactive Windows console `Ctrl+C`/`Ctrl+Break` and real-COM
   worker cancellation remain explicit later smoke gates.
 - **Step 4 complete:** build bounded immutable report/chart views only from
-  finalized result bundles; DC uses frozen predicted values and hysteresis uses
-  exported adjacent transitions/final threshold metrics, with no refit,
-  recalculation, outcome change, or provenance promotion.
+  finalized result bundles; DC uses frozen predicted values, hysteresis uses
+  exported adjacent transitions/final threshold metrics, calibration uses
+  exported before/after signed errors, and frequency response uses exported
+  amplitude gain/cutoff values on a logarithmic frequency axis, with no refit,
+  cutoff re-interpolation, outcome change, or provenance promotion.
 - **Step 4 complete:** freeze text/Markdown/self-contained HTML/SVG plus manifest
   output with no script or remote resource; display evidence, limitations,
   not-verified items, versions, input identity, lineage, and hashes using text as
@@ -189,6 +192,59 @@ Do not power the analog assembly until the open toolchain, inventory, permission
 - Keep the earlier controller UART HIL in its own report. Product UI tests and
   screenshots are not AFE, peripheral, electrical-safety, timing, or long-run
   hardware evidence.
+
+## Post-beta calibration and frequency-response checks
+
+- Require calibration and frequency-response requests to use the same reviewed
+  compiler, service, bounded worker, result export, CLI, Dashboard, and report
+  boundaries as the accepted read/DC/hysteresis workflows.
+- For frequency response, keep the deterministic Simulator model cutoff
+  separate from the acceptance target cutoff. Verify an exact default PASS and
+  a deliberate model/target mismatch that returns engineering exit `1`/`FAIL`.
+- Preserve three references per frequency point: explicit Hz, input amplitude,
+  and output amplitude. Reject unequal batches, nonpositive frequency/amplitude,
+  mixed source, invalid lineage, ambiguous crossings, and tampered results.
+- Exercise strict CSV Replay grouping, stable JSON/CSV round trips, dedicated
+  Dashboard controls, and presentation-only logarithmic-frequency SVG output.
+- Require full package statement coverage, Ruff, mypy, dependency consistency,
+  repeated isolated build, fresh base and `[serial]` installs, and an installed
+  frequency CLI/report smoke before committing the combined increment.
+- The formal release-candidate/audit tools remain commit-bound and must be run
+  only after an owner-approved clean commit. Hosted CI remains `NOT RUN` until
+  an owner-approved push. Neither gate may enumerate/open a physical port.
+
+## Post-beta bounded live-monitor checks
+
+- Compile `LIVE_MONITOR` through the same six-step reviewed product boundary as
+  the other workflows; reject Serial and any output-capable request before a
+  service or adapter is created.
+- Limit every job to at most 55 seconds and 10,000 acquired measurements. Keep
+  the retained ring buffer independently bounded from 1 to 10,000 points and
+  keep the visible time window bounded from 0.1 to 3,600 seconds.
+- Exercise Simulator and strict CSV Replay through the shared streaming-read
+  workflow. Verify multi-channel batches, normal completion, early end of data,
+  cancellation, cleanup, invalid configuration, and unequal service batches.
+- Freeze the `live-monitor.v1` snapshot/trace public contract, all relevant
+  CLI paths, product services, Dashboard dataclasses, and stable maximums in the
+  Phase 2/3/5 golden manifests.
+- Verify ring-buffer eviction, VALID/SUSPECT/INVALID counts, last timestamp,
+  cooperative pause/resume, time-window filtering, and worker-event dropped
+  counts as separate facts; no one counter may be presented as another.
+- Verify CLI human and JSON views and Dashboard chart/table/status presentation
+  without producing an analysis bundle, engineering PASS/FAIL, or automatic
+  file output.
+- Exercise every live Dashboard callback headlessly and run a real Tk
+  accessibility/startup smoke on a complete Tcl/Tk runtime. If the current
+  interpreter cannot load Tk, record that smoke as `NOT RUN` instead of treating
+  a mocked widget test as visible-GUI evidence.
+- Require complete pytest statement coverage, Ruff, mypy, dependency checks,
+  isolated build, fresh base/serial installs, and an installed Simulator/Replay
+  monitor smoke before an owner-approved commit.
+- Keep real serial monitoring deferred until device identity, receive-only
+  permissions, disconnect/reconnect, sample-rate limits, memory behavior,
+  30-minute/2-hour soak tests, and evidence classification have separate
+  acceptance records. No host test may be promoted to physical timing or AFE
+  validation evidence.
 
 ## Deferred bench acceptance
 

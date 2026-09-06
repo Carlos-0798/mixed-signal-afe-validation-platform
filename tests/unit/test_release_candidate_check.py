@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import gzip
 import io
+import json
 import subprocess
 import sys
 import tarfile
@@ -16,6 +17,7 @@ from tools.release_candidate_check import (
     RELEASE_CANDIDATE_SCHEMA_VERSION,
     ArtifactRecord,
     ReleaseCandidateError,
+    _clean_install_checks,
     _compare_builds,
     _manifest,
     _publish_candidate,
@@ -144,6 +146,62 @@ def test_command_runner_retries_only_transient_launch_errors(
     assert _run("transient probe", ("probe",), launch_attempts=2) == "ready\n"
     assert calls == 2
     assert delays == [0.25]
+
+
+def test_clean_install_checks_scrub_pythonpath_from_every_fresh_environment(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    cli = tmp_path / "analog-validation.exe"
+    cli.write_bytes(b"launcher")
+    environments: list[dict[str, str] | None] = []
+
+    def fake_run(
+        label: str,
+        _arguments: object,
+        *,
+        cwd: Path = release_module.ROOT,
+        environment: dict[str, str] | None = None,
+        timeout: int = release_module.COMMAND_TIMEOUT_SECONDS,
+        launch_attempts: int = 1,
+    ) -> str:
+        del cwd, timeout, launch_attempts
+        environments.append(environment)
+        if label == "installed CLI version":
+            return json.dumps({"software_version": release_module.__version__})
+        return ""
+
+    helper_environments: list[dict[str, str] | None] = []
+
+    def fake_demo(
+        _cli: Path,
+        _root: Path,
+        *,
+        environment: dict[str, str] | None = None,
+    ) -> dict[str, object]:
+        helper_environments.append(environment)
+        return {"outcome": "PASS"}
+
+    def fake_adapter(
+        _python: Path,
+        _root: Path,
+        *,
+        environment: dict[str, str] | None = None,
+    ) -> dict[str, object]:
+        helper_environments.append(environment)
+        return {"status": "COMPLETED"}
+
+    monkeypatch.setattr(release_module, "_run", fake_run)
+    monkeypatch.setattr(
+        release_module, "_venv_paths", lambda _root: (Path(sys.executable), cli)
+    )
+    monkeypatch.setattr(release_module, "_verify_installed_demo", fake_demo)
+    monkeypatch.setattr(release_module, "_verify_external_public_adapter", fake_adapter)
+
+    result = _clean_install_checks(tmp_path / "candidate.whl")
+
+    assert result["base_install"] == "PASS"
+    assert environments and all(value == {"PYTHONPATH": ""} for value in environments)
+    assert helper_environments == [{"PYTHONPATH": ""}, {"PYTHONPATH": ""}]
 
 
 def test_external_public_adapter_runs_isolated_with_exact_read_only_result(

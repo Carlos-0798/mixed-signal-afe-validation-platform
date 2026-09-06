@@ -29,11 +29,24 @@ These limits are part of the product contract, not hidden footnotes.
   or remote report hosting.
 - The Dashboard is a local optional Tk shell; CLI workflows remain the required
   headless path.
-- DC and hysteresis have finalized TestRun/export/report mappings. Calibration
-  and frequency-response math exist, but do not yet have dedicated product
-  TestRun/export/report workflows.
+- DC, hysteresis, linear calibration, and frequency response have finalized
+  TestRun/export/report product mappings for Simulator and CSV Replay.
+- Bounded live monitoring is available for Simulator and CSV Replay only. It
+  ends after a reviewed finite cycle count, retains at most 10,000 recent
+  points, and intentionally produces no engineering PASS/FAIL or analysis
+  export.
+- Frequency response is amplitude-only and consumes explicit frequency/input/
+  output-amplitude points. It does not estimate frequency from waveforms,
+  calculate phase, perform FFTs, control a signal source or oscilloscope, or
+  validate physical bandwidth.
+- Calibration coefficient loading is validation/inspection only. Automatic
+  application to later data, firmware persistence, traceable-instrument
+  records, expiry, revocation, and bench calibration remain unimplemented.
 - Timing targets are usability measurements, not hard real-time guarantees or
   long-duration soak evidence.
+- Live pause/resume is cooperative at safe checkpoints. Host scheduling,
+  visible-window rendering, and expected ring-buffer eviction do not prove
+  transport timing, physical sampling cadence, or loss-free device operation.
 - The product is not a safety controller, medical device, calibration
   laboratory system, or certified measurement instrument.
 
@@ -42,6 +55,8 @@ These limits are part of the product contract, not hidden footnotes.
 - pyserial is optional and absent from the base wheel.
 - The product serial boundary is receive-only, but OS port open can still
   affect control lines; physical use needs a separate approved procedure.
+- `SERIAL_READ_ONLY` supports bounded `READ`, not `LIVE_MONITOR`; no real port
+  was opened to implement or verify the live-view increment.
 - One narrow MSP430 controller UART/Profile capture exists. It does not verify
   exact firmware, long-duration reliability, physical reconnect, external
   sensors, fan, INA219 behavior, wiring, or the future AFE.

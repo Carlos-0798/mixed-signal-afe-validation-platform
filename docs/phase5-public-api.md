@@ -1,7 +1,7 @@
 # Frozen Software Phase 5 Product Compatibility
 
 **Freeze schema:** `phase5-public-api-golden.v1`<br>
-**Package version at freeze:** `0.1.0.dev0`<br>
+**Current manifest package version:** `0.1.0b1`<br>
 **Software evidence:** `HOST_TEST`<br>
 **New physical hardware validation in this step:** no<br>
 **Verified AFE bench-performance claims:** 0
@@ -36,18 +36,18 @@ hash itself, which avoids a circular dependency.
 
 The manifest freezes exports from four explicit namespaces:
 
-- `analog_validation_app`: 164 exports;
+- `analog_validation_app`: 185 exports;
 - `analog_validation_app.cli`: 13 exports;
-- `analog_validation_app.dashboard`: 35 exports;
+- `analog_validation_app.dashboard`: 37 exports;
 - `analog_validation_app.dashboard.app`: 8 exports.
 
 It also freezes:
 
-- 14 schema-version constants;
+- 15 schema-version constants;
 - 10 enum member sets;
-- 36 dataclass field contracts, including required/default and keyword-only
+- 40 dataclass field contracts, including required/default and keyword-only
   behavior;
-- 35 public constructor/function parameter shapes;
+- 40 public constructor/function parameter shapes;
 - 24 product-error inheritance relationships;
 - 25 exception-to-user-issue mappings, including the internal-error fallback;
 - product identity, evidence statements, source/profile catalogs, worker
@@ -59,21 +59,30 @@ It also freezes:
 
 ## CLI contract
 
-The parser contract freezes these 16 command paths:
+The local parser contract freezes these 24 command paths after the additive
+calibration, frequency-response, and bounded live-monitor extensions:
 
 ```text
 <root>
 version
 profiles
 ports
+coefficients
+coefficients inspect
 simulate
 simulate read
 simulate dc
 simulate hysteresis
+simulate calibration
+simulate frequency
+simulate monitor
 replay
 replay read
 replay dc
 replay hysteresis
+replay calibration
+replay frequency
+replay monitor
 observe
 report
 demo
@@ -82,6 +91,38 @@ dashboard
 
 For every path, the option names, destinations, required flags, argument
 counts, and choices are exact compatibility data.
+
+## Calibration, frequency, and live-monitor extensions
+
+The local post-beta calibration increment intentionally adds
+`CalibrationJobService`, `make_calibration_service_factory`,
+`CALIBRATION_ANALYSIS`, the calibration chart kind, defaulted configuration/UI
+fields, and the four command paths shown above. Existing read, DC, hysteresis,
+serial, report, demo, and Dashboard commands retain their option behavior.
+
+Machine-readable CLI documents now declare `product-cli-output.v2`. Existing
+v1 fields retain their meaning; execution documents add the nullable
+`calibration_coefficients` and `coefficient_artifact` members, while structured
+error documents add the explicit `hardware_claim` field. A strict v1 consumer
+must explicitly add v2 support rather than ignoring the version change. The
+separate `calibration-coefficients.v1` file is bounded, deterministic, and
+create-new by default; loading validates it but never means it was applied.
+
+The frequency-response increment adds `FrequencyResponseJobService`, its
+Simulator factory, `FREQUENCY_RESPONSE_ANALYSIS`, a dedicated report chart,
+defaulted configuration/UI fields, and `simulate frequency` / `replay
+frequency`. Existing command paths retain their option behavior. Frequency
+results use the existing v2 execution document and `result-export.v1`; no
+additional nullable CLI artifact field was needed.
+
+The bounded live-monitor increment adds `LIVE_MONITOR`,
+`LiveMonitorJobService`, `LiveMonitorSession`, immutable trace/snapshot and
+Dashboard panel types, `make_live_monitor_service_factory`, and `simulate
+monitor` / `replay monitor`. The manifest freezes its memory, time-window,
+interval, duration, and cooperative-control constants. It adds no Serial job,
+output permission, analysis bundle, or engineering PASS/FAIL meaning. Existing
+CLI documents remain `product-cli-output.v2`; execution documents use the
+nullable `live_monitor` field only for this job.
 
 | Exit code | Meaning |
 |---:|---|

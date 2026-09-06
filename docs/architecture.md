@@ -43,9 +43,9 @@ Software Phase 3 Step 5 adds `analysis.hysteresis`, `analysis.hysteresis_criteri
 
 Software Phase 3 Step 6 adds pure `analysis.calibration` and `analysis.frequency_response` modules. Calibration may compare one observed source with a separate reference source, freezes all fit-input lineage in versioned coefficients, reports before/after errors, and creates new derived Measurements on application. Frequency response requires three same-source, equal-length batches with explicit Hz/input/output amplitudes; it computes ratio/dB and one cutoff using linear interpolation in dB versus log10 frequency. Neither module imports adapters, samples waveforms, performs FFT, controls instruments, or upgrades evidence provenance. See `calibration-and-frequency-response.md`.
 
-Software Phase 3 Step 7 adds `analog_validation.exports` after the finalized TestRun boundary. Its typed DC and hysteresis builders copy existing conclusions into the immutable `result-export.v1` bundle; JSON and row-oriented CSV are deterministic representations of the same bundle. The layer preserves source and record lineage, requires limitation text, rejects non-finite or structurally inconsistent documents, and uses atomic local writes with no overwrite by default. It never recalculates metrics or promotes evidence. See `result-exports.md`.
+Software Phase 3 Step 7 adds `analog_validation.exports` after the finalized TestRun boundary. Its typed DC, hysteresis, calibration, and frequency-response builders copy existing conclusions into the immutable `result-export.v1` bundle; JSON and row-oriented CSV are deterministic representations of the same bundle. Calibration additionally has a bounded create-new `calibration-coefficients.v1` document whose load path validates but never applies coefficients. The layer preserves source and record lineage, requires limitation text, rejects non-finite or structurally inconsistent documents, and uses atomic local writes with no overwrite by default. It never recalculates metrics or promotes evidence. See `result-exports.md` and `calibration-and-frequency-response.md`.
 
-Software Phase 3 Step 8 freezes the explicit `analysis`, `runners`, and `exports` namespaces plus representative exact DC/hysteresis result meaning. The existing 84-symbol Phase 2 top level remains unchanged. Golden tests assert that public Phase 3 implementations originate in `analog_validation.*`; Phase 5 architecture checks additionally reject copied protocol or analysis code in the product package. See `phase3-public-api.md`.
+Software Phase 3 Step 8 freezes the explicit `analysis`, `runners`, and `exports` namespaces plus representative exact DC/hysteresis result meaning. Later compatible product increments add a public read-only frequency Simulator and explicit calibration/frequency criteria and builders; their expanded manifests are reviewed rather than silently replacing the old meaning. Golden tests assert that public Phase 3 implementations originate in `analog_validation.*`; Phase 5 architecture checks additionally reject copied protocol or analysis code in the product package. See `phase3-public-api.md`.
 
 `DeviceAdapter` uses template methods: public methods own lifecycle, capability, configuration, unit, provenance, and output-safety checks; concrete adapters implement protected source-specific hooks. `connect()` reaches only `CONNECTED_READ_ONLY`. Output remains impossible until capabilities are confirmed and a matching `allow_output=true` configuration passes both configured and device safe ranges. See `adapters.md`.
 
@@ -78,7 +78,15 @@ non-daemon thread creates, runs, and cleans one injected service; cooperative
 cancellation, bounded joins, terminal result/issue capture, and cleanup-failure
 override are host-tested. The worker imports no device, protocol, analysis,
 serial, export, or GUI implementation. Step 3 adds explicit factories, shared
-read/DC/hysteresis services, and stable installed CLI workflows. Step 4 adds a
+read/DC/hysteresis/calibration/frequency-response services, and stable installed
+CLI workflows. A post-beta increment reuses the same reviewed compiler, bounded
+single-owner worker, and public core adapter contract for a finite
+`live-monitor.v1` observation workflow. Its streaming read loop reports copied
+measurements to a bounded ring buffer, tracks quality and eviction counts, and
+supports cooperative pause/resume plus presentation-only time windows. Only the
+Simulator and strict CSV Replay sources are currently eligible; the job is
+finite, creates no engineering PASS/FAIL, exposes no output command, and makes
+no real-time or hardware-validation claim. Step 4 adds a
 bounded presentation-only view and deterministic text/Markdown/HTML/SVG/manifest
 publisher from finalized result bundles; it imports no analysis, adapter,
 serial, GUI, or network code. Step 5 adds an immutable bounded

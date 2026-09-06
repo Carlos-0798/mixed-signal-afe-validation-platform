@@ -14,6 +14,8 @@ from analog_validation.adapters import (
     CsvReplayAdapter,
     CsvReplayAdapterConfig,
     DeviceAdapter,
+    FrequencyResponseSimulatorAdapter,
+    FrequencyResponseSimulatorConfig,
     SimulatorAdapter,
     SimulatorConfig,
 )
@@ -45,7 +47,7 @@ from analog_validation.transport import (
 
 from .catalog import get_product_profile, get_product_source
 from .errors import ProductDependencyError, ProductRequestError
-from .models import ProductJobRequest, ProductSourceMode
+from .models import ProductJobRequest, ProductJobType, ProductSourceMode
 
 AdapterFactory = Callable[[ProductJobRequest], DeviceAdapter]
 SerialBackendFactory = Callable[[], SerialBackend]
@@ -89,6 +91,32 @@ def make_simulator_adapter_factory(config: SimulatorConfig) -> AdapterFactory:
                 "simulator config does not match the requested profile identity"
             )
         return SimulatorAdapter(config)
+
+    return create
+
+
+def make_frequency_response_simulator_adapter_factory(
+    config: FrequencyResponseSimulatorConfig,
+) -> AdapterFactory:
+    """Return a checked factory for one synthetic frequency-response sweep."""
+
+    if not isinstance(config, FrequencyResponseSimulatorConfig):
+        raise ProductRequestError("config must be a FrequencyResponseSimulatorConfig")
+
+    def create(request: ProductJobRequest) -> DeviceAdapter:
+        _validate_request(request, ProductSourceMode.SIMULATOR)
+        if request.job_type is not ProductJobType.FREQUENCY_RESPONSE_ANALYSIS:
+            raise ProductRequestError(
+                "frequency-response simulator requires a FREQUENCY_RESPONSE_ANALYSIS job"
+            )
+        if (config.profile_name, config.profile_version) != (
+            request.profile_name,
+            request.profile_version,
+        ):
+            raise ProductRequestError(
+                "frequency-response simulator config does not match the requested profile identity"
+            )
+        return FrequencyResponseSimulatorAdapter(config)
 
     return create
 
@@ -321,6 +349,7 @@ __all__ = [
     "discover_serial_ports",
     "make_csv_replay_adapter_factory",
     "make_csv_replay_dataset_adapter_factory",
+    "make_frequency_response_simulator_adapter_factory",
     "make_serial_adapter_factory",
     "make_simulator_adapter_factory",
 ]

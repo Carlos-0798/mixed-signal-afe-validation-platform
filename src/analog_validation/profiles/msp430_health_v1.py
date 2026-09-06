@@ -164,8 +164,7 @@ class Msp430HealthV1SerialProfile:
         event: RawRecordEvent,
     ) -> tuple[Measurement, ...]:
         raw_record_id = (
-            f"serial-{event.received_at.strftime('%Y%m%dT%H%M%S%fZ')}"
-            f"-{event.event_id}"
+            f"serial-{event.received_at.strftime('%Y%m%dT%H%M%S%fZ')}-{event.event_id}"
         )
         try:
             return msp430_telemetry_to_measurements(

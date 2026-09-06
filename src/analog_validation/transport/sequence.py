@@ -36,8 +36,7 @@ def _require_bits(bits: int) -> int:
         raise ValidationError("sequence bits must be an integer")
     if not MIN_SEQUENCE_BITS <= bits <= MAX_SEQUENCE_BITS:
         raise ValidationError(
-            f"sequence bits must be between {MIN_SEQUENCE_BITS} and "
-            f"{MAX_SEQUENCE_BITS}"
+            f"sequence bits must be between {MIN_SEQUENCE_BITS} and {MAX_SEQUENCE_BITS}"
         )
     return bits
 
@@ -77,9 +76,7 @@ class SequenceTracker:
         if isinstance(sequence, bool) or not isinstance(sequence, int):
             raise ValidationError("sequence must be an integer")
         if not 0 <= sequence < self._modulus:
-            raise ValidationError(
-                f"sequence must be between 0 and {self._modulus - 1}"
-            )
+            raise ValidationError(f"sequence must be between 0 and {self._modulus - 1}")
         return sequence
 
     def observe(self, sequence: int) -> SequenceObservation:

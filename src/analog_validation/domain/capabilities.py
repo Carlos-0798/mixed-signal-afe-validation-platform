@@ -117,10 +117,14 @@ class DeviceCapabilities:
             "pwm_channels",
             "digital_input_channels",
         ):
-            object.__setattr__(self, name, _freeze_identifiers(name, getattr(self, name)))
+            object.__setattr__(
+                self, name, _freeze_identifiers(name, getattr(self, name))
+            )
 
         input_ranges = self._freeze_ranges("safe_input_ranges", self.safe_input_ranges)
-        output_ranges = self._freeze_ranges("safe_output_ranges", self.safe_output_ranges)
+        output_ranges = self._freeze_ranges(
+            "safe_output_ranges", self.safe_output_ranges
+        )
         object.__setattr__(self, "safe_input_ranges", input_ranges)
         object.__setattr__(self, "safe_output_ranges", output_ranges)
 
@@ -177,9 +181,7 @@ class DeviceCapabilities:
                 "safe_output_ranges must cover exactly the declared DAC/PWM channels"
             )
 
-    def _validate_command_consistency(
-        self, commands: frozenset[DeviceCommand]
-    ) -> None:
+    def _validate_command_consistency(self, commands: frozenset[DeviceCommand]) -> None:
         required_channels = {
             DeviceCommand.READ_MEASUREMENT: self.adc_channels,
             DeviceCommand.READ_DIGITAL_STATE: self.digital_input_channels,
@@ -279,7 +281,9 @@ class DeviceCapabilities:
         try:
             in_range = safe_range.contains(value)
         except ValidationError as error:
-            raise ConfigurationError("output value must be finite and numeric") from error
+            raise ConfigurationError(
+                "output value must be finite and numeric"
+            ) from error
         if not in_range:
             raise ConfigurationError(
                 f"output value {value} is outside [{safe_range.minimum}, "

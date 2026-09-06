@@ -51,9 +51,7 @@ MAX_REPLAY_RECORDS = 100_000
 MAX_REPLAY_FIELD_CHARS = 1_024
 
 _IDENTIFIER_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._:/-]{0,127}\Z")
-_TIMESTAMP_PATTERN = re.compile(
-    r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z\Z"
-)
+_TIMESTAMP_PATTERN = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z\Z")
 _NUMBER_PATTERN = re.compile(
     r"-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?(?:0|[1-9]\d*))?\Z"
 )
@@ -154,7 +152,9 @@ class CsvReplayDataset:
             or not isinstance(self.declared_record_count, int)
             or self.declared_record_count < 0
         ):
-            raise ReplayFormatError("declared_record_count must be a non-negative integer")
+            raise ReplayFormatError(
+                "declared_record_count must be a non-negative integer"
+            )
         if self.declared_record_count != len(records):
             raise ReplayFormatError(
                 "END record_count does not match the number of DATA records"
@@ -297,13 +297,13 @@ def _parse_count(value: str) -> int:
         raise ReplayFormatError("END record_count must be a canonical integer")
     count = int(value)
     if count > MAX_REPLAY_RECORDS:
-        raise ReplayLimitError(
-            f"replay exceeds the {MAX_REPLAY_RECORDS}-record limit"
-        )
+        raise ReplayLimitError(f"replay exceeds the {MAX_REPLAY_RECORDS}-record limit")
     return count
 
 
-def _parse_data_row(row: list[str], row_number: int, dataset_id: str) -> CsvReplayRecord:
+def _parse_data_row(
+    row: list[str], row_number: int, dataset_id: str
+) -> CsvReplayRecord:
     if row[0] != "DATA":
         raise ReplayFormatError(f"row {row_number} must be a DATA row")
     _require_schema_version(row[1])
@@ -375,9 +375,7 @@ def load_csv_replay(path: str | os.PathLike[str]) -> CsvReplayDataset:
     except OSError as error:
         raise ReplayError(f"cannot access replay file: {error}") from error
     if size > MAX_REPLAY_BYTES:
-        raise ReplayLimitError(
-            f"replay exceeds the {MAX_REPLAY_BYTES}-byte size limit"
-        )
+        raise ReplayLimitError(f"replay exceeds the {MAX_REPLAY_BYTES}-byte size limit")
     try:
         data = replay_path.read_bytes()
     except OSError as error:

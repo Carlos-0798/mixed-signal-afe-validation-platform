@@ -63,9 +63,7 @@ class AfeV1SerialProfile:
 
     def __init__(self, *, evidence_source: EvidenceSource) -> None:
         if not isinstance(evidence_source, EvidenceSource):
-            raise SerialProfileStateError(
-                "evidence_source must be an EvidenceSource"
-            )
+            raise SerialProfileStateError("evidence_source must be an EvidenceSource")
         if evidence_source not in _ALLOWED_SERIAL_EVIDENCE:
             raise SerialProfileStateError(
                 "AFE serial evidence_source must be HOST_TEST or BENCH_CONTROLLER"
@@ -199,8 +197,7 @@ class AfeV1SerialProfile:
         event: RawRecordEvent,
     ) -> tuple[Measurement, ...]:
         raw_record_id = (
-            f"serial-{event.received_at.strftime('%Y%m%dT%H%M%S%fZ')}"
-            f"-{event.event_id}"
+            f"serial-{event.received_at.strftime('%Y%m%dT%H%M%S%fZ')}-{event.event_id}"
         )
         legacy = telemetry_to_measurements(
             message,

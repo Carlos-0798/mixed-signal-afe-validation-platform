@@ -233,11 +233,17 @@ class AfeCapabilityChannel:
         if not isinstance(self.kind, CapabilityChannelKind):
             raise ValidationError("kind must be a supported CapabilityChannelKind")
         if self.kind is CapabilityChannelKind.DIGITAL_INPUT:
-            if any(value is not None for value in (self.minimum, self.maximum, self.unit)):
-                raise ValidationError("digital input channel cannot declare a numeric range")
+            if any(
+                value is not None for value in (self.minimum, self.maximum, self.unit)
+            ):
+                raise ValidationError(
+                    "digital input channel cannot declare a numeric range"
+                )
             return
         if self.minimum is None or self.maximum is None or self.unit is None:
-            raise ValidationError("analog/PWM channel requires minimum, maximum, and unit")
+            raise ValidationError(
+                "analog/PWM channel requires minimum, maximum, and unit"
+            )
         safe_range = SafeRange(self.minimum, self.maximum, self.unit)
         object.__setattr__(self, "minimum", safe_range.minimum)
         object.__setattr__(self, "maximum", safe_range.maximum)
@@ -258,7 +264,9 @@ class AfeCapabilityEnd:
 AfeCapabilityMessage: TypeAlias = (
     AfeCapabilityDevice | AfeCapabilityChannel | AfeCapabilityEnd
 )
-AfeMessage: TypeAlias = AfeTelemetry | AfeCommand | AfeCapabilityRequest | AfeCapabilityMessage
+AfeMessage: TypeAlias = (
+    AfeTelemetry | AfeCommand | AfeCapabilityRequest | AfeCapabilityMessage
+)
 
 
 def commands_to_mask(commands: Iterable[DeviceCommand]) -> int:
@@ -463,7 +471,9 @@ def _parse_capability(fields: tuple[str, ...]) -> AfeCapabilityMessage:
     subtype = fields[4]
     if subtype == "DEVICE" and len(fields) == 7:
         if not _HEX4.fullmatch(fields[6]):
-            raise ProtocolError("command mask must be four uppercase hexadecimal digits")
+            raise ProtocolError(
+                "command mask must be four uppercase hexadecimal digits"
+            )
         return AfeCapabilityDevice(
             seq,
             fields[5],
@@ -473,11 +483,15 @@ def _parse_capability(fields: tuple[str, ...]) -> AfeCapabilityMessage:
         try:
             kind = CapabilityChannelKind(fields[5])
         except ValueError as error:
-            raise ProtocolError(f"unsupported capability channel kind: {fields[5]}") from error
+            raise ProtocolError(
+                f"unsupported capability channel kind: {fields[5]}"
+            ) from error
         index = _parse_int(fields[6], "index", 0, 0xFF)
         if kind is CapabilityChannelKind.DIGITAL_INPUT:
             if fields[7:] != ("-", "-", "-"):
-                raise ProtocolError("digital input capability must use '-' range fields")
+                raise ProtocolError(
+                    "digital input capability must use '-' range fields"
+                )
             return AfeCapabilityChannel(seq, kind, index)
         try:
             return AfeCapabilityChannel(
@@ -491,9 +505,7 @@ def _parse_capability(fields: tuple[str, ...]) -> AfeCapabilityMessage:
         except ValidationError as error:
             raise ProtocolError(f"invalid capability channel range: {error}") from error
     if subtype == "END" and len(fields) == 6:
-        return AfeCapabilityEnd(
-            seq, _parse_int(fields[5], "entry_count", 0, 0xFF)
-        )
+        return AfeCapabilityEnd(seq, _parse_int(fields[5], "entry_count", 0, 0xFF))
     raise ProtocolError("unsupported AFE v1 capability response shape")
 
 
@@ -547,7 +559,9 @@ def capabilities_to_messages(
             f"unsupported AFE profile version: {capabilities.profile_version}"
         )
 
-    input_ranges = {item.channel: item.safe_range for item in capabilities.safe_input_ranges}
+    input_ranges = {
+        item.channel: item.safe_range for item in capabilities.safe_input_ranges
+    }
     output_ranges = {
         item.channel: item.safe_range for item in capabilities.safe_output_ranges
     }
@@ -580,7 +594,9 @@ def capabilities_to_messages(
             )
         )
     return (
-        AfeCapabilityDevice(seq, capabilities.device_id, capabilities.supported_commands),
+        AfeCapabilityDevice(
+            seq, capabilities.device_id, capabilities.supported_commands
+        ),
         *channels,
         AfeCapabilityEnd(seq, len(channels)),
     )
@@ -720,14 +736,10 @@ def telemetry_to_measurements(
     if not isinstance(source, EvidenceSource):
         raise ValidationError("source must be a supported EvidenceSource")
     status = (
-        MeasurementStatus.SUSPECT
-        if message.fault_flags
-        else MeasurementStatus.VALID
+        MeasurementStatus.SUSPECT if message.fault_flags else MeasurementStatus.VALID
     )
     flags = (
-        frozenset({QualityFlag.DEVICE_FAULT})
-        if message.fault_flags
-        else frozenset()
+        frozenset({QualityFlag.DEVICE_FAULT}) if message.fault_flags else frozenset()
     )
     values = (
         ("input_mv", float(message.input_mv), MeasurementUnit.MILLIVOLT),

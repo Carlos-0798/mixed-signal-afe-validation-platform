@@ -2,9 +2,9 @@
 
 **所属项目：** Configurable Analog Front-End & Validation Platform  
 **产品策略：** 软件优先，硬件后置，接口先行，证据分级  
-**文档版本：** 1.1<br>
-**状态：** Software Phase 6 发布工程进行中（7/8，Private Beta Publication Review）<br>
-**日期：** 2026-09-04<br>
+**文档版本：** 1.2<br>
+**状态：** Software Phase 6 仍为 7/8；Post-beta 校准、频响与有界离线实时监控组合增量已通过本地预提交门禁<br>
+**日期：** 2026-09-05<br>
 **项目性质：** 独立个人项目  
 
 ---
@@ -827,3 +827,21 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/TECHNICAL_DEBT.md`。
 
 Software Phase 1–5 均已完成各自 8/8，Software Phase 6 已完成 7/8。Phase 4 的 bounded stream、16/32-bit sequence、neutral CRC envelope、AFE wrapper/channel map、serial lifecycle/raw events、独立 AFE/MSP430 profiles、receive-only `SerialAdapter`、可选 pyserial backend 和本仓库 COM4 passive HIL 均已实现并冻结兼容边界。Phase 5 的 `analog_validation_app` 提供 output-denying product contracts、exact reviewed catalog、what/why/safe-next-step issue mapping、有界 single-owner/cooperative-cancel worker、安装后的 `analog-validation` Simulator/Replay read/DC/迟滞和显式 receive-only observe 工作流、确定性人类报告、共享同一 reviewed workflow/service/worker 的六步本地 Dashboard、12-artifact synthetic demo，以及最终公开兼容冻结。Phase 6 已完成 release contract、Windows/Ubuntu × Python 3.10/3.12/3.14 hosted CI、`0.1.0b1` metadata、deterministic release verifier、beginner tester/feedback 闭环、只依赖 installed top-level API 的外部 adapter 证明，以及 `PASS_WITH_REVIEW` 的 final candidate audit。当前本地基线为 2,277 项完整回归和 11,911/11,911 package 语句覆盖；Dashboard UX PR #7 的最终 head `c9710fe` 已在 run `33933549983` 通过 8/8，并通过 merge commit `b4f0fef` 进入 `main`；post-merge run `33934417152` attempt 2 同样通过 8/8。Phase 4 Step 7 HIL 的 5/5 CRC-valid TEL、25 个 `BENCH_CONTROLLER` Measurements 和 0 发送字节仍只说明窄范围 UART/Profile 兼容，无法被动确认 exact firmware，也没有验证 external sensors/fan/wiring 或任何 AFE 性能。下一步是 Software Phase 6 Step 8：完成隐私历史复核，并由 owner 分别决定可见性、许可证、标签、Release、包发布和公开展示；当前仍不采购或搭建 AFE 硬件。
+
+2026-09-05 的本地 `codex/calibration-workflow` 组合增量已把 Phase 3
+线性校准和幅值频率响应数学接入同一 product compiler、bounded worker、
+Simulator/CSV Replay、criteria/TestRun、JSON/CSV、CLI、Dashboard 和人类报告，
+并增加共用 streaming-read 路径的有限 `live-monitor.v1` 观察工作流。
+校准另提供严格版本化系数文件；频响另提供模型截止频率与验收目标分离、
+三引用逐点 lineage 和确定性对数频率幅值图；实时监控提供最多 10,000 条
+观测、独立有界环形缓冲、质量/淘汰/事件丢弃计数、协作暂停/恢复、展示时间窗
+和 Dashboard 曲线，但不产生 PASS/FAIL。最终本地预提交门禁为 2,459 项测试、
+13,834/13,834 package 语句、全量 Ruff、218 个源文件 mypy、依赖一致性、15/15
+产品质量、两次逐字节一致构建、fresh base/serial 安装及 installed
+Simulator/Replay monitor 链全部通过。release verifier 还会清除 clean-install
+子进程继承的 `PYTHONPATH`，避免外层开发 checkout 让 pip 错误跳过候选 wheel。
+整个增量没有串口或实物操作，且尚未提交、推送、合并或进入 hosted CI，因此
+不改变 Software Phase 6 仍为 7/8 的发布治理状态。正式 commit-bound
+candidate/audit 将在用户批准干净提交后运行；Serial 实时监控、真实仪器扫频
+和物理 AFE 验证继续分别经过身份、权限、断连恢复、30 分钟/2 小时 soak 与
+接线安全门禁，单独授权、单独取证，不能由本次软件结果替代。

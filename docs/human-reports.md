@@ -82,6 +82,28 @@ The chart separates rising and falling observations, marks adjacent exported
 state-transition brackets, and copies the finalized mean high and low threshold
 metrics. It does not search for new transitions or recalculate a threshold.
 
+### Calibration
+
+The calibration chart plots the signed error before and after correction for
+each finalized point. Both series are copied from the result bundle, so report
+generation cannot refit the line, change coefficients, or recalculate
+PASS/FAIL. The report also lists coefficient identity/version, scale, offset,
+before/after error metrics, criteria, provenance, and point lineage. A
+`SYNTHETIC` or `CSV_REPLAY` calibration report is not a traceable instrument
+calibration certificate.
+
+### Frequency response
+
+The frequency-response chart copies each finalized frequency and gain value and
+plots gain in dB against a logarithmic frequency axis. It marks the copied
+target gain drop and estimated cutoff frequency. It does not re-interpolate the
+crossing, recalculate PASS/FAIL, or infer phase. The report preserves the three
+record references behind every point and explicitly identifies Simulator or
+Replay evidence.
+
+The chart is an amplitude-response view only. It is not an oscilloscope trace,
+FFT result, phase plot, or proof of physical filter bandwidth.
+
 If a result has no supported specialized analysis schema, the report remains
 readable and explicitly says that no supported chart is available.
 
@@ -113,12 +135,11 @@ tests cover escaping, missing data, invalid/non-finite display values, plot
 semantics, atomic publication, path races, write failures, strict SVG embedding,
 CLI format detection, and outcome-preserving exit codes.
 
-Specialized charts currently cover DC sweep and hysteresis result bundles.
-Calibration and frequency-response analyses still need dedicated TestRun/export
-mappings before they can receive specialized human reports. PDF generation
-remains later work. Dashboard display, the beginner wizard, and the one-command
-portfolio demo now reuse this presentation-only report boundary; none of them
-promotes synthetic evidence into a hardware claim.
+Specialized charts currently cover DC sweep, hysteresis, calibration, and
+frequency-response result bundles. PDF generation remains later work.
+Dashboard display, the beginner wizard, and the one-command portfolio demo now
+reuse this presentation-only report boundary; none of them promotes synthetic
+or replay evidence into a hardware claim.
 
 See the [result export contract](result-exports.md),
 [product CLI](product-cli.md), and

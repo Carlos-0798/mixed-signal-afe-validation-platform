@@ -32,7 +32,9 @@ def _ascii_bytes(text: str) -> bytes:
 def _validate_token(field: str) -> None:
     if not field:
         raise FramingError("fields must be non-empty")
-    if any(character == "," or not 0x21 <= ord(character) <= 0x7E for character in field):
+    if any(
+        character == "," or not 0x21 <= ord(character) <= 0x7E for character in field
+    ):
         raise FramingError(
             "fields must be printable unquoted ASCII tokens without commas or whitespace"
         )

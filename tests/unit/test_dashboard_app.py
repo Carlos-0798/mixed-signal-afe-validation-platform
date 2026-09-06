@@ -235,6 +235,37 @@ def test_export_destination_dialog_cancel_and_invalid_results_are_bounded() -> N
         )
 
 
+def test_coefficient_dialog_distinguishes_new_save_from_existing_load() -> None:
+    calls: list[dict[str, object]] = []
+
+    def choose(**kwargs: object) -> str:
+        calls.append(dict(kwargs))
+        return r"C:\safe\coefficients.json"
+
+    parent = object()
+    assert (
+        app_module._choose_coefficient_path(parent, "save", dialog=choose)
+        == r"C:\safe\coefficients.json"
+    )
+    assert calls[-1]["confirmoverwrite"] is False
+    assert calls[-1]["initialfile"] == "analog-validation-calibration.json"
+    assert (
+        app_module._choose_coefficient_path(parent, "load", dialog=choose)
+        == r"C:\safe\coefficients.json"
+    )
+    assert "confirmoverwrite" not in calls[-1]
+    assert "existing" in str(calls[-1]["title"])
+
+    with pytest.raises(ProductRequestError, match="save or load"):
+        app_module._choose_coefficient_path(parent, "apply", dialog=choose)
+    with pytest.raises(ProductRequestError, match="path string"):
+        app_module._choose_coefficient_path(
+            parent,
+            "load",
+            dialog=lambda **_kwargs: cast(Any, None),
+        )
+
+
 def test_unsaved_result_confirmation_is_explicit_cancel_first_and_bounded() -> None:
     calls: list[dict[str, object]] = []
 
@@ -255,9 +286,7 @@ def test_unsaved_result_confirmation_is_explicit_cancel_first_and_bounded() -> N
         {
             "parent": parent,
             "title": "Unsaved analysis result",
-            "message": (
-                "Discard the unsaved analysis result and start a new test?"
-            ),
+            "message": ("Discard the unsaved analysis result and start a new test?"),
             "detail": "Choose No to return to the result page and save it first.",
             "icon": "warning",
             "default": "no",
@@ -544,6 +573,83 @@ def test_result_action_callbacks_are_wired_through_the_application(
     )
 
     assert callback_calls == ["on_modify", "on_repeat", "on_new_test"]
+    assert session.closed_safely is True
+    assert root.destroyed is True
+
+
+def test_calibration_file_callbacks_are_wired_through_the_application(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root, tk, ttk = fake_toolkit()
+    callback_calls: list[object] = []
+
+    class CoefficientWidgets:
+        invoked = False
+
+        def __init__(self, selected_callbacks: dict[str, Any]) -> None:
+            self.callbacks = selected_callbacks
+
+        def render(self, dashboard: object, wizard: object) -> None:
+            if self.invoked:
+                return
+            self.invoked = True
+            callback_calls.append(
+                cast(Any, self.callbacks["on_choose_coefficient_path"])("save")
+            )
+            callback_calls.append(
+                cast(Any, self.callbacks["on_save_coefficients"])("chosen.json")
+            )
+            callback_calls.append(
+                cast(Any, self.callbacks["on_load_coefficients"])("chosen.json")
+            )
+
+    monkeypatch.setattr(
+        app_module,
+        "create_dashboard_workflow_widgets",
+        lambda *args, **kwargs: CoefficientWidgets(dict(kwargs)),
+    )
+    monkeypatch.setattr(
+        app_module,
+        "_choose_coefficient_path",
+        lambda _parent, mode: f"chosen-{mode}.json",
+    )
+
+    session = launch_dashboard(tk_loader=lambda: (tk, ttk), auto_close_ms=1)
+
+    assert callback_calls == ["chosen-save.json", None, None]
+    assert session.closed_safely is True
+    assert root.destroyed is True
+
+
+def test_live_monitor_callbacks_are_wired_through_the_application(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root, tk, ttk = fake_toolkit()
+    callback_calls: list[object] = []
+
+    class LiveWidgets:
+        invoked = False
+
+        def __init__(self, selected_callbacks: dict[str, Any]) -> None:
+            self.callbacks = selected_callbacks
+
+        def render(self, dashboard: object, wizard: object) -> None:
+            if self.invoked:
+                return
+            self.invoked = True
+            callback_calls.append(cast(Any, self.callbacks["on_pause_live"])())
+            callback_calls.append(cast(Any, self.callbacks["on_resume_live"])())
+            callback_calls.append(cast(Any, self.callbacks["on_live_window"])(1.0))
+
+    monkeypatch.setattr(
+        app_module,
+        "create_dashboard_workflow_widgets",
+        lambda *args, **kwargs: LiveWidgets(dict(kwargs)),
+    )
+
+    session = launch_dashboard(tk_loader=lambda: (tk, ttk), auto_close_ms=1)
+
+    assert callback_calls == [None, None, None]
     assert session.closed_safely is True
     assert root.destroyed is True
 

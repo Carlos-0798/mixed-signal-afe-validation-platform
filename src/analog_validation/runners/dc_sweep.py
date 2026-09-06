@@ -43,9 +43,7 @@ from analog_validation.errors import (
 
 DC_SWEEP_RUNNER_SCHEMA_VERSION = "dc-sweep-runner.v1"
 
-_VOLTAGE_UNITS = frozenset(
-    {MeasurementUnit.VOLT, MeasurementUnit.MILLIVOLT}
-)
+_VOLTAGE_UNITS = frozenset({MeasurementUnit.VOLT, MeasurementUnit.MILLIVOLT})
 
 
 def _require_identifier(name: str, value: object) -> str:
@@ -72,9 +70,7 @@ def _require_finite_number(name: str, value: object) -> float:
 def _freeze_setpoints(values: object) -> tuple[float, ...]:
     if isinstance(values, (str, bytes)) or not isinstance(values, Iterable):
         raise ValidationError("setpoints must be an iterable")
-    setpoints = tuple(
-        _require_finite_number("setpoint", value) for value in values
-    )
+    setpoints = tuple(_require_finite_number("setpoint", value) for value in values)
     if not setpoints:
         raise ValidationError("setpoints cannot be empty")
     return setpoints
@@ -98,7 +94,10 @@ class DCSweepPlan:
         _require_identifier("plan_id", self.plan_id)
         _require_identifier("plan_version", self.plan_version)
         _require_identifier("stimulus_channel", self.stimulus_channel)
-        if not isinstance(self.unit, MeasurementUnit) or self.unit not in _VOLTAGE_UNITS:
+        if (
+            not isinstance(self.unit, MeasurementUnit)
+            or self.unit not in _VOLTAGE_UNITS
+        ):
             raise ValidationError("unit must be V or mV")
         setpoints = _freeze_setpoints(self.setpoints)
         object.__setattr__(self, "setpoints", setpoints)
@@ -225,9 +224,7 @@ class DCSweepRunnerResult:
         if self.evaluation is not None and not isinstance(
             self.evaluation, DCSweepEvaluationResult
         ):
-            raise ValidationError(
-                "evaluation must be DCSweepEvaluationResult or None"
-            )
+            raise ValidationError("evaluation must be DCSweepEvaluationResult or None")
         if not isinstance(self.test_run_result, TestRunResult):
             raise ValidationError("test_run_result must be a TestRunResult")
         self._validate_records(measurements, steps)
@@ -250,9 +247,7 @@ class DCSweepRunnerResult:
             raise ValidationError("runner measurement sources must match metadata")
         if self.test_run_result.evidence_record_ids != record_ids:
             raise ValidationError("TestRun evidence IDs must match runner measurements")
-        raw_ids = tuple(
-            dict.fromkeys(value.raw_record_id for value in measurements)
-        )
+        raw_ids = tuple(dict.fromkeys(value.raw_record_id for value in measurements))
         if self.test_run_result.metadata.input_record_ids != raw_ids:
             raise ValidationError("TestRun raw IDs must match runner measurements")
         for index, measurement in enumerate(measurements):
@@ -294,7 +289,9 @@ class DCSweepRunnerResult:
                 step.input_record_id != input_measurement.record_id
                 or step.output_record_id != output_measurement.record_id
             ):
-                raise ValidationError("completed step record IDs must match measurements")
+                raise ValidationError(
+                    "completed step record IDs must match measurements"
+                )
 
     def _validate_conclusion(
         self,
@@ -638,7 +635,9 @@ def run_dc_sweep(
 
     final_metadata = _metadata_with_measurements(metadata, measurements_tuple)
     try:
-        analysis = analyze_dc_sweep(MeasurementBatch(measurements_tuple), plan.analysis_config)
+        analysis = analyze_dc_sweep(
+            MeasurementBatch(measurements_tuple), plan.analysis_config
+        )
         evaluation = evaluate_dc_sweep(analysis, plan.criteria, final_metadata)
     except AnalogValidationError as error:
         return _attempt_result(

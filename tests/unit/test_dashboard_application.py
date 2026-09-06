@@ -137,6 +137,105 @@ def ready_dc_application() -> DashboardApplication:
     return application
 
 
+def test_live_monitor_dashboard_chain_copies_bounded_points_without_analysis() -> None:
+    application = DashboardApplication(job_id_factory=lambda: "dashboard-live")
+    draft = advance_to_configuration(application, ProductJobType.LIVE_MONITOR)
+    configured = replace(
+        draft,
+        sample_count="4",
+        monitor_sample_interval_seconds="0",
+        monitor_time_window_seconds="5",
+        monitor_max_buffer_points="5",
+    )
+    assert application.prepare_review(configured)
+    assert application.dashboard_state.live.total_points == 0
+    assert application.run()
+    wait_for_result(application)
+
+    state = application.dashboard_state
+    assert state.progress.worker_state is ProductWorkerState.SUCCEEDED
+    assert state.live.active is False
+    assert state.live.total_points == 12
+    assert state.live.retained_points == 5
+    assert state.live.evicted_points == 7
+    assert state.live.valid_points == 12
+    assert len(state.live.points) <= 5
+    assert state.plot.total_points == 12
+    assert state.result.outcome is None
+    assert state.result.evidence_source is not None
+    assert state.result.evidence_source.value == "SYNTHETIC"
+    assert application.set_live_time_window(0.5)
+    assert application.dashboard_state.live.time_window_seconds == 0.5
+    assert application.set_live_time_window(0.0) is False
+    assert application.wizard_state.issue is not None
+    assert application.request_close()
+
+
+def test_live_monitor_dashboard_pause_resume_stops_at_safe_checkpoint() -> None:
+    application = DashboardApplication(job_id_factory=lambda: "dashboard-live-pause")
+    draft = advance_to_configuration(application, ProductJobType.LIVE_MONITOR)
+    configured = replace(
+        draft,
+        sample_count="40",
+        monitor_sample_interval_seconds="0.01",
+        monitor_time_window_seconds="5",
+        monitor_max_buffer_points="200",
+    )
+    assert application.prepare_review(configured)
+    assert application.run()
+
+    deadline = monotonic() + 2.0
+    while monotonic() < deadline:
+        application.poll()
+        if application.dashboard_state.live.total_points >= 3:
+            break
+        sleep(0.001)
+    else:
+        raise AssertionError("live monitor did not publish an initial cycle")
+    assert application.pause_live_monitor()
+    assert application.dashboard_state.live.paused is True
+    assert application.set_live_time_window(1.0)
+    sleep(0.08)
+    application.poll()
+    stable_total = application.dashboard_state.live.total_points
+    sleep(0.08)
+    application.poll()
+    assert application.dashboard_state.live.total_points == stable_total
+    assert application.dashboard_state.live.pause_count == 1
+    assert application.resume_live_monitor()
+    wait_for_result(application)
+    assert application.dashboard_state.live.total_points == 120
+    assert application.dashboard_state.live.paused is False
+    assert application.dashboard_state.live.pause_count == 1
+    assert application.request_close()
+
+
+def test_live_controls_fail_closed_without_an_active_review_and_reset_resumes() -> None:
+    application = DashboardApplication(job_id_factory=lambda: "dashboard-live-guard")
+
+    assert application.pause_live_monitor() is False
+    assert application.wizard_state.issue is not None
+
+    draft = advance_to_configuration(application, ProductJobType.LIVE_MONITOR)
+    assert application.prepare_review(
+        replace(
+            draft,
+            sample_count="2",
+            monitor_sample_interval_seconds="0",
+        )
+    )
+    assert application.resume_live_monitor() is False
+    assert application.wizard_state.issue is not None
+
+    prepared = cast(PreparedProductJob, application._prepared)
+    session = prepared.live_monitor_session
+    assert session is not None
+    assert session.pause()
+    assert application.back()
+    assert session.is_paused is False
+    assert application.request_close()
+
+
 def test_reviewed_service_router_accepts_only_one_exact_prepared_request() -> None:
     router = ReviewedServiceRouter()
     assert router.prepared is None
@@ -237,7 +336,9 @@ def test_simulator_read_runs_to_result_without_inventing_an_analysis_export() ->
     assert application.request_close()
 
 
-def test_result_navigation_preserves_reference_but_never_resurrects_worker_state() -> None:
+def test_result_navigation_preserves_reference_but_never_resurrects_worker_state() -> (
+    None
+):
     application = DashboardApplication(job_id_factory=lambda: "dashboard-reference")
     draft = advance_to_configuration(application)
     assert application.prepare_review(draft)

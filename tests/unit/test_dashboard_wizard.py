@@ -8,6 +8,7 @@ from typing import Any, cast
 import pytest
 
 import analog_validation_app.dashboard.wizard as wizard_module
+from analog_validation import MeasurementUnit, ReadOperation
 from analog_validation.transport import SerialPortInfo
 from analog_validation_app import (
     DASHBOARD_WIZARD_SCHEMA_VERSION,
@@ -98,6 +99,7 @@ def test_guidance_rejects_invalid_number_and_text(
         ({"sample_count": " bad"}, "stripped"),
         ({"sample_count": "bad\nvalue"}, "printable"),
         ({"serial_confirm_read_only": "yes"}, "boolean"),
+        ({"monitor_include_secondary": "yes"}, "boolean"),
         (
             {
                 "source_mode": ProductSourceMode.SERIAL_READ_ONLY,
@@ -141,6 +143,20 @@ def test_draft_converts_simulator_replay_and_serial_without_opening_resources() 
     assert serial.serial_config is not None
     assert serial.serial_config.max_buffered_measurements == 160
     assert serial.confirm_read_only is True
+
+    calibration = DashboardWizardDraft(
+        job_type=ProductJobType.CALIBRATION_ANALYSIS,
+        coefficient_id="bench-linear",
+        coefficient_version="2",
+        max_calibration_rmse="0.5",
+        max_calibration_mean_absolute_error="0.4",
+        max_calibration_absolute_error="1.2",
+        minimum_calibration_rmse_reduction="3",
+    ).to_product_configuration()
+    assert calibration.coefficient_id == "bench-linear"
+    assert calibration.coefficient_version == "2"
+    assert calibration.max_calibration_rmse == 0.5
+    assert calibration.minimum_calibration_rmse_reduction == 3.0
 
 
 @pytest.mark.parametrize(
@@ -193,6 +209,9 @@ def test_wizard_state_exposes_fixed_choices_guidance_and_permissions() -> None:
         ProductJobType.READ,
         ProductJobType.DC_ANALYSIS,
         ProductJobType.HYSTERESIS_ANALYSIS,
+        ProductJobType.CALIBRATION_ANALYSIS,
+        ProductJobType.FREQUENCY_RESPONSE_ANALYSIS,
+        ProductJobType.LIVE_MONITOR,
     )
     assert initial.profile_identities == ("afe/1",)
     assert initial.can_back is False
@@ -201,6 +220,8 @@ def test_wizard_state_exposes_fixed_choices_guidance_and_permissions() -> None:
     assert initial.can_run is False
     assert initial.can_cancel is False
     assert initial.can_export is False
+    assert initial.can_save_coefficients is False
+    assert initial.can_load_coefficients is False
     assert initial.can_modify_setup is False
     assert initial.can_review_same_setup is False
     assert initial.can_start_new_test is False
@@ -226,6 +247,7 @@ def test_wizard_state_exposes_fixed_choices_guidance_and_permissions() -> None:
         {"issue": object()},
         {"export_available": "yes"},
         {"export_message": ""},
+        {"coefficient_available": "yes"},
         {"schema_version": "dashboard-wizard.v2"},
     ],
 )
@@ -271,15 +293,55 @@ def test_presenter_runs_the_six_steps_and_preserves_review_permissions() -> None
     assert presenter.state.can_run is True
     presenter.begin_run()
     assert presenter.state.can_cancel is True
-    presenter.finish_run(export_available=True)
+    presenter.finish_run(export_available=True, coefficient_available=True)
     assert presenter.state.can_export is True
+    assert presenter.state.can_save_coefficients is True
+    assert presenter.state.can_load_coefficients is True
     assert presenter.state.can_modify_setup is True
     assert presenter.state.can_review_same_setup is True
     assert presenter.state.can_start_new_test is True
     presenter.present_export("result.json")
     assert presenter.state.export_message == "Exported safely: result.json"
+    presenter.present_coefficient_artifact("Coefficient file saved safely.")
+    assert presenter.state.coefficient_message == "Coefficient file saved safely."
     presenter.back()
     assert presenter.state.step is DashboardWizardStep.CONFIGURATION
+
+
+def test_selecting_live_monitor_normalizes_a_digital_read_draft() -> None:
+    presenter = DashboardWizardPresenter(
+        DashboardWizardState(
+            0,
+            DashboardWizardStep.TEST,
+            DashboardWizardDraft(
+                operation=ReadOperation.DIGITAL,
+                unit=MeasurementUnit.BOOLEAN,
+            ),
+        )
+    )
+
+    state = presenter.select_job(ProductJobType.LIVE_MONITOR)
+
+    assert state.draft.job_type is ProductJobType.LIVE_MONITOR
+    assert state.draft.operation is ReadOperation.ANALOG
+    assert state.draft.unit is MeasurementUnit.MILLIVOLT
+
+
+def test_coefficient_result_transitions_reject_wrong_step_and_flag_type() -> None:
+    presenter = DashboardWizardPresenter()
+    with pytest.raises(ProductRequestError, match="Result step"):
+        presenter.present_coefficient_artifact("not yet available")
+
+    presenter.next()
+    presenter.next()
+    presenter.submit_configuration(presenter.state.draft)
+    presenter.present_review(presenter.state.draft, ("Reviewed.",))
+    presenter.begin_run()
+    with pytest.raises(ProductRequestError, match="coefficient_available"):
+        presenter.finish_run(
+            export_available=False,
+            coefficient_available=cast(Any, "yes"),
+        )
 
 
 def test_result_specific_transitions_preserve_or_reset_the_draft_explicitly() -> None:

@@ -20,9 +20,7 @@ from analog_validation.errors import ValidationError
 
 ANALYSIS_COMMON_SCHEMA_VERSION = "analysis-common.v1"
 
-_VOLTAGE_UNITS = frozenset(
-    {MeasurementUnit.VOLT, MeasurementUnit.MILLIVOLT}
-)
+_VOLTAGE_UNITS = frozenset({MeasurementUnit.VOLT, MeasurementUnit.MILLIVOLT})
 
 
 class PointDisposition(str, Enum):
@@ -94,9 +92,7 @@ class AnalysisQualityPolicy:
     never eligible regardless of this policy.
     """
 
-    allowed_suspect_flags: frozenset[QualityFlag] = field(
-        default_factory=frozenset
-    )
+    allowed_suspect_flags: frozenset[QualityFlag] = field(default_factory=frozenset)
     schema_version: str = ANALYSIS_COMMON_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
@@ -312,7 +308,10 @@ class MeasurementDecision:
     ) -> None:
         if self.status is MeasurementStatus.VALID and self.observed_quality_flags:
             raise ValidationError("VALID decision cannot have quality flags")
-        if self.status is not MeasurementStatus.VALID and not self.observed_quality_flags:
+        if (
+            self.status is not MeasurementStatus.VALID
+            and not self.observed_quality_flags
+        ):
             raise ValidationError("SUSPECT/INVALID decision requires quality flags")
         if self.disposition is not PointDisposition.INCLUDED and not reasons:
             raise ValidationError("excluded or invalid decision requires reasons")
@@ -333,8 +332,7 @@ class MeasurementDecision:
             raise ValidationError("EXCLUDED disposition requires SUSPECT status")
         if self.disposition is PointDisposition.EXCLUDED:
             disallowed_flags = (
-                self.observed_quality_flags
-                - self.quality_policy.allowed_suspect_flags
+                self.observed_quality_flags - self.quality_policy.allowed_suspect_flags
             )
             disallowed_reasons = _quality_reasons(disallowed_flags)
             expected = (
@@ -396,9 +394,7 @@ def _quality_reasons(
     flags: frozenset[QualityFlag],
 ) -> tuple[PointExclusionReason, ...]:
     return tuple(
-        _EXCLUSION_REASON_BY_QUALITY_FLAG[flag]
-        for flag in QualityFlag
-        if flag in flags
+        _EXCLUSION_REASON_BY_QUALITY_FLAG[flag] for flag in QualityFlag if flag in flags
     )
 
 
@@ -436,9 +432,7 @@ def assess_voltage_measurement(
             *_quality_reasons(measurement.quality_flags),
         )
     else:
-        disallowed = (
-            measurement.quality_flags - policy.allowed_suspect_flags
-        )
+        disallowed = measurement.quality_flags - policy.allowed_suspect_flags
         if disallowed:
             disposition = PointDisposition.EXCLUDED
             reasons = (

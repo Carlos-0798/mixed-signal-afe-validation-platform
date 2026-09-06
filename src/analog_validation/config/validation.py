@@ -237,7 +237,9 @@ def load_validation_config(path: str | os.PathLike[str]) -> ValidationConfig:
     try:
         size = config_path.stat().st_size
     except OSError as error:
-        raise ConfigurationError(f"cannot access configuration file: {error}") from error
+        raise ConfigurationError(
+            f"cannot access configuration file: {error}"
+        ) from error
     if size > MAX_CONFIG_BYTES:
         raise ConfigurationError(
             f"configuration exceeds the {MAX_CONFIG_BYTES}-byte size limit"
@@ -294,12 +296,15 @@ def dump_validation_config_json(config: ValidationConfig, *, indent: int = 2) ->
 
     if isinstance(indent, bool) or not isinstance(indent, int) or indent < 0:
         raise ConfigurationError("indent must be a non-negative integer")
-    return json.dumps(
-        validation_config_to_dict(config),
-        indent=indent,
-        ensure_ascii=True,
-        allow_nan=False,
-    ) + "\n"
+    return (
+        json.dumps(
+            validation_config_to_dict(config),
+            indent=indent,
+            ensure_ascii=True,
+            allow_nan=False,
+        )
+        + "\n"
+    )
 
 
 def _require_configured_range_within_device(

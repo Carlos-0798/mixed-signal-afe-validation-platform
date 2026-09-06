@@ -1,6 +1,45 @@
 {
-  "schema_version": "phase2-public-api-golden.v1",
-  "package_version": "0.1.0b1",
+  "enum_values": {
+    "AdapterState": [
+      "DISCONNECTED",
+      "CONNECTED_READ_ONLY",
+      "CAPABILITIES_CONFIRMED",
+      "ARMED",
+      "RUNNING",
+      "SAFE_SHUTDOWN"
+    ],
+    "ReadOperation": [
+      "ANALOG",
+      "DIGITAL"
+    ],
+    "ReadWorkflowStatus": [
+      "COMPLETED",
+      "UNSUPPORTED",
+      "INCOMPLETE"
+    ],
+    "ReplayChannelKind": [
+      "ANALOG",
+      "DIGITAL"
+    ],
+    "ReplayTimingMode": [
+      "IMMEDIATE",
+      "SCALED"
+    ],
+    "SimulatorFaultMode": [
+      "NONE",
+      "MISSING_SAMPLE",
+      "COMMUNICATION_ERROR",
+      "CRC_ERROR"
+    ]
+  },
+  "error_bases": {
+    "AdapterConnectionError": "AdapterError",
+    "AdapterDataError": "AdapterError",
+    "AdapterStateError": "AdapterError",
+    "ReplayEndOfData": "ReplayError",
+    "ReplayFormatError": "ReplayError",
+    "ReplayLimitError": "ReplayError"
+  },
   "evidence_source": "HOST_TEST",
   "module_exports": {
     "analog_validation": [
@@ -33,10 +72,14 @@
       "DeviceCapabilities",
       "DeviceCommand",
       "EvidenceSource",
+      "FREQUENCY_RESPONSE_SIMULATOR_CONFIG_SCHEMA_VERSION",
       "Frame",
       "FrameTooLong",
       "FramingError",
+      "FrequencyResponseSimulatorAdapter",
+      "FrequencyResponseSimulatorConfig",
       "MAX_CONFIG_BYTES",
+      "MAX_READ_WORKFLOW_INTERVAL_SECONDS",
       "MAX_RECORD_BYTES",
       "MAX_REPLAY_BYTES",
       "MAX_REPLAY_FIELD_CHARS",
@@ -49,7 +92,10 @@
       "ProtocolError",
       "QualityFlag",
       "READ_WORKFLOW_SCHEMA_VERSION",
+      "ReadIntervalWaiter",
+      "ReadMeasurementObserver",
       "ReadOperation",
+      "ReadWorkflowCheckpoint",
       "ReadWorkflowRequest",
       "ReadWorkflowResult",
       "ReadWorkflowStatus",
@@ -86,6 +132,7 @@
       "parse_csv_replay",
       "parse_validation_config_json",
       "run_read_workflow",
+      "run_streaming_read_workflow",
       "validate_config_capabilities",
       "validation_config_to_dict"
     ],
@@ -96,6 +143,9 @@
       "CsvReplayAdapterConfig",
       "DEFAULT_SIMULATOR_EPOCH",
       "DeviceAdapter",
+      "FREQUENCY_RESPONSE_SIMULATOR_CONFIG_SCHEMA_VERSION",
+      "FrequencyResponseSimulatorAdapter",
+      "FrequencyResponseSimulatorConfig",
       "ReplayChannelConfig",
       "ReplayChannelKind",
       "ReplayTimingMode",
@@ -118,101 +168,326 @@
     ],
     "analog_validation.workflows": [
       "ChannelReadRequest",
+      "MAX_READ_WORKFLOW_INTERVAL_SECONDS",
       "READ_WORKFLOW_SCHEMA_VERSION",
+      "ReadIntervalWaiter",
+      "ReadMeasurementObserver",
       "ReadOperation",
+      "ReadWorkflowCheckpoint",
       "ReadWorkflowRequest",
       "ReadWorkflowResult",
       "ReadWorkflowStatus",
-      "run_read_workflow"
+      "run_read_workflow",
+      "run_streaming_read_workflow"
     ]
   },
+  "package_version": "0.1.0b1",
+  "replay_sha256": {
+    "csv_replay_v1_invalid.json": "80efb234109883cd0e108f3cfe6fe0ff9611f7da9e0aa2cd9044c0750b92b10d",
+    "csv_replay_v1_valid.csv": "6b9e43a84c0d74c8c19050f94b1bc8ea6c819bf930d08a0d3aa7e46cfb1bf842"
+  },
+  "schema_version": "phase2-public-api-golden.v1",
   "schema_versions": {
     "CAPABILITY_SCHEMA_VERSION": "capabilities.v1",
     "CSV_REPLAY_ADAPTER_CONFIG_SCHEMA_VERSION": "csv-replay-adapter-config.v1",
     "CSV_REPLAY_SCHEMA_VERSION": "csv-replay.v1",
+    "FREQUENCY_RESPONSE_SIMULATOR_CONFIG_SCHEMA_VERSION": "frequency-response-simulator-config.v1",
     "MEASUREMENT_SCHEMA_VERSION": "measurement.v1",
     "READ_WORKFLOW_SCHEMA_VERSION": "read-workflow.v1",
     "SIMULATOR_CONFIG_SCHEMA_VERSION": "simulator-config.v1",
     "TEST_RUN_SCHEMA_VERSION": "test-run.v1",
     "VALIDATION_CONFIG_SCHEMA_VERSION": "validation-config.v1"
   },
-  "enum_values": {
-    "AdapterState": [
-      "DISCONNECTED",
-      "CONNECTED_READ_ONLY",
-      "CAPABILITIES_CONFIRMED",
-      "ARMED",
-      "RUNNING",
-      "SAFE_SHUTDOWN"
-    ],
-    "ReadOperation": ["ANALOG", "DIGITAL"],
-    "ReadWorkflowStatus": ["COMPLETED", "UNSUPPORTED", "INCOMPLETE"],
-    "ReplayChannelKind": ["ANALOG", "DIGITAL"],
-    "ReplayTimingMode": ["IMMEDIATE", "SCALED"],
-    "SimulatorFaultMode": [
-      "NONE",
-      "MISSING_SAMPLE",
-      "COMMUNICATION_ERROR",
-      "CRC_ERROR"
-    ]
-  },
   "signature_parameters": {
     "ChannelReadRequest": [
-      ["channel", "POSITIONAL_OR_KEYWORD", true],
-      ["operation", "POSITIONAL_OR_KEYWORD", true],
-      ["unit", "POSITIONAL_OR_KEYWORD", true],
-      ["sample_count", "POSITIONAL_OR_KEYWORD", false]
+      [
+        "channel",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "operation",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "unit",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "sample_count",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
     ],
     "CsvReplayAdapter": [
-      ["dataset", "POSITIONAL_OR_KEYWORD", true],
-      ["config", "POSITIONAL_OR_KEYWORD", true],
-      ["sleeper", "KEYWORD_ONLY", false]
+      [
+        "dataset",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "config",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "sleeper",
+        "KEYWORD_ONLY",
+        false
+      ]
     ],
     "CsvReplayAdapterConfig": [
-      ["channels", "POSITIONAL_OR_KEYWORD", true],
-      ["device_id", "POSITIONAL_OR_KEYWORD", false],
-      ["profile_name", "POSITIONAL_OR_KEYWORD", false],
-      ["profile_version", "POSITIONAL_OR_KEYWORD", false],
-      ["timing_mode", "POSITIONAL_OR_KEYWORD", false],
-      ["speed_multiplier", "POSITIONAL_OR_KEYWORD", false],
-      ["schema_version", "POSITIONAL_OR_KEYWORD", false]
+      [
+        "channels",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "device_id",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "profile_name",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "profile_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "timing_mode",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "speed_multiplier",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
     ],
-    "DeviceAdapter.connect": [["self", "POSITIONAL_OR_KEYWORD", true]],
-    "DeviceAdapter.disconnect": [["self", "POSITIONAL_OR_KEYWORD", true]],
-    "DeviceAdapter.get_capabilities": [["self", "POSITIONAL_OR_KEYWORD", true]],
+    "DeviceAdapter.connect": [
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "DeviceAdapter.disconnect": [
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "DeviceAdapter.get_capabilities": [
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
     "DeviceAdapter.read_digital_state": [
-      ["self", "POSITIONAL_OR_KEYWORD", true],
-      ["channel", "POSITIONAL_OR_KEYWORD", true]
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "channel",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
     ],
     "DeviceAdapter.read_measurement": [
-      ["self", "POSITIONAL_OR_KEYWORD", true],
-      ["channel", "POSITIONAL_OR_KEYWORD", true]
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "channel",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
     ],
-    "DeviceAdapter.safe_shutdown": [["self", "POSITIONAL_OR_KEYWORD", true]],
+    "DeviceAdapter.safe_shutdown": [
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "FrequencyResponseSimulatorAdapter": [
+      [
+        "config",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "clock",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "FrequencyResponseSimulatorConfig": [
+      [
+        "point_count",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "frequency_minimum_hz",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "frequency_maximum_hz",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "cutoff_frequency_hz",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "input_amplitude",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "passband_gain",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "amplitude_unit",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "device_id",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "profile_name",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "profile_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "frequency_channel",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "input_amplitude_channel",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "output_amplitude_channel",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "interval_ms",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
     "ReadWorkflowRequest": [
-      ["requirements", "POSITIONAL_OR_KEYWORD", true],
-      ["request_id", "POSITIONAL_OR_KEYWORD", false],
-      ["schema_version", "POSITIONAL_OR_KEYWORD", false]
+      [
+        "requirements",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "request_id",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
     ],
     "SimulatorAdapter": [
-      ["config", "POSITIONAL_OR_KEYWORD", false],
-      ["clock", "KEYWORD_ONLY", false]
+      [
+        "config",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "clock",
+        "KEYWORD_ONLY",
+        false
+      ]
     ],
     "run_read_workflow": [
-      ["adapter", "POSITIONAL_OR_KEYWORD", true],
-      ["request", "POSITIONAL_OR_KEYWORD", true]
+      [
+        "adapter",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "request",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "run_streaming_read_workflow": [
+      [
+        "adapter",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "request",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "sample_interval_seconds",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "checkpoint",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "on_measurement",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "wait_interval",
+        "KEYWORD_ONLY",
+        false
+      ]
     ]
-  },
-  "error_bases": {
-    "AdapterConnectionError": "AdapterError",
-    "AdapterDataError": "AdapterError",
-    "AdapterStateError": "AdapterError",
-    "ReplayEndOfData": "ReplayError",
-    "ReplayFormatError": "ReplayError",
-    "ReplayLimitError": "ReplayError"
-  },
-  "replay_sha256": {
-    "csv_replay_v1_invalid.json": "80efb234109883cd0e108f3cfe6fe0ff9611f7da9e0aa2cd9044c0750b92b10d",
-    "csv_replay_v1_valid.csv": "6b9e43a84c0d74c8c19050f94b1bc8ea6c819bf930d08a0d3aa7e46cfb1bf842"
   }
 }

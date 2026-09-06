@@ -11,23 +11,41 @@ from typing import cast
 from analog_validation import __version__
 from analog_validation.adapters import AdapterState, DeviceAdapter
 from analog_validation.analysis import (
+    CALIBRATION_TEST_TYPE,
     DC_SWEEP_TEST_TYPE,
+    FREQUENCY_RESPONSE_TEST_TYPE,
     HYSTERESIS_TEST_TYPE,
+    CalibrationAcceptanceCriteria,
+    CalibrationFitConfig,
     DCSweepAcceptanceCriteria,
     DCSweepAnalysisConfig,
+    FrequencyResponseAcceptanceCriteria,
+    FrequencyResponseAnalysisConfig,
     HysteresisAcceptanceCriteria,
     HysteresisAnalysisConfig,
     HysteresisCycleInput,
+    LinearCalibrationCoefficients,
     MeasurementBatch,
     analyze_dc_sweep,
+    analyze_frequency_response,
     analyze_hysteresis,
+    evaluate_calibration,
     evaluate_dc_sweep,
+    evaluate_frequency_response,
     evaluate_hysteresis,
+    fit_linear_calibration,
 )
-from analog_validation.domain import TestRunMetadata, TestRunOutcome
+from analog_validation.domain import (
+    Measurement,
+    MeasurementUnit,
+    TestRunMetadata,
+    TestRunOutcome,
+)
 from analog_validation.exports import (
     ResultExportBundle,
+    build_calibration_export,
     build_dc_sweep_export,
+    build_frequency_response_export,
     build_hysteresis_export,
 )
 from analog_validation.workflows import (
@@ -36,11 +54,13 @@ from analog_validation.workflows import (
     ReadWorkflowResult,
     ReadWorkflowStatus,
     run_read_workflow,
+    run_streaming_read_workflow,
 )
 
 from .errors import ProductRequestError, ProductServiceError, ProductWorkerTimeoutError
 from .factories import AdapterFactory
 from .issues import UserIssue
+from .live import LiveMonitorSession, LiveMonitorSnapshot
 from .models import (
     MAX_PRODUCT_LIMITATION_CHARS,
     MAX_PRODUCT_LIMITATIONS,
@@ -131,6 +151,8 @@ class ProductServiceOutput:
 
     read_result: ReadWorkflowResult
     result_export: ResultExportBundle | None = None
+    calibration_coefficients: LinearCalibrationCoefficients | None = None
+    live_monitor: LiveMonitorSnapshot | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.read_result, ReadWorkflowResult):
@@ -140,6 +162,28 @@ class ProductServiceOutput:
         ):
             raise ProductRequestError(
                 "result_export must be a ResultExportBundle or None"
+            )
+        if self.calibration_coefficients is not None and not isinstance(
+            self.calibration_coefficients, LinearCalibrationCoefficients
+        ):
+            raise ProductRequestError(
+                "calibration_coefficients must be LinearCalibrationCoefficients or None"
+            )
+        if self.calibration_coefficients is not None and self.result_export is None:
+            raise ProductRequestError(
+                "calibration coefficients require a finalized result export"
+            )
+        if self.live_monitor is not None and not isinstance(
+            self.live_monitor, LiveMonitorSnapshot
+        ):
+            raise ProductRequestError(
+                "live_monitor must be a LiveMonitorSnapshot or None"
+            )
+        if self.live_monitor is not None and self.live_monitor.total_points != len(
+            self.read_result.measurements
+        ):
+            raise ProductRequestError(
+                "live monitor point count must match acquired measurements"
             )
 
 
@@ -263,6 +307,107 @@ class ReadJobService(_OwnedAdapterService):
         )
 
 
+class LiveMonitorJobService(_OwnedAdapterService):
+    """Run one finite live-view acquisition with bounded presentation state."""
+
+    def __init__(
+        self,
+        adapter: DeviceAdapter,
+        workflow_request: ReadWorkflowRequest,
+        limitations: tuple[str, ...],
+        output_slot: ProductServiceOutputSlot,
+        live_session: LiveMonitorSession,
+        *,
+        sample_interval_seconds: float,
+    ) -> None:
+        super().__init__(adapter)
+        if not isinstance(workflow_request, ReadWorkflowRequest):
+            raise ProductRequestError("workflow_request must be a ReadWorkflowRequest")
+        if not isinstance(output_slot, ProductServiceOutputSlot):
+            raise ProductRequestError("output_slot must be a ProductServiceOutputSlot")
+        if not isinstance(live_session, LiveMonitorSession):
+            raise ProductRequestError("live_session must be a LiveMonitorSession")
+        counts = {
+            requirement.sample_count for requirement in workflow_request.requirements
+        }
+        if len(counts) != 1:
+            raise ProductRequestError(
+                "live monitor workflow requires equal channel sample counts"
+            )
+        self._workflow_request = workflow_request
+        self._limitations = _require_limitations(limitations)
+        self._output_slot = output_slot
+        self._live_session = live_session
+        self._sample_interval_seconds = sample_interval_seconds
+        self._cycle_count = next(iter(counts))
+        self._channel_count = len(workflow_request.requirements)
+
+    def run(
+        self,
+        request: ProductJobRequest,
+        cancellation: ProductCancellationToken,
+        report_progress: ProductProgressReporter,
+    ) -> ProductJobResult:
+        if request.job_type is not ProductJobType.LIVE_MONITOR:
+            raise ProductRequestError(
+                "live monitor service requires a LIVE_MONITOR job"
+            )
+        cancellation.raise_if_cancelled()
+        report_progress(
+            "Starting finite live monitor acquisition.", 0, self._cycle_count
+        )
+        progress_stride = max(1, self._cycle_count // 100)
+
+        def publish(cycle_index: int, measurement: object) -> None:
+            if not isinstance(measurement, Measurement):
+                raise ProductServiceError(
+                    "streaming observer received an invalid measurement"
+                )
+            point = self._live_session.publish(cycle_index, measurement)
+            cycle_complete = point.index % self._channel_count == 0
+            completed_cycles = cycle_index + 1
+            if cycle_complete and (
+                completed_cycles == self._cycle_count
+                or completed_cycles % progress_stride == 0
+            ):
+                report_progress(
+                    "Live monitor acquisition is running.",
+                    completed_cycles,
+                    self._cycle_count,
+                )
+
+        read_result = run_streaming_read_workflow(
+            self._adapter,
+            self._workflow_request,
+            sample_interval_seconds=self._sample_interval_seconds,
+            checkpoint=lambda: self._live_session.checkpoint(cancellation),
+            on_measurement=publish,
+            wait_interval=lambda seconds: self._live_session.wait_interval(
+                seconds, cancellation
+            ),
+        )
+        cancellation.raise_if_cancelled()
+        final_snapshot = self._live_session.snapshot()
+        self._output_slot.publish(
+            ProductServiceOutput(read_result, live_monitor=final_snapshot)
+        )
+        report_progress(
+            "Finite live monitor acquisition finished.",
+            self._cycle_count,
+            self._cycle_count,
+        )
+        return ProductJobResult(
+            request,
+            _status_from_read(read_result.status),
+            read_result.evidence_source,
+            self._limitations,
+        )
+
+    def cleanup(self) -> None:
+        self._live_session.resume()
+        super().cleanup()
+
+
 class DCSweepJobService(_OwnedAdapterService):
     """Acquire observations, then call the formal DC analysis/evaluation path."""
 
@@ -379,6 +524,340 @@ class DCSweepJobService(_OwnedAdapterService):
         cancellation.raise_if_cancelled()
         self._output_slot.publish(ProductServiceOutput(read_result, result_export))
         report_progress("DC evaluation and result export are complete.", 3, 3)
+        outcome = evaluation.test_run_result.outcome
+        return ProductJobResult(
+            request,
+            _status_from_outcome(outcome),
+            read_result.evidence_source,
+            self._limitations,
+            outcome,
+        )
+
+
+class FrequencyResponseJobService(_OwnedAdapterService):
+    """Acquire explicit sweep triples, then evaluate one cutoff response."""
+
+    def __init__(
+        self,
+        adapter: DeviceAdapter,
+        workflow_request: ReadWorkflowRequest,
+        analysis_config: FrequencyResponseAnalysisConfig,
+        criteria: FrequencyResponseAcceptanceCriteria | None,
+        limitations: tuple[str, ...],
+        output_slot: ProductServiceOutputSlot,
+        *,
+        configuration_id: str = "product-frequency-response",
+        configuration_version: str = "1",
+        clock: Clock = lambda: datetime.now(timezone.utc),
+    ) -> None:
+        super().__init__(adapter)
+        if not isinstance(workflow_request, ReadWorkflowRequest):
+            raise ProductRequestError("workflow_request must be a ReadWorkflowRequest")
+        if not isinstance(analysis_config, FrequencyResponseAnalysisConfig):
+            raise ProductRequestError(
+                "analysis_config must be a FrequencyResponseAnalysisConfig"
+            )
+        if criteria is not None and not isinstance(
+            criteria, FrequencyResponseAcceptanceCriteria
+        ):
+            raise ProductRequestError(
+                "criteria must be FrequencyResponseAcceptanceCriteria or None"
+            )
+        if not isinstance(output_slot, ProductServiceOutputSlot):
+            raise ProductRequestError("output_slot must be a ProductServiceOutputSlot")
+        _require_callable("clock", clock)
+        self._validate_workflow(workflow_request, analysis_config)
+        self._workflow_request = workflow_request
+        self._analysis_config = analysis_config
+        self._criteria = criteria
+        self._limitations = _require_limitations(limitations)
+        self._output_slot = output_slot
+        self._configuration_id = configuration_id
+        self._configuration_version = configuration_version
+        self._clock = clock
+
+    @staticmethod
+    def _validate_workflow(
+        workflow_request: ReadWorkflowRequest,
+        config: FrequencyResponseAnalysisConfig,
+    ) -> None:
+        requirements = workflow_request.requirements
+        if len(requirements) != 3:
+            raise ProductRequestError(
+                "frequency-response workflow requires three channel reads"
+            )
+        if tuple(requirement.channel for requirement in requirements) != (
+            config.frequency_channel,
+            config.input_amplitude_channel,
+            config.output_amplitude_channel,
+        ):
+            raise ProductRequestError(
+                "frequency-response workflow channels must match the analysis config"
+            )
+        if any(
+            requirement.operation is not ReadOperation.ANALOG
+            for requirement in requirements
+        ):
+            raise ProductRequestError(
+                "frequency-response workflow channels must use analog reads"
+            )
+        if requirements[0].unit is not MeasurementUnit.HERTZ:
+            raise ProductRequestError("frequency-response frequency unit must be Hz")
+        if any(
+            requirement.unit is not config.normalized_amplitude_unit
+            for requirement in requirements[1:]
+        ):
+            raise ProductRequestError(
+                "frequency-response amplitude units must match the analysis config"
+            )
+        if len({requirement.sample_count for requirement in requirements}) != 1:
+            raise ProductRequestError(
+                "frequency-response workflow sample counts must match"
+            )
+
+    def run(
+        self,
+        request: ProductJobRequest,
+        cancellation: ProductCancellationToken,
+        report_progress: ProductProgressReporter,
+    ) -> ProductJobResult:
+        if request.job_type is not ProductJobType.FREQUENCY_RESPONSE_ANALYSIS:
+            raise ProductRequestError(
+                "frequency-response service requires a FREQUENCY_RESPONSE_ANALYSIS job"
+            )
+        started_at = _utc_now(self._clock)
+        cancellation.raise_if_cancelled()
+        report_progress("Acquiring explicit frequency-response observations.", 0, 3)
+        read_result = run_read_workflow(self._adapter, self._workflow_request)
+        cancellation.raise_if_cancelled()
+        if read_result.status is not ReadWorkflowStatus.COMPLETED:
+            self._output_slot.publish(ProductServiceOutput(read_result))
+            report_progress(
+                "Frequency-response acquisition ended without complete evidence.",
+                3,
+                3,
+            )
+            return ProductJobResult(
+                request,
+                _status_from_read(read_result.status),
+                read_result.evidence_source,
+                self._limitations,
+            )
+
+        report_progress("Calculating amplitude ratio and the -3 dB crossing.", 1, 3)
+        frequencies = MeasurementBatch(
+            tuple(
+                measurement
+                for measurement in read_result.measurements
+                if measurement.channel == self._analysis_config.frequency_channel
+            )
+        )
+        inputs = MeasurementBatch(
+            tuple(
+                measurement
+                for measurement in read_result.measurements
+                if measurement.channel == self._analysis_config.input_amplitude_channel
+            )
+        )
+        outputs = MeasurementBatch(
+            tuple(
+                measurement
+                for measurement in read_result.measurements
+                if measurement.channel == self._analysis_config.output_amplitude_channel
+            )
+        )
+        analysis = analyze_frequency_response(
+            frequencies,
+            inputs,
+            outputs,
+            self._analysis_config,
+        )
+        cancellation.raise_if_cancelled()
+        raw_ids = tuple(
+            dict.fromkeys(
+                reference.raw_record_id
+                for point in analysis.points
+                for reference in (
+                    point.frequency_decision.reference,
+                    point.input_decision.reference,
+                    point.output_decision.reference,
+                )
+            )
+        )
+        metadata = TestRunMetadata(
+            request.job_id,
+            FREQUENCY_RESPONSE_TEST_TYPE,
+            self._configuration_id,
+            self._configuration_version,
+            started_at,
+            _utc_now(self._clock),
+            __version__,
+            read_result.capabilities.device_id,
+            request.profile_name,
+            request.profile_version,
+            read_result.evidence_source,
+            raw_ids,
+        )
+        evaluation = evaluate_frequency_response(analysis, self._criteria, metadata)
+        result_export = build_frequency_response_export(
+            evaluation,
+            self._limitations,
+        )
+        cancellation.raise_if_cancelled()
+        self._output_slot.publish(ProductServiceOutput(read_result, result_export))
+        report_progress(
+            "Frequency-response evaluation and result export are complete.",
+            3,
+            3,
+        )
+        outcome = evaluation.test_run_result.outcome
+        return ProductJobResult(
+            request,
+            _status_from_outcome(outcome),
+            read_result.evidence_source,
+            self._limitations,
+            outcome,
+        )
+
+
+class CalibrationJobService(_OwnedAdapterService):
+    """Acquire observed/reference pairs, fit coefficients, and evaluate errors."""
+
+    def __init__(
+        self,
+        adapter: DeviceAdapter,
+        workflow_request: ReadWorkflowRequest,
+        analysis_config: CalibrationFitConfig,
+        criteria: CalibrationAcceptanceCriteria | None,
+        limitations: tuple[str, ...],
+        output_slot: ProductServiceOutputSlot,
+        *,
+        configuration_id: str = "product-calibration",
+        configuration_version: str = "1",
+        clock: Clock = lambda: datetime.now(timezone.utc),
+    ) -> None:
+        super().__init__(adapter)
+        if not isinstance(workflow_request, ReadWorkflowRequest):
+            raise ProductRequestError("workflow_request must be a ReadWorkflowRequest")
+        if not isinstance(analysis_config, CalibrationFitConfig):
+            raise ProductRequestError("analysis_config must be a CalibrationFitConfig")
+        if criteria is not None and not isinstance(
+            criteria, CalibrationAcceptanceCriteria
+        ):
+            raise ProductRequestError(
+                "criteria must be CalibrationAcceptanceCriteria or None"
+            )
+        if not isinstance(output_slot, ProductServiceOutputSlot):
+            raise ProductRequestError("output_slot must be a ProductServiceOutputSlot")
+        _require_callable("clock", clock)
+        self._validate_workflow(workflow_request, analysis_config)
+        self._workflow_request = workflow_request
+        self._analysis_config = analysis_config
+        self._criteria = criteria
+        self._limitations = _require_limitations(limitations)
+        self._output_slot = output_slot
+        self._configuration_id = configuration_id
+        self._configuration_version = configuration_version
+        self._clock = clock
+
+    @staticmethod
+    def _validate_workflow(
+        workflow_request: ReadWorkflowRequest,
+        config: CalibrationFitConfig,
+    ) -> None:
+        requirements = workflow_request.requirements
+        if len(requirements) != 2:
+            raise ProductRequestError("calibration workflow requires two channel reads")
+        if tuple(requirement.channel for requirement in requirements) != (
+            config.observed_channel,
+            config.reference_channel,
+        ):
+            raise ProductRequestError(
+                "calibration workflow channels must match the fit config"
+            )
+        if any(
+            requirement.operation is not ReadOperation.ANALOG
+            for requirement in requirements
+        ):
+            raise ProductRequestError("calibration workflow channels must be analog")
+        if requirements[0].sample_count != requirements[1].sample_count:
+            raise ProductRequestError("calibration workflow sample counts must match")
+
+    def run(
+        self,
+        request: ProductJobRequest,
+        cancellation: ProductCancellationToken,
+        report_progress: ProductProgressReporter,
+    ) -> ProductJobResult:
+        if request.job_type is not ProductJobType.CALIBRATION_ANALYSIS:
+            raise ProductRequestError(
+                "calibration service requires a CALIBRATION_ANALYSIS job"
+            )
+        started_at = _utc_now(self._clock)
+        cancellation.raise_if_cancelled()
+        report_progress("Acquiring observed/reference calibration pairs.", 0, 3)
+        read_result = run_read_workflow(self._adapter, self._workflow_request)
+        cancellation.raise_if_cancelled()
+        if read_result.status is not ReadWorkflowStatus.COMPLETED:
+            self._output_slot.publish(ProductServiceOutput(read_result))
+            report_progress(
+                "Calibration acquisition ended without complete evidence.", 3, 3
+            )
+            return ProductJobResult(
+                request,
+                _status_from_read(read_result.status),
+                read_result.evidence_source,
+                self._limitations,
+            )
+
+        report_progress("Fitting versioned linear calibration coefficients.", 1, 3)
+        observed = MeasurementBatch(
+            tuple(
+                measurement
+                for measurement in read_result.measurements
+                if measurement.channel == self._analysis_config.observed_channel
+            )
+        )
+        reference = MeasurementBatch(
+            tuple(
+                measurement
+                for measurement in read_result.measurements
+                if measurement.channel == self._analysis_config.reference_channel
+            )
+        )
+        analysis = fit_linear_calibration(observed, reference, self._analysis_config)
+        cancellation.raise_if_cancelled()
+        raw_ids = tuple(
+            dict.fromkeys(
+                reference.raw_record_id
+                for point in analysis.points
+                for reference in (
+                    point.observed_decision.reference,
+                    point.reference_decision.reference,
+                )
+            )
+        )
+        metadata = TestRunMetadata(
+            request.job_id,
+            CALIBRATION_TEST_TYPE,
+            self._configuration_id,
+            self._configuration_version,
+            started_at,
+            _utc_now(self._clock),
+            __version__,
+            read_result.capabilities.device_id,
+            request.profile_name,
+            request.profile_version,
+            read_result.evidence_source,
+            raw_ids,
+        )
+        evaluation = evaluate_calibration(analysis, self._criteria, metadata)
+        result_export = build_calibration_export(evaluation, self._limitations)
+        cancellation.raise_if_cancelled()
+        self._output_slot.publish(
+            ProductServiceOutput(read_result, result_export, analysis.coefficients)
+        )
+        report_progress("Calibration evaluation and result export are complete.", 3, 3)
         outcome = evaluation.test_run_result.outcome
         return ProductJobResult(
             request,
@@ -581,6 +1060,60 @@ def make_read_service_factory(
     return create
 
 
+def make_live_monitor_service_factory(
+    adapter_factory: AdapterFactory,
+    workflow_request: ReadWorkflowRequest,
+    limitations: tuple[str, ...],
+    output_slot: ProductServiceOutputSlot,
+    live_session: LiveMonitorSession,
+    *,
+    sample_interval_seconds: float,
+) -> ProductJobServiceFactory:
+    """Bind one finite monitor while constructing resources in the worker."""
+
+    _require_callable("adapter_factory", adapter_factory)
+
+    def create(request: ProductJobRequest) -> ProductJobService:
+        return LiveMonitorJobService(
+            adapter_factory(request),
+            workflow_request,
+            limitations,
+            output_slot,
+            live_session,
+            sample_interval_seconds=sample_interval_seconds,
+        )
+
+    return create
+
+
+def make_calibration_service_factory(
+    adapter_factory: AdapterFactory,
+    workflow_request: ReadWorkflowRequest,
+    analysis_config: CalibrationFitConfig,
+    criteria: CalibrationAcceptanceCriteria | None,
+    limitations: tuple[str, ...],
+    output_slot: ProductServiceOutputSlot,
+    *,
+    clock: Clock = lambda: datetime.now(timezone.utc),
+) -> ProductJobServiceFactory:
+    """Bind a calibration fit while constructing resources in the worker."""
+
+    _require_callable("adapter_factory", adapter_factory)
+
+    def create(request: ProductJobRequest) -> ProductJobService:
+        return CalibrationJobService(
+            adapter_factory(request),
+            workflow_request,
+            analysis_config,
+            criteria,
+            limitations,
+            output_slot,
+            clock=clock,
+        )
+
+    return create
+
+
 def make_dc_sweep_service_factory(
     adapter_factory: AdapterFactory,
     workflow_request: ReadWorkflowRequest,
@@ -597,6 +1130,34 @@ def make_dc_sweep_service_factory(
 
     def create(request: ProductJobRequest) -> ProductJobService:
         return DCSweepJobService(
+            adapter_factory(request),
+            workflow_request,
+            analysis_config,
+            criteria,
+            limitations,
+            output_slot,
+            clock=clock,
+        )
+
+    return create
+
+
+def make_frequency_response_service_factory(
+    adapter_factory: AdapterFactory,
+    workflow_request: ReadWorkflowRequest,
+    analysis_config: FrequencyResponseAnalysisConfig,
+    criteria: FrequencyResponseAcceptanceCriteria | None,
+    limitations: tuple[str, ...],
+    output_slot: ProductServiceOutputSlot,
+    *,
+    clock: Clock = lambda: datetime.now(timezone.utc),
+) -> ProductJobServiceFactory:
+    """Bind one formal frequency-response path for worker execution."""
+
+    _require_callable("adapter_factory", adapter_factory)
+
+    def create(request: ProductJobRequest) -> ProductJobService:
+        return FrequencyResponseJobService(
             adapter_factory(request),
             workflow_request,
             analysis_config,
@@ -692,15 +1253,21 @@ def execute_product_job(
 
 
 __all__ = [
+    "CalibrationJobService",
     "Clock",
     "DCSweepJobService",
+    "FrequencyResponseJobService",
     "HysteresisJobService",
+    "LiveMonitorJobService",
     "ProductJobExecution",
     "ProductServiceOutput",
     "ProductServiceOutputSlot",
     "ReadJobService",
     "execute_product_job",
+    "make_calibration_service_factory",
     "make_dc_sweep_service_factory",
+    "make_frequency_response_service_factory",
     "make_hysteresis_service_factory",
+    "make_live_monitor_service_factory",
     "make_read_service_factory",
 ]

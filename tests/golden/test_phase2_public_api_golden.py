@@ -16,6 +16,7 @@ from analog_validation import (
     CAPABILITY_SCHEMA_VERSION,
     CSV_REPLAY_ADAPTER_CONFIG_SCHEMA_VERSION,
     CSV_REPLAY_SCHEMA_VERSION,
+    FREQUENCY_RESPONSE_SIMULATOR_CONFIG_SCHEMA_VERSION,
     MEASUREMENT_SCHEMA_VERSION,
     READ_WORKFLOW_SCHEMA_VERSION,
     SIMULATOR_CONFIG_SCHEMA_VERSION,
@@ -30,6 +31,8 @@ from analog_validation import (
     CsvReplayAdapter,
     CsvReplayAdapterConfig,
     DeviceAdapter,
+    FrequencyResponseSimulatorAdapter,
+    FrequencyResponseSimulatorConfig,
     ReadOperation,
     ReadWorkflowRequest,
     ReadWorkflowStatus,
@@ -42,6 +45,7 @@ from analog_validation import (
     SimulatorAdapter,
     SimulatorFaultMode,
     run_read_workflow,
+    run_streaming_read_workflow,
 )
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -65,6 +69,9 @@ SCHEMAS = {
         CSV_REPLAY_ADAPTER_CONFIG_SCHEMA_VERSION
     ),
     "CSV_REPLAY_SCHEMA_VERSION": CSV_REPLAY_SCHEMA_VERSION,
+    "FREQUENCY_RESPONSE_SIMULATOR_CONFIG_SCHEMA_VERSION": (
+        FREQUENCY_RESPONSE_SIMULATOR_CONFIG_SCHEMA_VERSION
+    ),
     "MEASUREMENT_SCHEMA_VERSION": MEASUREMENT_SCHEMA_VERSION,
     "READ_WORKFLOW_SCHEMA_VERSION": READ_WORKFLOW_SCHEMA_VERSION,
     "SIMULATOR_CONFIG_SCHEMA_VERSION": SIMULATOR_CONFIG_SCHEMA_VERSION,
@@ -89,9 +96,12 @@ SIGNATURES: dict[str, Callable[..., Any]] = {
     "DeviceAdapter.read_digital_state": DeviceAdapter.read_digital_state,
     "DeviceAdapter.read_measurement": DeviceAdapter.read_measurement,
     "DeviceAdapter.safe_shutdown": DeviceAdapter.safe_shutdown,
+    "FrequencyResponseSimulatorAdapter": FrequencyResponseSimulatorAdapter,
+    "FrequencyResponseSimulatorConfig": FrequencyResponseSimulatorConfig,
     "ReadWorkflowRequest": ReadWorkflowRequest,
     "SimulatorAdapter": SimulatorAdapter,
     "run_read_workflow": run_read_workflow,
+    "run_streaming_read_workflow": run_streaming_read_workflow,
 }
 ERRORS: dict[str, type[Exception]] = {
     "AdapterConnectionError": AdapterConnectionError,
@@ -151,10 +161,7 @@ def test_phase2_enum_values_match_frozen_manifest() -> None:
 
 
 def test_phase2_signature_shapes_match_frozen_manifest() -> None:
-    actual = {
-        name: _signature_parameters(value)
-        for name, value in SIGNATURES.items()
-    }
+    actual = {name: _signature_parameters(value) for name, value in SIGNATURES.items()}
     assert actual == MANIFEST["signature_parameters"]
 
 
