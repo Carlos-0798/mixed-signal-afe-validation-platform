@@ -7,8 +7,8 @@ These limits are part of the product contract, not hidden footnotes.
 - This is private beta candidate preparation, not v1.0 or production-ready.
 - No Git tag, GitHub Release, PyPI publication, signed installer, automatic
   update channel, or public download has been approved.
-- No public license has been selected. The repository remains all rights
-  reserved; a tester may use only the separately agreed private-test scope.
+- The owner selected the MIT License; it is included in `LICENSE`. Licensing
+  does not imply that a public release or a hardware test has been performed.
 - CI artifacts have bounded retention and are not a permanent distribution
   channel.
 

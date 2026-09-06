@@ -1,8 +1,8 @@
 # Project Status
 
-**Last updated:** 2026-09-05<br>
-**Current milestone:** Post-beta product expansion — calibration, frequency-response, and bounded offline live-monitor workflows locally closed and awaiting owner-approved commit review<br>
-**Release maturity:** Audited `0.1.0b1` private-beta baseline on `main`; the combined product increment is not yet committed, merged, tagged, or released<br>
+**Last updated:** 2026-09-06<br>
+**Current milestone:** Combined calibration, frequency-response, and bounded offline live-monitor increment committed locally at `5dcc2d0`; owner-selected MIT integration locally verified and awaiting commit review<br>
+**Release maturity:** Audited `0.1.0b1` private-beta baseline on `main`; the combined increment has not been pushed, merged, tagged, or released<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
 
@@ -44,9 +44,25 @@ chains. The live stress published 10,000 synthetic points in 0.177198 seconds
 with 1.348 MiB peak traced memory, retained 2,048, and accounted for 7,952
 evictions on this host; those timings are not real-time claims. The release
 verifier clears inherited `PYTHONPATH` from every clean-install subprocess so an
-outer checkout cannot make pip skip the candidate wheel. This is not yet a
-commit-bound candidate and has not run hosted CI; formal release-candidate/audit
-execution requires an owner-approved clean commit.
+outer checkout cannot make pip skip the candidate wheel. Following owner
+approval, the 109-file increment was committed as `5dcc2d0`. Its formal
+release-candidate verification passed; the release audit returned
+`PASS_WITH_REVIEW` for eight historical privacy findings, with zero current
+privacy findings and zero high-confidence credential findings. These are local
+results, not hosted CI or publication approval.
+
+The follow-up MIT integration is a separate, uncommitted working-tree change.
+It replaces the previous license placeholder, adds SPDX package metadata, and
+checks the license in source and distribution archives. Local regression passed
+2,470 tests with 100% package statement coverage, Ruff, and mypy. A managed
+Windows application-control policy initially blocked the pip-generated console
+launcher under the system temporary directory (`WinError 4551`). The verifier
+now creates fresh-install environments beside the caller-selected candidate
+destination, still removes them automatically, and retains the real console
+launcher gate. The complete base/serial-extra install, normal/Unicode demo, and
+external-adapter chain then passed without serial discovery or hardware access.
+This does not retroactively change the license findings in the preserved
+`5dcc2d0` audit.
 
 Before merge, GitHub's generated merge ref `70c5bf1` was checked in an
 independent worktree. It passed 174 focused Dashboard/architecture tests, all
@@ -335,8 +351,8 @@ Not safe to claim now:
 
 Software Phase 6 Steps 1–7 are complete, and Dashboard UX PR #7 is delivered
 to `main` at merge commit `b4f0fef` with a successful eight-job post-merge CI
-run. Phase 6 Step 8 remains owner-gated because merging the UX work does not
-select repository visibility or a license and does not authorize a tag,
+run. The owner has since selected MIT, now implemented in the local working
+tree. Phase 6 Step 8 remains owner-gated: licensing does not authorize a tag,
 GitHub Release, package publication, public-history exposure, social preview,
 beta-feedback disposition, or LinkedIn handoff. Simulator remains the default.
 Real-port reliability and future physical AFE work stay separately gated and

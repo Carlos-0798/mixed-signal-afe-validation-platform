@@ -46,10 +46,14 @@ REVIEWED_BINARY_SHA256: dict[str, str] = {
     ),
 }
 APPROVED_PRIVACY_FIXTURE = "tests/unit/test_release_candidate_check.py"
-LICENSE_POLICY_TEXT = (
-    "No license has been selected yet.\n\n"
-    "All rights are reserved until the project owner chooses and adds a license.\n"
-)
+# Exact owner-selected MIT text, normalized to LF before hashing.
+LICENSE_POLICY_SHA256 = "6608bb40127ad12e757b50f19a961983db710bb5658d606dd55a2e594ad8ea43"
+
+
+def _validate_mit_license(payload: bytes) -> None:
+    normalized = payload.replace(b"\r\n", b"\n")
+    if hashlib.sha256(normalized).hexdigest() != LICENSE_POLICY_SHA256:
+        raise ReleaseAuditError("LICENSE differs from the owner-selected MIT text")
 
 
 class ReleaseAuditError(RuntimeError):
@@ -624,8 +628,8 @@ def _audit_wheel(path: Path) -> tuple[dict[str, object], dict[str, Any]]:
         raise ReleaseAuditError("wheel package name differs from the release contract")
     if str(metadata.get("Version", "")) != PACKAGE_VERSION:
         raise ReleaseAuditError("wheel version differs from the release contract")
-    if metadata.get("License") or metadata.get("License-Expression"):
-        raise ReleaseAuditError("wheel unexpectedly declares a project license")
+    if metadata.get("License") or metadata.get_all("License-Expression") != ["MIT"]:
+        raise ReleaseAuditError("wheel must declare exactly one MIT License-Expression")
     if any(item.startswith("License ::") for item in classifiers):
         raise ReleaseAuditError("wheel unexpectedly declares a license classifier")
     if base_requirements:
@@ -635,7 +639,10 @@ def _audit_wheel(path: Path) -> tuple[dict[str, object], dict[str, Any]]:
     ):
         raise ReleaseAuditError("wheel serial dependency differs from the release contract")
     if not any(name.endswith("/LICENSE") for name in license_members):
-        raise ReleaseAuditError("wheel does not carry the project rights-reserved notice")
+        raise ReleaseAuditError("wheel does not carry the project MIT license")
+    for name, payload in payloads:
+        if name in license_members and name.endswith("/LICENSE"):
+            _validate_mit_license(payload)
     if not any(name.endswith("/THIRD_PARTY_NOTICES.md") for name in license_members):
         raise ReleaseAuditError("wheel does not carry third-party notices")
 
@@ -656,7 +663,8 @@ def _audit_wheel(path: Path) -> tuple[dict[str, object], dict[str, Any]]:
             "base_requirements": list(base_requirements),
             "serial_requirements": list(serial_requirements),
             "license_header_present": False,
-            "license_expression_present": False,
+            "license_expression_present": True,
+            "license_expression": "MIT",
             "license_classifier_count": 0,
         },
     )
@@ -698,7 +706,10 @@ def _audit_sdist(path: Path) -> dict[str, object]:
     if any(name.casefold().endswith(".xlsx") for name in file_names):
         raise ReleaseAuditError("sdist unexpectedly contains the planning workbook")
     if not any(name.endswith("/LICENSE") for name in file_names):
-        raise ReleaseAuditError("sdist does not carry the project rights-reserved notice")
+        raise ReleaseAuditError("sdist does not carry the project MIT license")
+    for name, payload in payloads:
+        if name.endswith("/LICENSE"):
+            _validate_mit_license(payload)
     if not any(name.endswith("/THIRD_PARTY_NOTICES.md") for name in file_names):
         raise ReleaseAuditError("sdist does not carry third-party notices")
     required_suffixes = (
@@ -813,9 +824,7 @@ def _audit_candidate(candidate: Path, commit: str) -> dict[str, object]:
 
 
 def _audit_license_and_notices(root: Path) -> dict[str, object]:
-    license_text = (root / "LICENSE").read_text(encoding="utf-8")
-    if license_text != LICENSE_POLICY_TEXT:
-        raise ReleaseAuditError("LICENSE differs from the owner-decision placeholder")
+    _validate_mit_license((root / "LICENSE").read_bytes())
     notice = root / "THIRD_PARTY_NOTICES.md"
     if not notice.is_file():
         raise ReleaseAuditError("THIRD_PARTY_NOTICES.md is missing")
@@ -832,15 +841,15 @@ def _audit_license_and_notices(root: Path) -> dict[str, object]:
             raise ReleaseAuditError("third-party notices are incomplete")
     pyproject = (root / "pyproject.toml").read_text(encoding="utf-8")
     project_block = pyproject.split("[project.urls]", 1)[0]
-    if re.search(r"(?m)^license\s*=", project_block):
-        raise ReleaseAuditError("pyproject unexpectedly declares a project license")
+    if re.findall(r'(?m)^license\s*=\s*"([^"]+)"\s*$', project_block) != ["MIT"]:
+        raise ReleaseAuditError("pyproject must declare the owner-selected MIT license")
     if "License ::" in pyproject:
         raise ReleaseAuditError("pyproject unexpectedly declares a license classifier")
     return {
         "status": "PASS",
-        "project_license_state": "OWNER_DECISION_REQUIRED_ALL_RIGHTS_RESERVED",
-        "open_source_license_selected": False,
-        "project_license_metadata_present": False,
+        "project_license_state": "MIT",
+        "open_source_license_selected": True,
+        "project_license_metadata_present": True,
         "third_party_notice_present": True,
         "base_runtime_dependency_count": 0,
         "optional_serial_dependency": "pyserial>=3.5,<4",
@@ -867,7 +876,7 @@ def _audit_project_boundaries(root: Path) -> dict[str, object]:
         "OSU Lab Bench Monitor Senior Capstone",
         "NO_NEW_HARDWARE_VALIDATION",
         "AFE hardware bench tests | Not run",
-        "No open-source license has been selected",
+        "MIT License",
     )
     if any(value.casefold() not in readme.casefold() for value in required_claims):
         raise ReleaseAuditError("README evidence or independence boundary is incomplete")
@@ -923,7 +932,7 @@ def build_release_audit(candidate: Path, *, root: Path = ROOT) -> dict[str, obje
             "public_git_history": (
                 "OWNER_REVIEW_REQUIRED" if review_required else "READY"
             ),
-            "open_source_distribution": "BLOCKED_NO_PROJECT_LICENSE",
+            "open_source_distribution": "LICENSE_READY_PUBLICATION_NOT_EVALUATED",
             "v1_0": "BLOCKED_OWNER_DECISION_AND_BETA_FEEDBACK",
         },
         "candidate": candidate_result,

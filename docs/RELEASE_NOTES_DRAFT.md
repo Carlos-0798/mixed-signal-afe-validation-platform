@@ -42,8 +42,8 @@ beginner workflow is in [Installation](INSTALLATION.md) and
 - macOS and long-duration physical transport operation are not yet verified;
 - firmware, laboratory-instrument automation, and production qualification are
   outside this beta;
-- no project license has been selected, so testing remains private and
-  controlled;
+- the owner-selected MIT License is included; release publication remains
+  a separate decision;
 - legacy commits contain de-identified-history review items; publishing the
   complete Git history requires an owner decision about history remediation.
 

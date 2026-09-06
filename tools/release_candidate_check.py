@@ -520,8 +520,22 @@ def _verify_external_public_adapter(
     return document
 
 
-def _clean_install_checks(wheel: Path) -> dict[str, object]:
-    with tempfile.TemporaryDirectory(prefix="afe-release-install-") as directory:
+def _clean_install_checks(
+    wheel: Path, *, temporary_parent: Path
+) -> dict[str, object]:
+    """Verify fresh installs beside the requested output, then remove them.
+
+    Some managed Windows hosts prohibit generated console launchers under the
+    system temporary directory.  The candidate output parent is already an
+    explicit writable destination, so using it keeps the launcher inside the
+    caller-selected validation boundary without weakening the executable gate.
+    """
+
+    if not temporary_parent.is_dir():
+        raise ReleaseCandidateError("clean-install temporary parent must exist")
+    with tempfile.TemporaryDirectory(
+        prefix="afe-release-install-", dir=temporary_parent
+    ) as directory:
         temporary_root = Path(directory)
         base_root = temporary_root / "base"
         serial_root = temporary_root / "serial"
@@ -872,7 +886,7 @@ def verify_release_candidate(output: Path) -> dict[str, object]:
         _compare_builds(first, second)
         wheel = first_directory / _wheel_record(first).filename
         metadata = _wheel_metadata(wheel)
-        install = _clean_install_checks(wheel)
+        install = _clean_install_checks(wheel, temporary_parent=output.parent)
         final_status = _run(
             "final clean Git working tree",
             ("git", "status", "--porcelain=v1", "--untracked-files=all"),

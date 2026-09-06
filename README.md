@@ -255,7 +255,9 @@ media/                      classified software visuals; future bench media is s
 - Reports, screenshots, and release manifests must retain provenance and
   limitation labels.
 - Publication requires a separate owner decision for repository visibility,
-  Git-history review, license, release/tag, social preview, and LinkedIn copy.
+  Git-history review, release/tag, social preview, and LinkedIn copy.
+  The owner-selected MIT license is implemented; future license changes remain
+  owner-controlled.
 
 See [Security](SECURITY.md), [publication checklist](docs/PUBLICATION_CHECKLIST.md),
 [assumptions](ASSUMPTIONS.md), [test/evidence policy](docs/test-plan.md), and
@@ -263,7 +265,7 @@ See [Security](SECURITY.md), [publication checklist](docs/PUBLICATION_CHECKLIST.
 
 ## License
 
-No open-source license has been selected. All rights are currently reserved by
-the project owner. Public visibility, if later chosen, would make the source
-viewable but would not itself grant permission to reuse, modify, or distribute
-it.
+Licensed under the [MIT License](LICENSE), selected by the project owner.
+See [Third-Party Notices](THIRD_PARTY_NOTICES.md) for separately licensed
+dependencies. Repository visibility and publishing a Release remain separate
+owner-controlled actions.

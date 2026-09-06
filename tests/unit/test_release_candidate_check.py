@@ -154,6 +154,7 @@ def test_clean_install_checks_scrub_pythonpath_from_every_fresh_environment(
     cli = tmp_path / "analog-validation.exe"
     cli.write_bytes(b"launcher")
     environments: list[dict[str, str] | None] = []
+    working_directories: list[Path] = []
 
     def fake_run(
         label: str,
@@ -164,7 +165,8 @@ def test_clean_install_checks_scrub_pythonpath_from_every_fresh_environment(
         timeout: int = release_module.COMMAND_TIMEOUT_SECONDS,
         launch_attempts: int = 1,
     ) -> str:
-        del cwd, timeout, launch_attempts
+        del timeout, launch_attempts
+        working_directories.append(cwd)
         environments.append(environment)
         if label == "installed CLI version":
             return json.dumps({"software_version": release_module.__version__})
@@ -197,11 +199,25 @@ def test_clean_install_checks_scrub_pythonpath_from_every_fresh_environment(
     monkeypatch.setattr(release_module, "_verify_installed_demo", fake_demo)
     monkeypatch.setattr(release_module, "_verify_external_public_adapter", fake_adapter)
 
-    result = _clean_install_checks(tmp_path / "candidate.whl")
+    result = _clean_install_checks(
+        tmp_path / "candidate.whl", temporary_parent=tmp_path
+    )
 
     assert result["base_install"] == "PASS"
     assert environments and all(value == {"PYTHONPATH": ""} for value in environments)
     assert helper_environments == [{"PYTHONPATH": ""}, {"PYTHONPATH": ""}]
+    assert working_directories
+    assert all(path.is_relative_to(tmp_path) for path in working_directories)
+    assert not tuple(tmp_path.glob("afe-release-install-*"))
+
+
+def test_clean_install_checks_require_an_existing_explicit_parent(tmp_path: Path) -> None:
+    with pytest.raises(
+        ReleaseCandidateError, match="clean-install temporary parent must exist"
+    ):
+        _clean_install_checks(
+            tmp_path / "candidate.whl", temporary_parent=tmp_path / "missing"
+        )
 
 
 def test_external_public_adapter_runs_isolated_with_exact_read_only_result(

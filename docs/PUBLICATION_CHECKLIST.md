@@ -1,9 +1,10 @@
 # Publication and Portfolio Governance Checklist
 
-**Last reviewed:** 2026-09-04
+**Last reviewed:** 2026-09-06
 
 **Current state:** Private repository, Dashboard UX PR #7 merged at `b4f0fef`,
-package `0.1.0b1`, no tag, no GitHub Release, no selected open-source license
+package `0.1.0b1`, no tag, no GitHub Release. The owner-selected MIT License
+has been implemented locally on 2026-09-06; remote status has not been refreshed.
 
 **Hardware claim:** `NO_NEW_HARDWARE_VALIDATION`
 
@@ -113,7 +114,7 @@ Each item needs an exact preview and explicit approval:
 - [x] Mark PR #7 Ready.
 - [x] Merge PR #7 and retain its remote feature branch.
 - [ ] Choose repository visibility.
-- [ ] Choose an open-source license or intentionally retain all rights.
+- [x] Owner selected MIT; LICENSE, package metadata, and audit policy updated locally.
 - [ ] Approve GitHub description and topics.
 - [ ] Approve and upload the social-preview image.
 - [ ] Approve `v0.1.0b1` tag and GitHub Release, or defer both.
