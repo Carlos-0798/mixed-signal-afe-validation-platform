@@ -34,39 +34,47 @@ hash itself, which avoids a circular dependency.
 
 ## Public surface frozen
 
-The manifest freezes exports from four explicit namespaces:
+The manifest freezes exports from five explicit namespaces:
 
-- `analog_validation_app`: 185 exports;
+- `analog_validation_app`: 228 exports;
 - `analog_validation_app.cli`: 13 exports;
 - `analog_validation_app.dashboard`: 37 exports;
 - `analog_validation_app.dashboard.app`: 8 exports.
+- `analog_validation_app.projects`: 33 exports.
 
 It also freezes:
 
-- 15 schema-version constants;
+- 22 schema-version constants;
 - 10 enum member sets;
-- 40 dataclass field contracts, including required/default and keyword-only
+- 49 dataclass field contracts, including required/default and keyword-only
   behavior;
-- 40 public constructor/function parameter shapes;
-- 24 product-error inheritance relationships;
-- 25 exception-to-user-issue mappings, including the internal-error fallback;
+- 60 public constructor/function parameter shapes;
+- 29 product-error inheritance relationships;
+- 30 exception-to-user-issue mappings, including the internal-error fallback;
 - product identity, evidence statements, source/profile catalogs, worker
   defaults, report filenames, deterministic-demo identity, and documented
   limitations;
-- 13 serialized CLI/report/demo field groups;
+- 22 serialized CLI/report/demo/project field groups;
 - six earlier/current golden-manifest SHA-256 values;
 - the absence of a product-level hardware-control/write surface.
 
 ## CLI contract
 
-The local parser contract freezes these 24 command paths after the additive
-calibration, frequency-response, and bounded live-monitor extensions:
+The local parser contract freezes these 32 command paths after the additive
+calibration, frequency-response, bounded live-monitor, receive-only Serial, and
+local test-project extensions:
 
 ```text
 <root>
 version
 profiles
 ports
+project
+project create
+project inspect
+project run
+project history
+project compare
 coefficients
 coefficients inspect
 simulate
@@ -84,6 +92,8 @@ replay calibration
 replay frequency
 replay monitor
 observe
+serial
+serial monitor
 report
 demo
 dashboard
@@ -118,11 +128,47 @@ additional nullable CLI artifact field was needed.
 The bounded live-monitor increment adds `LIVE_MONITOR`,
 `LiveMonitorJobService`, `LiveMonitorSession`, immutable trace/snapshot and
 Dashboard panel types, `make_live_monitor_service_factory`, and `simulate
-monitor` / `replay monitor`. The manifest freezes its memory, time-window,
-interval, duration, and cooperative-control constants. It adds no Serial job,
-output permission, analysis bundle, or engineering PASS/FAIL meaning. Existing
-CLI documents remain `product-cli-output.v2`; execution documents use the
-nullable `live_monitor` field only for this job.
+monitor` / `replay monitor` / `serial monitor`. The manifest freezes its memory,
+time-window, interval, duration, and cooperative-control constants. Serial
+monitoring retains the receive-only confirmation and adds no output permission,
+analysis bundle, or engineering PASS/FAIL meaning. Existing CLI documents
+remain `product-cli-output.v2`; execution documents use the nullable
+`live_monitor` field only for this job.
+
+The serial device-contract increment freezes `serial-source-config.v1`,
+`serial-channel-alias.v1`, `SerialChannelAlias`, its public constructor/parse
+shape, and the maximum identity/alias bounds. Both Serial commands accept an
+optional exact expected capability ID; AFE v1 may additionally require a
+complete unique native-ADC to canonical input/output mapping. The JSON `read`
+object now makes the accepted capability identity/profile and readable channel
+lists explicit. These additions do not authenticate a device or prove wiring.
+
+The local test-project increment freezes `validation-project.v1`,
+`validation-preset.v1`, `validation-run-record.v1`,
+`validation-run-manifest.v1`, and `validation-run-comparison.v1`; eight public
+dataclasses; strict load/dump/write/publish/compare functions; five project
+error families; resource limits; and the six new CLI paths. Run manifests bind
+an exact `project.snapshot.json`, per-preset canonical configuration hashes,
+copied terminal/outcome/evidence/metric facts, and any result/coefficient
+artifacts. Comparison never recalculates engineering conclusions. Saved projects
+exclude Serial so a local file cannot silently restore device authority.
+
+TD-040A adds `validation-run-manifest.v2` while keeping the strict v1 parser and
+exact v1 serialization shape. The public freeze now includes the legacy schema
+constant, four terminal batch statuses, five progress phases, an immutable
+progress snapshot, and a thread-safe cooperative cancellation token. The v2
+shape adds planned/not-started preset IDs and explicit planned/completed/not-
+started counts. `execute_product_job` accepts optional cancellation polling and
+event reporting callbacks; `project run` writes progress only to `stderr` so
+its JSON `stdout` contract remains parseable.
+
+TD-040C1A adds `validation-run-manifest.v3` and
+`validation-run-input-artifact.v1`. New runs bind every executed CSV Replay
+preset to a create-new, run-relative input copy with exact bytes and SHA-256;
+the worker consumes that staged copy. Same-source presets may reference one
+physical copy, while presets cancelled before start have no input record.
+`ValidationRunInputArtifact`, both earlier manifest constants, strict v1/v2
+parsing and their original serialization shapes remain public and frozen.
 
 | Exit code | Meaning |
 |---:|---|
@@ -143,8 +189,9 @@ outcomes without scraping human-facing text.
 Schema versions identify meaning, while serialized-field lists identify shape.
 Both are frozen. A consumer can therefore check the version first and then
 parse the documented fields without depending on private Python objects. The
-freeze covers CLI version/profile/demo payloads, demo workflow/results/safety
-metadata, demo artifacts, and human-report artifacts/manifests.
+freeze covers CLI version/profile/demo/project payloads, demo workflow/results/
+safety metadata, demo artifacts, human-report artifacts/manifests, project
+documents, run records/manifests, and comparisons.
 
 ## Change procedure
 

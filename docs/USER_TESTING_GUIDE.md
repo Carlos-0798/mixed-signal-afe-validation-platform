@@ -6,6 +6,13 @@ This 20–30 minute session checks whether a new user can install and understand
 Analog Validation Studio without repository knowledge or hardware. It tests the
 delivered software experience, not analog performance.
 
+This installation/demo session does not measure time saved over manual work.
+The next engineering-value evaluation uses the separate
+[task-value protocol](TASK_VALUE_VALIDATION_PLAN.md): the same DC task, inputs,
+criteria and deliverables for a manual/template baseline and AVS. Record setup,
+data conversion, report preparation and actual operator time independently;
+human measurements remain NOT_RUN until a person performs the task.
+
 Use the matching [installation guide](INSTALLATION.md),
 [checklist](BETA_TEST_CHECKLIST.md), [known limitations](KNOWN_LIMITATIONS.md),
 and [troubleshooting guide](TROUBLESHOOTING.md).

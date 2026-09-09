@@ -9,8 +9,9 @@ Use one copy per tester/environment. Check only what was actually observed.
 - [ ] Manifest status is PASS and artifact hashes were independently checked.
 - [ ] Tester received the installation, testing, troubleshooting, and known
       limitation documents.
-- [ ] Tester understands that no public license or redistribution permission is
-      implied.
+- [ ] Tester received the MIT License and understands that it does not imply
+      production readiness, warranty, hardware validation, or a published
+      release.
 
 ## Tester environment
 

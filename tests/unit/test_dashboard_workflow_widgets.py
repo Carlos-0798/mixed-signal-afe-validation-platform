@@ -20,7 +20,14 @@ from analog_validation_app.dashboard import initial_dashboard_state
 from analog_validation_app.dashboard.widgets import (
     _bind_mouse_wheel,
     _create_scrollable_page,
+    _focus_and_reveal_control,
+    _job_display_name,
+    _job_value_from_display,
+    _plain_language_field_guide,
+    _source_display_name,
+    _source_value_from_display,
     _sync_vertical_scroll_state,
+    _workflow_action_guidance,
     create_dashboard_widgets,
     create_dashboard_workflow_widgets,
 )
@@ -45,9 +52,11 @@ class FakeWidget:
         self.rows: dict[str, tuple[object, ...]] = {}
         self.visible = False
         self.focus_calls = 0
+        self.grid_options: dict[str, object] = {}
 
     def grid(self, **kwargs: object) -> None:
         self.visible = True
+        self.grid_options = dict(kwargs)
 
     def grid_remove(self) -> None:
         self.visible = False
@@ -144,6 +153,7 @@ def callbacks(log: list[object]) -> dict[str, Any]:
         "on_run": lambda: log.append("run"),
         "on_cancel": lambda: log.append("cancel"),
         "on_discover": lambda: log.append("discover"),
+        "on_choose_replay_path": lambda: "chosen-replay.csv",
         "on_choose_export_path": choose_export_path,
         "on_export": lambda path, format_name: log.append(
             ("export", path, format_name)
@@ -158,6 +168,57 @@ def callbacks(log: list[object]) -> dict[str, Any]:
     }
 
 
+def test_workflow_registers_named_controls_when_tk_accessibility_exists() -> None:
+    class AccessibleInterpreter:
+        def __init__(self) -> None:
+            self.calls: list[tuple[object, ...]] = []
+
+        def call(self, *args: object) -> object:
+            self.calls.append(args)
+            if args == ("info", "patchlevel"):
+                return "9.1b0"
+            if args == ("tk", "accessible", "check_screenreader"):
+                return 1
+            return ""
+
+    class AccessibleRoot(FakeRoot):
+        def __init__(self) -> None:
+            super().__init__()
+            self.tk = AccessibleInterpreter()
+
+    root = AccessibleRoot()
+    widgets = create_dashboard_workflow_widgets(
+        root, FakeTk(), FakeTtk(), **callbacks([])
+    )
+    names = {
+        call[-1]
+        for call in root.tk.calls
+        if call[:3] == ("tk", "accessible", "set_acc_name")
+    }
+
+    assert widgets.accessibility.capability.metadata_api_available is True
+    assert {
+        "Source",
+        "Profile",
+        "Test",
+        "Replay CSV path",
+        "Validate setup",
+        "Run reviewed test",
+        "Plain-language field guide",
+        "Available action guidance",
+        "Decision summary and evidence boundary",
+        "Issues and safe next step",
+        "Observations and finalized analysis points",
+    } <= names
+
+    state = DashboardWizardState(0, DashboardWizardStep.SOURCE, DashboardWizardDraft())
+    widgets.render(initial_dashboard_state(), state)
+    assert any(
+        call[:3] == ("tk", "accessible", "emit_selection_change")
+        for call in root.tk.calls
+    )
+
+
 def issue() -> UserIssue:
     return UserIssue(
         UserIssueCode.INPUT_DATA,
@@ -169,10 +230,122 @@ def issue() -> UserIssue:
     )
 
 
+@pytest.mark.parametrize("source", tuple(ProductSourceMode))
+def test_source_display_names_round_trip_without_changing_stable_values(
+    source: ProductSourceMode,
+) -> None:
+    display = _source_display_name(source)
+
+    assert "_" not in display
+    assert _source_value_from_display(display) is source
+
+
+@pytest.mark.parametrize("job", tuple(ProductJobType))
+def test_job_display_names_round_trip_without_changing_stable_values(
+    job: ProductJobType,
+) -> None:
+    display = _job_display_name(job)
+
+    assert "_" not in display
+    assert _job_value_from_display(display) is job
+
+
+def test_unknown_display_names_are_rejected_instead_of_guessed() -> None:
+    with pytest.raises(ProductRequestError, match="source selection"):
+        _source_value_from_display("Unknown source")
+    with pytest.raises(ProductRequestError, match="test selection"):
+        _job_value_from_display("Unknown test")
+
+
+@pytest.mark.parametrize(
+    ("job", "expected"),
+    [
+        (ProductJobType.READ, "finite observations"),
+        (ProductJobType.DC_ANALYSIS, "R-squared"),
+        (ProductJobType.HYSTERESIS_ANALYSIS, "threshold separation"),
+        (ProductJobType.CALIBRATION_ANALYSIS, "not applied automatically"),
+        (ProductJobType.FREQUENCY_RESPONSE_ANALYSIS, "does not measure phase"),
+        (ProductJobType.LIVE_MONITOR, "bounded display buffer"),
+    ],
+)
+def test_plain_language_field_guide_explains_each_test_without_changing_evidence(
+    job: ProductJobType, expected: str
+) -> None:
+    text = _plain_language_field_guide(ProductSourceMode.SIMULATOR, job)
+
+    assert expected in text
+    assert "SYNTHETIC" in text
+
+
+@pytest.mark.parametrize(
+    ("source", "expected"),
+    [
+        (ProductSourceMode.SIMULATOR, "SYNTHETIC"),
+        (ProductSourceMode.CSV_REPLAY, "CSV_REPLAY"),
+        (ProductSourceMode.SERIAL_READ_ONLY, "does not discover or open a port"),
+    ],
+)
+def test_plain_language_field_guide_states_the_real_source_boundary(
+    source: ProductSourceMode, expected: str
+) -> None:
+    assert expected in _plain_language_field_guide(source, ProductJobType.READ)
+
+
+@pytest.mark.parametrize(
+    ("state", "expected"),
+    [
+        (
+            DashboardWizardState(0, DashboardWizardStep.SOURCE, DashboardWizardDraft()),
+            "choose Source and Profile",
+        ),
+        (
+            DashboardWizardState(0, DashboardWizardStep.TEST, DashboardWizardDraft()),
+            "choose one Test",
+        ),
+        (
+            DashboardWizardState(
+                0, DashboardWizardStep.CONFIGURATION, DashboardWizardDraft()
+            ),
+            "Run stays unavailable until validation succeeds",
+        ),
+        (
+            DashboardWizardState(
+                0,
+                DashboardWizardStep.CONFIGURATION,
+                DashboardWizardDraft(),
+                issue=issue(),
+            ),
+            "correct the highlighted field",
+        ),
+        (
+            DashboardWizardState(
+                0,
+                DashboardWizardStep.REVIEW,
+                DashboardWizardDraft(),
+                review_lines=("Reviewed.",),
+            ),
+            "Ready to run",
+        ),
+        (
+            DashboardWizardState(0, DashboardWizardStep.REVIEW, DashboardWizardDraft()),
+            "Run is unavailable",
+        ),
+    ],
+)
+def test_workflow_action_guidance_explains_the_next_available_action(
+    state: DashboardWizardState, expected: str
+) -> None:
+    assert expected in _workflow_action_guidance(state)
+
+
 def test_workflow_widgets_render_six_steps_and_emit_only_typed_callbacks() -> None:
+    class CanvasTk(FakeTk):
+        Canvas = FakeWidget
+
     log: list[object] = []
+    root = FakeRoot()
     widgets = create_dashboard_workflow_widgets(
-        FakeRoot(), FakeTk(), FakeTtk(), **callbacks(log)
+        root, CanvasTk(), FakeTtk(), **callbacks(log)
     )
     initial = DashboardWizardState(
         0, DashboardWizardStep.SOURCE, DashboardWizardDraft()
@@ -181,6 +354,8 @@ def test_workflow_widgets_render_six_steps_and_emit_only_typed_callbacks() -> No
 
     assert "Step 1 of 6" in widgets.step_value.value
     assert "Why it matters:" in widgets.guidance_value.value
+    assert "choose Source and Profile" in widgets.action_guidance_value.value
+    assert widgets.section_frames["field_guide"].visible is False
     assert widgets.next_button.config["state"] == "normal"
     assert widgets.run_button.config["state"] == "disabled"
     assert widgets.modify_button.config["state"] == "disabled"
@@ -188,10 +363,20 @@ def test_workflow_widgets_render_six_steps_and_emit_only_typed_callbacks() -> No
     assert widgets.export_button.kwargs["style"] == "Primary.TButton"
     assert widgets.new_test_button.kwargs["style"] == "Secondary.TButton"
     assert widgets.source_select.config["values"] == (
-        "SIMULATOR",
-        "CSV_REPLAY",
-        "SERIAL_READ_ONLY",
+        "Simulator — synthetic data",
+        "CSV Replay — local file",
+        "Serial — read-only",
     )
+    assert widgets.job_select.config["values"][0] == "Read samples"
+    assert root.minimum == (1040, 760)
+    assert widgets.field_controls["source_mode"][0].grid_options["column"] == 0
+    assert widgets.field_controls["primary_channel"][0].grid_options == {
+        "row": 3,
+        "column": 0,
+        "sticky": "ew",
+        "padx": (0, 8),
+        "pady": (3, 0),
+    }
 
     widgets.source_select.bindings["<<ComboboxSelected>>"](None)
     widgets.profile_select.bindings["<<ComboboxSelected>>"](None)
@@ -266,6 +451,9 @@ def test_workflow_render_shows_review_ports_issue_and_export_permissions() -> No
         widgets.render(cast(Any, object()), wizard)
     with pytest.raises(ProductRequestError, match="DashboardWizardState"):
         widgets.render(initial_dashboard_state(), cast(Any, object()))
+    with pytest.raises(ProductRequestError, match="issue_field_id"):
+        widgets.issue_field_id = cast(Any, object())
+        widgets.render(initial_dashboard_state(), wizard)
     with pytest.raises(ProductRequestError, match="DashboardWizardDraft"):
         widgets.form.load(cast(Any, object()))
 
@@ -284,7 +472,196 @@ def test_configuration_error_keeps_actionable_issue_panel_visible() -> None:
     widgets.render(initial_dashboard_state(), failed)
 
     assert widgets.section_frames["review"].visible is True
+    assert widgets.section_frames["field_guide"].visible is True
+    assert "SYNTHETIC" in widgets.field_help_value.value
+    assert "correct the highlighted field" in widgets.action_guidance_value.value
     assert "Replay rejected" in widgets.issue_value.value
+
+
+def test_source_details_show_only_relevant_controls_and_replay_picker_is_safe() -> None:
+    log: list[object] = []
+    selected = callbacks(log)
+    selected["on_choose_replay_path"] = lambda: "C:/data/replay.csv"
+    widgets = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **selected
+    )
+    replay = DashboardWizardDraft(source_mode=ProductSourceMode.CSV_REPLAY)
+
+    widgets.render(
+        initial_dashboard_state(),
+        DashboardWizardState(1, DashboardWizardStep.CONFIGURATION, replay),
+    )
+
+    assert widgets.section_frames["replay_source"].visible is True
+    assert widgets.section_frames["serial_source"].visible is False
+    widgets.replay_browse_button.kwargs["command"]()
+    assert widgets.form.replay_path.get() == "C:/data/replay.csv"
+
+    serial = DashboardWizardDraft(source_mode=ProductSourceMode.SERIAL_READ_ONLY)
+    widgets.render(
+        initial_dashboard_state(),
+        DashboardWizardState(2, DashboardWizardStep.CONFIGURATION, serial),
+    )
+    assert widgets.section_frames["replay_source"].visible is False
+    assert widgets.section_frames["serial_source"].visible is True
+
+
+def test_replay_picker_cancel_preserves_path_and_bad_callback_type_is_rejected() -> (
+    None
+):
+    cancelled_callbacks = callbacks([])
+    cancelled_callbacks["on_choose_replay_path"] = lambda: ""
+    cancelled = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **cancelled_callbacks
+    )
+    cancelled.form.replay_path.set("existing.csv")
+    cancelled.replay_browse_button.kwargs["command"]()
+    assert cancelled.form.replay_path.get() == "existing.csv"
+
+    invalid_callbacks = callbacks([])
+    invalid_callbacks["on_choose_replay_path"] = lambda: cast(Any, 42)
+    invalid = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **invalid_callbacks
+    )
+    with pytest.raises(ProductRequestError, match="replay path string"):
+        invalid.replay_browse_button.kwargs["command"]()
+
+
+def test_field_issue_focuses_highlights_and_then_clears_the_exact_control() -> None:
+    widgets = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **callbacks([])
+    )
+    failed = DashboardWizardState(
+        1,
+        DashboardWizardStep.CONFIGURATION,
+        DashboardWizardDraft(sample_count="many"),
+        issue=issue(),
+    )
+
+    widgets.issue_field_id = "sample_count"
+    widgets.render(initial_dashboard_state(), failed)
+
+    sample_control = widgets.field_controls["sample_count"][0]
+    assert sample_control.focus_calls == 1
+    assert sample_control.config["style"] == "Invalid.TEntry"
+    assert "Samples / DC points" in widgets.issue_value.value
+
+    corrected = DashboardWizardState(
+        2,
+        DashboardWizardStep.CONFIGURATION,
+        DashboardWizardDraft(sample_count="2"),
+    )
+    widgets.issue_field_id = None
+    widgets.render(initial_dashboard_state(), corrected)
+
+    assert sample_control.config["style"] == "TEntry"
+
+
+def test_unknown_field_issue_uses_the_existing_issue_panel_without_guessing() -> None:
+    widgets = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **callbacks([])
+    )
+    failed = DashboardWizardState(
+        1,
+        DashboardWizardStep.CONFIGURATION,
+        DashboardWizardDraft(),
+        issue=issue(),
+    )
+
+    widgets.issue_field_id = "not-a-field"
+    widgets.render(initial_dashboard_state(), failed)
+
+    assert "Replay rejected" in widgets.issue_value.value
+    assert "Field to correct" not in widgets.issue_value.value
+
+
+def test_invalid_form_snapshot_is_returned_to_the_review_boundary() -> None:
+    log: list[object] = []
+    widgets = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **callbacks(log)
+    )
+    widgets.render(
+        initial_dashboard_state(),
+        DashboardWizardState(
+            1, DashboardWizardStep.CONFIGURATION, DashboardWizardDraft()
+        ),
+    )
+    widgets.form.sample_count.set(" bad")
+
+    widgets.review_button.kwargs["command"]()
+
+    assert log[-1][0] == "review"  # type: ignore[index]
+    error = log[-1][1]  # type: ignore[index]
+    assert isinstance(error, ProductRequestError)
+    assert getattr(error, "field_id", None) == "sample_count"
+
+
+@pytest.mark.parametrize(
+    ("variable", "field_id"),
+    [
+        ("operation", "operation"),
+        ("unit", "unit"),
+        ("export_format", "export_format"),
+    ],
+)
+def test_form_snapshot_identifies_invalid_list_selections(
+    variable: str, field_id: str
+) -> None:
+    widgets = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **callbacks([])
+    )
+    widgets.form.load(DashboardWizardDraft())
+    getattr(widgets.form, variable).set("not-listed")
+
+    with pytest.raises(ProductRequestError) as caught:
+        widgets.form.snapshot()
+
+    assert getattr(caught.value, "field_id", None) == field_id
+
+
+def test_field_focus_scrolls_a_nested_control_into_view() -> None:
+    class ScrollCanvas:
+        def __init__(self) -> None:
+            self.positions: list[float] = []
+
+        def winfo_rooty(self) -> int:
+            return 100
+
+        def winfo_height(self) -> int:
+            return 100
+
+        def bbox(self, item: str) -> tuple[int, int, int, int]:
+            assert item == "all"
+            return (0, 0, 400, 1000)
+
+        def yview(self) -> tuple[float, float]:
+            return (0.2, 0.3)
+
+        def yview_moveto(self, position: float) -> None:
+            self.positions.append(position)
+
+    class NestedControl(FakeWidget):
+        def __init__(self) -> None:
+            super().__init__()
+            self.update_calls = 0
+
+        def update_idletasks(self) -> None:
+            self.update_calls += 1
+
+        def winfo_rooty(self) -> int:
+            return 500
+
+        def winfo_height(self) -> int:
+            return 20
+
+    canvas = ScrollCanvas()
+    control = NestedControl()
+
+    _focus_and_reveal_control(canvas, control)
+
+    assert control.update_calls == 1
+    assert control.focus_calls == 1
+    assert canvas.positions == [pytest.approx(0.576)]
 
 
 def test_frequency_configuration_uses_dedicated_fields_and_preserves_snapshot() -> None:
@@ -379,6 +756,48 @@ def test_live_monitor_configuration_and_result_controls_are_wired() -> None:
         widgets.result_widgets.live_window_select.bindings["<<ComboboxSelected>>"](None)
 
 
+def test_serial_live_monitor_enables_only_relevant_receive_controls() -> None:
+    widgets = create_dashboard_workflow_widgets(
+        FakeRoot(), FakeTk(), FakeTtk(), **callbacks([])
+    )
+    draft = DashboardWizardDraft(
+        source_mode=ProductSourceMode.SERIAL_READ_ONLY,
+        job_type=ProductJobType.LIVE_MONITOR,
+        serial_port="MEMORY:1",
+        serial_confirm_read_only=True,
+        monitor_include_secondary=False,
+        monitor_include_state=False,
+    )
+
+    widgets.render(
+        initial_dashboard_state(),
+        DashboardWizardState(1, DashboardWizardStep.CONFIGURATION, draft),
+    )
+
+    serial_rules = [
+        (control, active_state)
+        for control, active_state, jobs, sources in widgets.editable_controls
+        if sources == ("SERIAL_READ_ONLY",) and "LIVE_MONITOR" in jobs
+    ]
+    assert len(serial_rules) == 7
+    assert all(
+        control.config["state"] == active_state
+        for control, active_state in serial_rules
+    )
+    assert widgets.section_frames["monitor"].visible is True
+    assert widgets.section_frames["source_connection"].visible is True
+
+    assert widgets.form.serial_expected_device_id.get() == ""
+    assert widgets.form.serial_afe_adc_aliases.get() == ""
+    widgets.form.serial_expected_device_id.set("afe-dual")
+    widgets.form.serial_afe_adc_aliases.set("adc0=afe.ch0.input, adc1=afe.ch0.output")
+    snapshot = widgets.form.snapshot()
+    assert snapshot.serial_expected_device_id == "afe-dual"
+    assert snapshot.serial_afe_adc_aliases == (
+        "adc0=afe.ch0.input, adc1=afe.ch0.output"
+    )
+
+
 def test_widget_builders_reject_invalid_optional_host_and_workflow_inputs() -> None:
     with pytest.raises(ProductRequestError, match="configure_window"):
         create_dashboard_widgets(
@@ -467,8 +886,11 @@ def test_scrollable_page_tracks_width_and_routes_mouse_wheel() -> None:
         delta = -240
 
     root = FakeRoot()
-    page, canvas = _create_scrollable_page(root, ScrollTk(), ScrollTtk())
+    page, canvas = _create_scrollable_page(
+        root, ScrollTk(), ScrollTtk(), high_contrast=True
+    )
     assert isinstance(canvas, FakeCanvas)
+    assert canvas.kwargs["background"] == "SystemWindow"
     page.bindings["<Configure>"](object())
     canvas.bindings["<Configure>"](WidthEvent())
 

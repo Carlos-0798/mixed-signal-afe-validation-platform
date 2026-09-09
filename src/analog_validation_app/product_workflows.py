@@ -31,7 +31,7 @@ from analog_validation.analysis import (
 from analog_validation.replay import load_csv_replay
 
 from .catalog import get_product_profile, get_product_source
-from .errors import ProductRequestError
+from .errors import ProductFieldError, ProductRequestError
 from .factories import (
     AdapterFactory,
     SerialBackendFactory,
@@ -84,32 +84,35 @@ SERIAL_LIMITATIONS = (
 
 def _text(name: str, value: object) -> str:
     if not isinstance(value, str) or not value or value != value.strip():
-        raise ProductRequestError(f"{name} must be non-empty stripped text")
+        raise ProductFieldError(f"{name} must be non-empty stripped text", name)
     if len(value) > MAX_PRODUCT_WORKFLOW_TEXT_CHARS:
-        raise ProductRequestError(
-            f"{name} exceeds {MAX_PRODUCT_WORKFLOW_TEXT_CHARS} characters"
+        raise ProductFieldError(
+            f"{name} exceeds {MAX_PRODUCT_WORKFLOW_TEXT_CHARS} characters", name
         )
     if not value.isprintable():
-        raise ProductRequestError(f"{name} must contain only printable characters")
+        raise ProductFieldError(
+            f"{name} must contain only printable characters", name
+        )
     return value
 
 
 def _sample_count(name: str, value: object, *, minimum: int = 1) -> int:
     if isinstance(value, bool) or not isinstance(value, int):
-        raise ProductRequestError(f"{name} must be an integer")
+        raise ProductFieldError(f"{name} must be an integer", name)
     if not minimum <= value <= MAX_PRODUCT_WORKFLOW_SAMPLES:
-        raise ProductRequestError(
-            f"{name} must be between {minimum} and {MAX_PRODUCT_WORKFLOW_SAMPLES}"
+        raise ProductFieldError(
+            f"{name} must be between {minimum} and {MAX_PRODUCT_WORKFLOW_SAMPLES}",
+            name,
         )
     return value
 
 
 def _finite(name: str, value: object) -> float:
     if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise ProductRequestError(f"{name} must be numeric")
+        raise ProductFieldError(f"{name} must be numeric", name)
     checked = float(value)
     if not math.isfinite(checked):
-        raise ProductRequestError(f"{name} must be finite")
+        raise ProductFieldError(f"{name} must be finite", name)
     return checked
 
 
@@ -172,9 +175,11 @@ class ProductWorkflowConfiguration:
 
     def __post_init__(self) -> None:
         if not isinstance(self.source_mode, ProductSourceMode):
-            raise ProductRequestError("source_mode must be a ProductSourceMode")
+            raise ProductFieldError(
+                "source_mode must be a ProductSourceMode", "source_mode"
+            )
         if not isinstance(self.job_type, ProductJobType):
-            raise ProductRequestError("job_type must be a ProductJobType")
+            raise ProductFieldError("job_type must be a ProductJobType", "job_type")
         for name in (
             "profile_name",
             "profile_version",
@@ -187,23 +192,28 @@ class ProductWorkflowConfiguration:
         ):
             _text(name, getattr(self, name))
         if not isinstance(self.operation, ReadOperation):
-            raise ProductRequestError("operation must be a ReadOperation")
+            raise ProductFieldError("operation must be a ReadOperation", "operation")
         if not isinstance(self.unit, MeasurementUnit):
-            raise ProductRequestError("unit must be a MeasurementUnit")
+            raise ProductFieldError("unit must be a MeasurementUnit", "unit")
         _sample_count("sample_count", self.sample_count)
         _sample_count("rising_count", self.rising_count, minimum=2)
         _sample_count("falling_count", self.falling_count, minimum=2)
         _sample_count("frequency_point_count", self.frequency_point_count, minimum=10)
         if self.rising_count + self.falling_count > MAX_PRODUCT_WORKFLOW_SAMPLES:
-            raise ProductRequestError(
-                "rising_count plus falling_count exceeds the workflow sample limit"
+            raise ProductFieldError(
+                "rising_count plus falling_count exceeds the workflow sample limit",
+                "falling_count",
             )
         minimum = _finite("replay_minimum", self.replay_minimum)
         maximum = _finite("replay_maximum", self.replay_maximum)
         if minimum >= maximum:
-            raise ProductRequestError("replay_minimum must be below replay_maximum")
+            raise ProductFieldError(
+                "replay_minimum must be below replay_maximum", "replay_maximum"
+            )
         if not isinstance(self.confirm_read_only, bool):
-            raise ProductRequestError("confirm_read_only must be boolean")
+            raise ProductFieldError(
+                "confirm_read_only must be boolean", "serial_confirm_read_only"
+            )
         for name in (
             "low_output_limit",
             "high_output_limit",
@@ -237,16 +247,18 @@ class ProductWorkflowConfiguration:
         _sample_count("monitor_max_buffer_points", self.monitor_max_buffer_points)
         for name in ("monitor_include_secondary", "monitor_include_state"):
             if not isinstance(getattr(self, name), bool):
-                raise ProductRequestError(f"{name} must be boolean")
+                raise ProductFieldError(f"{name} must be boolean", name)
         source = get_product_source(self.source_mode)
         profile = get_product_profile(self.profile_name, self.profile_version)
         if self.source_mode not in profile.source_modes:
-            raise ProductRequestError(
-                f"profile {profile.identity} does not support {self.source_mode.value}"
+            raise ProductFieldError(
+                f"profile {profile.identity} does not support {self.source_mode.value}",
+                "profile_name",
             )
         if self.job_type not in source.supported_jobs:
-            raise ProductRequestError(
-                f"source {source.mode.value} does not support {self.job_type.value}"
+            raise ProductFieldError(
+                f"source {source.mode.value} does not support {self.job_type.value}",
+                "job_type",
             )
         self._validate_source_fields()
         self._validate_job_fields()
@@ -258,62 +270,88 @@ class ProductWorkflowConfiguration:
     def _validate_source_fields(self) -> None:
         if self.source_mode is ProductSourceMode.SIMULATOR:
             if self.replay_path is not None or self.serial_config is not None:
-                raise ProductRequestError(
-                    "Simulator configuration cannot include replay or serial resources"
+                raise ProductFieldError(
+                    "Simulator configuration cannot include replay or serial resources",
+                    "replay_path",
                 )
             if self.confirm_read_only:
-                raise ProductRequestError(
-                    "Simulator configuration does not use a serial confirmation"
+                raise ProductFieldError(
+                    "Simulator configuration does not use a serial confirmation",
+                    "serial_confirm_read_only",
                 )
             return
         if self.source_mode is ProductSourceMode.CSV_REPLAY:
             if not isinstance(self.replay_path, Path):
-                raise ProductRequestError("CSV Replay requires a local replay_path")
+                raise ProductFieldError(
+                    "CSV Replay requires a local replay_path", "replay_path"
+                )
             if self.serial_config is not None or self.confirm_read_only:
-                raise ProductRequestError(
-                    "CSV Replay configuration cannot include serial settings"
+                raise ProductFieldError(
+                    "CSV Replay configuration cannot include serial settings",
+                    "serial_port",
                 )
             return
         if self.replay_path is not None:
-            raise ProductRequestError("Serial configuration cannot include replay_path")
+            raise ProductFieldError(
+                "Serial configuration cannot include replay_path", "replay_path"
+            )
         if not isinstance(self.serial_config, SerialSourceConfig):
-            raise ProductRequestError("Serial source requires SerialSourceConfig")
+            raise ProductFieldError(
+                "Serial source requires SerialSourceConfig", "serial_port"
+            )
+        try:
+            self.serial_config.validate_profile(
+                self.profile_name, self.profile_version
+            )
+        except ProductRequestError as error:
+            raise ProductFieldError(
+                str(error), "serial_afe_adc_aliases"
+            ) from error
         if not self.confirm_read_only:
-            raise ProductRequestError(
-                "Serial source requires explicit receive-only confirmation"
+            raise ProductFieldError(
+                "Serial source requires explicit receive-only confirmation",
+                "serial_confirm_read_only",
             )
 
     def _validate_job_fields(self) -> None:
         if self.job_type is ProductJobType.READ:
             if self.operation is ReadOperation.DIGITAL:
                 if self.unit is not MeasurementUnit.BOOLEAN:
-                    raise ProductRequestError("digital reads require boolean units")
+                    raise ProductFieldError(
+                        "digital reads require boolean units", "unit"
+                    )
             elif self.unit is MeasurementUnit.BOOLEAN:
-                raise ProductRequestError("analog reads cannot use boolean units")
+                raise ProductFieldError(
+                    "analog reads cannot use boolean units", "unit"
+                )
             return
         if self.unit not in {MeasurementUnit.MILLIVOLT, MeasurementUnit.VOLT}:
-            raise ProductRequestError("analysis workflows require V or mV units")
+            raise ProductFieldError(
+                "analysis workflows require V or mV units", "unit"
+            )
         if self.job_type is ProductJobType.DC_ANALYSIS:
             if self.primary_channel == self.secondary_channel:
-                raise ProductRequestError("DC input and output channels must differ")
+                raise ProductFieldError(
+                    "DC input and output channels must differ", "secondary_channel"
+                )
             return
         if self.job_type is ProductJobType.CALIBRATION_ANALYSIS:
             if self.primary_channel == self.secondary_channel:
-                raise ProductRequestError(
-                    "calibration observed and reference channels must differ"
+                raise ProductFieldError(
+                    "calibration observed and reference channels must differ",
+                    "secondary_channel",
                 )
-            if any(
-                value < 0.0
-                for value in (
-                    self.max_calibration_rmse,
-                    self.max_calibration_mean_absolute_error,
-                    self.max_calibration_absolute_error,
-                    self.minimum_calibration_rmse_reduction,
-                )
+            for name in (
+                "max_calibration_rmse",
+                "max_calibration_mean_absolute_error",
+                "max_calibration_absolute_error",
+                "minimum_calibration_rmse_reduction",
             ):
-                raise ProductRequestError(
-                    "calibration error limits and reduction cannot be negative"
-                )
+                if getattr(self, name) < 0.0:
+                    raise ProductFieldError(
+                        "calibration error limits and reduction cannot be negative",
+                        name,
+                    )
             return
         if self.job_type is ProductJobType.FREQUENCY_RESPONSE_ANALYSIS:
             channels = (
@@ -322,8 +360,9 @@ class ProductWorkflowConfiguration:
                 self.secondary_channel,
             )
             if len(set(channels)) != 3:
-                raise ProductRequestError(
-                    "frequency, input-amplitude, and output-amplitude channels must differ"
+                raise ProductFieldError(
+                    "frequency, input-amplitude, and output-amplitude channels must differ",
+                    "secondary_channel",
                 )
             if not (
                 0.0
@@ -331,60 +370,68 @@ class ProductWorkflowConfiguration:
                 < self.target_cutoff_frequency_hz
                 < self.frequency_maximum_hz
             ):
-                raise ProductRequestError(
-                    "frequency bounds must satisfy 0 < minimum < target cutoff < maximum"
+                raise ProductFieldError(
+                    "frequency bounds must satisfy 0 < minimum < target cutoff < maximum",
+                    "target_cutoff_frequency_hz",
                 )
             if not (
                 self.frequency_minimum_hz
                 < self.simulated_cutoff_frequency_hz
                 < self.frequency_maximum_hz
             ):
-                raise ProductRequestError(
-                    "frequency bounds must contain the simulated cutoff"
+                raise ProductFieldError(
+                    "frequency bounds must contain the simulated cutoff",
+                    "simulated_cutoff_frequency_hz",
                 )
             if not 0.0 <= self.cutoff_relative_tolerance < 1.0:
-                raise ProductRequestError(
-                    "cutoff_relative_tolerance must be at least zero and below one"
+                raise ProductFieldError(
+                    "cutoff_relative_tolerance must be at least zero and below one",
+                    "cutoff_relative_tolerance",
                 )
             if self.cutoff_drop_db <= 0.0:
-                raise ProductRequestError("cutoff_drop_db must be positive")
+                raise ProductFieldError(
+                    "cutoff_drop_db must be positive", "cutoff_drop_db"
+                )
             amplitude_maximum = 3.3 if self.unit is MeasurementUnit.VOLT else 3300.0
             if not 0.0 < self.frequency_input_amplitude <= amplitude_maximum:
-                raise ProductRequestError(
-                    "frequency_input_amplitude must be positive and within 3.3 V"
+                raise ProductFieldError(
+                    "frequency_input_amplitude must be positive and within 3.3 V",
+                    "frequency_input_amplitude",
                 )
             return
         if self.job_type is ProductJobType.LIVE_MONITOR:
             if self.operation is not ReadOperation.ANALOG:
-                raise ProductRequestError(
-                    "live monitor primary channel must use analog operation"
+                raise ProductFieldError(
+                    "live monitor primary channel must use analog operation",
+                    "operation",
                 )
             if (
                 not 0.0
                 <= self.monitor_sample_interval_seconds
                 <= (MAX_LIVE_MONITOR_INTERVAL_SECONDS)
             ):
-                raise ProductRequestError(
+                raise ProductFieldError(
                     "monitor_sample_interval_seconds must be between 0 and "
-                    f"{MAX_LIVE_MONITOR_INTERVAL_SECONDS:g}"
+                    f"{MAX_LIVE_MONITOR_INTERVAL_SECONDS:g}",
+                    "monitor_sample_interval_seconds",
                 )
             if (
                 not MIN_LIVE_MONITOR_WINDOW_SECONDS
                 <= (self.monitor_time_window_seconds)
                 <= MAX_LIVE_MONITOR_WINDOW_SECONDS
             ):
-                raise ProductRequestError(
+                raise ProductFieldError(
                     "monitor_time_window_seconds must be between "
                     f"{MIN_LIVE_MONITOR_WINDOW_SECONDS:g} and "
-                    f"{MAX_LIVE_MONITOR_WINDOW_SECONDS:g}"
+                    f"{MAX_LIVE_MONITOR_WINDOW_SECONDS:g}",
+                    "monitor_time_window_seconds",
                 )
-            duration_seconds = (
-                max(0, self.sample_count - 1) * self.monitor_sample_interval_seconds
-            )
+            duration_seconds = self.live_monitor_cadence_seconds()
             if duration_seconds > MAX_LIVE_MONITOR_DURATION_SECONDS:
-                raise ProductRequestError(
+                raise ProductFieldError(
                     "live monitor requested duration exceeds the interactive "
-                    f"limit of {MAX_LIVE_MONITOR_DURATION_SECONDS:g} seconds"
+                    f"limit of {MAX_LIVE_MONITOR_DURATION_SECONDS:g} seconds",
+                    "sample_count",
                 )
             channel_identities = (
                 self.primary_channel,
@@ -392,8 +439,9 @@ class ProductWorkflowConfiguration:
                 self.state_channel,
             )
             if len(channel_identities) != len(set(channel_identities)):
-                raise ProductRequestError(
-                    "live monitor channel identities must be distinct"
+                raise ProductFieldError(
+                    "live monitor channel identities must be distinct",
+                    "secondary_channel",
                 )
             enabled_channel_count = (
                 1
@@ -402,13 +450,61 @@ class ProductWorkflowConfiguration:
             )
             total_measurements = self.sample_count * enabled_channel_count
             if total_measurements > MAX_PRODUCT_WORKFLOW_SAMPLES:
-                raise ProductRequestError(
+                raise ProductFieldError(
                     "live monitor cycles multiplied by enabled channels exceeds "
-                    "the workflow sample limit"
+                    "the workflow sample limit",
+                    "sample_count",
+                )
+            runtime_bound = self.live_monitor_runtime_bound_seconds()
+            if runtime_bound > MAX_LIVE_MONITOR_DURATION_SECONDS:
+                raise ProductFieldError(
+                    "serial live monitor worst-case cadence and receive wait "
+                    f"budget exceeds {MAX_LIVE_MONITOR_DURATION_SECONDS:g} seconds",
+                    "serial_read_timeout",
                 )
             return
         if self.primary_channel == self.state_channel:
-            raise ProductRequestError("hysteresis input and state channels must differ")
+            raise ProductFieldError(
+                "hysteresis input and state channels must differ", "state_channel"
+            )
+
+    def live_monitor_enabled_channel_count(self) -> int:
+        """Return the exact number of read requirements enabled for each cycle."""
+
+        return (
+            1
+            + int(self.monitor_include_secondary)
+            + int(self.monitor_include_state)
+        )
+
+    def live_monitor_cadence_seconds(self) -> float:
+        """Return the bounded inter-cycle wait without transport latency."""
+
+        return max(0, self.sample_count - 1) * self.monitor_sample_interval_seconds
+
+    def live_monitor_serial_wait_budget_seconds(self) -> float:
+        """Conservatively bound capability and measurement receive waits."""
+
+        if self.source_mode is not ProductSourceMode.SERIAL_READ_ONLY:
+            return 0.0
+        serial = self.serial_config
+        if serial is None:  # pragma: no cover - guarded by source validation
+            return 0.0
+        measurement_reads = self.sample_count * self.live_monitor_enabled_channel_count()
+        bounded_poll_operations = 1 + measurement_reads
+        return (
+            bounded_poll_operations
+            * serial.max_polls_per_operation
+            * serial.read_timeout_seconds
+        )
+
+    def live_monitor_runtime_bound_seconds(self) -> float:
+        """Return the conservative finite runtime budget used by product surfaces."""
+
+        return (
+            self.live_monitor_cadence_seconds()
+            + self.live_monitor_serial_wait_budget_seconds()
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -509,9 +605,31 @@ def _adapter_factory(
         serial = config.serial_config
         if serial is None:  # pragma: no cover - guarded by the configuration
             raise ProductRequestError("SerialSourceConfig is missing")
+        identity_review = (
+            "Serial device identity: not pinned; profile/version and advertised "
+            "capabilities will still be checked."
+            if serial.expected_device_id is None
+            else (
+                "Serial device identity: exact match required for "
+                f"{serial.expected_device_id}; checked before measurement reads."
+            )
+        )
+        alias_review = (
+            ()
+            if not serial.afe_adc_channel_aliases
+            else (
+                "AFE ADC observation aliases: "
+                + ", ".join(
+                    alias.display for alias in serial.afe_adc_channel_aliases
+                )
+                + "; every advertised ADC channel must be covered.",
+            )
+        )
         return make_serial_adapter_factory(serial, backend_factory=backend_factory), (
             f"Serial port: {serial.port_id}; it opens only after Run.",
             f"Serial bounds: {serial.read_timeout_seconds:g} s/read, {serial.max_polls_per_operation} polls.",
+            identity_review,
+            *alias_review,
             "Receive-only confirmation: YES; the product exposes no write command.",
         )
 
@@ -1029,7 +1147,24 @@ def prepare_product_job(
             f"Test: LIVE_MONITOR; {config.sample_count} finite sample cycles.",
             f"Enabled channels: {', '.join(enabled_channels)}.",
             f"Cadence: {config.monitor_sample_interval_seconds:g} s between cycles.",
-            f"Requested duration: {max(0, config.sample_count - 1) * config.monitor_sample_interval_seconds:g} s (finite interactive session).",
+            f"Requested cadence duration: {config.live_monitor_cadence_seconds():g} s (finite interactive session).",
+            *(
+                (
+                    (
+                        "Worst-case serial receive wait budget: "
+                        f"{config.live_monitor_serial_wait_budget_seconds():g} s; "
+                        "this is a software bound, not a timing guarantee."
+                    ),
+                    (
+                        "Combined cadence and serial wait budget: "
+                        f"{config.live_monitor_runtime_bound_seconds():g} s; "
+                        "configurations above "
+                        f"{MAX_LIVE_MONITOR_DURATION_SECONDS:g} s are rejected."
+                    ),
+                )
+                if config.source_mode is ProductSourceMode.SERIAL_READ_ONLY
+                else ()
+            ),
             f"Presentation window: {config.monitor_time_window_seconds:g} s; retained-point limit: {config.monitor_max_buffer_points}.",
             "Pause/resume controls acquisition checkpoints; no background acquisition survives completion.",
         )

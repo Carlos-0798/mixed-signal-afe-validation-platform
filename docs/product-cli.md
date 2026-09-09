@@ -1,6 +1,6 @@
 # Analog Validation Studio CLI
 
-**Implemented:** Software Phase 5 plus calibration, frequency-response, and bounded live-monitor product increments<br>
+**Implemented:** Software Phase 5 plus calibration, frequency-response, bounded live-monitor, and local test-project increments<br>
 **Schema:** `product-cli-output.v2`<br>
 **Default source:** deterministic software-only Simulator<br>
 **Physical AFE claim:** none
@@ -41,6 +41,7 @@ analog-validation simulate hysteresis
 analog-validation simulate calibration --points 8 --json
 analog-validation simulate frequency --points 21 --json
 analog-validation simulate monitor --cycles 10 --sample-interval 0.1 --json
+analog-validation project create --output .\afe-project.json --project-id afe-demo --name "AFE Demo"
 analog-validation demo --output .\analog-validation-demo
 analog-validation dashboard
 ```
@@ -72,6 +73,12 @@ saturation level, threshold, or cutoff frequency.
 | `replay monitor` | Present finite recent points from explicit replay channels | `CSV_REPLAY`; no port is opened and original evidence is not upgraded |
 | `coefficients inspect` | Strictly load and display one `calibration-coefficients.v1` JSON file | Inspection only; never applies coefficients or contacts hardware |
 | `observe` | Run one bounded receive-only serial read | Exact port/profile/channel plus `--confirm-read-only`; no write API |
+| `serial monitor` | Present a finite receive-only serial trace | Primary-only by default; cadence plus worst-case polls must fit the 55-second bound |
+| `project create` | Create a strict six-preset Simulator project | New local JSON file; never overwrites and stores no Serial settings |
+| `project inspect` | Validate and summarize one project | Does not open replay files, adapters, ports, or output paths |
+| `project run` | Execute all or selected offline presets sequentially | Explicit new run directory; Simulator/CSV only |
+| `project history` | Verify and summarize explicit run manifests | No recursive discovery; referenced artifact hashes are checked |
+| `project compare` | Compare copied finalized outcomes and metrics | Same project only; never recalculates PASS/FAIL |
 | `report` | Turn one finalized JSON/CSV result export into five deterministic human-report files | No adapter, serial port, analysis, or hardware operation |
 | `dashboard` | Launch the local six-step Tkinter/ttk validation workflow | Defaults to Simulator; Replay validates before Run; Serial remains explicit, bounded, and receive-only |
 | `demo` | Run the fixed 24-point synthetic DC product chain and publish the exact portfolio package | Create-new local output only; no serial, network, physical stimulus, or hardware claim |
@@ -79,6 +86,71 @@ saturation level, threshold, or cutoff frequency.
 Run any command with `--help` to see its exact options. Sample and record counts
 are bounded at the parser boundary, numeric values must be finite, and profile
 identity is exact rather than guessed from a filename or USB description.
+
+## Test projects and run history
+
+The `project` command group adds a local test-management layer without adding a
+second analysis path. Its starter project stores six existing reviewed workflow
+configurations: read, DC, hysteresis, calibration, frequency response, and
+finite live monitoring.
+
+```powershell
+analog-validation project create `
+  --output .\work\afe-project.json `
+  --project-id afe-demo `
+  --name "AFE Demo Project"
+
+analog-validation project inspect --input .\work\afe-project.json
+
+analog-validation project run `
+  --input .\work\afe-project.json `
+  --output .\work\run-001 `
+  --run-id run-001
+
+analog-validation project run `
+  --input .\work\afe-project.json `
+  --output .\work\run-002 `
+  --run-id run-002 `
+  --preset dc-default `
+  --preset frequency-default
+
+analog-validation project history `
+  --run .\work\run-001\run-manifest.json `
+  --run .\work\run-002\run-manifest.json
+
+analog-validation project compare `
+  --left .\work\run-001\run-manifest.json `
+  --right .\work\run-002\run-manifest.json
+```
+
+Every run destination is create-new and receives the exact project snapshot,
+per-preset canonical configuration hashes, finalized result/coefficient
+artifacts where applicable, and `run-manifest.json`. History and comparison
+verify referenced SHA-256 values by default. The hashes detect changes relative
+to a manifest; they are not signatures or proof of author identity.
+
+New runs publish `validation-run-manifest.v3` with `COMPLETE`, `PARTIAL`,
+`CANCELLED`, or `ERROR`, the ordered planned preset IDs, retained terminal
+records, explicit not-started preset IDs, and an exact size/SHA-256 record for
+each executed CSV Replay input copied under the run's `inputs/` directory.
+Strict v1 and v2 manifests remain fully readable and are never rewritten.
+Progress lines show the current preset,
+one-based position, total, terminal-record count, and lifecycle phase on
+`stderr`. With `--json`, `stdout` therefore remains one parseable JSON document.
+Ctrl+C requests worker cancellation, waits for cleanup, stops later presets,
+publishes the partial history atomically, and exits `130`.
+
+Replay is executed from the staged copy, and repeated presets using the same
+resolved file share one physical copy while retaining per-preset manifest
+references. Inputs for presets cancelled before start are neither opened nor
+archived. A copy, size-limit, or input-read failure aborts atomically without
+publishing a partial destination.
+
+`project inspect` never opens a replay file or device. `project run` is the
+explicit resource boundary, remains limited to Simulator/CSV Replay, and
+refuses persisted Serial configuration. See
+[Test projects, presets, run history, and comparisons](test-projects-and-history.md)
+for the schema, directory layout, limits, and evidence rules.
 
 ## Dashboard command
 
@@ -321,15 +393,82 @@ analog-validation observe `
   --json
 ```
 
+The finite live counterpart uses the same explicit gate and defaults to one
+enabled channel. The exact `--primary-channel` is required because different
+profiles expose different channel names:
+
+```powershell
+analog-validation serial monitor `
+  --port COM4 `
+  --profile msp430-equipment-health `
+  --profile-version 1 `
+  --primary-channel msp430.health.bus_voltage `
+  --unit mV `
+  --cycles 20 `
+  --sample-interval 0.02 `
+  --read-timeout 0.05 `
+  --max-polls 4 `
+  --confirm-read-only `
+  --json
+```
+
+Review the exact port before running either example. `serial monitor` rejects
+requests whose finite cadence plus conservative worst-case receive waits exceed
+55 seconds. Secondary/state channels are opt-in and must be supported by the
+profile capability snapshot.
+
+Both `observe` and `serial monitor` accept an optional exact capability-ID pin:
+
+```text
+--expected-device-id <exact reported DeviceCapabilities.device_id>
+```
+
+AFE v1 additionally accepts repeatable versioned native-ADC mappings. A
+two-trace input/output example is:
+
+```powershell
+analog-validation serial monitor `
+  --port COM4 `
+  --profile afe `
+  --profile-version 1 `
+  --primary-channel afe.ch0.input `
+  --secondary-channel afe.ch0.output `
+  --secondary `
+  --no-state `
+  --unit mV `
+  --cycles 20 `
+  --sample-interval 0.02 `
+  --read-timeout 0.05 `
+  --max-polls 4 `
+  --expected-device-id afe-controller-01 `
+  --afe-adc-alias adc0=afe.ch0.input `
+  --afe-adc-alias adc1=afe.ch0.output `
+  --confirm-read-only `
+  --json
+```
+
+Aliases are accepted only for `afe/1`, must use unambiguous channel indexes in
+the range 0–255, and must cover the device-advertised ADC set exactly. They
+cannot add a channel or command. The established no-alias behavior remains
+`adcN` → `afe.chN.input`. Any identity or full-coverage failure stops after the
+capability exchange and before measurement telemetry.
+
+Successful human output displays the accepted capability identity. JSON output
+also includes `device_id`, `profile_name`, `profile_version`, and the accepted
+readable analog/digital channel lists under `read`. These are protocol/profile
+facts, not authenticated hardware identity or proof of wiring. For the MSP430
+profile, the current capability snapshot is static, so an expected ID pins the
+host-selected contract rather than a unique value supplied by firmware.
+
 Treat this only as a syntax example until the exact port, firmware/profile,
 wiring, voltage domain, and ownership are confirmed. The product serial adapter
 has no application write method, but an OS driver can still affect control lines
 on open; that physical behavior requires its own device-specific review.
 
-Step 3 CLI and Step 6 Dashboard serial integration tests used memory backends
-with write traps. They proved both product paths made zero write calls, but they
-did not open a real port. The MSP430 connected during Step 6 was deliberately
-left untouched.
+CLI and Dashboard serial integration tests used memory backends with write
+traps. They covered bounded read and live-monitor paths, bad CRC, timeout,
+disconnect, cancellation, cleanup, and zero write calls, but did not open a
+real port for this increment.
 
 ## Cancellation and current evidence limit
 

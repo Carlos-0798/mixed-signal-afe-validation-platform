@@ -582,7 +582,12 @@ class DashboardPresenter:
                 (
                     f"Copied {len(points)} of {requested} acquired observations. "
                     "This table is presentation-only and does not calculate an "
-                    "engineering PASS or FAIL."
+                    "engineering PASS or FAIL. "
+                    "Capability identity: "
+                    f"{result.capabilities.device_id} "
+                    f"({result.capabilities.profile_name}/"
+                    f"{result.capabilities.profile_version}); this is reported "
+                    "protocol/profile evidence, not a physical serial-number claim."
                 ),
                 points,
                 len(points),

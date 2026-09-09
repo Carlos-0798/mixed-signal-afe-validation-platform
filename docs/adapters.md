@@ -132,6 +132,9 @@ The first version is intentionally receive-only:
   describes future output hardware;
 - AFE capability names are explicitly projected to canonical workflow names,
   while the profile-native snapshot remains available for audit;
+- product jobs may optionally pin the exact reported capability `device_id`;
+  AFE v1 may additionally replace the default ADC projection with one complete,
+  unique, versioned native-ADC to canonical input/output observation map;
 - MSP430 static capabilities pass through an identity/read-only projector;
 - every read and capability negotiation has a finite poll budget, and queued
   Measurements have a fixed upper bound;

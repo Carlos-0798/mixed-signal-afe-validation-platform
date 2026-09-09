@@ -58,7 +58,10 @@ def test_catalog_has_deterministic_sources_and_independent_profiles() -> None:
     assert sum(source.is_default for source in PRODUCT_SOURCES) == 1
     assert PRODUCT_SOURCES[0].evidence_sources == (EvidenceSource.SYNTHETIC,)
     assert PRODUCT_SOURCES[2].requires_serial_extra is True
-    assert PRODUCT_SOURCES[2].supported_jobs == (ProductJobType.READ,)
+    assert PRODUCT_SOURCES[2].supported_jobs == (
+        ProductJobType.READ,
+        ProductJobType.LIVE_MONITOR,
+    )
 
     assert [profile.identity for profile in PRODUCT_PROFILES] == [
         "afe/1",

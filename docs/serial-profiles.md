@@ -168,6 +168,15 @@ projected command set contains only supported read operations and always sets
 `supports_safe_shutdown=False`. Declared DAC/PWM names remain visible as
 descriptive capability aliases, but no adapter API can write them.
 
+At the product boundary, a reviewed AFE job may opt into
+`serial-channel-alias.v1` to reinterpret the complete advertised native ADC set
+as unique `afe.chM.input|output` observations. This requires an exact expected
+capability `device_id`; identity mismatch or partial/extra/duplicate coverage is
+rejected before telemetry. Without that option, the frozen table above remains
+the behavior. The ID is unauthenticated and the map is not physical-wiring
+evidence. The MSP430 capability snapshot is static and does not provide a
+firmware-unique identity token.
+
 ## 7. Error and state behavior
 
 Expected wire/profile failures such as bad CRC, invalid ASCII, excess length,

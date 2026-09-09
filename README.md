@@ -17,6 +17,14 @@ This is an independent personal engineering project. Compatibility profiles
 allow peer products to exchange evidence without merging their ownership,
 runtime, or product identity.
 
+The current engineering focus is repeated DC gain/offset/linearity validation
+of existing measurement files: reuse criteria, check data quality, and hand off
+reviewable results. Five controlled software cases and an independent reference
+exercise that chain; quantitative human time savings and reduced operator-error
+rates have not been measured. The human comparison in the
+[task-value evaluation](docs/TASK_VALUE_VALIDATION_PLAN.md) is deferred and does
+not block the current feature-frozen software product.
+
 > **Evidence boundary:** the screenshots and demo below use deterministic
 > `SYNTHETIC` data. No configurable AFE has been built or bench-validated, so
 > this repository makes zero AFE hardware-performance claims. A prior
@@ -29,18 +37,28 @@ runtime, or product identity.
 | Area | Current state |
 |---|---|
 | Product version | `mixed-signal-afe-validation-platform 0.1.0b1` |
-| Delivery stage | Software Phase 6 release engineering — 7/8 checkpoints |
+| Delivery stage | Feature-frozen `0.1.0b1` local candidate; Software Phase 6 release engineering — 7/8 checkpoints |
 | Interfaces | Installed CLI, local Tk Dashboard, JSON/CSV exports, text/Markdown/HTML/SVG reports |
 | Data sources | Deterministic Simulator, strict CSV Replay, receive-only serial profiles |
 | Workflows | Bounded read/live monitoring plus DC gain/offset/linearity, directional hysteresis, linear calibration, and amplitude-frequency response |
+| Test management | Versioned local projects/presets, bounded offline batches, immutable run manifests with retained Replay inputs, verified history, and run comparison |
 | Extension model | Public `DeviceAdapter` and serial-profile contracts |
-| Latest local product-expansion gate | 2,459 tests passed; 13,834/13,834 package statements covered; full Ruff, mypy, dependency, 15/15 product-quality, repeated-build, fresh-install, and installed Simulator/Replay monitor gates passed |
+| Latest local freeze gate | 2,709 tests and 16,356/16,356 statements; external snapshot build, fresh wheel install, byte-identical demos, installed Replay history, and 15/15 product-quality checks passed |
 | Latest merged delivery | Dashboard UX PR #7 merged to `main`; post-merge CI passed all eight jobs |
 | Hardware claim | `NO_NEW_HARDWARE_VALIDATION` — physical AFE not built or measured |
 
 [Detailed status](docs/PROJECT_STATUS.md) ·
+[Feature-freeze acceptance](reports/feature-freeze-and-consolidation-2026-09-08.md) ·
+[Replay input visibility](reports/td-040c1b-dashboard-input-visibility-2026-09-08.md) ·
+[Batch review summary](reports/td-046b-batch-review-summary-2026-09-08.md) ·
+[Result decision hierarchy](reports/td-045a-result-decision-hierarchy-2026-09-08.md) ·
+[Source selection and Replay flow](reports/td-044b-source-selection-replay-flow-2026-09-08.md) ·
+[Contextual novice guidance](reports/td-044a-contextual-novice-guidance-2026-09-08.md) ·
+[Accessible runtime decision](reports/td-043b2a2-runtime-decision-2026-09-07.md) ·
+[Assistive-technology readiness](reports/td-043b2a-assistive-technology-readiness-2026-09-07.md) ·
 [Combined precommit review](reports/calibration-frequency-live-precommit-review-2026-09-06.md) ·
 [Current milestone handoff](reports/PROJECT_MILESTONE_UPDATE_2026-09-04.md) ·
+[Serial device-contract verification](reports/serial-device-contract-readiness-2026-09-06.md) ·
 [Live-monitor verification](reports/live-monitor-product-workflow-2026-09-05.md) ·
 [Installation](docs/INSTALLATION.md) ·
 [Tester guide](docs/USER_TESTING_GUIDE.md) ·
@@ -88,12 +106,15 @@ builds a reusable product boundary around that work:
 | Sources and adapters | Deterministic Simulator, immutable CSV Replay, bounded serial lifecycle, public adapter/profile contracts |
 | Test execution | Shared finite read and streaming-read workflows; safety-gated DC and hysteresis runners; bounded single-owner worker |
 | Analysis | Unit normalization, saturation/quality exclusion, OLS gain/offset/R²/RMSE, hysteresis thresholds/width, calibration, offline frequency response |
-| Product surfaces | Installed `analog-validation` CLI, guided Dashboard, bounded live curves, calibration-coefficient manager, deterministic demo, structured exports, human-readable reports |
+| Product surfaces | Installed `analog-validation` CLI, guided Dashboard with Projects & history, reviewed background batches, bounded live curves, calibration-coefficient manager, deterministic demo, structured exports, human-readable reports |
 | Release engineering | Hosted matrix CI, compatibility manifests, reproducible wheel/sdist checks, isolated base/serial installs, privacy and evidence audits |
 
 Full feature-level evidence is maintained in
 [Project Status](docs/PROJECT_STATUS.md) and
-[Requirements Traceability](docs/REQUIREMENTS_TRACEABILITY.md).
+[Requirements Traceability](docs/REQUIREMENTS_TRACEABILITY.md). The
+[feature-freeze policy](docs/FEATURE_FREEZE.md) describes the current frozen
+scope, deferred work, and local acceptance boundary. The freeze changes no
+release, visibility, license, or hardware status.
 
 Not yet complete: real-device/long-duration live acquisition, phase-response
 analysis, instrument-controlled physical sweeps, a validated configurable AFE,
@@ -133,6 +154,32 @@ Optional serial support is isolated behind `.[serial]` and remains receive-only
 at the product boundary. Read [pyserial and physical-port safety](docs/pyserial-backend.md)
 before selecting a real port.
 
+## Reusable offline test projects
+
+A project turns reviewed one-off commands into a reusable six-preset test suite
+and keeps each execution in a new, verifiable run directory:
+
+~~~powershell
+.\.venv\Scripts\analog-validation.exe project create `
+  --output .\work\afe-project.json `
+  --project-id afe-demo `
+  --name "AFE Demo Project"
+.\.venv\Scripts\analog-validation.exe project run `
+  --input .\work\afe-project.json `
+  --output .\work\run-001 `
+  --run-id run-001
+~~~
+
+The run records an exact project snapshot, each executed preset's configuration
+SHA-256, finalized outcomes/metrics, evidence class, and result artifact hashes.
+History and comparison commands verify those files before presenting them and
+never recalculate PASS/FAIL. The Dashboard comparison guide also distinguishes
+matched, one-sided, and not-started results and warns when evidence labels differ;
+the sign of `candidate - baseline` does not classify improvement or regression.
+Saved projects deliberately exclude Serial
+settings; selecting a real port always requires a fresh explicit review. See
+the [test-project and history guide](docs/test-projects-and-history.md).
+
 ## Architecture
 
 ~~~mermaid
@@ -164,8 +211,8 @@ saturation exclusion, threshold calculation, or PASS/FAIL logic.
 |---|---|---|---|
 | Simulator / `afe/1` | Read, bounded live monitor, synthetic DC, hysteresis, calibration, frequency response | `SYNTHETIC` | Default, deterministic, no hardware |
 | CSV Replay | Read, bounded live monitor, DC, hysteresis, calibration, frequency response | `CSV_REPLAY` | Strict local file; historical source is not promoted |
-| AFE v1 serial | Receive-only observations | Depends on declared capture | Protocol/profile host-tested; future physical AFE not validated |
-| MSP430 Equipment Health v1 | Receive-only observations | `HOST_TEST` or narrow `BENCH_CONTROLLER` capture | Independent peer product; no command encoder or write surface |
+| AFE v1 serial | Bounded receive-only read/live observation | Depends on declared capture | Default input projection plus optional exact-ID/full-ADC input-output mapping; memory-tested only; future physical AFE not validated |
+| MSP430 Equipment Health v1 | Bounded receive-only read/live observation | `HOST_TEST` or narrow `BENCH_CONTROLLER` capture | Independent peer product; no command encoder or write surface |
 | Third-party adapter | Shared public read workflow | Adapter-declared and checked | Demonstrated from an installed wheel using only public API |
 | Future instruments/controllers | Planned adapter/profile | Future explicit bench class | Requires safety review and separate evidence |
 
@@ -177,12 +224,12 @@ OSU Lab Bench Monitor Senior Capstone.
 
 | Gate | Verified result |
 |---|---|
-| Local calibration + frequency-response + bounded live-monitor increment (unmerged) | 2,459 passed; 100% statement coverage across 13,834 package statements; full Ruff, mypy, dependency, 15/15 product-quality, repeated-build, fresh base/serial install, and installed Simulator/Replay monitor gates passed; formal candidate/hosted CI await an approved commit/push |
+| Local calibration + frequency-response + bounded live/device-contract + project/history Dashboard increment | TD-046B passes 2,696 tests and 100% statement coverage across 16,210 package statements; full Ruff, mypy, dependency, public-API golden, diff, and real Windows Tk 1040×760 standard/high-contrast five-scaling checks pass; formal commit-bound candidate/audit and hosted CI have not run for this uncommitted extension |
 | Merged `main` software baseline | 2,277 tests passed; 11,911/11,911 package statements covered; Ruff and mypy passed |
 | Hosted Dashboard gate | PR head `c9710fe` passed eight jobs in run `33933549983`; merged `main` commit `b4f0fef` passed eight post-merge jobs in run `33934417152` attempt 2 |
 | Reproducible candidate baseline | Local/hosted four-file `0.1.0b1` candidate matched byte-for-byte at audited commit `f6721b5` |
 | Release audit | `PASS_WITH_REVIEW`; zero current-tree privacy findings, eight legacy-history review items, zero high-confidence credentials |
-| Dashboard validation | Simulator/CSV interaction, data entry, adaptive scrolling, fresh save paths, navigation, cancellation, first-paint, and keyboard/scaling checks |
+| Dashboard validation | Simulator/CSV interaction, data entry, adaptive scrolling, fresh save paths, navigation, single-job and project-batch cooperative cancellation, cleanup-before-close, history refresh, first-paint, and keyboard/scaling checks |
 | Physical controller evidence | One prior five-frame receive-only MSP430 UART capture with zero application writes; exact firmware and peripherals unverified |
 | AFE hardware bench tests | Not run |
 
@@ -200,7 +247,7 @@ reports retain the exact counts and evidence available when they were written.
 | Stage | Status | Exit condition |
 |---|---|---|
 | Software Phases 0–5 | Complete | Core, adapters, analyses, CLI/Dashboard/reports/demo, compatibility freeze |
-| Post-beta product workflows | In local validation | Calibration, amplitude response, and bounded offline live monitoring share the reviewed compiler/worker path |
+| Post-beta product workflows | In local validation | Calibration, amplitude response, bounded live monitoring, and local project/history automation share the reviewed product path |
 | Software Phase 6 | 7/8 | Dashboard UX delivered; owner-controlled history, license, visibility, tag, and release decisions remain |
 | Hardware design preparation | Deferred | Confirmed requirements, tools, instruments, components, safety review |
 | Breadboard AFE | Not started | Power/protection/buffer/gain/filter/Schmitt tests with raw bench evidence |
@@ -229,6 +276,7 @@ media/                      classified software visuals; future bench media is s
 
 - Start here: [Installation](docs/INSTALLATION.md),
   [CLI](docs/product-cli.md), [Dashboard](docs/dashboard.md),
+  [test projects and history](docs/test-projects-and-history.md),
   [interaction design guide](docs/SOFTWARE_INTERACTION_DESIGN_GUIDE.md),
   [software demo](docs/software-demo.md), and
   [beginner testing](docs/USER_TESTING_GUIDE.md).

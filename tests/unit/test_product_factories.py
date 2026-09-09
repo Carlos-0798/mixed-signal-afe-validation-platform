@@ -9,8 +9,10 @@ import pytest
 import analog_validation_app.factories as factories_module
 from analog_validation import (
     AdapterState,
+    ChannelRange,
     CsvReplayAdapter,
     CsvReplayAdapterConfig,
+    DeviceCapabilities,
     EvidenceSource,
     MeasurementUnit,
     ReplayChannelConfig,
@@ -27,11 +29,15 @@ from analog_validation.replay import load_csv_replay
 from analog_validation.serial_adapters import SerialAdapter
 from analog_validation.transport import SerialPortInfo
 from analog_validation_app import (
+    MAX_SERIAL_CHANNEL_ALIASES,
+    SERIAL_CHANNEL_ALIAS_SCHEMA_VERSION,
+    SERIAL_SOURCE_CONFIG_SCHEMA_VERSION,
     ProductDependencyError,
     ProductJobRequest,
     ProductJobType,
     ProductRequestError,
     ProductSourceMode,
+    SerialChannelAlias,
     SerialSourceConfig,
     default_serial_backend_factory,
     discover_serial_ports,
@@ -191,6 +197,158 @@ def test_serial_source_config_rejects_unbounded_or_misleading_values(
     values.update(overrides)
     with pytest.raises(ProductRequestError, match=message):
         SerialSourceConfig(**cast(Any, values))
+
+
+def test_serial_channel_alias_is_versioned_strict_and_deterministic() -> None:
+    alias = SerialChannelAlias.parse(" adc1 = afe.ch0.output ")
+
+    assert alias.native_channel == "adc1"
+    assert alias.canonical_channel == "afe.ch0.output"
+    assert alias.display == "adc1->afe.ch0.output"
+    assert alias.schema_version == SERIAL_CHANNEL_ALIAS_SCHEMA_VERSION
+    assert SERIAL_SOURCE_CONFIG_SCHEMA_VERSION == "serial-source-config.v1"
+
+
+@pytest.mark.parametrize(
+    ("value", "message"),
+    [
+        ("adc0", "native=canonical"),
+        ("adc0=afe.ch0.input=extra", "native=canonical"),
+        ("dac0=afe.ch0.input", "native_channel"),
+        ("adc00=afe.ch0.input", "native_channel"),
+        ("adc0=afe.ch00.input", "canonical_channel"),
+        ("adc256=afe.ch0.input", "outside 0..255"),
+        ("adc0=afe.ch256.input", "outside 0..255"),
+        ("adc0=afe.ch0.threshold", "canonical_channel"),
+    ],
+)
+def test_serial_channel_alias_rejects_ambiguous_or_out_of_range_text(
+    value: str,
+    message: str,
+) -> None:
+    with pytest.raises(ProductRequestError, match=message):
+        SerialChannelAlias.parse(value)
+
+
+def test_serial_channel_alias_and_source_config_reject_contract_drift() -> None:
+    with pytest.raises(ProductRequestError, match="unsupported serial channel alias"):
+        SerialChannelAlias("adc0", "afe.ch0.input", schema_version="future")
+    with pytest.raises(ProductRequestError, match="unsupported serial source config"):
+        SerialSourceConfig("MEMORY:1", schema_version="future")
+
+
+def test_serial_source_config_requires_identity_for_unique_bounded_afe_aliases() -> None:
+    input_alias = SerialChannelAlias("adc0", "afe.ch0.input")
+    output_alias = SerialChannelAlias("adc1", "afe.ch0.output")
+
+    with pytest.raises(ProductRequestError, match="require expected_device_id"):
+        SerialSourceConfig("MEMORY:1", afe_adc_channel_aliases=(input_alias,))
+    with pytest.raises(ProductRequestError, match="tuple"):
+        SerialSourceConfig(
+            "MEMORY:1",
+            expected_device_id="device",
+            afe_adc_channel_aliases=cast(Any, [input_alias]),
+        )
+    with pytest.raises(ProductRequestError, match="repeat a native"):
+        SerialSourceConfig(
+            "MEMORY:1",
+            expected_device_id="device",
+            afe_adc_channel_aliases=(
+                input_alias,
+                SerialChannelAlias("adc0", "afe.ch1.input"),
+            ),
+        )
+    with pytest.raises(ProductRequestError, match="repeat a canonical"):
+        SerialSourceConfig(
+            "MEMORY:1",
+            expected_device_id="device",
+            afe_adc_channel_aliases=(
+                input_alias,
+                SerialChannelAlias("adc1", "afe.ch0.input"),
+            ),
+        )
+    with pytest.raises(ProductRequestError, match="exceeds"):
+        SerialSourceConfig(
+            "MEMORY:1",
+            expected_device_id="device",
+            afe_adc_channel_aliases=tuple(
+                SerialChannelAlias(f"adc{index}", f"afe.ch{index}.input")
+                for index in range(MAX_SERIAL_CHANNEL_ALIASES + 1)
+            ),
+        )
+    with pytest.raises(ProductRequestError, match="expected_device_id"):
+        SerialSourceConfig("MEMORY:1", expected_device_id=" device")
+    with pytest.raises(ProductRequestError, match="exceeds"):
+        SerialSourceConfig("MEMORY:1", expected_device_id="d" * 129)
+
+    valid = SerialSourceConfig(
+        "MEMORY:1",
+        expected_device_id="device",
+        afe_adc_channel_aliases=(input_alias, output_alias),
+    )
+    assert valid.afe_adc_channel_aliases == (input_alias, output_alias)
+
+
+def test_afe_alias_projection_rejects_cross_category_collision(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    safe_range = SafeRange(0, 3300, MeasurementUnit.MILLIVOLT)
+    native = DeviceCapabilities(
+        "device",
+        "afe",
+        "1",
+        adc_channels=("adc0",),
+        safe_input_ranges=(ChannelRange("adc0", safe_range),),
+    )
+    malicious_projection = DeviceCapabilities(
+        "device",
+        "afe",
+        "1",
+        adc_channels=("afe.ch0.input",),
+        digital_input_channels=("afe.ch0.input",),
+        safe_input_ranges=(ChannelRange("afe.ch0.input", safe_range),),
+    )
+    monkeypatch.setattr(
+        factories_module,
+        "project_afe_v1_read_only_capabilities",
+        lambda _native: malicious_projection,
+    )
+
+    with pytest.raises(factories_module.ConfigurationError, match="collide"):
+        factories_module._project_afe_product_capabilities(
+            native,
+            (SerialChannelAlias("adc0", "afe.ch0.input"),),
+        )
+
+
+def test_afe_aliases_are_rejected_for_other_profiles_before_backend_creation() -> None:
+    created: list[MemorySerialBackend] = []
+
+    def backend_factory() -> MemorySerialBackend:
+        backend = MemorySerialBackend()
+        created.append(backend)
+        return backend
+
+    factory = make_serial_adapter_factory(
+        SerialSourceConfig(
+            "MEMORY:1",
+            expected_device_id="device",
+            afe_adc_channel_aliases=(
+                SerialChannelAlias("adc0", "afe.ch0.input"),
+            ),
+        ),
+        backend_factory=backend_factory,
+    )
+
+    with pytest.raises(ProductRequestError, match="only by the AFE v1 profile"):
+        factory(
+            request(
+                ProductSourceMode.SERIAL_READ_ONLY,
+                name=MSP430_HEALTH_V1_SERIAL_IDENTITY.name,
+                version=MSP430_HEALTH_V1_SERIAL_IDENTITY.version,
+            )
+        )
+    assert created == []
 
 
 def test_serial_factory_constructs_exact_receive_only_profiles_without_opening() -> (

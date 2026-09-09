@@ -32,6 +32,10 @@ from .errors import (
     ProductDemoPathError,
     ProductDependencyError,
     ProductFeatureUnavailableError,
+    ProductProjectExistsError,
+    ProductProjectFormatError,
+    ProductProjectLimitError,
+    ProductProjectPathError,
     ProductReportExistsError,
     ProductReportFormatError,
     ProductReportLimitError,
@@ -191,7 +195,12 @@ def issue_from_exception(error: BaseException) -> UserIssue:
         )
     if isinstance(
         error,
-        (ResultExportExistsError, ProductReportExistsError, ProductDemoExistsError),
+        (
+            ResultExportExistsError,
+            ProductReportExistsError,
+            ProductDemoExistsError,
+            ProductProjectExistsError,
+        ),
     ):
         return UserIssue(
             UserIssueCode.OUTPUT_EXISTS,
@@ -201,7 +210,10 @@ def issue_from_exception(error: BaseException) -> UserIssue:
             "Choose a new output path or explicitly review overwrite later.",
             technical_type,
         )
-    if isinstance(error, (ProductReportPathError, ProductDemoPathError)):
+    if isinstance(
+        error,
+        (ProductReportPathError, ProductDemoPathError, ProductProjectPathError),
+    ):
         return UserIssue(
             UserIssueCode.OUTPUT_PATH,
             UserIssueSeverity.ERROR,
@@ -216,6 +228,8 @@ def issue_from_exception(error: BaseException) -> UserIssue:
             ProductReportFormatError,
             ProductReportLimitError,
             ProductDemoFormatError,
+            ProductProjectFormatError,
+            ProductProjectLimitError,
             ResultExportFormatError,
             ResultExportLimitError,
             ResultExportPathError,

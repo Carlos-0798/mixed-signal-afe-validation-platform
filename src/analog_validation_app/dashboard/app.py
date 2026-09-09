@@ -14,6 +14,8 @@ from ..errors import (
 from ..models import ProductSourceMode, ProductWorkerState
 from .application import DashboardApplication
 from .controller import DashboardWorkerPort
+from .project_widgets import ProjectPage
+from .project_workspace import ProjectWorkspace
 from .state import DASHBOARD_HARDWARE_CLAIM
 from .widgets import create_dashboard_workflow_widgets
 
@@ -110,6 +112,30 @@ def _choose_export_destination(
     return selected
 
 
+def _choose_replay_path(
+    parent: object,
+    *,
+    dialog: SavePathDialog | None = None,
+) -> str:
+    """Choose one existing CSV path without reading it before Review."""
+
+    selected_dialog: SavePathDialog
+    if dialog is None:  # pragma: no cover - exercised by the real Windows Tk gate
+        from tkinter import filedialog
+
+        selected_dialog = cast(SavePathDialog, filedialog.askopenfilename)
+    else:
+        selected_dialog = dialog
+    selected = selected_dialog(
+        parent=parent,
+        title="Choose a CSV Replay file",
+        filetypes=(("CSV Replay", "*.csv"),),
+    )
+    if not isinstance(selected, str):
+        raise ProductRequestError("Dashboard replay dialog must return a path string")
+    return selected
+
+
 def _choose_coefficient_path(
     parent: object,
     mode: str,
@@ -192,6 +218,38 @@ def _confirm_discard_unsaved_result(
     return confirmed
 
 
+def _choose_project_path(parent: object, mode: str) -> object:
+    """Native file selection is only invoked by an explicit project-page action."""
+    from tkinter import filedialog, messagebox
+
+    options: dict[str, Any] = {"parent": parent}
+    if mode == "discard-project":
+        return messagebox.askyesno(
+            **options, title="Unsaved project changes",
+            message="Discard unsaved project changes and close?",
+            detail="Choose No to save the project as a new file first.", default="no",
+        )
+    if mode == "history":
+        return filedialog.askopenfilenames(
+            **options, title="Choose run-manifest.json files", filetypes=(("Run manifests", "*.json"),)
+        )
+    if mode == "project-open":
+        return filedialog.askopenfilename(
+            **options, title="Open test project", filetypes=(("Test projects", "*.json"),)
+        )
+    if mode not in {"project-save", "run-directory"}:
+        raise ProductRequestError("Unknown project path selection.")
+    return filedialog.asksaveasfilename(
+        **options,
+        title="Save a new test project" if mode == "project-save" else "Choose a NEW run directory name",
+        initialfile=(
+            "validation-project.json" if mode == "project-save" else "run-001"
+        ),
+        defaultextension=".json" if mode == "project-save" else "",
+        confirmoverwrite=False,
+    )
+
+
 def launch_dashboard(
     *,
     tk_loader: TkLoader | None = None,
@@ -247,9 +305,17 @@ def launch_dashboard(
         raise
     closed = False
     widgets: Any = None
+    project_page: ProjectPage | None = None
+    projects = ProjectWorkspace(
+        lambda: application.dashboard_state.progress.worker_state.is_active
+    )
+    close_pending = False
 
     def render() -> None:
+        widgets.issue_field_id = application.issue_field_id
         widgets.render(application.dashboard_state, application.wizard_state)
+        if project_page is not None:
+            project_page.render()
 
     def cancel_job() -> None:
         application.request_cancel()
@@ -281,16 +347,26 @@ def launch_dashboard(
     def review_job(draft: object) -> None:
         from .wizard import DashboardWizardDraft
 
+        if isinstance(draft, BaseException):
+            application.present_input_error(draft)
+            render()
+            return
         if not isinstance(draft, DashboardWizardDraft):
             raise ProductRequestError("Dashboard review requires a wizard draft")
         application.prepare_review(draft)
         render()
 
     def run_job() -> None:
+        if projects.busy:
+            projects._changed("Wait for the project batch to finish before starting a single test.")
+            render()
+            return
         application.run()
         render()
 
     def discover_ports() -> None:
+        if projects.busy:
+            return
         application.discover_ports()
         render()
 
@@ -300,6 +376,9 @@ def launch_dashboard(
 
     def choose_export_path(format_name: str) -> str:
         return _choose_export_destination(root, format_name)
+
+    def choose_replay_path() -> str:
+        return _choose_replay_path(root)
 
     def choose_coefficient_path(mode: str) -> str:
         return _choose_coefficient_path(root, mode)
@@ -348,8 +427,17 @@ def launch_dashboard(
         render()
 
     def close_window(*, bypass_unsaved_confirmation: bool = False) -> None:
-        nonlocal closed
+        nonlocal closed, close_pending
         if closed:
+            return
+        if projects.busy:
+            close_pending = True
+            if not projects.cancellation_requested:
+                projects.request_cancel()
+            render()
+            return
+        close_pending = False
+        if projects.dirty and not bypass_unsaved_confirmation and not _choose_project_path(root, "discard-project"):
             return
         if not bypass_unsaved_confirmation and not discard_is_confirmed(
             "close the application"
@@ -366,7 +454,12 @@ def launch_dashboard(
         if closed:
             return
         application.poll()
+        projects.poll()
         render()
+        if close_pending and not projects.busy:
+            close_window()
+            if closed:
+                return
         root.after(poll_ms, poll_worker)
 
     try:
@@ -389,6 +482,7 @@ def launch_dashboard(
             on_repeat=review_same_setup,
             on_new_test=start_new_test,
             on_close=close_window,
+            on_choose_replay_path=choose_replay_path,
             on_choose_coefficient_path=choose_coefficient_path,
             on_save_coefficients=save_coefficients,
             on_load_coefficients=load_coefficients,
@@ -396,6 +490,12 @@ def launch_dashboard(
             on_resume_live=resume_live_monitor,
             on_live_window=change_live_window,
         )
+        if getattr(widgets, "notebook", None) is not None:
+            project_page = ProjectPage(
+                root, tk, ttk, widgets.notebook, projects,
+                lambda mode: _choose_project_path(root, mode),
+                widgets.form.snapshot,
+            )
         root.protocol("WM_DELETE_WINDOW", close_window)
         render()
         finish_layout = getattr(root, "update_idletasks", None)
@@ -417,6 +517,10 @@ def launch_dashboard(
             closed = application.request_close()
             if closed:
                 root.destroy()
+    if projects.busy:
+        raise ProductWorkerTimeoutError(
+            "The Dashboard event loop ended while a project batch was still running."
+        )
     if not closed:
         raise ProductWorkerTimeoutError(
             "the Dashboard window could not close its worker within the bounded timeout"

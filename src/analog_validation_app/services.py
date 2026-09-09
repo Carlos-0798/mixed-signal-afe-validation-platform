@@ -6,6 +6,7 @@ from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from threading import Lock
+from time import monotonic
 from typing import cast
 
 from analog_validation import __version__
@@ -1208,6 +1209,8 @@ def execute_product_job(
     output_slot: ProductServiceOutputSlot,
     *,
     join_timeout_s: float = DEFAULT_PRODUCT_JOIN_TIMEOUT_S,
+    cancellation_requested: Callable[[], bool] | None = None,
+    report_event: Callable[[ProductJobEvent], None] | None = None,
 ) -> ProductJobExecution:
     """Run, join, and close one worker; Ctrl+C becomes cooperative cancellation."""
 
@@ -1217,21 +1220,54 @@ def execute_product_job(
         raise ProductRequestError("service_factory must be callable")
     if not isinstance(output_slot, ProductServiceOutputSlot):
         raise ProductRequestError("output_slot must be a ProductServiceOutputSlot")
+    if cancellation_requested is not None and not callable(cancellation_requested):
+        raise ProductRequestError("cancellation_requested must be callable or None")
+    if report_event is not None and not callable(report_event):
+        raise ProductRequestError("report_event must be callable or None")
     worker = ProductJobWorker(service_factory, join_timeout_s=join_timeout_s)
     interrupted = False
+    last_reported_event_index = 0
+
+    def forward_events() -> None:
+        nonlocal last_reported_event_index
+        if report_event is None:
+            return
+        for event in worker.events:
+            if event.index > last_reported_event_index:
+                report_event(event)
+                last_reported_event_index = event.index
+
     try:
         worker.start(request)
         try:
-            joined = worker.join(join_timeout_s)
+            deadline = monotonic() + join_timeout_s
+            while True:
+                if (
+                    cancellation_requested is not None
+                    and cancellation_requested()
+                    and worker.request_cancel()
+                ):
+                    interrupted = True
+                remaining = deadline - monotonic()
+                if remaining <= 0:
+                    joined = False
+                    break
+                joined = worker.join(max(0.001, min(0.05, remaining)))
+                forward_events()
+                if joined:
+                    break
         except KeyboardInterrupt:
             interrupted = True
             worker.cancel_and_join(join_timeout_s)
+            forward_events()
         else:
             if not joined:
                 worker.cancel_and_join(join_timeout_s)
+                forward_events()
                 raise ProductWorkerTimeoutError(
                     "the product job exceeded its bounded join timeout"
                 )
+        forward_events()
         output = (
             output_slot.value
             if worker.state is ProductWorkerState.SUCCEEDED and not interrupted

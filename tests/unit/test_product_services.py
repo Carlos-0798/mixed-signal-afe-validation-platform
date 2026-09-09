@@ -721,6 +721,18 @@ def test_execute_product_job_validates_inputs(
         )
 
 
+@pytest.mark.parametrize("keyword", ("cancellation_requested", "report_event"))
+def test_execute_product_job_rejects_noncallable_controls(keyword: str) -> None:
+    arguments = {keyword: object()}
+    with pytest.raises(ProductRequestError, match=keyword):
+        execute_product_job(
+            product_request(ProductJobType.READ),
+            cast(Any, lambda _request: object()),
+            ProductServiceOutputSlot(),
+            **cast(Any, arguments),
+        )
+
+
 def test_execute_product_job_timeout_cancels_and_leaves_no_service_running() -> None:
     request = product_request(ProductJobType.READ)
     stopped = Event()
@@ -748,6 +760,41 @@ def test_execute_product_job_timeout_cancels_and_leaves_no_service_running() -> 
             join_timeout_s=0.02,
         )
     assert stopped.wait(1.0)
+
+
+def test_execute_product_job_accepts_external_cooperative_cancellation() -> None:
+    request = product_request(ProductJobType.READ)
+    stopped = Event()
+    reported: list[Any] = []
+
+    class SlowService:
+        def run(
+            self,
+            request: ProductJobRequest,
+            cancellation: ProductCancellationToken,
+            report_progress: Callable[[str, int | None, int | None], None],
+        ) -> ProductJobResult:
+            while not cancellation.wait(0.001):
+                pass
+            cancellation.raise_if_cancelled()
+            raise AssertionError("unreachable")
+
+        def cleanup(self) -> None:
+            stopped.set()
+
+    execution = execute_product_job(
+        request,
+        lambda _request: SlowService(),
+        ProductServiceOutputSlot(),
+        cancellation_requested=lambda: True,
+        report_event=reported.append,
+    )
+
+    assert execution.worker_state is ProductWorkerState.CANCELLED
+    assert execution.interrupted
+    assert stopped.is_set()
+    assert reported
+    assert reported[-1].state is ProductWorkerState.CANCELLED
 
 
 def test_execute_product_job_turns_keyboard_interrupt_into_cancelled_snapshot(

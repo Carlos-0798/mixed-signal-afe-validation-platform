@@ -428,6 +428,29 @@ def test_tk_import_and_display_failures_are_beginner_readable() -> None:
         launch_dashboard(tk_loader=lambda: (ProgrammingErrorTk(), FakeTtk()))
 
 
+def test_replay_file_picker_uses_csv_filter_and_preserves_cancel() -> None:
+    calls: list[dict[str, object]] = []
+
+    def choose(**kwargs: object) -> str:
+        calls.append(dict(kwargs))
+        return "chosen-replay.csv"
+
+    parent = object()
+    assert app_module._choose_replay_path(parent, dialog=choose) == (
+        "chosen-replay.csv"
+    )
+    assert calls == [
+        {
+            "parent": parent,
+            "title": "Choose a CSV Replay file",
+            "filetypes": (("CSV Replay", "*.csv"),),
+        }
+    ]
+    assert app_module._choose_replay_path(parent, dialog=lambda **_kwargs: "") == ""
+    with pytest.raises(ProductRequestError, match="replay dialog"):
+        app_module._choose_replay_path(parent, dialog=lambda **_kwargs: cast(Any, 42))
+
+
 def test_worker_factory_failure_destroys_created_root() -> None:
     root, tk, ttk = fake_toolkit()
 
@@ -495,10 +518,10 @@ def test_six_step_window_callbacks_drive_the_headless_application(
             selected.bindings["<<ComboboxSelected>>"](None)
 
         def mainloop(self) -> None:
-            self._select("SIMULATOR")
+            self._select("Simulator — synthetic data")
             self._select("afe/1")
             cast(Any, self._button("Continue").kwargs["command"])()
-            self._select("READ")
+            self._select("Read samples")
             cast(Any, self._button("Continue").kwargs["command"])()
             cast(Any, self._button("Find serial ports").kwargs["command"])()
             cast(Any, self._button("Validate setup").kwargs["command"])()
@@ -538,6 +561,40 @@ def test_review_callback_rejects_non_draft_payload_and_still_closes(
     monkeypatch.setattr(app_module, "create_dashboard_workflow_widgets", invalid_review)
     with pytest.raises(ProductRequestError, match="wizard draft"):
         launch_dashboard(tk_loader=lambda: (tk, ttk))
+    assert root.destroyed is True
+
+
+def test_review_callback_presents_a_form_exception_and_keeps_running(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root, tk, ttk = fake_toolkit()
+
+    class InvalidFormWidgets:
+        invoked = False
+
+        def __init__(self, selected_callbacks: dict[str, Any]) -> None:
+            self.callbacks = selected_callbacks
+
+        def render(self, dashboard: object, wizard: object) -> None:
+            if self.invoked:
+                return
+            self.invoked = True
+            cast(Any, self.callbacks["on_review"])(
+                ProductRequestError("sample_count is invalid")
+            )
+
+    monkeypatch.setattr(
+        app_module,
+        "create_dashboard_workflow_widgets",
+        lambda *args, **kwargs: InvalidFormWidgets(dict(kwargs)),
+    )
+
+    session = launch_dashboard(
+        tk_loader=lambda: (tk, ttk),
+        auto_close_ms=1,
+    )
+
+    assert session.closed_safely is True
     assert root.destroyed is True
 
 
@@ -617,6 +674,42 @@ def test_calibration_file_callbacks_are_wired_through_the_application(
     session = launch_dashboard(tk_loader=lambda: (tk, ttk), auto_close_ms=1)
 
     assert callback_calls == ["chosen-save.json", None, None]
+    assert session.closed_safely is True
+    assert root.destroyed is True
+
+
+def test_replay_file_callback_is_wired_through_the_application(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root, tk, ttk = fake_toolkit()
+    selected_paths: list[str] = []
+
+    class ReplayWidgets:
+        invoked = False
+
+        def __init__(self, selected_callbacks: dict[str, Any]) -> None:
+            self.callbacks = selected_callbacks
+
+        def render(self, dashboard: object, wizard: object) -> None:
+            if self.invoked:
+                return
+            self.invoked = True
+            selected_paths.append(cast(Any, self.callbacks["on_choose_replay_path"])())
+
+    monkeypatch.setattr(
+        app_module,
+        "create_dashboard_workflow_widgets",
+        lambda *args, **kwargs: ReplayWidgets(dict(kwargs)),
+    )
+    monkeypatch.setattr(
+        app_module,
+        "_choose_replay_path",
+        lambda _parent: "chosen-replay.csv",
+    )
+
+    session = launch_dashboard(tk_loader=lambda: (tk, ttk), auto_close_ms=1)
+
+    assert selected_paths == ["chosen-replay.csv"]
     assert session.closed_safely is True
     assert root.destroyed is True
 

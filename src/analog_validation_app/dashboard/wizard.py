@@ -10,11 +10,16 @@ from threading import get_ident
 from typing import Any
 
 from analog_validation import EvidenceSource, MeasurementUnit, ReadOperation
+from analog_validation.protocol.msp430_health_v1 import (
+    MSP430_HEALTH_CHANNEL_BUS_VOLTAGE,
+    MSP430_HEALTH_PROFILE_NAME,
+    MSP430_HEALTH_PROFILE_VERSION,
+)
 from analog_validation.transport import SerialPortInfo
 
 from ..catalog import get_product_profile, get_product_source, list_product_profiles
-from ..errors import ProductCatalogError, ProductRequestError
-from ..factories import SerialSourceConfig
+from ..errors import ProductCatalogError, ProductFieldError, ProductRequestError
+from ..factories import SerialChannelAlias, SerialSourceConfig
 from ..issues import UserIssue
 from ..models import ProductJobType, ProductSourceMode
 from ..product_workflows import ProductWorkflowConfiguration
@@ -45,15 +50,17 @@ class DashboardExportFormat(str, Enum):
 
 def _text(name: str, value: object, *, allow_empty: bool = False) -> str:
     if not isinstance(value, str) or value != value.strip():
-        raise ProductRequestError(f"{name} must be stripped text")
+        raise ProductFieldError(f"{name} must be stripped text", name)
     if not value and not allow_empty:
-        raise ProductRequestError(f"{name} cannot be empty")
+        raise ProductFieldError(f"{name} cannot be empty", name)
     if len(value) > MAX_DASHBOARD_WIZARD_TEXT_CHARS:
-        raise ProductRequestError(
-            f"{name} exceeds {MAX_DASHBOARD_WIZARD_TEXT_CHARS} characters"
+        raise ProductFieldError(
+            f"{name} exceeds {MAX_DASHBOARD_WIZARD_TEXT_CHARS} characters", name
         )
     if value and not value.isprintable():
-        raise ProductRequestError(f"{name} must contain only printable characters")
+        raise ProductFieldError(
+            f"{name} must contain only printable characters", name
+        )
     return value
 
 
@@ -62,7 +69,7 @@ def _integer(name: str, value: str) -> int:
     try:
         return int(checked)
     except ValueError as error:
-        raise ProductRequestError(f"{name} must be an integer") from error
+        raise ProductFieldError(f"{name} must be an integer", name) from error
 
 
 def _number(name: str, value: str) -> float:
@@ -70,10 +77,39 @@ def _number(name: str, value: str) -> float:
     try:
         parsed = float(checked)
     except ValueError as error:
-        raise ProductRequestError(f"{name} must be numeric") from error
+        raise ProductFieldError(f"{name} must be numeric", name) from error
     if not math.isfinite(parsed):
-        raise ProductRequestError(f"{name} must be finite")
+        raise ProductFieldError(f"{name} must be finite", name)
     return parsed
+
+
+def _serial_aliases(value: str) -> tuple[SerialChannelAlias, ...]:
+    checked = _text("serial_afe_adc_aliases", value, allow_empty=True)
+    if not checked:
+        return ()
+    entries = tuple(part.strip() for part in checked.split(","))
+    if any(not entry for entry in entries):
+        raise ProductFieldError(
+            "serial_afe_adc_aliases contains an empty comma-separated entry",
+            "serial_afe_adc_aliases",
+        )
+    try:
+        return tuple(SerialChannelAlias.parse(entry) for entry in entries)
+    except ProductRequestError as error:
+        raise ProductFieldError(str(error), "serial_afe_adc_aliases") from error
+
+
+def _dashboard_serial_field(field_id: str) -> str:
+    return {
+        "port_id": "serial_port",
+        "baud_rate": "serial_baud_rate",
+        "read_timeout_seconds": "serial_read_timeout",
+        "max_polls_per_operation": "serial_max_polls",
+        "expected_device_id": "serial_expected_device_id",
+        "afe_adc_channel_aliases": "serial_afe_adc_aliases",
+        "native_channel": "serial_afe_adc_aliases",
+        "canonical_channel": "serial_afe_adc_aliases",
+    }.get(field_id, field_id)
 
 
 @dataclass(frozen=True, slots=True)
@@ -166,6 +202,8 @@ class DashboardWizardDraft:
     serial_baud_rate: str = "115200"
     serial_read_timeout: str = "0.25"
     serial_max_polls: str = "32"
+    serial_expected_device_id: str = ""
+    serial_afe_adc_aliases: str = ""
     serial_confirm_read_only: bool = False
     low_output_limit: str = "25"
     high_output_limit: str = "3275"
@@ -248,6 +286,8 @@ class DashboardWizardDraft:
             "serial_baud_rate",
             "serial_read_timeout",
             "serial_max_polls",
+            "serial_expected_device_id",
+            "serial_afe_adc_aliases",
             "low_output_limit",
             "high_output_limit",
             "target_gain",
@@ -385,16 +425,42 @@ class DashboardWizardDraft:
             )
         elif self.source_mode is ProductSourceMode.SERIAL_READ_ONLY:
             sample_count = _integer("sample_count", self.sample_count)
+            try:
+                serial_config = SerialSourceConfig(
+                    port_id=_text("serial_port", self.serial_port),
+                    baud_rate=_integer(
+                        "serial_baud_rate", self.serial_baud_rate
+                    ),
+                    read_timeout_seconds=_number(
+                        "serial_read_timeout", self.serial_read_timeout
+                    ),
+                    max_polls_per_operation=_integer(
+                        "serial_max_polls", self.serial_max_polls
+                    ),
+                    max_buffered_measurements=max(128, sample_count * 8),
+                    evidence_source=EvidenceSource.HOST_TEST,
+                    expected_device_id=(
+                        _text(
+                            "serial_expected_device_id",
+                            self.serial_expected_device_id,
+                            allow_empty=True,
+                        )
+                        or None
+                    ),
+                    afe_adc_channel_aliases=_serial_aliases(
+                        self.serial_afe_adc_aliases
+                    ),
+                )
+            except ProductRequestError as error:
+                field_id = _dashboard_serial_field(
+                    str(getattr(error, "field_id", "serial_afe_adc_aliases"))
+                )
+                if isinstance(error, ProductFieldError) and error.field_id == field_id:
+                    raise
+                raise ProductFieldError(str(error), field_id) from error
             values.update(
                 {
-                    "serial_config": SerialSourceConfig(
-                        _text("serial_port", self.serial_port),
-                        _integer("serial_baud_rate", self.serial_baud_rate),
-                        _number("serial_read_timeout", self.serial_read_timeout),
-                        _integer("serial_max_polls", self.serial_max_polls),
-                        max(128, sample_count * 8),
-                        EvidenceSource.HOST_TEST,
-                    ),
+                    "serial_config": serial_config,
                     "confirm_read_only": self.serial_confirm_read_only,
                 }
             )
@@ -416,6 +482,31 @@ def _compatible_profile_identities(mode: ProductSourceMode) -> tuple[str, ...]:
     if not values:
         raise ProductCatalogError(f"no profile supports {mode.value}")
     return values
+
+
+def _normalize_live_monitor_draft(
+    draft: DashboardWizardDraft,
+) -> DashboardWizardDraft:
+    """Apply safe, finite defaults when a source enters live-monitor mode."""
+
+    unit = (
+        MeasurementUnit.MILLIVOLT
+        if draft.unit is MeasurementUnit.BOOLEAN
+        else draft.unit
+    )
+    if draft.source_mode is ProductSourceMode.SERIAL_READ_ONLY:
+        return replace(
+            draft,
+            operation=ReadOperation.ANALOG,
+            unit=unit,
+            sample_count="20",
+            monitor_sample_interval_seconds="0.02",
+            monitor_include_secondary=False,
+            monitor_include_state=False,
+            serial_read_timeout="0.05",
+            serial_max_polls="4",
+        )
+    return replace(draft, operation=ReadOperation.ANALOG, unit=unit)
 
 
 @dataclass(frozen=True, slots=True)
@@ -576,15 +667,18 @@ class DashboardWizardPresenter:
             if self._state.draft.job_type in source.supported_jobs
             else source.supported_jobs[0]
         )
+        draft = replace(
+            self._state.draft,
+            source_mode=mode,
+            job_type=job,
+            profile_name=profile_name,
+            profile_version=profile_version,
+            serial_confirm_read_only=False,
+        )
+        if job is ProductJobType.LIVE_MONITOR:
+            draft = _normalize_live_monitor_draft(draft)
         return self._replace(
-            draft=replace(
-                self._state.draft,
-                source_mode=mode,
-                job_type=job,
-                profile_name=profile_name,
-                profile_version=profile_version,
-                serial_confirm_read_only=False,
-            ),
+            draft=draft,
             review_lines=(),
             discovered_ports=(),
             issue=None,
@@ -602,9 +696,20 @@ class DashboardWizardPresenter:
                 f"profile {profile.identity} does not support "
                 f"{self._state.draft.source_mode.value}"
             )
+        primary_channel = (
+            MSP430_HEALTH_CHANNEL_BUS_VOLTAGE
+            if (name, version)
+            == (MSP430_HEALTH_PROFILE_NAME, MSP430_HEALTH_PROFILE_VERSION)
+            else "afe.ch0.input"
+        )
         return self._replace(
             draft=replace(
-                self._state.draft, profile_name=name, profile_version=version
+                self._state.draft,
+                profile_name=name,
+                profile_version=version,
+                primary_channel=primary_channel,
+                operation=ReadOperation.ANALOG,
+                unit=MeasurementUnit.MILLIVOLT,
             ),
             issue=None,
         )
@@ -619,12 +724,7 @@ class DashboardWizardPresenter:
             )
         draft = replace(self._state.draft, job_type=job_type)
         if job_type is ProductJobType.LIVE_MONITOR:
-            unit = (
-                MeasurementUnit.MILLIVOLT
-                if draft.unit is MeasurementUnit.BOOLEAN
-                else draft.unit
-            )
-            draft = replace(draft, operation=ReadOperation.ANALOG, unit=unit)
+            draft = _normalize_live_monitor_draft(draft)
         return self._replace(
             draft=draft,
             issue=None,

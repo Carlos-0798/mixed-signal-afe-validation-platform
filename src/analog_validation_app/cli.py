@@ -11,7 +11,7 @@ import traceback
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
-from typing import TYPE_CHECKING, NoReturn, TextIO
+from typing import TYPE_CHECKING, NoReturn, TextIO, cast
 from uuid import uuid4
 
 from analog_validation import (
@@ -48,6 +48,7 @@ from .errors import (
 )
 from .factories import (
     SerialBackendFactory,
+    SerialChannelAlias,
     SerialSourceConfig,
     default_serial_backend_factory,
     discover_serial_ports,
@@ -65,6 +66,24 @@ from .presentation import (
     build_human_report_view,
 )
 from .product_workflows import ProductWorkflowConfiguration, prepare_product_job
+from .projects import (
+    MAX_VALIDATION_HISTORY_INPUTS,
+    VALIDATION_RUN_MANIFEST_FILENAME,
+    ValidationBatchPhase,
+    ValidationBatchProgress,
+    ValidationBatchStatus,
+    ValidationProject,
+    ValidationRunManifest,
+    build_default_validation_project,
+    compare_validation_runs,
+    load_validation_project,
+    load_validation_run_manifest,
+    publish_validation_project_run,
+    validation_project_to_dict,
+    validation_run_comparison_to_dict,
+    validation_run_manifest_to_dict,
+    write_validation_project,
+)
 from .reporting import HumanReportPublication, publish_human_report
 from .services import (
     ProductJobExecution,
@@ -162,6 +181,32 @@ def _finite_number(name: str) -> Callable[[str], float]:
     return parse
 
 
+def _serial_channel_alias(value: str) -> SerialChannelAlias:
+    try:
+        return SerialChannelAlias.parse(value)
+    except ProductRequestError as error:
+        raise argparse.ArgumentTypeError(str(error)) from error
+
+
+def _add_serial_device_contract(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--expected-device-id",
+        help=(
+            "require an exact capability device_id match before reading measurements"
+        ),
+    )
+    parser.add_argument(
+        "--afe-adc-alias",
+        action="append",
+        type=_serial_channel_alias,
+        metavar="ADC=CANONICAL",
+        help=(
+            "explicit AFE v1 ADC observation mapping, for example "
+            "adc1=afe.ch0.output; repeat for every advertised ADC channel"
+        ),
+    )
+
+
 def _add_machine_view(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--json",
@@ -224,8 +269,25 @@ def _add_read_options(
     _add_machine_view(parser)
 
 
-def _add_live_monitor_options(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--primary-channel", default="afe.ch0.input")
+def _add_live_monitor_options(
+    parser: argparse.ArgumentParser,
+    *,
+    default_cycles: int = 50,
+    default_sample_interval: float = 0.02,
+    default_include_secondary: bool = True,
+    default_include_state: bool = True,
+    primary_channel_required: bool = False,
+) -> None:
+    parser.add_argument(
+        "--primary-channel",
+        default=None if primary_channel_required else "afe.ch0.input",
+        required=primary_channel_required,
+        help=(
+            "exact readable channel advertised by the selected serial profile"
+            if primary_channel_required
+            else None
+        ),
+    )
     parser.add_argument("--secondary-channel", default="afe.ch0.output")
     parser.add_argument("--state-channel", default="afe.ch0.threshold")
     parser.add_argument(
@@ -236,13 +298,13 @@ def _add_live_monitor_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--cycles",
         type=_bounded_integer("cycles", 1, MAX_CLI_SAMPLES),
-        default=50,
+        default=default_cycles,
         help="finite number of sample cycles; this command never runs forever",
     )
     parser.add_argument(
         "--sample-interval",
         type=_finite_number("sample-interval"),
-        default=0.02,
+        default=default_sample_interval,
         help="seconds between complete sample cycles",
     )
     parser.add_argument(
@@ -262,28 +324,47 @@ def _add_live_monitor_options(parser: argparse.ArgumentParser) -> None:
         "--secondary",
         action="store_true",
         dest="include_secondary",
-        help="include the secondary analog channel (default)",
+        help=(
+            "include the secondary analog channel (default)"
+            if default_include_secondary
+            else "include the secondary analog channel"
+        ),
     )
     secondary.add_argument(
         "--no-secondary",
         action="store_false",
         dest="include_secondary",
-        help="omit the secondary analog channel",
+        help=(
+            "omit the secondary analog channel"
+            if default_include_secondary
+            else "omit the secondary analog channel (default)"
+        ),
     )
     state = parser.add_mutually_exclusive_group()
     state.add_argument(
         "--state",
         action="store_true",
         dest="include_state",
-        help="include the boolean state channel (default)",
+        help=(
+            "include the boolean state channel (default)"
+            if default_include_state
+            else "include the boolean state channel"
+        ),
     )
     state.add_argument(
         "--no-state",
         action="store_false",
         dest="include_state",
-        help="omit the boolean state channel",
+        help=(
+            "omit the boolean state channel"
+            if default_include_state
+            else "omit the boolean state channel (default)"
+        ),
     )
-    parser.set_defaults(include_secondary=True, include_state=True)
+    parser.set_defaults(
+        include_secondary=default_include_secondary,
+        include_state=default_include_state,
+    )
     _add_machine_view(parser)
 
 
@@ -623,6 +704,49 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_source_workflows(commands, "replay", "analyze an explicit local CSV replay")
 
+    serial_parser = commands.add_parser(
+        "serial",
+        help="run explicit bounded receive-only serial workflows",
+    )
+    serial_workflows = serial_parser.add_subparsers(
+        dest="serial_workflow",
+        metavar="WORKFLOW",
+    )
+    serial_monitor_parser = serial_workflows.add_parser(
+        "monitor",
+        help="run a finite receive-only serial live-view session",
+    )
+    _add_profile(serial_monitor_parser, required=True)
+    serial_monitor_parser.add_argument("--port", required=True)
+    serial_monitor_parser.add_argument(
+        "--baud-rate",
+        type=_bounded_integer("baud-rate", 1, 4_000_000),
+        default=115_200,
+    )
+    serial_monitor_parser.add_argument(
+        "--read-timeout",
+        type=_finite_number("read-timeout"),
+        default=0.05,
+    )
+    serial_monitor_parser.add_argument(
+        "--max-polls",
+        type=_bounded_integer("max-polls", 1, 10_000),
+        default=4,
+    )
+    serial_monitor_parser.add_argument(
+        "--confirm-read-only",
+        action="store_true",
+        help="confirm that this command only receives and never sends bytes",
+    )
+    _add_serial_device_contract(serial_monitor_parser)
+    _add_live_monitor_options(
+        serial_monitor_parser,
+        default_cycles=20,
+        default_include_secondary=False,
+        default_include_state=False,
+        primary_channel_required=True,
+    )
+
     observe_parser = commands.add_parser(
         "observe", help="run an explicit bounded receive-only serial read"
     )
@@ -662,7 +786,73 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="confirm that this command only receives and never sends bytes",
     )
+    _add_serial_device_contract(observe_parser)
     _add_machine_view(observe_parser)
+
+    project_parser = commands.add_parser(
+        "project",
+        help="create, run, inspect, and compare bounded local test projects",
+    )
+    project_actions = project_parser.add_subparsers(
+        dest="project_action",
+        metavar="ACTION",
+    )
+    create_project_parser = project_actions.add_parser(
+        "create",
+        help="create a six-preset software-only starter project",
+    )
+    create_project_parser.add_argument("--output", required=True, type=Path)
+    create_project_parser.add_argument("--project-id", required=True)
+    create_project_parser.add_argument("--name", required=True)
+    create_project_parser.add_argument(
+        "--description",
+        default="Offline reusable AFE validation presets.",
+    )
+    _add_machine_view(create_project_parser)
+
+    inspect_project_parser = project_actions.add_parser(
+        "inspect",
+        help="validate a project without opening its replay files or any device",
+    )
+    inspect_project_parser.add_argument("--input", required=True, type=Path)
+    _add_machine_view(inspect_project_parser)
+
+    run_project_parser = project_actions.add_parser(
+        "run",
+        help="run a bounded offline preset batch into a new history directory",
+    )
+    run_project_parser.add_argument("--input", required=True, type=Path)
+    run_project_parser.add_argument("--output", required=True, type=Path)
+    run_project_parser.add_argument("--run-id", required=True)
+    run_project_parser.add_argument(
+        "--preset",
+        action="append",
+        default=[],
+        help="run one exact preset ID; repeat to select several; omit for all",
+    )
+    _add_machine_view(run_project_parser)
+
+    history_project_parser = project_actions.add_parser(
+        "history",
+        help="verify and summarize explicit run manifests without directory scanning",
+    )
+    history_project_parser.add_argument(
+        "--run",
+        action="append",
+        dest="run_files",
+        required=True,
+        type=Path,
+        help=f"run manifest path (normally {VALIDATION_RUN_MANIFEST_FILENAME}); repeatable",
+    )
+    _add_machine_view(history_project_parser)
+
+    compare_project_parser = project_actions.add_parser(
+        "compare",
+        help="compare copied outcomes and metrics from two verified runs",
+    )
+    compare_project_parser.add_argument("--left", required=True, type=Path)
+    compare_project_parser.add_argument("--right", required=True, type=Path)
+    _add_machine_view(compare_project_parser)
 
     report_parser = commands.add_parser(
         "report", help="build deterministic human reports from a result export"
@@ -768,6 +958,308 @@ def _write_coefficient_inspection(document: dict[str, object], stream: TextIO) -
     )
     stream.write("Loaded and schema-validated: YES\n")
     stream.write("Applied to measurements: NO\n")
+    stream.write("Hardware performance validation: NOT CLAIMED\n")
+
+
+def _project_document(
+    command: str,
+    *,
+    project: ValidationProject | None = None,
+    project_path: Path | None = None,
+    run: ValidationRunManifest | None = None,
+    run_directory: Path | None = None,
+    history: tuple[tuple[Path, ValidationRunManifest], ...] = (),
+    comparison: dict[str, object] | None = None,
+) -> dict[str, object]:
+    document: dict[str, object] = {
+        "schema_version": CLI_OUTPUT_SCHEMA_VERSION,
+        "command": command,
+        "product": PRODUCT_DISPLAY_NAME,
+        "software_version": __version__,
+        "hardware_claim": "NO_NEW_HARDWARE_VALIDATION",
+        "resource_policy": (
+            "OFFLINE_PROJECT_ONLY; no serial configuration is persisted or executed"
+        ),
+    }
+    if project is not None:
+        if project_path is None:
+            raise ProductServiceError("project path is missing")
+        document["project_file"] = {
+            "path": str(project_path.resolve()),
+            "overwrite": False,
+        }
+        document["project"] = validation_project_to_dict(
+            project,
+            project_directory=project_path.parent.resolve(),
+        )
+    if run is not None:
+        if run_directory is None:
+            raise ProductServiceError("run directory is missing")
+        document["run_directory"] = str(run_directory.resolve())
+        document["run_manifest"] = validation_run_manifest_to_dict(run)
+    if history:
+        document["runs"] = [
+            {
+                "path": str(path.resolve()),
+                "manifest": validation_run_manifest_to_dict(manifest),
+            }
+            for path, manifest in history
+        ]
+    if comparison is not None:
+        document["comparison"] = comparison
+    return document
+
+
+def _project_run_exit_code(manifest: ValidationRunManifest) -> int:
+    if manifest.batch_status is ValidationBatchStatus.CANCELLED:
+        return CLI_CANCELLED_EXIT_CODE
+    if manifest.batch_status is ValidationBatchStatus.ERROR:
+        return CLI_OPERATION_ERROR_EXIT_CODE
+    if any(
+        record.worker_state is ProductWorkerState.CANCELLED
+        or record.product_status is ProductResultStatus.CANCELLED
+        for record in manifest.records
+    ):
+        return CLI_CANCELLED_EXIT_CODE
+    if any(
+        record.worker_state is ProductWorkerState.FAILED
+        or record.product_status is ProductResultStatus.ERROR
+        for record in manifest.records
+    ):
+        return CLI_OPERATION_ERROR_EXIT_CODE
+    if any(
+        record.product_status is ProductResultStatus.UNSUPPORTED
+        for record in manifest.records
+    ):
+        return CLI_UNSUPPORTED_EXIT_CODE
+    if any(
+        record.product_status is ProductResultStatus.INCOMPLETE
+        for record in manifest.records
+    ):
+        return CLI_INCOMPLETE_EXIT_CODE
+    if manifest.engineering_failures:
+        return CLI_ENGINEERING_FAIL_EXIT_CODE
+    return 0
+
+
+def _execute_project_action(
+    arguments: argparse.Namespace,
+    *,
+    progress_stream: TextIO | None = None,
+) -> tuple[dict[str, object], int]:
+    action = arguments.project_action
+    if action == "create":
+        project = build_default_validation_project(
+            arguments.project_id,
+            arguments.name,
+            arguments.description,
+        )
+        written = write_validation_project(arguments.output, project)
+        return (
+            _project_document(
+                "project create",
+                project=project,
+                project_path=written,
+            ),
+            0,
+        )
+    if action == "inspect":
+        project = load_validation_project(arguments.input)
+        return (
+            _project_document(
+                "project inspect",
+                project=project,
+                project_path=arguments.input,
+            ),
+            0,
+        )
+    if action == "run":
+        project = load_validation_project(arguments.input)
+        manifest = publish_validation_project_run(
+            project,
+            arguments.output,
+            arguments.run_id,
+            selected_preset_ids=tuple(arguments.preset),
+            project_directory=arguments.input.parent.resolve(),
+            report_progress=(
+                None
+                if progress_stream is None
+                else lambda event: _write_project_progress(event, progress_stream)
+            ),
+        )
+        return (
+            _project_document(
+                "project run",
+                project=project,
+                project_path=arguments.input,
+                run=manifest,
+                run_directory=arguments.output,
+            ),
+            _project_run_exit_code(manifest),
+        )
+    if action == "history":
+        paths = tuple(arguments.run_files)
+        if len(paths) > MAX_VALIDATION_HISTORY_INPUTS:
+            raise CliUsageError(
+                "project history exceeds the bounded run-manifest input limit"
+            )
+        resolved_paths = tuple(path.resolve() for path in paths)
+        if len(resolved_paths) != len(set(resolved_paths)):
+            raise CliUsageError("project history inputs cannot repeat")
+        history = tuple(
+            (path, load_validation_run_manifest(path)) for path in paths
+        )
+        project_ids = {manifest.project_id for _, manifest in history}
+        if len(project_ids) != 1:
+            raise CliUsageError(
+                "project history inputs must belong to one project"
+            )
+        return _project_document("project history", history=history), 0
+    if action == "compare":
+        left = load_validation_run_manifest(arguments.left)
+        right = load_validation_run_manifest(arguments.right)
+        comparison = compare_validation_runs(left, right)
+        return (
+            _project_document(
+                "project compare",
+                comparison=validation_run_comparison_to_dict(comparison),
+            ),
+            0,
+        )
+    raise CliUsageError("project requires an ACTION")
+
+
+def _write_project_progress(
+    progress: ValidationBatchProgress, stream: TextIO
+) -> None:
+    prefix = f"[run {progress.run_id}] {progress.phase.value}"
+    if progress.phase is ValidationBatchPhase.FINISHED:
+        if progress.batch_status is None:  # pragma: no cover - progress invariant
+            raise ProductServiceError("finished batch progress is missing status")
+        stream.write(
+            f"{prefix} status={progress.batch_status.value}; "
+            f"completed={progress.completed_presets}/{progress.total_presets}\n"
+        )
+        return
+    current = ""
+    if progress.current_preset_id is not None:
+        current = (
+            f" preset {progress.current_preset_number}/{progress.total_presets} "
+            f"{progress.current_preset_id}"
+        )
+    stream.write(
+        f"{prefix}{current}; "
+        f"completed={progress.completed_presets}/{progress.total_presets}\n"
+    )
+
+
+def _write_project_document(document: dict[str, object], stream: TextIO) -> None:
+    command = document["command"]
+    stream.write(f"Command: {command}\n")
+    project = document.get("project")
+    if isinstance(project, dict):
+        presets = project.get("presets")
+        if not isinstance(presets, list):
+            raise ProductServiceError("project presentation is malformed")
+        stream.write(f"Project: {project['project_id']} - {project['name']}\n")
+        stream.write(f"Presets: {len(presets)}\n")
+        for preset in presets:
+            if not isinstance(preset, dict):
+                raise ProductServiceError("project preset presentation is malformed")
+            configuration = preset.get("configuration")
+            if not isinstance(configuration, dict):
+                raise ProductServiceError(
+                    "project configuration presentation is malformed"
+                )
+            stream.write(
+                f"- {preset['preset_id']}: {configuration['source_mode']} / "
+                f"{configuration['job_type']}\n"
+            )
+    run = document.get("run_manifest")
+    if isinstance(run, dict):
+        records = run.get("records")
+        if not isinstance(records, list):
+            raise ProductServiceError("run presentation is malformed")
+        stream.write(f"Run: {run['run_id']}\n")
+        if "batch_status" in run:
+            stream.write(f"Batch status: {run['batch_status']}\n")
+        stream.write(f"Records: {len(records)}\n")
+        input_artifacts = run.get("input_artifacts")
+        if input_artifacts is not None:
+            if not isinstance(input_artifacts, list):
+                raise ProductServiceError(
+                    "run input-artifact presentation is malformed"
+                )
+            stream.write(f"Archived Replay inputs: {len(input_artifacts)}\n")
+            for artifact in input_artifacts:
+                if not isinstance(artifact, dict):
+                    raise ProductServiceError(
+                        "run input-artifact presentation is malformed"
+                    )
+                stream.write(
+                    f"- Input for {artifact['preset_id']}: {artifact['artifact']}; "
+                    f"{artifact['size_bytes']} bytes; SHA-256={artifact['sha256']}\n"
+                )
+        not_started = run.get("not_started_preset_ids", [])
+        if not isinstance(not_started, list):
+            raise ProductServiceError("run not-started presentation is malformed")
+        if not_started:
+            stream.write("Not started: " + ", ".join(map(str, not_started)) + "\n")
+        for record in records:
+            if not isinstance(record, dict):
+                raise ProductServiceError("run record presentation is malformed")
+            outcome = record["engineering_outcome"] or "none"
+            stream.write(
+                f"- {record['preset_id']}: {record['worker_state']}; "
+                f"outcome={outcome}; evidence={record['evidence_source']}\n"
+            )
+        manifest_path = (
+            Path(str(document["run_directory"]))
+            / VALIDATION_RUN_MANIFEST_FILENAME
+        )
+        stream.write(f"Run manifest: {manifest_path}\n")
+    history = document.get("runs")
+    if isinstance(history, list):
+        stream.write(f"Verified history manifests: {len(history)}\n")
+        for item in history:
+            if not isinstance(item, dict) or not isinstance(
+                item.get("manifest"), dict
+            ):
+                raise ProductServiceError("history presentation is malformed")
+            manifest = cast(dict[str, object], item["manifest"])
+            summary = manifest.get("summary")
+            if not isinstance(summary, dict):
+                raise ProductServiceError("history summary is malformed")
+            stream.write(
+                f"- {manifest['run_id']}: "
+                f"status={manifest.get('batch_status', 'UNKNOWN_V1')}; "
+                f"{summary['record_count']} records; "
+                f"engineering failures={summary['engineering_failures']}; "
+                f"operational failures={summary['operational_failures']}"
+            )
+            if "input_artifact_count" in summary:
+                stream.write(
+                    f"; archived Replay inputs={summary['input_artifact_count']}"
+                )
+            stream.write("\n")
+    comparison = document.get("comparison")
+    if isinstance(comparison, dict):
+        stream.write(
+            f"Comparison: {comparison['left_run_id']} -> "
+            f"{comparison['right_run_id']}\n"
+        )
+        stream.write(f"Changed presets: {comparison['changed_entries']}\n")
+        entries = comparison.get("entries")
+        if not isinstance(entries, list):
+            raise ProductServiceError("comparison presentation is malformed")
+        for entry in entries:
+            if not isinstance(entry, dict):
+                raise ProductServiceError("comparison entry is malformed")
+            stream.write(
+                f"- {entry['preset_id']}: "
+                f"{'CHANGED' if entry['changed'] else 'UNCHANGED'}\n"
+            )
+    stream.write("Serial/device access: NONE\n")
     stream.write("Hardware performance validation: NOT CLAIMED\n")
 
 
@@ -965,12 +1457,9 @@ def _execute_workflow(
     )
     join_timeout_s = 5.0
     if job_type is ProductJobType.LIVE_MONITOR:
-        duration_seconds = max(0, config.sample_count - 1) * (
-            config.monitor_sample_interval_seconds
-        )
         join_timeout_s = min(
             60.0,
-            max(5.0, duration_seconds + 5.0),
+            max(5.0, config.live_monitor_runtime_bound_seconds() + 5.0),
         )
     return execute_product_job(
         prepared.request,
@@ -987,12 +1476,14 @@ def _execute_observe(
     if not arguments.confirm_read_only:
         raise CliUsageError("observe requires --confirm-read-only")
     serial_config = SerialSourceConfig(
-        arguments.port,
-        arguments.baud_rate,
-        arguments.read_timeout,
-        arguments.max_polls,
-        max(128, arguments.max_records * 8),
-        EvidenceSource.HOST_TEST,
+        port_id=arguments.port,
+        baud_rate=arguments.baud_rate,
+        read_timeout_seconds=arguments.read_timeout,
+        max_polls_per_operation=arguments.max_polls,
+        max_buffered_measurements=max(128, arguments.max_records * 8),
+        evidence_source=EvidenceSource.HOST_TEST,
+        expected_device_id=arguments.expected_device_id,
+        afe_adc_channel_aliases=tuple(arguments.afe_adc_alias or ()),
     )
     config = ProductWorkflowConfiguration(
         ProductSourceMode.SERIAL_READ_ONLY,
@@ -1013,6 +1504,66 @@ def _execute_observe(
     )
     return execute_product_job(
         prepared.request, prepared.service_factory, prepared.output_slot
+    )
+
+
+def _execute_serial_monitor(
+    arguments: argparse.Namespace,
+    dependencies: CliDependencies,
+) -> ProductJobExecution:
+    if arguments.serial_workflow != "monitor":
+        raise CliUsageError("serial requires a WORKFLOW")
+    if not arguments.confirm_read_only:
+        raise CliUsageError("serial monitor requires --confirm-read-only")
+    enabled_channel_count = (
+        1 + int(arguments.include_secondary) + int(arguments.include_state)
+    )
+    serial_config = SerialSourceConfig(
+        port_id=arguments.port,
+        baud_rate=arguments.baud_rate,
+        read_timeout_seconds=arguments.read_timeout,
+        max_polls_per_operation=arguments.max_polls,
+        max_buffered_measurements=min(
+            MAX_CLI_SAMPLES,
+            max(128, arguments.cycles * enabled_channel_count * 8),
+        ),
+        evidence_source=EvidenceSource.HOST_TEST,
+        expected_device_id=arguments.expected_device_id,
+        afe_adc_channel_aliases=tuple(arguments.afe_adc_alias or ()),
+    )
+    config = ProductWorkflowConfiguration(
+        ProductSourceMode.SERIAL_READ_ONLY,
+        ProductJobType.LIVE_MONITOR,
+        arguments.profile,
+        arguments.profile_version,
+        primary_channel=arguments.primary_channel,
+        secondary_channel=arguments.secondary_channel,
+        state_channel=arguments.state_channel,
+        operation=ReadOperation.ANALOG,
+        unit=_unit(arguments.unit),
+        sample_count=arguments.cycles,
+        serial_config=serial_config,
+        confirm_read_only=True,
+        monitor_sample_interval_seconds=arguments.sample_interval,
+        monitor_time_window_seconds=arguments.time_window,
+        monitor_max_buffer_points=arguments.max_buffer_points,
+        monitor_include_secondary=arguments.include_secondary,
+        monitor_include_state=arguments.include_state,
+    )
+    prepared = prepare_product_job(
+        config,
+        dependencies.job_id_factory(),
+        backend_factory=dependencies.serial_backend_factory,
+    )
+    join_timeout_s = min(
+        60.0,
+        max(5.0, config.live_monitor_runtime_bound_seconds() + 5.0),
+    )
+    return execute_product_job(
+        prepared.request,
+        prepared.service_factory,
+        prepared.output_slot,
+        join_timeout_s=join_timeout_s,
     )
 
 
@@ -1088,6 +1639,14 @@ def _execution_document(
         else {
             "status": output.read_result.status.value,
             "device_id": output.read_result.capabilities.device_id,
+            "profile_name": output.read_result.capabilities.profile_name,
+            "profile_version": output.read_result.capabilities.profile_version,
+            "readable_analog_channels": list(
+                output.read_result.capabilities.adc_channels
+            ),
+            "readable_digital_channels": list(
+                output.read_result.capabilities.digital_input_channels
+            ),
             "evidence_source": output.read_result.evidence_source.value,
             "missing_requirements": list(output.read_result.missing_requirements),
             "measurements": [
@@ -1148,6 +1707,11 @@ def _write_execution(execution: ProductJobExecution, stream: TextIO) -> None:
     if execution.output is not None:
         read = execution.output.read_result
         stream.write(f"Read status: {read.status.value}\n")
+        stream.write(
+            "Capability identity: "
+            f"{read.capabilities.device_id} "
+            f"({read.capabilities.profile_name}/{read.capabilities.profile_version})\n"
+        )
         stream.write(f"Measurements: {len(read.measurements)}\n")
         stream.writelines(
             f"Missing: {missing}\n" for missing in read.missing_requirements
@@ -1511,6 +2075,15 @@ def main(
             else:
                 _write_coefficient_inspection(document, output)
             return 0
+        if arguments.command == "project":
+            document, exit_code = _execute_project_action(
+                arguments, progress_stream=errors
+            )
+            if arguments.as_json:
+                _write_json(document, output)
+            else:
+                _write_project_document(document, output)
+            return exit_code
         if arguments.command == "report":
             report_view = build_human_report_view(_load_report_input(arguments))
             publication = publish_human_report(arguments.output, report_view)
@@ -1540,6 +2113,8 @@ def main(
         if arguments.command in {"simulate", "replay"}:
             _preflight_artifact_paths(arguments)
             execution = _execute_workflow(arguments, injected)
+        elif arguments.command == "serial":
+            execution = _execute_serial_monitor(arguments, injected)
         elif arguments.command == "observe":
             execution = _execute_observe(arguments, injected)
         else:

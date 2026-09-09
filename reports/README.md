@@ -4,11 +4,108 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Software checkpoint reports (each report states its own evidence level):
 
+- `feature-freeze-and-consolidation-2026-09-08.md` — repository-external
+  snapshot build, fresh wheel install, byte-identical normal/Unicode demos,
+  installed Replay manifest-v3/history chain, product-quality/privacy gates,
+  deferred scope, and explicit no-release/no-hardware boundary.
+- `td-040c1b-dashboard-input-visibility-2026-09-08.md` — read-only v3 Replay
+  input details in one-row Dashboard history selection, explicit v1/v2/empty/
+  comparison guidance, five-scale Windows Tk checks, and complete local gates.
+- `td-040c1a-replay-input-archival-2026-09-08.md` — manifest v3 exact Replay
+  input copies, staged-copy execution, per-preset references with same-source
+  deduplication, atomic failures, v1/v2 compatibility, and complete local gates.
+- `td-048-automation-value-closure-2026-09-08.md` — owner decision to accept
+  controlled software automation evidence, defer quantitative human comparison,
+  and move the product priority to offline Replay input archival.
+- `td-048-casepack-software-dry-run-2026-09-08.md` — five frozen synthetic DC
+  cases, an independent reference, CLI/report/history dry run and 258 targeted
+  checks; human baseline pilot and efficiency measurement remain NOT_RUN.
+- `project-direction-and-task-value-alignment-2026-09-08.md` — planning-only
+  alignment to repeated DC task efficiency and result reliability; fair
+  baseline protocol, explicit unmeasured benefits, unchanged runtime artifacts,
+  and documentation verification.
+- `td-046b-batch-review-summary-2026-09-08.md` — frozen pre-run identity,
+  destination, ordered presets, readable Source/Test values, exact evidence
+  labels, five-scaling real-Tk checks, and complete HOST_TEST acceptance.
+- `td-046a-project-first-use-guidance-2026-09-08.md` — state-derived project
+  onboarding, current-Setup/evidence preview, empty history states, reviewed
+  input matching, action availability, five-scaling real-Tk checks, and complete
+  HOST_TEST acceptance.
+- `td-045b-project-history-comparison-guidance-2026-09-08.md` — baseline and
+  candidate identity, batch/snapshot/coverage/evidence interpretation,
+  candidate-minus-baseline boundary, five-scaling real-Tk checks, and complete
+  HOST_TEST acceptance.
+- `td-045a-result-decision-hierarchy-2026-09-08.md` — separate run status,
+  engineering decision, evidence interpretation, claim boundary and next action,
+  with exact evidence-class mapping and complete HOST_TEST acceptance.
+- `td-044b-source-selection-replay-flow-2026-09-08.md` — readable display
+  aliases with stable-value round trips, mutually exclusive Replay/Serial
+  details, native CSV selection, five-scaling real-Tk and complete HOST_TEST
+  acceptance.
+- `td-044a-contextual-novice-guidance-2026-09-08.md` — visible Simulator field
+  guidance, six test explanations, next-action/blocked-state text, exact source
+  boundaries, five-scaling 1040×760 real-Tk checks, and HOST_TEST acceptance.
+- `td-043b2a2-runtime-decision-2026-09-07.md` — local Python/Tk ABI,
+  official Tk 9.1/CPython support review, isolated PySide6 UI Automation proof,
+  dependency/license costs, Proposed ADR-0004, and the next migration boundary.
+- `td-043b2a-assistive-technology-readiness-2026-09-07.md` — Tk accessibility
+  capability gate, runtime-gated metadata/status adapter, Windows UI Automation
+  evidence, explicit current screen-reader blocker, and HOST_TEST boundaries.
+- `td-043b1-narrow-high-contrast-acceptance-2026-09-07.md` — 1040×760
+  three-page layout, three-column configuration reflow, Windows system-color
+  high-contrast mode, five-scaling real-Tk acceptance, and full HOST_TEST gates.
+- `td-043a-field-error-navigation-2026-09-07.md` — internal field-key
+  validation, same-step focus/highlight/scroll recovery, compatibility fallback,
+  five-scaling Windows Tk acceptance, and full local HOST_TEST gates.
+
+- `td-040b-dashboard-batch-control-acceptance-2026-09-07.md` — Dashboard
+  progress queue handoff, cooperative cancel/close, cleanup-before-return,
+  terminal history refresh, legacy v1 labeling, fresh-process Tk automation,
+  and full local HOST_TEST gates.
+
+- `td-040a-core-cli-acceptance-2026-09-07.md` — versioned batch terminal
+  states, cooperative cancellation and cleanup, per-preset progress, v1/v2
+  compatibility, CLI stream/exit behavior, atomic publication, and full local
+  HOST_TEST gates.
+
+- `dashboard-keyboard-isolation-acceptance-2026-09-06.md` — keyboard range
+  selection, fresh-process Windows Tk tests, unified 2,591-test regression,
+  visible desktop acceptance and TD-041 closure.
+
+- `dashboard-project-desktop-acceptance-2026-09-06.md` — visible Windows project
+  workflow acceptance, retained artifacts, partitioned regression, keyboard
+  multi-selection gap and intermittent Tk test-lifecycle follow-ups.
+
+- `dashboard-project-workflow-2026-09-06.md` — Dashboard project/preset/batch/
+  history/comparison integration, background lifecycle, stale-review and
+  unsaved-change protection, real Windows Tk interaction-chain validation.
+
+- `test-project-history-readiness-2026-09-06.md` — strict local projects and
+  presets, bounded offline batches, exact project/configuration snapshots,
+  immutable verified run history, pure comparisons, public API/CLI closure,
+  full host regression, and explicit no-Serial/no-hardware boundaries.
+- `serial-device-contract-readiness-2026-09-06.md` — exact capability-ID
+  pinning, versioned full-ADC input/output mapping, CLI/Dashboard/public-contract
+  closure, 2,508-test/100%-statement gate, isolated package smoke, and explicit
+  unauthenticated-ID/no-wiring/no-real-port boundary.
+- `serial-live-monitor-readiness-2026-09-06.md` — local receive-only Serial
+  `LIVE_MONITOR` product closure, reviewed timing bounds, exact-channel and
+  confirmation gates, in-memory AFE/MSP430 success/failure/cleanup/zero-write
+  coverage, full regression/build/install evidence, and explicit no-real-port/
+  no-hardware boundary.
 - `calibration-frequency-live-precommit-review-2026-09-06.md` — combined local
   precommit review of calibration, frequency response, and bounded live
   monitoring, including two defensive code fixes, full regression, public
   contract, quality, real-Tk, documentation, deterministic-build, fresh-install,
   and explicit no-serial/no-hardware evidence boundaries.
+- `dashboard-visual-refresh-2026-09-07.md` — Precision Lab Console display
+  system, native ttk semantic states, three-page integration, real Windows
+  1.0/1.25/1.5/1.75/2.0 scaling, full regression, and explicit software-only
+  evidence boundary.
+- `dashboard-novice-product-evaluation-2026-09-07.md` — first-use
+  Simulator/temporary-Replay chains, validation/review/export safety,
+  five-scaling geometry, resolved project-action clipping, neutral defaults,
+  and remaining novice/accessibility debt.
 - `live-monitor-product-workflow-2026-09-05.md` — finite offline
   Simulator/CSV Replay live-observation chain, bounded ring buffer, quality and
   eviction accounting, cooperative pause/resume, Dashboard curves, installed

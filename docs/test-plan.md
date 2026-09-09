@@ -56,6 +56,11 @@ Do not power the analog assembly until the open toolchain, inventory, permission
 - Retain AFE native capabilities, explicitly alias
   `adcN/dacN/pwmN/dinN` to canonical workflow names, and reject any projector
   that changes identity, channel counts, numeric ranges, or adds commands.
+- For the optional product-level AFE observation map, require an exact expected
+  capability ID and complete unique native-ADC coverage; reject identity
+  mismatch, missing/extra/repeated mappings, leading-zero channel aliases, and
+  non-AFE use before measurement telemetry. Verify the no-alias projection is
+  unchanged and a two-ADC input/output chain remains receive-only.
 - Bound capability/read polling and queued Measurements; cover timeout, bad CRC,
   overlong input, buffer overflow, profile failure, capability drift, fatal
   session loss, and successful-reconnect capability invalidation.
@@ -234,17 +239,100 @@ Do not power the analog assembly until the open toolchain, inventory, permission
   without producing an analysis bundle, engineering PASS/FAIL, or automatic
   file output.
 - Exercise every live Dashboard callback headlessly and run a real Tk
-  accessibility/startup smoke on a complete Tcl/Tk runtime. If the current
+  keyboard/scaling/startup smoke on a complete Tcl/Tk runtime. If the current
   interpreter cannot load Tk, record that smoke as `NOT RUN` instead of treating
   a mocked widget test as visible-GUI evidence.
+- Treat screen-reader readiness as a separate gate: record the Tcl/Tk patch
+  level, require an actual accessibility metadata API, inspect programmatic
+  names/roles/values and focus through Windows UI Automation, verify dynamic
+  events with Narrator, and complete a real-user task chain. Keyboard focus,
+  visible text, high contrast, or mocked metadata calls alone cannot pass it.
 - Require complete pytest statement coverage, Ruff, mypy, dependency checks,
   isolated build, fresh base/serial installs, and an installed Simulator/Replay
   monitor smoke before an owner-approved commit.
-- Keep real serial monitoring deferred until device identity, receive-only
-  permissions, disconnect/reconnect, sample-rate limits, memory behavior,
-  30-minute/2-hour soak tests, and evidence classification have separate
-  acceptance records. No host test may be promoted to physical timing or AFE
-  validation evidence.
+- Keep real-device serial reliability claims deferred until device identity,
+  receive-only permissions, disconnect/reconnect, sample-rate limits, memory
+  behavior, 30-minute/2-hour soak tests, and evidence classification have
+  separate acceptance records. The optional expected ID is not authentication,
+  and no host test may be promoted to physical timing, wiring, or AFE validation
+  evidence.
+
+## Post-beta local test-project and history checks
+
+- Freeze strict `validation-project.v1`, `validation-preset.v1`,
+  `validation-run-record.v1`, `validation-run-manifest.v1` compatibility,
+  `validation-run-manifest.v2`, `validation-run-manifest.v3`,
+  `validation-run-input-artifact.v1`, and
+  `validation-run-comparison.v1` schemas plus their public API/CLI shapes.
+- Require projects to contain 1–32 unique offline presets. Reject Serial source
+  or connection settings, unsafe identifiers, unknown fields, duplicate JSON
+  keys, non-finite numbers, NUL, invalid UTF-8, excessive size/counts, and replay
+  paths that escape the project directory.
+- Verify that inspect parses only project metadata and opens no replay, adapter,
+  port, or output path. Treat run as the only resource-opening boundary.
+- Run all six starter presets and explicit ordered subsets through the existing
+  reviewed compiler/service/worker. Assert deterministic source/outcome meaning,
+  including no engineering conclusion for READ/LIVE_MONITOR.
+- Publish only to a new directory through staging. On any preparation,
+  execution, artifact, manifest, rename, or existing-target failure, leave no
+  partially published run.
+- Preserve the exact project snapshot, software version, per-preset canonical
+  configuration SHA-256, terminal states, copied finalized outcomes/evidence,
+  bounded metrics/limitations, and result/coefficient artifact hashes.
+- For every executed CSV Replay preset, copy the bounded source into staging
+  before preparation, run from that copy, and preserve run-relative path, byte
+  count, and SHA-256. Deduplicate one resolved source without losing per-preset
+  references; never open or archive a not-started preset.
+- Reject missing, changed-size, changed-content, unsafe, unreadable, or oversized
+  input artifacts. Any input-copy failure must leave no published directory or
+  staging residue, and original v1/v2 documents must retain their exact shapes.
+- Load history only from explicit manifest paths. Reject duplicates, mixed
+  project IDs, inconsistent summaries, missing/oversized artifacts, and digest
+  mismatches; do not recursively scan user directories.
+- Compare only two verified manifests from the same project. Detect project or
+  preset configuration changes even when metrics match, report missing presets,
+  and never refit/re-evaluate or change a stored PASS/FAIL.
+- Exercise human and JSON CLI output, stable exit precedence, malformed inputs,
+  output collisions, and fresh installed-wheel create/inspect/run/history/
+  compare paths without installing or loading the Serial backend.
+- Exercise normal completion, pre-first cancellation, between-preset
+  cancellation, active-worker cancellation, cleanup failure, retained terminal
+  records, explicit not-started IDs, progress ordering, exit `130`, and strict
+  JSON-stdout/progress-stderr separation.
+- Exercise Dashboard queue handoff, determinate progress, idempotent cancel
+  state, terminal v2/v3 history refresh, explicit v1 labeling, and window-close
+  cancellation. Run actual Tk keyboard/scaling flows in fresh processes so one
+  Tcl interpreter cannot contaminate another case.
+- Exercise the read-only Dashboard input-archive view for no selection, one and
+  multiple selections, v1/v2 history, Simulator-only v3, and populated Replay
+  v3. Assert exact path/bytes/SHA-256 display, table clearing during comparison,
+  unchanged evidence text, and 1040×760 horizontal control bounds at all five
+  supported Windows scaling values.
+- Keep SHA-256 described as integrity, not authentication. Keep Dashboard
+  signed manifests, raw READ/LIVE output-observation artifacts, concurrent scheduling,
+  cloud sync, and real-device batches explicitly deferred.
+
+## Post-beta Dashboard narrow/high-contrast checks
+
+- Treat 1040×760 as the supported minimum window. Verify the actual root size,
+  critical-control horizontal bounds, and usable input/button widths rather than
+  accepting an OS-enlarged window as a pass.
+- Reflow dense configuration groups to three columns and constrain fixed result
+  table/text widths. Keep vertical scrolling and avoid a horizontal scrollbar
+  that could hide required actions from a first-time user.
+- Run Setup and Results in fresh Windows Tk processes at scaling 1.0, 1.25, 1.5,
+  1.75, and 2.0 in both standard and forced high-contrast modes. Keep field
+  focus/highlight/reveal/clear checks in the same chain.
+- Run the Projects batch/history/keyboard workflow at 1040×760 across the same
+  five scaling values, using only Simulator and new temporary output paths.
+- Read the Windows high-contrast flag without changing it. In enabled mode use
+  Windows system window/text/highlight/disabled colors for ttk widgets and
+  native canvases while retaining explicit text for state, evidence, errors,
+  cancellation, and limitations.
+- Record that startup-time detection requires an application restart after an
+  OS theme change. Keep screen-reader announcements, Remote Desktop, long
+  keyboard sessions, localization, and widths below 1040 in separate manual
+  acceptance work.
 
 ## Deferred bench acceptance
 

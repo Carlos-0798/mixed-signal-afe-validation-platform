@@ -1,26 +1,29 @@
 # 产品需求追踪矩阵
 
-**基准：** `docs/PRODUCT_PLAN.md` v1.2<br>
-**更新日期：** 2026-09-05<br>
-**当前阶段：** Software Phase 6 仍为 7/8；Post-beta 校准、频响与有界离线实时监控组合增量正在本地收尾，尚未提交或合并
+**基准：** `docs/PRODUCT_PLAN.md` v1.3<br>
+**更新日期：** 2026-09-08<br>
+**当前阶段：** Software Phase 6 仍为 7/8；Post-beta 校准、频响、有界实时监控、Serial device contract 与本地测试项目/历史增量正在本地收尾，尚未作为本步骤提交或合并
 
 状态含义遵循产品规划书：`ACCEPTED`、`IMPLEMENTED`、`VERIFIED_HOST`、`VERIFIED_BENCH`、`DEFERRED`。`IMPLEMENTED` 只表示存在部分代码，不表示达到完整验收标准。此处的 `VERIFIED_BENCH` 只覆盖表内明确写出的 controller UART 行为，不自动升级任何 AFE、外部传感器、风扇或接线需求。
 
 ## 软件功能需求
+
+以下 VERIFIED_HOST 只覆盖各行明确描述的实现范围，不代表完整用户任务已证明效率。
+完整原始观察归档、外部文件转换和人工对照以缺口和单独收益验收记录为准。
 
 | ID | 状态 | 当前实现/证据 | 主要缺口或下一阶段 |
 |---|---|---|---|
 | SW-FR-001 | VERIFIED_HOST | `Measurement` 包含 UTC 时间、通道、值、单位、状态、来源、质量和 schema；DC/迟滞 runners 与结果包保留逐点 references/values/quality/reasons，标准结果已由黄金文件冻结 | Phase 4/5 消费时保持同一记录链 |
 | SW-FR-002 | VERIFIED_HOST | `TestRunMetadata` 保存测试、配置、UTC、软件、设备/profile、来源和 raw IDs；DC/迟滞生命周期映射为证据一致的 `TestRunResult`，JSON/CSV 与黄金结果冻结其语义 | Phase 4/5 复用同一 schema |
 | SW-FR-003 | VERIFIED_HOST | 9 类受控 `EvidenceSource` 已验证且每个正式 Measurement 必填；bundle、JSON、CSV、Step 4 reports 及 Step 6 Dashboard workflow/evidence panel 均用文本显著保留来源 | Step 7 可访问性验收继续保持文本语义，不能只靠颜色 |
-| SW-FR-004 | VERIFIED_HOST | Measurement 强制 `record_id`/`raw_record_id`；DC/迟滞/校准/频响分析和 builders 保留逐点 record/raw 引用，bundle 强制其与 TestRun 完全一致；系数文件另冻结参与拟合的 observed/reference lineage；每个频响点保留 frequency/input/output 三引用 | 真实多仪器 lineage 仍需未来版本化扩展 |
+| SW-FR-004 | VERIFIED_HOST | Measurement 强制 `record_id`/`raw_record_id`；DC/迟滞/校准/频响分析和 builders 保留逐点 record/raw 引用，bundle 强制其与 TestRun 完全一致；系数文件另冻结参与拟合的 observed/reference lineage；每个频响点保留 frequency/input/output 三引用 | 已验证原输入不被覆盖及分析引用链；完整 READ/LIVE 原始观察归档未完成，project snapshot 不包含原 CSV 副本；真实多仪器 lineage 仍需未来扩展 |
 | SW-FR-005 | VERIFIED_HOST | 12 类受控单位；Step 1 只允许有限 V/mV 显式换算并拒绝安培、count、未知单位和 NaN/Inf | 后续分析继续使用同一规范化入口 |
 | SW-FR-010 | VERIFIED_HOST | CRC 只有 `protocol/crc.py` 一个实现；固定参数、5 个黄金向量和 bytes-like 边界测试通过 | 后续 profile/adapter 复用，不再复制算法 |
 | SW-FR-011 | VERIFIED_HOST | Step 1–5 的 bounded stream/envelope/session/raw-log/profiles 已由 Step 6 `SerialAdapter` 组合；AFE/MSP 内存 bytes 可经 typed raw outcome 和 Measurement 进入同一 `ReadWorkflow`；Step 7 另有窄范围真实 COM4 证据 | AFE 实物 stream 仍待未来 BENCH |
-| SW-FR-012 | VERIFIED_HOST | AFE v1 的 20 valid/9 invalid 契约不变；telemetry 显式转换为 canonical names；Step 6 另将 native `adcN/dacN/pwmN/dinN` capabilities 显式投影为 `afe.chN.input/dac/pwm/threshold` 并拒绝 identity/count/range/command 漂移 | 实物字段/行为仍待 AFE BENCH |
+| SW-FR-012 | VERIFIED_HOST | AFE v1 的 20 valid/9 invalid 契约不变；telemetry 显式转换为 canonical names；Step 6 默认将 native `adcN/dacN/pwmN/dinN` capabilities 显式投影为 `afe.chN.input/dac/pwm/threshold`；产品层另增加 `serial-channel-alias.v1`，仅在精确 identity pin 下允许完整 native ADC→唯一 `afe.chM.input|output` 映射，并保持 channel count/range/read-only command 不变 | 映射只证明 host contract；实物接线/字段含义仍待 AFE BENCH |
 | SW-FR-013 | VERIFIED_HOST | 通用 tracker 已覆盖 2–64 bits；AFE 使用 16-bit TEL continuity，MSP430 使用 32-bit TEL continuity；Step 7 COM4 的五个 TEL sequence 27917–27921、uptime 与 legacy HB 对齐均连续 | physical disconnect/reconnect continuity 未主动测试 |
-| SW-FR-014 | VERIFIED_HOST | `SerialProfileIdentity` 明确 name/version/sequence/limit；`SerialAdapterConfig`、session 和 profile 必须精确匹配，构造时拒绝不一致，不按 COM/VID/PID 猜测 | Protocol v1 TEL 无 firmware-version token；当前精确 image 保持 `UNCONFIRMED_PASSIVE_ONLY` |
-| SW-FR-015 | VERIFIED_HOST | AFE profile 只在完整合法 CAP transaction 后发布 native capabilities；Step 6 adapter 被动接收并显式投影，同时保留 native snapshot，禁止 command escalation；MSP430 使用静态只读 snapshot | Step 6 不发送 `CAP_REQ`；实物 capability 仍待 HIL/BENCH |
+| SW-FR-014 | VERIFIED_HOST | `SerialProfileIdentity` 明确 name/version/sequence/limit；`SerialAdapterConfig`、session 和 profile 必须精确匹配，构造时拒绝不一致，不按 COM/VID/PID 猜测；可选 `expected_device_id` 在 measurement read 前与 capability `device_id` 精确比较 | 此 ID 未认证、不是 physical serial；AFE Protocol v1 TEL 无 firmware-version token，MSP capability 当前为 host 静态 snapshot，精确 image 保持 `UNCONFIRMED_PASSIVE_ONLY` |
+| SW-FR-015 | VERIFIED_HOST | AFE profile 只在完整合法 CAP transaction 后发布 native capabilities；adapter 被动接收并显式投影、保留 native snapshot、禁止 command escalation；可选 AFE alias 要求完整覆盖已发布 ADC set，缺失/额外/重复均在 telemetry 前失败；MSP430 使用静态只读 snapshot | Step 6 不发送 `CAP_REQ`；identity/mapping 不能证明实物 capability 或接线，仍待 HIL/BENCH |
 | SW-FR-016 | VERIFIED_HOST | `SerialSession` 的 bounded lifecycle/reconnect 已通过；Step 7 concrete backend 在 COM4 完成 1 open/1 close、9 empty timeout reads 和 finite poll；成功重连仍要求 capability reconfirmation | 未主动制造 physical disconnect；worker/cancellation 留给 Phase 5 |
 | SW-FR-017 | VERIFIED_HOST | bounded raw log 保留 exact bytes/UTC/logical port/profile/outcome/sequence；Step 7 HIL 只在显式工具中 create-new 持久化到 Git-ignored local evidence，保留 CRC/heartbeat/sentinel/fault 与 SHA-256 | Phase 5 用户导出仍需显式隐私 UI/评审 |
 | SW-FR-020 | VERIFIED_HOST | 正式 `DeviceAdapter` 统一接口和八项只读契约已由 reference、Simulator、CSV Replay、AFE SerialAdapter、MSP430 SerialAdapter 配置通过；同一 `run_read_workflow` 实际驱动四类正式来源 | 未来 instrument adapter 继续复用契约 |
@@ -38,15 +41,16 @@
 | SW-FR-035 | VERIFIED_HOST | `frequency-response-analysis.v1` 对显式 Hz/输入/输出幅值计算 ratio、`20 log10` dB 和 dB-vs-log10(Hz) 截止插值；产品层增加独立模型/目标截止、最少点数准则、TestRun、Simulator/Replay、CLI、Dashboard、JSON/CSV 和专用幅频报告；无交点 incomplete，多交点拒绝 | 相位、真实波形采集、FFT、仪器控制和物理带宽仍 DEFERRED |
 | SW-FR-036 | VERIFIED_HOST | 公共质量层逐项映射缺失、非有限、饱和、超范围、时间、通信和设备故障；DC/迟滞/校准/频响 builders 均保留逐点质量与排除原因，缺失数据不形成完整结果 | 真实来源的质量策略仍需对应仪器/adapter 评审 |
 | SW-FR-037 | VERIFIED_HOST | DC、迟滞、校准与频响 criteria/evaluator 只对完整证据给 PASS/FAIL；bundle 强制 criteria/outcome 一致；频响校验截止容差与最少有效点数 | 新 criteria 需新版本和黄金评审 |
-| SW-FR-038 | VERIFIED_HOST | 固定 telemetry、标准 synthetic DC/迟滞结果、AFE/MSP fixtures 均保持冻结；当前 Phase 3 manifest 冻结 4 namespaces、17 schemas、10 enums、44 signatures；Phase 5 冻结 4 namespaces、15 schemas、10 enums、40 dataclasses、40 signatures、24 errors、25 issue mappings、24 CLI paths、8 exits、13 serialized groups 和 6 hashes | 未来破坏性变化必须升级 schema/profile/contract 并增加迁移样本，不能只改 golden expectation |
-| SW-FR-040 | VERIFIED_HOST | 已安装单一 `analog-validation` 入口；version/profiles、Simulator 与 CSV Replay read/live monitor/DC/迟滞/校准/频响、系数检查、结构化导出、显式 receive-only observe、JSON/CSV `report`、六步 `dashboard` 和 12-artifact `demo` 已测试；clean-install 显式清除外层 `PYTHONPATH` | 正式 commit-bound release-candidate/audit 与 hosted CI 等待用户批准提交/推送；真实 port 未在此增量打开 |
+| SW-FR-038 | VERIFIED_HOST | 固定 telemetry、标准 synthetic DC/迟滞结果、AFE/MSP fixtures 均保持冻结；当前 Phase 3 manifest 冻结 4 namespaces、17 schemas、10 enums、44 signatures；扩展后的 Phase 5 产品契约冻结 5 namespaces、22 schemas、10 enums、49 dataclasses、60 signatures、29 errors、30 issue mappings、32 CLI paths、8 exits、22 serialized groups 和 6 hashes | 未来破坏性变化必须升级 schema/profile/contract 并增加迁移样本，不能只改 golden expectation |
+| SW-FR-040 | VERIFIED_HOST | 已安装单一 `analog-validation` 入口；version/profiles、Simulator 与 CSV Replay read/live monitor/DC/迟滞/校准/频响、系数检查、结构化导出、显式 receive-only Serial observe/monitor、JSON/CSV `report`、六步 `dashboard` 和 12-artifact `demo` 已测试；clean-install 显式清除外层 `PYTHONPATH` | Serial monitor 本增量仅使用内存 backend；正式 commit-bound release-candidate/audit 与 hosted CI 尚未运行；真实 port 未打开 |
 | SW-FR-041 | VERIFIED_HOST | 不可变有界 `dashboard-state.v1`、owner-thread presenter、headless controller、render-only Tk widgets、六步 wizard/application wiring 和延迟导入 app 已实现；Run/Cancel/Result/create-new export、Windows 启动/关闭、无 Tk headless import 与缺显示错误映射通过；组合增量增加 live chart、状态/质量/淘汰计数、暂停/恢复和展示时间窗 | 通用 Tk smoke 的最终复核仍须在 Tcl/Tk 完整的本机运行时执行；仍未声称完整 WCAG 或所有 screen-reader 组合认证 |
 | SW-FR-042 | VERIFIED_HOST | 固定 source→test→configure→review→run→result/export 已实现；每步显示 what/why/confirm；Simulator 默认，Replay 在 Run 前验证，Serial 要求 port/profile/bounds/receive-only 确认；返回会作废旧 review，取消清理资源且不生成 export；安装后 demo 提供无需硬件的完整非开发者路径 | demo 仍只使用 SYNTHETIC，不替代真实硬件验收 |
 | SW-FR-043 | VERIFIED_HOST | `result-export.v1` 四列行式 CSV 已实现固定 row type/order/index、严格 JSON payload、100,000 行/2 MB 限制、精确往返和原子默认不覆盖写入；DC/迟滞/校准/频响均通过 typed builder，`report` 可从 CSV 重载并生成同一 canonical report identity | 后续新增 result 类型必须先有正式 export mapping |
 | SW-FR-044 | VERIFIED_HOST | `result-export.v1` 严格 JSON 已实现稳定字段顺序、UTC、finite-only、重复键/坏 Unicode/坏版本拒绝和精确往返；Step 4 `report` 复用 loader、默认拒绝覆盖并冻结 canonical SHA-256 | 后续破坏性变化需要版本迁移 |
 | SW-FR-045 | VERIFIED_HOST | `human-report.v1` 与 `human-report-manifest.v1` 已实现；text/Markdown/自包含 HTML/确定性 SVG 显示 outcome、evidence、limitations、not-verified、versions、lineage 和 hashes；DC、迟滞、校准及对数频率幅值图均只复制 finalized values；五文件原子 create-new 发布 | Dashboard 只消费同一 presentation semantics；PDF 仍 DEFERRED |
-| SW-FR-046 | VERIFIED_HOST | `user-issue.v1` 已按异常类型映射受控 issue code、what happened、possible cause 和 safe next step；worker/service/CLI/Dashboard wizard/presenter/demo 均复用 typed issue；缺 Tk/display 映射为 `OPTIONAL_DEPENDENCY`，demo 的 path/exists/format 错误稳定映射且默认不泄露 traceback | 意外 programming error 仍只在显式 debug 路径展示详情 |
-| SW-FR-047 | VERIFIED_HOST | `live-monitor.v1` 将 `run_streaming_read_workflow`、逐周期多通道读取、有界 ring buffer、质量计数、内存淘汰计数、协作式暂停/恢复、展示时间窗、CLI human/JSON 和 Dashboard 曲线接入同一 reviewed compiler/worker；仅 Simulator/CSV Replay 可选，作业有限且 engineering outcome 始终为 none | Serial/真实设备 live 仍 DEFERRED；启用前必须完成身份、断连/重连、数据率、30 分钟/2 小时 soak、资源清理和证据分类验收 |
+| SW-FR-046 | VERIFIED_HOST | `user-issue.v1` 已按异常类型映射受控 issue code、what happened、possible cause 和 safe next step；worker/service/CLI/Dashboard wizard/presenter/demo 均复用 typed issue；Dashboard 另以不序列化的稳定字段键聚焦、高亮并滚动到可确定的非法控件，未知字段不解析英文文案；缺 Tk/display 映射为 `OPTIONAL_DEPENDENCY` | 意外 programming error 仍只在显式 debug 路径展示详情；字段提示不改变 CLI JSON 或历史 artifact |
+| SW-FR-047 | VERIFIED_HOST | `live-monitor.v1` 将 `run_streaming_read_workflow`、逐周期多通道读取、有界 ring buffer、质量计数、内存淘汰计数、协作式暂停/恢复、展示时间窗、CLI human/JSON 和 Dashboard 曲线接入同一 reviewed compiler/worker；Simulator/CSV Replay 与 receive-only Serial 均可选择，Serial 默认主通道并显式确认，组合 runtime bound 不超过 55 秒；内存 backend 已覆盖坏 CRC、超时、断连、取消、清理、能力缺口、identity mismatch、AFE 双 ADC 输入/输出显式映射及零写入；作业有限且 engineering outcome 始终为 none | 真实设备 live、认证 identity、接线语义、自动重连、数据率和 30 分钟/2 小时 soak 仍 DEFERRED；无显式完整 alias 时 output 仍 `UNSUPPORTED` |
+| SW-FR-048 | VERIFIED_HOST | `validation-project.v1` / `validation-preset.v1` 严格保存最多 32 个 Simulator/CSV Replay 配置并拒绝 Serial 权限；批次通过 create-new staging 原子发布 exact snapshot、配置/artifact SHA-256 和 `validation-run-manifest.v3`，以 `COMPLETE/PARTIAL/CANCELLED/ERROR`、planned/terminal/not-started 顺序表达完整或部分运行；每个实际执行的 Replay 预设先复制有界输入到 staging、从副本运行并记录安全相对路径/字节数/SHA-256，同源可去重，未开始项不打开；协作取消等待当前 worker cleanup、停止后续预设；CLI 进度只写 stderr、JSON 留在 stdout、取消返回 130；Dashboard owner thread 轮询同一不可变进度并提供幂等安全取消、cleanup-before-close、终态历史刷新及 v1 `LEGACY_V1` 标签，历史单选只读显示 v3 Replay 路径/字节/完整 SHA-256，同源引用数与物理文件数分开说明；严格 v1/v2 仍按原字段读取且不重写；history/comparison 不重算结论 | 原始 READ/LIVE 输出 observation artifacts、一键从归档输入重跑、并发调度、曲线叠加与签名/认证仍 DEFERRED；SHA-256 只提供相对完整性，HOST_TEST/SYNTHETIC/CSV_REPLAY 不等于 BENCH |
 
 ## 软件非功能需求
 
@@ -55,17 +59,35 @@
 | SW-NFR-001 | VERIFIED_HOST | `src` 布局、editable install、隔离构建和仓库外 wheel 安装通过；Phase 6 verifier 在本机与 hosted Windows/Python 3.12 从同一 commit 生成逐字节一致的 wheel/sdist/manifest，并完成 fresh base/serial installs 与 installed demo；Step 5 完成 hosted-wheel tester journey；Step 6 以 fresh base wheel + external `python -I` 完成 public-only adapter | 最终候选仍由 Step 7 审计 |
 | SW-NFR-002 | VERIFIED_HOST | 正式核心使用标准 Python；hosted CI 已在 Windows/Ubuntu 的 Python 3.10/3.12/3.14 完成全套 host tests；可选 pyserial package 在候选环境只使用 injected substitute，历史 COM 枚举/HIL 仍单独记账 | 不从已测矩阵推断 macOS、GUI Linux 或其他 Python minor 已验证 |
 | SW-NFR-003 | VERIFIED_HOST | adapter/workflow/runners 保持 cleanup；product worker 已验证 single owner、completion-event join、50 ms polling、cooperative cancel、有限 join、所有 post-factory 路径 cleanup、cleanup-failure 覆盖、context close 和 subprocess `KeyboardInterrupt`→130/CANCELLED；Step 6 Dashboard cooperative cancellation 也达到 `CANCELLED`、cleanup 完成且无 export | 非协作第三方 service 会明确 timeout；真实断线、长时间运行、真实 COM worker 与交互式 Windows console signal 仍待专门验证 |
-| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析、导出、serial stack、产品 CLI/report/Dashboard/demo 和 public adapter 默认无需硬件；已合并 `main` 基线为 2,277 项与 11,911/11,911 package 语句，当前未提交的校准/频响/live 组合门禁为 2,459 项与 13,834/13,834，fresh base/serial 安装、双 demo、installed monitor、hosted matrix、tester journey 和 external adapter 均有可重复证据 | Dashboard UX head `c9710fe` 已通过 run `33933549983` 的八项 hosted CI，并以 `b4f0fef` 合并；`main` run `33934417152` attempt 2 通过 8/8；组合增量 hosted CI 仍 NOT RUN；保持物理 HIL 为可选路径 |
+| SW-NFR-004 | VERIFIED_HOST | 单元、黄金、架构、adapter/workflow、runners、分析、导出、serial stack、产品 CLI/report/Dashboard/demo/project history 和 public adapter 默认无需硬件；已合并 `main` 基线为 2,277 项与 11,911/11,911 package 语句，当前 TD-044A 本地完整回归为 2,670 项与 15,964/15,964，并完成 1040×760 标准/高对比度五档真实 Tk 验收 | 当前组合增量尚未进行 commit-bound candidate/audit 或 hosted CI；真实串口 HIL 仍为可选且必须单独授权的路径 |
 | SW-NFR-005 | VERIFIED_HOST | one-way gates 继续通过；`analog_validation_app` factories/services 和共享 workflow compiler 只组合公开 core API；presentation/reporting/Dashboard 分层不反向进入 core；Phase 5 public freeze 保护边界；Step 6 第三方风格 adapter 只 import installed top-level `analog_validation`，架构门禁止私有子模块且 fresh-wheel isolated run 通过 | Step 7 审计 archive/history 不引入边界绕行 |
 | SW-NFR-006 | VERIFIED_HOST | domain/protocol/transport/profiles/serial adapter/config/analysis 责任分离；product contracts/catalog/issues/factories/services/shared workflow/CLI/worker/presentation/reporting/Dashboard 分层消费公开类型；presenter 不重算结论，widgets 不创建 adapter/service 或打开 COM | Phase 6 保持相同 ownership 与依赖方向 |
 | SW-NFR-007 | VERIFIED_HOST | 无 instrumentation 的 Windows 验收：10k strict Replay 0.823268 s/13.102 MiB traced peak；10k progress events 0.048879 s、队列保留 256、丢弃计数 9,747；12-artifact demo 0.040913 s | 这是本机交互目标，不是硬实时、跨平台性能保证或长时间 soak |
-| SW-NFR-008 | VERIFIED_HOST | Replay/result-export 的严格边界保持；product/report/Dashboard/demo/release candidate 限制字符串、事件、点、artifact、路径/数值/样本；candidate manifest 拒绝绝对路径、用户名、credential field、物理端口和 raw frame，atomic staging 失败不留下 PASS；Step 5 tester diagnostics 已收敛为受控非敏感字段 | 最终 archive/history 隐私审计由 Step 7 完成；深路径通用限制由 TD-036 跟踪 |
+| SW-NFR-008 | VERIFIED_HOST | Replay/result-export 的严格边界保持；product/report/Dashboard/demo/release candidate/project history 限制字符串、事件、点、artifact、路径/数值/样本；项目 JSON 拒绝重复键、NaN/Inf、NUL、坏 UTF-8、路径逃逸、未知字段和持久化 Serial 设置；atomic staging 失败不发布 run 目录 | SHA-256 不是签名；深路径通用限制由 TD-036 跟踪 |
 | SW-NFR-009 | VERIFIED_HOST | 产品 catalog/CLI/core 均无网络代码；HTML 无 script/remote resource，Dashboard 只使用本地 Tk；demo 在 socket construction fail-fast trap 下完成，架构测试禁止 demo 导入网络/serial/Tk/subprocess/device/protocol/analysis 实现 | 不声称操作系统或第三方环境不存在其他网络活动，只证明本产品路径未请求网络 |
-| SW-NFR-010 | VERIFIED_HOST | 结构化 export、`human-report.v1`、`portfolio-demo.v1` 与 `release-candidate-manifest.v1` 显示版本、来源、限制和 SHA-256；candidate manifest 绑定 source commit、Python/platform、gate、dependency boundary、demo canonical hashes、HOST_TEST/SYNTHETIC 和零硬件声明；本机/hosted manifest 相同 | Step 7 最终候选继续以版本/迁移和审计方式演进，不能静默重写 golden expectation |
-| SW-NFR-011 | VERIFIED_HOST | 六步向导与六区域结果对 source、what/why/confirm、criteria、progress、result/evidence、issue 和硬件声明均使用可读文本；状态不是仅靠颜色表达；标准交互控件显式 takefocus，真实 Windows Tk 在 scaling 1.0/1.5/2.0 完成几何和焦点遍历 smoke | 自动化基线不是完整 WCAG 或所有 assistive-technology 认证 |
+| SW-NFR-010 | VERIFIED_HOST | 结构化 export、`human-report.v1`、`portfolio-demo.v1`、`release-candidate-manifest.v1` 与 `validation-run-manifest.v1` 显示版本、来源、限制和 SHA-256；每次项目 run 另冻结 exact project snapshot 与每预设 configuration identity，使后续编辑不抹去旧运行配置 | 当前完整性标识未认证；正式候选继续以版本/迁移和审计方式演进，不能静默重写 golden expectation |
+| SW-NFR-011 | PARTIAL_HOST | 六步向导与六区域结果对 source、what/why/confirm、criteria、progress、result/evidence、issue 和硬件声明均使用可读文本；TD-044A 又为六类测试和来源增加白话字段说明，并从既有向导权限生成下一步/阻塞原因；状态不是仅靠颜色表达；标准控件显式 takefocus；1040×760 下配置三列分行，Results/Projects 操作保持可见；启动时只读 Windows 高对比度并使用系统色；真实 Tk 在标准/强制高对比度与 scaling 1.0/1.25/1.5/1.75/2.0 完成焦点、水平边界和字段错误恢复；TD-043B2A 加入 `tk accessible` 能力门禁及未来运行时的名称/角色/帮助/动态通知适配 | 当前 Tk 8.6.15 无程序化辅助功能接口，UIA 只看到 37 个无名称应用 Pane，故 Dashboard 屏幕阅读器支持未完成；RDP、长期纯键盘真实用户、本地化、低于 1040 px 与主题热切换由 TD-043B2B 跟踪 |
 | SW-NFR-012 | VERIFIED_HOST | Measurement、capability、TestRun、AFE、配置、analysis、criteria、evaluation、runners、`result-export.v1`、`human-report.v1` 和 manifest 均显式版本化；Phase 2–4 API/results 及 Phase 5 exact report artifacts 由黄金文件冻结 | 破坏性变化必须升级版本并记录迁移 |
 
+TD-043B2A2 对 SW-NFR-011 的后续结论：隔离 PySide6 Essentials 原型已在 Windows
+UI Automation 中暴露名称、角色、焦点和变化状态属性，优于当前 Tk 8.6.15 路径；
+但 ADR-0004 仍为 Proposed。正式依赖、许可证、事件播报、Narrator/NVDA、功能等价和
+真实用户链未获批准或完成，因此本项继续保持 `PARTIAL_HOST`。
+
+## 任务收益验收（单列，尚未实测）
+
+这些 ID 表示新接受的验收要求，不是新增运行时 schema，也不修改既有 API。
+详细协议见 [任务收益验证方案](TASK_VALUE_VALIDATION_PLAN.md)。
+
+| ID | 状态 | 当前证据 | 关闭条件 |
+|---|---|---|---|
+| SW-VAL-001 | VERIFIED_HOST | 5 个冻结案例、独立有理数参考、格式映射和共同软件交付清单已准备；CLI、报告、项目历史和比较链通过 258 项针对性检查 | 若扩展到噪声、非线性或真实仪器格式，另加独立参考与边界案例 |
+| SW-VAL-002 | DEFERRED | 人工与端到端效率保持 NOT_RUN；所有者决定当前不做量化基线，既有吞吐量和机器时间不替代人工测量 | 仅在未来需要时间百分比或陌生用户效率主张时恢复配对实测 |
+| SW-VAL-003 | VERIFIED_HOST | A–E 的 PASS/FAIL/INCOMPLETE/拒绝、逐点理由、报告哈希、A→B 差异和 B→B 重复性均与预冻结参考一致；适用范围和未验证边界已记录 | 继续禁止把软件自动化证据表述为硬件性能或量化人工收益 |
+
 ## 未来硬件需求
+
+以下硬件目标不作为当前软件任务收益评估的出口条件，原有独立授权边界继续有效。
 
 | ID | 状态 | 当前实现/证据 | 入口条件 |
 |---|---|---|---|
@@ -84,13 +106,23 @@
 
 ## 汇总
 
+下表仅统计既有 SW-FR、SW-NFR 和 HW-FR 功能/非功能需求；任务收益单列。
+
 | 状态 | 数量 |
 |---|---:|
-| VERIFIED_HOST | 46 |
+| VERIFIED_HOST | 47 |
+| PARTIAL_HOST | 1 |
 | IMPLEMENTED | 0 |
 | ACCEPTED | 0 |
 | DEFERRED | 12 |
 | VERIFIED_BENCH | 2 |
-| 总计 | 60 |
+| 总计 | 62 |
 
-Software Phase 1–5 均已完成各自 8/8；Software Phase 6 已完成 7/8。Phase 5 建立统一 CLI、产品 contracts/catalog/issues、单向依赖门禁、有界 single-owner worker、显式 factories、共享 read/DC/迟滞 services、只呈现 finalized result 的确定性人类报告、可运行的六步 Dashboard workflow、12-artifact deterministic demo 和 public compatibility freeze。Phase 6 已增加 read-only hosted CI、`0.1.0b1` metadata、deterministic release verifier、初学者 tester 闭环、fresh-wheel external `python -I` public adapter proof 和 `PASS_WITH_REVIEW` final candidate audit。已合并 `main` 基线为 2,277 项与 11,911/11,911 package 语句；当前本地校准、频响和有界离线实时监控组合增量通过 2,459 项、13,834/13,834 语句、15/15 产品质量与 fresh-wheel Simulator/Replay monitor，但尚未提交或运行 hosted CI。Dashboard UX PR #7 的最终 head `c9710fe` 已在 run `33933549983` 通过 8/8，并以 `b4f0fef` 合并；`main` 的 run `33934417152` attempt 2 也通过 8/8。两项 `VERIFIED_BENCH` 仍只属于先前的 controller UART 与 MSP profile，被验证的 AFE 硬件需求仍为 0。下一里程碑是组合增量 owner-approved commit/candidate review，随后才是 Software Phase 6 Step 8 owner-controlled publication/release decision；这些状态不自动授权公开、许可、标签、Release、包发布、Serial 实时监控或 LinkedIn 展示。
+新增任务收益要求另有 2 项 VERIFIED_HOST、1 项 DEFERRED，不计入上表；
+连同它们总计 65 项。
+本次修正补回原表遗漏的 SW-NFR-011 PARTIAL_HOST，未增加已验证的功能数量。
+当前实现与测试门禁以 [PROJECT_STATUS.md](PROJECT_STATUS.md)为准。
+下面保留上一组合增量的阶段摘要，其测试数字不代表本轮重跑结果；
+当前下一步是 TD-040C1 离线输入归档，不自动启动发布或硬件工作。
+
+Software Phase 1–5 均已完成各自 8/8；Software Phase 6 已完成 7/8。Phase 5 建立统一 CLI、产品 contracts/catalog/issues、单向依赖门禁、有界 single-owner worker、显式 factories、共享 services、只呈现 finalized result 的确定性人类报告、可运行的六步 Dashboard workflow、12-artifact deterministic demo 和 public compatibility freeze。Phase 6 已增加 read-only hosted CI、`0.1.0b1` metadata、deterministic release verifier、初学者 tester 闭环、fresh-wheel external `python -I` public adapter proof 和 `PASS_WITH_REVIEW` final candidate audit。当前本地校准、频响、有界 receive-only 实时监控、device-contract 与项目/历史组合树通过 2,590 项、15,287/15,287 package statements，项目 Dashboard 与 CLI 完成 create/inspect/全量与选定批次/history/compare smoke；全量静态、依赖、构建和仓库外隔离安装门禁均已通过。当前扩展尚未提交或运行 hosted CI。两项 `VERIFIED_BENCH` 仍只属于先前的 controller UART 与 MSP profile，被验证的 AFE 硬件需求仍为 0。下一里程碑是在不访问硬件的前提下继续完成本地产品闭环；commit/candidate、hosted CI、公开、标签、Release、包发布、真实串口操作或 LinkedIn 展示仍是独立授权动作。

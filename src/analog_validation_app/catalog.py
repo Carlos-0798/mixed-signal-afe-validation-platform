@@ -152,7 +152,7 @@ PRODUCT_SOURCES = (
         "Serial (read-only)",
         "Explicit bounded receive-only integration; no command or write surface.",
         (EvidenceSource.HOST_TEST, EvidenceSource.BENCH_CONTROLLER),
-        (ProductJobType.READ,),
+        (ProductJobType.READ, ProductJobType.LIVE_MONITOR),
         requires_serial_extra=True,
     ),
 )

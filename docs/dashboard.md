@@ -31,17 +31,99 @@ and a presentation-only trailing-window selector. The job always terminates at
 its reviewed cycle bound and has no engineering PASS/FAIL outcome.
 
 The window separates the workflow into **Setup & run** and
-**Results & evidence** tabs. A vertical scrollbar appears only when the active
-page is taller than the available viewport. Short pages stay pinned to the top
-and ignore the Windows mouse wheel instead of moving into empty space; long
-pages remain scrollable so run status, observations, limitations, and artifact
-information are reachable. Each new step returns its active page to the top
-instead of preserving a stale scroll position from the previous step.
+**Results & evidence** tabs, plus **Projects & history** for reusable presets,
+reviewed batches, and comparison. A vertical scrollbar appears only when the
+active page is taller than the available viewport. Short pages stay pinned to
+the top and ignore the Windows mouse wheel instead of moving into empty space;
+long pages remain scrollable so run status, observations, limitations, and
+artifact information are reachable. Each new step returns its active page to
+the top instead of preserving a stale scroll position from the previous step.
+
+Projects & history starts with a state-derived next action. It previews the
+current Setup source and test before preset capture, states that capture stores
+configuration without running, and preserves the exact `SYNTHETIC` or
+`CSV_REPLAY` boundary. A Serial Setup says it cannot be stored and confirms that
+the project page does not discover or open a port. Zero, one, and multiple-run
+history states give different instructions instead of showing an empty table
+with an impossible comparison request.
+
+Selecting one history row now opens a read-only Replay input table beneath the
+run list. For manifest v3 it shows every executed Replay preset, its run-relative
+archived path, byte count, and full SHA-256. The guide distinguishes per-preset
+references from physical files when one source was reused. Simulator-only and
+not-started Replay cases explain why the table is empty; v1/v2 history explains
+that it predates retained inputs. Selecting two rows keeps the existing
+comparison workflow and clears the single-run input detail.
+
+After **Review selected batch**, a structured frozen-review section shows the
+exact project ID, run ID, create-new destination, and each selected preset in
+execution order. Every row uses readable Source/Test names while preserving its
+exact `SYNTHETIC` or `CSV_REPLAY` evidence label. Run consumes and clears this
+review; the live progress and terminal history then become the authoritative
+status. The preview does not read a Replay file or contact hardware.
+
+## Visual and interaction system
+
+The Dashboard uses one restrained **Precision Lab Console** theme rather than
+page-specific decoration:
+
+- deep graphite separates the application background from raised cards and
+  editable fields;
+- cyan identifies the current workflow step, primary actions, focus, and real
+  progress;
+- green identifies declared evidence or a safe boundary, amber is reserved for
+  warnings, and rose identifies cancellation or failure actions;
+- header labels state `LOCAL / OFFLINE`, `READ-ONLY DEFAULT`, and
+  `EVIDENCE LABELED` in text, so meaning never depends on color alone;
+- tables use a taller 30-pixel row, stronger headings, and a visible selected
+  row; text entry and read-only selection controls share the same field surface;
+- primary, secondary, disabled, and dangerous buttons have distinct native ttk
+  active/pressed/focus states. All controls remain real widgets with their
+  existing commands and keyboard focus behavior.
+
+The supported minimum window is 1040×760. Dense configuration groups reflow to
+three columns and use vertical scrolling, while result tables and save controls
+stay within the same horizontal viewport. This avoids hiding a required field
+or action behind an undiscoverable horizontal scroll area. Real Windows Tk
+checks cover Setup, Results, and Projects at scaling 1.0, 1.25, 1.5, 1.75, and
+2.0.
+
+At startup, the Dashboard reads the Windows high-contrast flag without changing
+the operating-system setting. An enabled flag switches ttk surfaces, text,
+focus, selection, disabled states, error borders, scroll canvases, and live
+charts to Windows system colors. Text labels continue to carry source, state,
+error, and evidence meaning. If the user changes the Windows contrast theme
+while the Dashboard is already open, the application must be restarted to
+reload it.
+
+The interface does not invent preview measurements, animate idle values, or
+simulate progress. It renders only current application state. Continuous
+background animation was intentionally omitted because it would compete with
+live traces and warnings in a validation tool. The styling remains native ttk,
+so it adds no browser runtime, network resource, image asset, or UI-thread timer.
 
 Every step displays three beginner prompts: what is happening, why it matters,
-and what the user must confirm. Simulator is selected by default, so opening the
-window does not enumerate a port, open hardware, read a file, create an output,
-or start a network listener.
+and what the user must confirm. A separate action hint beside the navigation
+buttons names the next usable action and explains why Run remains unavailable
+before a valid compiled review exists. On Configure, a plain-language field
+guide explains the selected source boundary and the meaning of the active test:
+finite observations for Read, input/output fit for DC, rising/falling threshold
+separation for Hysteresis, reference/observed values for Calibration,
+amplitude-only triples for Frequency Response, and the bounded display buffer
+for Live Monitor. Simulator guidance stays visible even though the
+Replay/Serial connection panel is hidden. These texts are derived from the
+existing draft and permission state and do not grant permission or recompute an
+analysis.
+
+Source and Test selectors use readable names such as **Simulator — synthetic
+data**, **CSV Replay — local file**, **Read samples**, and **Frequency
+response**. These are display aliases only: the application, saved projects,
+CLI, and artifacts continue to use the stable `SIMULATOR`, `CSV_REPLAY`,
+`READ`, and `FREQUENCY_RESPONSE_ANALYSIS` values. Unknown aliases are rejected
+rather than guessed.
+
+Simulator is selected by default, so opening the window does not enumerate a
+port, open hardware, read a file, create an output, or start a network listener.
 
 ```powershell
 analog-validation dashboard
@@ -70,6 +152,16 @@ not own CRC, profile parsing, line fitting, saturation exclusion, threshold
 calculation, or PASS/FAIL. Those decisions remain in the tested core, so CLI and
 Dashboard cannot silently calculate different answers.
 
+When form or workflow validation rejects a value, an internal stable field key
+travels beside the normal exception until the Dashboard renders the issue. The
+window scrolls the matching field into view, moves keyboard focus there, names
+the field in text, and applies a rose error border. A successful correction or
+navigation clears the border. Multi-field rules point to the second or bounding
+value that must change; failures with no trustworthy field key stay in the issue
+card without a guessed target. This hint is presentation state only:
+`user-issue.v1`, CLI JSON, saved projects, run manifests, and historical
+artifacts are unchanged.
+
 ## Source-specific safety behavior
 
 ### Simulator
@@ -82,6 +174,10 @@ Dashboard cannot silently calculate different answers.
 ### CSV Replay
 
 - requires an explicit path and channel mapping;
+- shows only Replay-specific source fields; Serial details remain hidden;
+- provides **Choose CSV file...**, which opens the native local CSV picker only
+  after a user click. Cancel preserves the existing path, and choosing a path
+  does not read the file;
 - loads and validates the complete `csv-replay.v1` dataset during Review;
 - keeps the immutable validated dataset closed and in memory until Run;
 - reports `CSV_REPLAY`, even if historical rows name a bench source;
@@ -89,11 +185,31 @@ Dashboard cannot silently calculate different answers.
 
 ### Serial (read-only)
 
+- shows only Serial-specific source fields; Replay path and bounds remain
+  hidden;
 - requires an exact profile, logical port, read timeout, poll limit, sample
   bound, and explicit receive-only confirmation;
+- supports bounded `READ` and finite `LIVE_MONITOR` jobs; Serial live monitoring
+  defaults to the primary channel only and enables secondary/state channels only
+  when the selected profile advertises the matching readable capabilities;
+- selecting the exact MSP430 Equipment Health v1 profile pre-fills its bus-
+  voltage channel in mV as a safe editable starting point; Review still shows
+  the exact selected channel before any port can open;
 - Discover performs enumeration only, closes the backend, and does not open a
   listed port;
 - Review does not open the selected port;
+- Review displays both the requested sampling cadence and the conservative
+  worst-case serial receive-wait budget; configurations whose combined bound
+  exceeds 55 seconds are rejected before Run;
+- an optional **Expected capability device ID** requires exact equality before
+  measurement reads; it is a protocol/profile label, not authentication or a
+  verified physical serial number;
+- AFE v1 may declare comma-separated `adcN=afe.chM.input|output` aliases. Review
+  shows the complete mapping, and Run accepts it only when every advertised ADC
+  is mapped exactly once without adding channels or commands;
+- a successful result shows the accepted capability device/profile identity in
+  the observation summary. The Dashboard explicitly labels this as protocol
+  evidence, not proof of wiring or device authenticity;
 - Run defers construction/opening to the owning worker and closes it during
   cleanup;
 - there is no command console, transmit field, write button, device command, or
@@ -112,6 +228,36 @@ the application path is receive-only.
   create a PASS or export.
 - Closing the window requests cancellation and performs a bounded join before
   returning a safe session result.
+- The Projects & history batch uses the same owner-thread rule. Its worker sends
+  immutable `ValidationBatchProgress` snapshots through a queue; Tk only reads
+  them during polling. The determinate progress bar and status text show the
+  actual phase, current preset ID, one-based preset number, total, and completed
+  terminal-record count.
+- **Cancel batch safely** sets the shared cooperative token once. It does not
+  kill the thread. The active worker performs cleanup, the batch stops before
+  later presets, and the page remains busy until the current manifest is atomically
+  published. Closing during a project batch requests the same cancellation and
+  waits for that completion before destroying the window.
+- The accepted batch Review is also exposed as an immutable presentation
+  summary. The Dashboard renders project/run identity, exact destination,
+  ordered preset rows, readable Source/Test names, and exact evidence labels;
+  Run clears the summary as it consumes the underlying Review.
+- A verified two-run comparison adds a read-only guide above the detailed
+  table. It names the baseline and candidate, their batch states, whether the
+  saved project snapshot changed, matched/one-sided/not-started coverage,
+  exact evidence-label matches or mismatches, and changed presets. It does not
+  recalculate engineering conclusions. A numeric delta is candidate minus
+  baseline; its sign alone is not an improvement/regression decision.
+- One selected history row renders only the manifest's existing v3 Replay input
+  records. Loading or comparing a saved manifest rechecks path containment,
+  byte count, and SHA-256 before display. The table neither opens the original
+  CSV nor reruns a preset, and it states that `CSV_REPLAY` is not BENCH evidence.
+- Save project, Add preset, Review, Run, Compare, and Clear use the same
+  workspace facts as their backend checks. Run is available only while the
+  visible preset order, run ID, and destination still match the reviewed batch;
+  changing any input asks for Review again. A temporarily incomplete Setup
+  disables preset capture without crashing the page and recovers on the next
+  valid render.
 - Returning from Review invalidates the prepared request and clears its review
   authorization. **Modify setup** from Result also invalidates the prepared
   request but retains copied result evidence as a reference; Run remains
@@ -144,6 +290,24 @@ or frequency-response evaluation.
 Evidence source, worker state, engineering outcome, limitations, exclusions,
 and issues are written as text; meaning is not conveyed by color alone.
 
+The result card presents a five-line decision summary before detailed text:
+
+1. **Run result** explains whether the product completed, remained incomplete,
+   was unsupported, was cancelled, or ended in error.
+2. **Engineering decision** separately reports PASS/FAIL or explicitly states
+   `NO ENGINEERING DECISION`.
+3. **Evidence** preserves the exact THEORY, SYNTHETIC, CSV_REPLAY, SPICE,
+   HOST_TEST, or specific BENCH class and explains its practical scope.
+4. **Claim boundary** repeats `NO_NEW_HARDWARE_VALIDATION` and the first
+   unverified item carried by the result.
+5. **Next action** points to saving/reviewing a completed result or following
+   structured recovery without turning an incomplete run into PASS.
+
+The detailed portion retains the original result summary, every limitation,
+every not-verified item, and structured issue recovery. This is presentation
+of copied state only; the Dashboard does not derive or revise the engineering
+outcome.
+
 A bounded read can finish successfully without an analysis export. DC,
 hysteresis, calibration, and frequency-response results can expose the existing
 finalized `ResultExportBundle` and write JSON or CSV. Calibration additionally exposes a
@@ -172,31 +336,68 @@ and [Dashboard interaction design audit](UX_DESIGN_AUDIT.md).
   Simulator and CSV Replay, retained three references per point, evaluated an
   independently reviewed cutoff target, and displayed a logarithmic-frequency
   dB chart without opening a serial source or controlling an instrument.
-- The live-monitor workflow reached the same compiler, worker, Simulator/Replay
-  adapters, terminal result, and Dashboard state; finite duration, ring-buffer
-  eviction, pause/resume, time-window changes, status counts, and CLI JSON/human
-  views were host-tested without enabling a serial live-monitor job.
+- The live-monitor workflow reached the same compiler, worker,
+  Simulator/Replay/receive-only Serial adapters, terminal result, and Dashboard
+  state; finite duration, ring-buffer eviction, pause/resume, time-window
+  changes, status counts, and CLI JSON/human views were host-tested. The Serial
+  path used only an in-memory backend and made zero application write calls.
+- In-memory Serial tests also cover bad-CRC recovery within the reviewed poll
+  budget, timeout/disconnect failure, cooperative cancellation, deterministic
+  cleanup, and explicit `UNSUPPORTED` results when an optional AFE channel is
+  not advertised.
 - Missing/invalid Replay input failed during Review, before worker start.
+- Field-level Review failures identify the exact control without parsing the
+  English error message. Real Windows Tk tests at scaling 1.0, 1.25, 1.5, 1.75,
+  and 2.0 verified focus transfer, error styling, automatic vertical reveal,
+  and clearing after navigation.
+- The 1040×760 minimum layout kept critical Setup, Results, and Projects
+  controls horizontally visible at the same five scaling levels. The same
+  fresh-process checks exercised standard and forced Windows high-contrast
+  rendering, including field focus/reveal and result actions.
 - A memory-backed MSP430 receive-only chain opened once during Run, closed once,
   and made zero write calls; no physical port was involved.
 - A cooperative blocking service reached `CANCELLED`, ran cleanup, and exposed
   no export.
+- Dashboard project batches marshal progress without cross-thread Tk calls,
+  disable cancellation after the first accepted request, retain cancelled
+  history, show `COMPLETE`/`PARTIAL`/`CANCELLED`/`ERROR`, and label v1 history
+  `LEGACY_V1` because v1 did not encode a batch status.
+- The batch Review chain asserts the frozen project/run/destination, project
+  order, readable Source/Test labels and `SYNTHETIC` evidence at all five Tk
+  scaling values, then asserts that Run clears the consumed Review. A bounded
+  unit fixture also verifies the `CSV_REPLAY` label without opening hardware.
+- Fresh-process Windows Tk tests at scaling 1.0, 1.5, and 2.0 exercised project
+  cancellation, terminal history refresh, comparison, keyboard range selection,
+  and cleanup-before-close. These are `HOST_TEST`/`SYNTHETIC` results.
+- The project comparison chain now also asserts visible project/run identity,
+  one-sided result coverage, exact `SYNTHETIC` labeling, and the displayed
+  candidate-minus-baseline convention at five scaling levels.
+- TD-040C1B fake-toolkit tests cover no selection, multi-selection, v1/v2,
+  Simulator-only v3, and populated Replay v3 states. Fresh-process Windows Tk
+  tests keep all critical Projects controls within the 1040×760 horizontal
+  boundary at 100%, 125%, 150%, 175%, and 200% scaling.
 - Fake-toolkit tests exercised every Step 6 callback; a separate real Windows Tk
   smoke verified installed-package startup and safe auto-close.
 - Step 7 made actionable controls explicit keyboard-focus targets. Real Windows
   Tk smoke at scaling 1.0, 1.5, and 2.0 verified focus traversal and successful
   layout creation.
+- The display refresh kept the same callbacks and immutable state flow while
+  adding a shared dark palette, semantic button/progress/table styles, and
+  persistent text labels for local, read-only, and evidence boundaries. Fresh
+  Windows Tk processes verified the theme, widget tree, and critical horizontal
+  control bounds at scaling 1.0, 1.25, 1.5, 1.75, and 2.0. Project tables use a
+  bounded initial column width so Save, destination, safe-cancel, and clear
+  actions stay visible; these checks are `HOST_TEST` only.
 - A real Windows interactive check covered Simulator READ, 12-point DC, and
   12-rising/22-falling hysteresis; valid and malformed CSV Replay; safe
   no-overwrite export; immediate rerun; result actions; scrolling; and clean
   window close. The executed observations remain `SYNTHETIC` or `CSV_REPLAY`
   software evidence only.
-- The final local calibration + frequency-response + bounded live-monitor
-  precommit gate passed 2,459 tests and covered 13,834/13,834 executable package
-  statements. Full Ruff, mypy across 218 source files, dependency, 15/15 product-
-  quality, repeated-build, fresh-install, and installed Simulator/Replay monitor
-  checks also passed; commit-bound candidate/audit and hosted CI remain separate
-  owner-gated actions.
+- The receive-only live-monitor/device-contract checkpoint passed 2,508 tests and covered
+  14,006/14,006 executable package statements. Full Ruff, mypy across 218 source
+  files, dependency, 15/15 product-quality, wheel/sdist build, and isolated
+  installed-CLI device-contract smoke also passed; commit-bound candidate/audit
+  and hosted CI have not run for this uncommitted extension.
 
 ## Current limitations
 
@@ -208,8 +409,13 @@ and [Dashboard interaction design audit](UX_DESIGN_AUDIT.md).
   unverified.
 - The one-command demo is implemented, but it remains a deterministic software
   demonstration and does not validate physical hardware.
-- Real COM worker lifecycle, disconnect/reconnect, and long-duration timing have
-  not been tested in Step 6.
+- Real COM worker lifecycle, reconnect, device data rate, and long-duration
+  timing have not been tested. Automatic reconnect remains disabled; a
+  disconnect fails closed.
+- AFE ADC aliases are reviewed host metadata. Even a matching reported ID and a
+  complete mapping cannot verify which physical signal is wired to a pin. The
+  current MSP430 profile uses a static host capability snapshot rather than a
+  firmware-unique identity response.
 - The connected MSP430 was not enumerated, opened, read, reset, flashed, or
   written during this checkpoint.
 - No physical AFE, ADC/DAC accuracy, threshold, gain, bandwidth, wiring, or

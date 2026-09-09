@@ -272,6 +272,10 @@ def test_application_validates_dependencies_and_exposes_initial_state() -> None:
     assert application.has_unsaved_result is False
     assert application.is_closed is False
     assert application.request_cancel() is False
+    with pytest.raises(ProductRequestError, match="BaseException"):
+        application.present_input_error(cast(Any, object()))
+    assert application.present_input_error(ProductRequestError("bad form")) is False
+    assert application.wizard_state.issue is not None
     assert application.request_close() is True
     assert application.is_closed is True
 
@@ -330,6 +334,12 @@ def test_simulator_read_runs_to_result_without_inventing_an_analysis_export() ->
     assert len(application.dashboard_state.plot.points) == 5
     assert application.dashboard_state.plot.points[0].values[0] == "value=800 mV"
     assert "PASS or FAIL" in application.dashboard_state.plot.summary
+    assert "Capability identity: simulator-afe-1 (afe/1)" in (
+        application.dashboard_state.plot.summary
+    )
+    assert "not a physical serial-number claim" in (
+        application.dashboard_state.plot.summary
+    )
     assert application.export_result("result.json", "json") is False
     assert application.back()
     assert application.dashboard_state.active_job_id is None
@@ -443,7 +453,23 @@ def test_replay_is_rejected_during_review_before_worker_start(tmp_path: Path) ->
     assert application.prepare_review(missing) is False
     assert application.dashboard_state.progress.worker_state is ProductWorkerState.IDLE
     assert application.wizard_state.step is DashboardWizardStep.CONFIGURATION
+    assert application.issue_field_id == "replay_path"
     assert application.run() is False
+    assert application.issue_field_id is None
+    assert application.request_close()
+
+
+def test_review_error_exposes_and_then_clears_an_internal_field_hint() -> None:
+    application = DashboardApplication(job_id_factory=lambda: "field-hint")
+    draft = advance_to_configuration(application)
+
+    assert application.prepare_review(replace(draft, sample_count="many")) is False
+    assert application.wizard_state.issue is not None
+    assert application.issue_field_id == "sample_count"
+
+    assert application.prepare_review(replace(draft, sample_count="2"))
+    assert application.wizard_state.issue is None
+    assert application.issue_field_id is None
     assert application.request_close()
 
 
@@ -501,6 +527,62 @@ def test_dashboard_msp430_receive_only_chain_has_zero_write_surface() -> None:
     wait_for_result(application)
 
     assert application.dashboard_state.result.evidence_source is not None
+    assert len(backend.open_calls) == 1
+    assert backend.close_calls == 1
+    assert backend.write_calls == []
+    assert application.request_close()
+
+
+def test_dashboard_serial_live_monitor_chain_is_finite_and_receive_only() -> None:
+    backend = WriteTrapBackend()
+    for sequence, bus_mv in ((0, 5012), (1, 5024)):
+        backend.read_actions.append(
+            encode_msp430_message(
+                Msp430Telemetry(
+                    sequence,
+                    sequence * 1000,
+                    421,
+                    418,
+                    bus_mv,
+                    186,
+                    932,
+                    650,
+                    Msp430DeviceState.COOLING_HIGH,
+                    0,
+                )
+            ).encode("ascii")
+        )
+    application = DashboardApplication(
+        serial_backend_factory=lambda: backend,
+        job_id_factory=lambda: "dashboard-serial-live",
+    )
+    assert application.select_source(ProductSourceMode.SERIAL_READ_ONLY)
+    assert application.select_profile("msp430-equipment-health", "1")
+    draft = advance_to_configuration(application, ProductJobType.LIVE_MONITOR)
+    configured = replace(
+        draft,
+        primary_channel=MSP430_HEALTH_CHANNEL_BUS_VOLTAGE,
+        sample_count="2",
+        monitor_sample_interval_seconds="0",
+        serial_port="MEMORY:1",
+        serial_confirm_read_only=True,
+    )
+
+    assert application.prepare_review(configured)
+    assert any(
+        "Worst-case serial receive wait budget" in line
+        for line in application.wizard_state.review_lines
+    )
+    assert backend.open_calls == []
+    assert application.run()
+    wait_for_result(application)
+
+    state = application.dashboard_state
+    assert state.progress.worker_state is ProductWorkerState.SUCCEEDED
+    assert state.live.total_points == 2
+    assert [point.value for point in state.live.points] == [5012.0, 5024.0]
+    assert state.result.evidence_source is not None
+    assert state.result.evidence_source.value == "HOST_TEST"
     assert len(backend.open_calls) == 1
     assert backend.close_calls == 1
     assert backend.write_calls == []

@@ -4,6 +4,7 @@ import io
 import json
 from dataclasses import replace
 from pathlib import Path
+from threading import Event
 from typing import Any, cast
 
 import pytest
@@ -11,12 +12,27 @@ import pytest
 import analog_validation_app.services as services_module
 from analog_validation import (
     ChannelReadRequest,
+    DeviceCommand,
     EvidenceSource,
     MeasurementUnit,
     ReadOperation,
     ReadWorkflowRequest,
     SimulatorAdapter,
     SimulatorConfig,
+)
+from analog_validation.protocol import (
+    AFE_PROFILE_NAME,
+    AFE_PROFILE_VERSION,
+    AfeCapabilityChannel,
+    AfeCapabilityDevice,
+    AfeCapabilityEnd,
+    AfeTelemetry,
+    CapabilityChannelKind,
+    encode_afe_message,
+)
+from analog_validation.transport import (
+    SerialBackendDisconnected,
+    SerialBackendTimeout,
 )
 from analog_validation_app import (
     LIVE_MONITOR_SCHEMA_VERSION,
@@ -28,6 +44,7 @@ from analog_validation_app import (
     ProductCancellationToken,
     ProductJobRequest,
     ProductJobType,
+    ProductJobWorker,
     ProductRequestError,
     ProductResultStatus,
     ProductServiceError,
@@ -36,11 +53,14 @@ from analog_validation_app import (
     ProductSourceMode,
     ProductWorkerState,
     ProductWorkflowConfiguration,
+    SerialChannelAlias,
+    SerialSourceConfig,
     execute_product_job,
     get_product_source,
     prepare_product_job,
 )
 from analog_validation_app.cli import CliDependencies, main
+from tests.support import MemorySerialBackend
 
 
 def _simulator_config(**changes: object) -> ProductWorkflowConfiguration:
@@ -69,6 +89,48 @@ END,csv-replay.v1,live-replay,,,,,,,,,,6
 """,
         encoding="utf-8",
     )
+
+
+def _afe_capabilities(
+    *,
+    device_id: str = "afe-live-memory",
+    adc_indices: tuple[int, ...] = (0,),
+) -> bytes:
+    messages: tuple[
+        AfeCapabilityDevice | AfeCapabilityChannel | AfeCapabilityEnd, ...
+    ] = (
+        AfeCapabilityDevice(
+            7,
+            device_id,
+            frozenset({DeviceCommand.READ_MEASUREMENT}),
+        ),
+        *(
+            AfeCapabilityChannel(
+                7,
+                CapabilityChannelKind.ADC,
+                index,
+                0,
+                3300,
+                MeasurementUnit.MILLIVOLT,
+            )
+            for index in adc_indices
+        ),
+        AfeCapabilityEnd(7, len(adc_indices)),
+    )
+    return "".join(encode_afe_message(message) for message in messages).encode(
+        "ascii"
+    )
+
+
+def _afe_telemetry(sequence: int, input_mv: int) -> bytes:
+    return encode_afe_message(
+        AfeTelemetry(sequence, sequence * 10, 0, input_mv, 2 * input_mv, 2000, 0, 0)
+    ).encode("ascii")
+
+
+def _damaged_crc(record: bytes) -> bytes:
+    replacement = b"0000" if record[-5:-1] != b"0000" else b"FFFF"
+    return record[:-5] + replacement + b"\n"
 
 
 def test_live_monitor_simulator_product_chain_is_finite_and_bounded() -> None:
@@ -330,7 +392,7 @@ def test_prepared_job_enforces_live_session_pairing() -> None:
         replace(live_prepared, live_monitor_session=None)
 
 
-def test_catalog_exposes_live_only_for_offline_sources() -> None:
+def test_catalog_exposes_live_for_offline_and_receive_only_serial_sources() -> None:
     assert (
         ProductJobType.LIVE_MONITOR
         in get_product_source(ProductSourceMode.SIMULATOR).supported_jobs
@@ -341,8 +403,412 @@ def test_catalog_exposes_live_only_for_offline_sources() -> None:
     )
     assert (
         ProductJobType.LIVE_MONITOR
-        not in get_product_source(ProductSourceMode.SERIAL_READ_ONLY).supported_jobs
+        in get_product_source(ProductSourceMode.SERIAL_READ_ONLY).supported_jobs
     )
+
+
+def test_serial_live_monitor_product_chain_is_deferred_bounded_and_receive_only() -> None:
+    backend = MemorySerialBackend.scripted(
+        reads=(
+            _afe_capabilities(),
+            _afe_telemetry(1, 500),
+            _afe_telemetry(2, 600),
+        )
+    )
+    config = ProductWorkflowConfiguration(
+        ProductSourceMode.SERIAL_READ_ONLY,
+        ProductJobType.LIVE_MONITOR,
+        AFE_PROFILE_NAME,
+        AFE_PROFILE_VERSION,
+        sample_count=2,
+        serial_config=SerialSourceConfig(
+            "MEMORY:AFE:LIVE",
+            read_timeout_seconds=0.01,
+            max_polls_per_operation=2,
+            evidence_source=EvidenceSource.HOST_TEST,
+        ),
+        confirm_read_only=True,
+        monitor_sample_interval_seconds=0.0,
+        monitor_max_buffer_points=10,
+        monitor_include_secondary=False,
+        monitor_include_state=False,
+    )
+
+    prepared = prepare_product_job(
+        config,
+        "serial-live-product",
+        backend_factory=lambda: backend,
+    )
+    assert backend.open_calls == []
+    assert any("Worst-case serial receive wait budget" in line for line in prepared.review_lines)
+
+    execution = execute_product_job(
+        prepared.request,
+        prepared.service_factory,
+        prepared.output_slot,
+    )
+
+    assert execution.worker_state is ProductWorkerState.SUCCEEDED
+    assert execution.result is not None
+    assert execution.result.evidence_source is EvidenceSource.HOST_TEST
+    assert execution.output is not None
+    assert [value.value for value in execution.output.read_result.measurements] == [
+        500.0,
+        600.0,
+    ]
+    assert execution.output.live_monitor is not None
+    assert execution.output.live_monitor.total_points == 2
+    assert len(backend.open_calls) == 1
+    assert len(backend.read_calls) == 3
+    assert backend.close_calls == 1
+    assert not hasattr(backend, "write_calls")
+
+
+def test_serial_live_monitor_reports_unsupported_for_unadvertised_afe_output() -> None:
+    backend = MemorySerialBackend.scripted(reads=(_afe_capabilities(),))
+    config = ProductWorkflowConfiguration(
+        ProductSourceMode.SERIAL_READ_ONLY,
+        ProductJobType.LIVE_MONITOR,
+        AFE_PROFILE_NAME,
+        AFE_PROFILE_VERSION,
+        sample_count=1,
+        serial_config=SerialSourceConfig(
+            "MEMORY:AFE:OUTPUT-GAP",
+            read_timeout_seconds=0.01,
+            max_polls_per_operation=1,
+            evidence_source=EvidenceSource.HOST_TEST,
+        ),
+        confirm_read_only=True,
+        monitor_sample_interval_seconds=0.0,
+        monitor_include_secondary=True,
+        monitor_include_state=False,
+    )
+
+    prepared = prepare_product_job(
+        config,
+        "serial-live-output-gap",
+        backend_factory=lambda: backend,
+    )
+    execution = execute_product_job(
+        prepared.request,
+        prepared.service_factory,
+        prepared.output_slot,
+    )
+
+    assert execution.worker_state is ProductWorkerState.SUCCEEDED
+    assert execution.result is not None
+    assert execution.result.status is ProductResultStatus.UNSUPPORTED
+    assert execution.output is not None
+    assert execution.output.read_result.missing_requirements == (
+        "analog-channel:afe.ch0.output",
+    )
+    assert execution.output.live_monitor is not None
+    assert execution.output.live_monitor.total_points == 0
+    assert len(backend.open_calls) == 1
+    assert len(backend.read_calls) == 1
+    assert backend.close_calls == 1
+    assert not hasattr(backend, "write_calls")
+
+
+def test_serial_live_monitor_pins_identity_and_maps_dual_afe_adc_traces() -> None:
+    backend = MemorySerialBackend.scripted(
+        reads=(
+            _afe_capabilities(device_id="afe-dual-memory", adc_indices=(0, 1)),
+            _afe_telemetry(1, 500),
+            _afe_telemetry(2, 600),
+        )
+    )
+    config = ProductWorkflowConfiguration(
+        ProductSourceMode.SERIAL_READ_ONLY,
+        ProductJobType.LIVE_MONITOR,
+        AFE_PROFILE_NAME,
+        AFE_PROFILE_VERSION,
+        sample_count=2,
+        serial_config=SerialSourceConfig(
+            "MEMORY:AFE:DUAL",
+            read_timeout_seconds=0.01,
+            max_polls_per_operation=2,
+            evidence_source=EvidenceSource.HOST_TEST,
+            expected_device_id="afe-dual-memory",
+            afe_adc_channel_aliases=(
+                SerialChannelAlias("adc0", "afe.ch0.input"),
+                SerialChannelAlias("adc1", "afe.ch0.output"),
+            ),
+        ),
+        confirm_read_only=True,
+        monitor_sample_interval_seconds=0.0,
+        monitor_max_buffer_points=10,
+        monitor_include_secondary=True,
+        monitor_include_state=False,
+    )
+
+    prepared = prepare_product_job(
+        config,
+        "serial-live-dual",
+        backend_factory=lambda: backend,
+    )
+    assert backend.open_calls == []
+    assert any(
+        "exact match required for afe-dual-memory" in line
+        for line in prepared.review_lines
+    )
+    assert any(
+        "adc0->afe.ch0.input, adc1->afe.ch0.output" in line
+        for line in prepared.review_lines
+    )
+
+    execution = execute_product_job(
+        prepared.request,
+        prepared.service_factory,
+        prepared.output_slot,
+    )
+
+    assert execution.worker_state is ProductWorkerState.SUCCEEDED
+    assert execution.output is not None
+    read = execution.output.read_result
+    assert read.capabilities.device_id == "afe-dual-memory"
+    assert read.capabilities.adc_channels == (
+        "afe.ch0.input",
+        "afe.ch0.output",
+    )
+    assert [measurement.channel for measurement in read.measurements] == [
+        "afe.ch0.input",
+        "afe.ch0.output",
+        "afe.ch0.input",
+        "afe.ch0.output",
+    ]
+    assert [measurement.value for measurement in read.measurements] == [
+        500.0,
+        1000.0,
+        600.0,
+        1200.0,
+    ]
+    assert execution.output.live_monitor is not None
+    assert execution.output.live_monitor.total_points == 4
+    assert len(backend.open_calls) == 1
+    assert len(backend.read_calls) == 3
+    assert backend.close_calls == 1
+    assert not hasattr(backend, "write_calls")
+
+
+@pytest.mark.parametrize(
+    ("expected_device_id", "aliases"),
+    [
+        ("different-device", ()),
+        (
+            "afe-dual-memory",
+            (SerialChannelAlias("adc0", "afe.ch0.input"),),
+        ),
+    ],
+)
+def test_serial_live_monitor_rejects_identity_or_alias_contract_before_telemetry(
+    expected_device_id: str,
+    aliases: tuple[SerialChannelAlias, ...],
+) -> None:
+    backend = MemorySerialBackend.scripted(
+        reads=(
+            _afe_capabilities(device_id="afe-dual-memory", adc_indices=(0, 1)),
+            _afe_telemetry(1, 500),
+        )
+    )
+    config = ProductWorkflowConfiguration(
+        ProductSourceMode.SERIAL_READ_ONLY,
+        ProductJobType.LIVE_MONITOR,
+        AFE_PROFILE_NAME,
+        AFE_PROFILE_VERSION,
+        sample_count=1,
+        serial_config=SerialSourceConfig(
+            "MEMORY:AFE:CONTRACT",
+            read_timeout_seconds=0.01,
+            max_polls_per_operation=1,
+            evidence_source=EvidenceSource.HOST_TEST,
+            expected_device_id=expected_device_id,
+            afe_adc_channel_aliases=aliases,
+        ),
+        confirm_read_only=True,
+        monitor_sample_interval_seconds=0.0,
+        monitor_include_secondary=False,
+        monitor_include_state=False,
+    )
+    prepared = prepare_product_job(
+        config,
+        "serial-live-contract-rejection",
+        backend_factory=lambda: backend,
+    )
+
+    execution = execute_product_job(
+        prepared.request,
+        prepared.service_factory,
+        prepared.output_slot,
+    )
+
+    assert execution.worker_state is ProductWorkerState.FAILED
+    assert execution.output is None
+    assert execution.issue is not None
+    assert len(backend.open_calls) == 1
+    assert len(backend.read_calls) == 1
+    assert backend.close_calls == 1
+    assert not hasattr(backend, "write_calls")
+
+
+def test_serial_live_monitor_skips_bad_crc_within_the_reviewed_poll_budget() -> None:
+    first = _afe_telemetry(1, 500)
+    backend = MemorySerialBackend.scripted(
+        reads=(_afe_capabilities(), _damaged_crc(first), first)
+    )
+    config = ProductWorkflowConfiguration(
+        ProductSourceMode.SERIAL_READ_ONLY,
+        ProductJobType.LIVE_MONITOR,
+        AFE_PROFILE_NAME,
+        AFE_PROFILE_VERSION,
+        sample_count=1,
+        serial_config=SerialSourceConfig(
+            "MEMORY:AFE:CRC",
+            read_timeout_seconds=0.01,
+            max_polls_per_operation=2,
+            evidence_source=EvidenceSource.HOST_TEST,
+        ),
+        confirm_read_only=True,
+        monitor_sample_interval_seconds=0.0,
+        monitor_include_secondary=False,
+        monitor_include_state=False,
+    )
+
+    prepared = prepare_product_job(
+        config,
+        "serial-live-crc",
+        backend_factory=lambda: backend,
+    )
+    execution = execute_product_job(
+        prepared.request,
+        prepared.service_factory,
+        prepared.output_slot,
+    )
+
+    assert execution.worker_state is ProductWorkerState.SUCCEEDED
+    assert execution.output is not None
+    assert execution.output.read_result.measurements[0].value == 500.0
+    assert len(backend.read_calls) == 3
+    assert backend.close_calls == 1
+
+
+@pytest.mark.parametrize(
+    "terminal_read",
+    (SerialBackendTimeout(), SerialBackendDisconnected()),
+)
+def test_serial_live_monitor_timeout_or_disconnect_fails_closed(
+    terminal_read: object,
+) -> None:
+    backend = MemorySerialBackend.scripted(
+        reads=(_afe_capabilities(), terminal_read)
+    )
+    config = ProductWorkflowConfiguration(
+        ProductSourceMode.SERIAL_READ_ONLY,
+        ProductJobType.LIVE_MONITOR,
+        AFE_PROFILE_NAME,
+        AFE_PROFILE_VERSION,
+        sample_count=1,
+        serial_config=SerialSourceConfig(
+            "MEMORY:AFE:FAIL",
+            read_timeout_seconds=0.01,
+            max_polls_per_operation=1,
+            evidence_source=EvidenceSource.HOST_TEST,
+        ),
+        confirm_read_only=True,
+        monitor_sample_interval_seconds=0.0,
+        monitor_include_secondary=False,
+        monitor_include_state=False,
+    )
+    prepared = prepare_product_job(
+        config,
+        "serial-live-failure",
+        backend_factory=lambda: backend,
+    )
+
+    execution = execute_product_job(
+        prepared.request,
+        prepared.service_factory,
+        prepared.output_slot,
+    )
+
+    assert execution.worker_state is ProductWorkerState.FAILED
+    assert execution.output is None
+    assert execution.issue is not None
+    assert backend.close_calls == 1
+
+
+def test_serial_live_monitor_cancellation_releases_the_owned_port() -> None:
+    class BlockingAfterCapabilitiesBackend(MemorySerialBackend):
+        def __init__(self) -> None:
+            super().__init__()
+            self.read_actions.extend(
+                (_afe_capabilities(), _afe_telemetry(1, 500))
+            )
+            self.measurement_read_started = Event()
+            self.release_measurement = Event()
+
+        def read(self, max_bytes: int, timeout_seconds: float) -> bytes:
+            if self.read_calls:
+                self.measurement_read_started.set()
+                assert self.release_measurement.wait(2.0)
+            return super().read(max_bytes, timeout_seconds)
+
+    backend = BlockingAfterCapabilitiesBackend()
+    config = ProductWorkflowConfiguration(
+        ProductSourceMode.SERIAL_READ_ONLY,
+        ProductJobType.LIVE_MONITOR,
+        AFE_PROFILE_NAME,
+        AFE_PROFILE_VERSION,
+        sample_count=2,
+        serial_config=SerialSourceConfig(
+            "MEMORY:AFE:CANCEL",
+            read_timeout_seconds=0.01,
+            max_polls_per_operation=2,
+            evidence_source=EvidenceSource.HOST_TEST,
+        ),
+        confirm_read_only=True,
+        monitor_sample_interval_seconds=0.0,
+        monitor_include_secondary=False,
+        monitor_include_state=False,
+    )
+    prepared = prepare_product_job(
+        config,
+        "serial-live-cancel",
+        backend_factory=lambda: backend,
+    )
+    worker = ProductJobWorker(prepared.service_factory, join_timeout_s=2.0)
+
+    try:
+        worker.start(prepared.request)
+        assert backend.measurement_read_started.wait(2.0)
+        assert worker.request_cancel() is True
+        backend.release_measurement.set()
+        assert worker.join(2.0) is True
+        assert worker.state is ProductWorkerState.CANCELLED
+        assert prepared.output_slot.value is None
+        assert backend.close_calls == 1
+        assert not hasattr(backend, "write_calls")
+    finally:
+        backend.release_measurement.set()
+        worker.close(2.0)
+
+
+def test_serial_live_monitor_rejects_a_runtime_budget_over_55_seconds() -> None:
+    with pytest.raises(ProductRequestError, match="serial live monitor worst-case"):
+        ProductWorkflowConfiguration(
+            ProductSourceMode.SERIAL_READ_ONLY,
+            ProductJobType.LIVE_MONITOR,
+            sample_count=20,
+            serial_config=SerialSourceConfig(
+                "MEMORY:SLOW",
+                read_timeout_seconds=0.25,
+                max_polls_per_operation=32,
+            ),
+            confirm_read_only=True,
+            monitor_sample_interval_seconds=0.02,
+            monitor_include_secondary=False,
+            monitor_include_state=False,
+        )
 
 
 def test_live_monitor_cli_json_and_human_views_are_bounded_and_honest() -> None:

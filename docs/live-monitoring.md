@@ -2,7 +2,7 @@
 
 **Implemented:** post-beta local product increment, 2026-09-05  
 **Schema:** `live-monitor.v1`  
-**Current sources:** deterministic Simulator and strict CSV Replay  
+**Current sources:** deterministic Simulator, strict CSV Replay, and explicit receive-only Serial
 **Evidence:** `SYNTHETIC`, `CSV_REPLAY`, and `HOST_TEST` only  
 **Physical AFE claim:** none
 
@@ -43,6 +43,7 @@ three limits:
 | Limit | Current bound | Purpose |
 |---|---:|---|
 | Finite requested duration | 55 seconds | Keeps the interactive CLI/worker join bounded |
+| Combined Serial runtime budget | 55 seconds | Includes cadence plus the worst-case capability/read poll budget |
 | Total measurements per job | 10,000 | Prevents a form entry from creating an unbounded acquisition |
 | Retained live points | 1–10,000; default 2,048 | Caps in-memory presentation state |
 | Visible trailing window | 0.1–3,600 seconds | Changes only what is drawn, not what was acquired |
@@ -113,13 +114,75 @@ analog-validation replay monitor `
   --json
 ```
 
+Run a finite, primary-channel-only serial monitor after reviewing the exact
+port, profile, and required primary channel:
+
+```powershell
+analog-validation serial monitor `
+  --port COM4 `
+  --profile msp430-equipment-health `
+  --profile-version 1 `
+  --primary-channel msp430.health.bus_voltage `
+  --unit mV `
+  --cycles 20 `
+  --sample-interval 0.02 `
+  --read-timeout 0.05 `
+  --max-polls 4 `
+  --confirm-read-only `
+  --json
+```
+
+This is a syntax example, not permission to open `COM4`. Confirm the actual
+port, wiring, voltage domain, firmware/profile, and device ownership first.
+Serial monitor defaults to one primary channel. Secondary analog or boolean
+state channels are opt-in and must be declared by the selected device profile.
+
+An AFE that reports two native ADC channels can expose an input/output pair only
+through the explicit product contract below:
+
+```powershell
+analog-validation serial monitor `
+  --port COM4 `
+  --profile afe `
+  --profile-version 1 `
+  --primary-channel afe.ch0.input `
+  --secondary-channel afe.ch0.output `
+  --secondary `
+  --no-state `
+  --unit mV `
+  --cycles 20 `
+  --sample-interval 0.02 `
+  --read-timeout 0.05 `
+  --max-polls 4 `
+  --expected-device-id afe-controller-01 `
+  --afe-adc-alias adc0=afe.ch0.input `
+  --afe-adc-alias adc1=afe.ch0.output `
+  --confirm-read-only `
+  --json
+```
+
+The example is intentionally strict. The reported capability `device_id` must
+equal `afe-controller-01`, and the aliases must cover every ADC channel in the
+completed capability response exactly once. An identity mismatch, missing
+alias, extra alias, repeated source, or repeated destination fails before the
+first telemetry measurement is read. Without aliases, the established AFE v1
+projection remains unchanged: `adcN` is interpreted as `afe.chN.input`.
+
+`expected_device_id` is a protocol/profile label, not authentication and not a
+verified USB or factory serial number. Likewise, an alias records the reviewed
+software meaning of a native channel; it cannot prove that the physical wire is
+connected to the claimed signal. The MSP430 profile uses a static capability
+snapshot, so pinning its current `device_id` checks the selected software
+contract rather than querying a firmware-unique identity.
+
 The JSON document contains the terminal worker/product state plus a
 `live_monitor` snapshot with counts and retained points. It has no finalized
 analysis bundle, criteria, or hardware-validation claim.
 
 ## Dashboard workflow
 
-Choose **Simulator** or **CSV Replay**, then choose **Live monitor**. Configure
+Choose **Simulator**, **CSV Replay**, or **Serial (read-only)**, then choose
+**Live monitor**. Configure
 the enabled channels, cycle count, interval, time window, and maximum retained
 points. Review shows the calculated finite duration and explicitly states that
 no background acquisition continues after the job.
@@ -136,26 +199,50 @@ The chart copies immutable measurements. It does not fit, filter, resample, or
 change their quality status. Boolean channels are drawn as high/low state
 traces; analog channels keep their declared unit in the legend.
 
+For Serial, Review also shows the conservative receive-wait budget and the
+combined cadence-plus-receive bound. Selecting a source never opens a port.
+The port is constructed and opened only after explicit Review, Run, and the
+receive-only confirmation.
+
+Review also shows an optional expected capability ID and any AFE ADC aliases.
+After a successful run, the CLI JSON and Dashboard observation summary display
+the actual capability ID/profile that the adapter accepted. These values are
+protocol evidence only and are never presented as proof of physical wiring or
+device authenticity.
+
 ## Current safety and evidence boundary
 
-The current product catalog enables `LIVE_MONITOR` only for Simulator and CSV
-Replay. `SERIAL_READ_ONLY` still exposes only the existing bounded `READ` job.
-This prevents a new real-port behavior from being enabled merely because the UI
-can draw a curve.
+The product catalog now exposes `LIVE_MONITOR` for `SERIAL_READ_ONLY`, but only
+through the same explicit port/profile selection and receive-only confirmation
+used by bounded `READ`. The software rejects a configuration when:
 
-No serial port, MSP430, signal generator, oscilloscope, or physical AFE was used
-to implement or verify this increment. Simulator timing is host scheduling, not
-hard real-time behavior. CSV Replay timing does not prove how the original data
-was acquired.
+- cadence alone exceeds 55 seconds;
+- cycles multiplied by enabled channels exceed 10,000 measurements; or
+- cadence plus the conservative worst-case serial poll budget exceeds 55
+  seconds.
 
-## Before real-device monitoring can be enabled
+The budget assumes one bounded capability operation plus one bounded receive
+operation per requested measurement. It is deliberately conservative and is
+not a real-time or throughput guarantee. Automatic reconnect remains disabled;
+a disconnect fails closed and requires a new reviewed run.
 
-Real-device closure needs a separately reviewed adapter and test procedure:
+No real serial port, MSP430, signal generator, oscilloscope, or physical AFE was
+used to implement or verify this increment. Host tests used an in-memory serial
+backend and covered successful records, bad CRC recovery within the poll bound,
+timeout, disconnect, cancellation, cleanup, and zero application writes.
+Simulator timing is host scheduling, not hard real-time behavior. CSV Replay
+timing does not prove how the original data was acquired.
+
+## Before real-device monitoring can support a reliability claim
+
+The receive-only software path is enabled, but real-device reliability still
+needs an owner-approved test procedure and physical evidence:
 
 1. explicit device/profile identity and channel/unit mapping;
-2. receive-only control-line and port-open risk review;
-3. disconnect, reconnect, timeout, cancellation, and cleanup tests;
-4. a measured data-rate budget and dropped-record accounting;
+2. receive-only control-line and port-open risk review for the exact adapter;
+3. physical disconnect behavior and a deliberate reconnect policy review;
+4. a measured data-rate budget, timing observations, and dropped-record
+   accounting;
 5. 30-minute and 2-hour soak tests with memory and CPU observations;
 6. evidence labels that distinguish controller telemetry from calibrated bench
    measurements; and

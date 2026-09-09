@@ -120,6 +120,7 @@ class DashboardApplication:
         self._terminal_presented = False
         self._result_exported = False
         self._coefficient_exported = False
+        self._issue_field_id: str | None = None
 
     @property
     def dashboard_state(self) -> DashboardState:
@@ -155,11 +156,36 @@ class DashboardApplication:
 
         return self._loaded_calibration_coefficients
 
-    def _present_exception(self, error: BaseException) -> UserIssue:
+    @property
+    def issue_field_id(self) -> str | None:
+        """Return the optional Dashboard-only field hint for the visible issue."""
+
+        return (
+            self._issue_field_id
+            if self._wizard.state.issue is not None
+            else None
+        )
+
+    def _present_exception(
+        self,
+        error: BaseException,
+        *,
+        fallback_field_id: str | None = None,
+    ) -> UserIssue:
+        field_id = getattr(error, "field_id", fallback_field_id)
+        self._issue_field_id = field_id if isinstance(field_id, str) else None
         issue = issue_from_exception(error)
         self._wizard.present_issue(issue)
         self._dashboard.present_issue(issue)
         return issue
+
+    def present_input_error(self, error: BaseException) -> bool:
+        """Present a form-construction failure through the normal issue boundary."""
+
+        if not isinstance(error, BaseException):
+            raise ProductRequestError("error must be a BaseException")
+        self._present_exception(error)
+        return False
 
     def select_source(self, mode: ProductSourceMode) -> bool:
         try:
@@ -318,7 +344,14 @@ class DashboardApplication:
             return True
         except BaseException as error:  # noqa: BLE001 - UI boundary
             self._reset_prepared()
-            self._present_exception(error)
+            self._present_exception(
+                error,
+                fallback_field_id=(
+                    "replay_path"
+                    if draft.source_mode is ProductSourceMode.CSV_REPLAY
+                    else None
+                ),
+            )
             return False
 
     def run(self) -> bool:
@@ -333,6 +366,7 @@ class DashboardApplication:
                 issue = self._controller.state.result.issue or issue_from_exception(
                     ProductServiceError("the reviewed Dashboard job could not start")
                 )
+                self._issue_field_id = None
                 self._wizard.present_issue(issue)
                 return False
             self._wizard.begin_run()

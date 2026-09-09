@@ -127,6 +127,15 @@
       "observe": [
         {
           "choices": null,
+          "dest": "afe_adc_alias",
+          "flags": [
+            "--afe-adc-alias"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
           "dest": "baud_rate",
           "flags": [
             "--baud-rate"
@@ -150,6 +159,15 @@
             "--confirm-read-only"
           ],
           "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "expected_device_id",
+          "flags": [
+            "--expected-device-id"
+          ],
+          "nargs": null,
           "required": false
         },
         {
@@ -290,6 +308,231 @@
           ],
           "nargs": 0,
           "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "project": [
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "project compare": [
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "left",
+          "flags": [
+            "--left"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "right",
+          "flags": [
+            "--right"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "project create": [
+        {
+          "choices": null,
+          "dest": "description",
+          "flags": [
+            "--description"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "name",
+          "flags": [
+            "--name"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "project_id",
+          "flags": [
+            "--project-id"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "project history": [
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "run_files",
+          "flags": [
+            "--run"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "project inspect": [
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "project run": [
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "preset",
+          "flags": [
+            "--preset"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "run_id",
+          "flags": [
+            "--run-id"
+          ],
+          "nargs": null,
+          "required": true
         },
         {
           "choices": null,
@@ -1423,6 +1666,231 @@
           ],
           "nargs": null,
           "required": true
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "serial": [
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "serial monitor": [
+        {
+          "choices": null,
+          "dest": "afe_adc_alias",
+          "flags": [
+            "--afe-adc-alias"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "baud_rate",
+          "flags": [
+            "--baud-rate"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "confirm_read_only",
+          "flags": [
+            "--confirm-read-only"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "cycles",
+          "flags": [
+            "--cycles"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "expected_device_id",
+          "flags": [
+            "--expected-device-id"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_buffer_points",
+          "flags": [
+            "--max-buffer-points"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_polls",
+          "flags": [
+            "--max-polls"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_secondary",
+          "flags": [
+            "--no-secondary"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_state",
+          "flags": [
+            "--no-state"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "port",
+          "flags": [
+            "--port"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "primary_channel",
+          "flags": [
+            "--primary-channel"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "read_timeout",
+          "flags": [
+            "--read-timeout"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "sample_interval",
+          "flags": [
+            "--sample-interval"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_secondary",
+          "flags": [
+            "--secondary"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "secondary_channel",
+          "flags": [
+            "--secondary-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_state",
+          "flags": [
+            "--state"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "state_channel",
+          "flags": [
+            "--state-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "time_window",
+          "flags": [
+            "--time-window"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "mV",
+            "V"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
         },
         {
           "choices": null,
@@ -2964,6 +3432,16 @@
         false
       ],
       [
+        "serial_expected_device_id",
+        false,
+        false
+      ],
+      [
+        "serial_afe_adc_aliases",
+        false,
+        false
+      ],
+      [
         "serial_confirm_read_only",
         false,
         false
@@ -4073,6 +4551,159 @@
         false
       ]
     ],
+    "ProjectMetricDelta": [
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "unit",
+        true,
+        false
+      ],
+      [
+        "left_value",
+        true,
+        false
+      ],
+      [
+        "right_value",
+        true,
+        false
+      ]
+    ],
+    "ProjectRunComparisonEntry": [
+      [
+        "preset_id",
+        true,
+        false
+      ],
+      [
+        "left",
+        true,
+        false
+      ],
+      [
+        "right",
+        true,
+        false
+      ],
+      [
+        "metric_deltas",
+        true,
+        false
+      ]
+    ],
+    "ProjectRunMetric": [
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "value",
+        true,
+        false
+      ],
+      [
+        "unit",
+        true,
+        false
+      ]
+    ],
+    "ProjectRunRecord": [
+      [
+        "preset_id",
+        true,
+        false
+      ],
+      [
+        "job_id",
+        true,
+        false
+      ],
+      [
+        "source_mode",
+        true,
+        false
+      ],
+      [
+        "job_type",
+        true,
+        false
+      ],
+      [
+        "configuration_sha256",
+        true,
+        false
+      ],
+      [
+        "worker_state",
+        true,
+        false
+      ],
+      [
+        "product_status",
+        true,
+        false
+      ],
+      [
+        "engineering_outcome",
+        true,
+        false
+      ],
+      [
+        "evidence_source",
+        true,
+        false
+      ],
+      [
+        "measurement_count",
+        true,
+        false
+      ],
+      [
+        "metrics",
+        true,
+        false
+      ],
+      [
+        "limitations",
+        true,
+        false
+      ],
+      [
+        "issue_code",
+        false,
+        false
+      ],
+      [
+        "result_artifact",
+        false,
+        false
+      ],
+      [
+        "result_sha256",
+        false,
+        false
+      ],
+      [
+        "coefficient_artifact",
+        false,
+        false
+      ],
+      [
+        "coefficient_sha256",
+        false,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
     "ReportArtifact": [
       [
         "name",
@@ -4220,6 +4851,23 @@
         false
       ]
     ],
+    "SerialChannelAlias": [
+      [
+        "native_channel",
+        true,
+        false
+      ],
+      [
+        "canonical_channel",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
     "SerialSourceConfig": [
       [
         "port_id",
@@ -4248,6 +4896,21 @@
       ],
       [
         "evidence_source",
+        false,
+        false
+      ],
+      [
+        "expected_device_id",
+        false,
+        false
+      ],
+      [
+        "afe_adc_channel_aliases",
+        false,
+        false
+      ],
+      [
+        "schema_version",
         false,
         false
       ]
@@ -4285,6 +4948,233 @@
       ],
       [
         "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ValidationBatchProgress": [
+      [
+        "run_id",
+        true,
+        false
+      ],
+      [
+        "event_index",
+        true,
+        false
+      ],
+      [
+        "phase",
+        true,
+        false
+      ],
+      [
+        "current_preset_id",
+        true,
+        false
+      ],
+      [
+        "current_preset_number",
+        true,
+        false
+      ],
+      [
+        "total_presets",
+        true,
+        false
+      ],
+      [
+        "completed_presets",
+        true,
+        false
+      ],
+      [
+        "batch_status",
+        false,
+        false
+      ]
+    ],
+    "ValidationPreset": [
+      [
+        "preset_id",
+        true,
+        false
+      ],
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "configuration",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ValidationProject": [
+      [
+        "project_id",
+        true,
+        false
+      ],
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "description",
+        true,
+        false
+      ],
+      [
+        "presets",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ValidationRunComparison": [
+      [
+        "project_id",
+        true,
+        false
+      ],
+      [
+        "left_run_id",
+        true,
+        false
+      ],
+      [
+        "right_run_id",
+        true,
+        false
+      ],
+      [
+        "left_project_sha256",
+        true,
+        false
+      ],
+      [
+        "right_project_sha256",
+        true,
+        false
+      ],
+      [
+        "entries",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ValidationRunInputArtifact": [
+      [
+        "preset_id",
+        true,
+        false
+      ],
+      [
+        "source_mode",
+        true,
+        false
+      ],
+      [
+        "artifact",
+        true,
+        false
+      ],
+      [
+        "size_bytes",
+        true,
+        false
+      ],
+      [
+        "sha256",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ValidationRunManifest": [
+      [
+        "project_id",
+        true,
+        false
+      ],
+      [
+        "run_id",
+        true,
+        false
+      ],
+      [
+        "software_version",
+        true,
+        false
+      ],
+      [
+        "project_artifact",
+        true,
+        false
+      ],
+      [
+        "project_sha256",
+        true,
+        false
+      ],
+      [
+        "started_at",
+        true,
+        false
+      ],
+      [
+        "completed_at",
+        true,
+        false
+      ],
+      [
+        "records",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ],
+      [
+        "batch_status",
+        false,
+        false
+      ],
+      [
+        "planned_preset_ids",
+        false,
+        false
+      ],
+      [
+        "not_started_preset_ids",
+        false,
+        false
+      ],
+      [
+        "input_artifacts",
         false,
         false
       ]
@@ -4522,6 +5412,46 @@
         "ERROR",
         "ERROR"
       ]
+    ],
+    "ValidationBatchPhase": [
+      [
+        "PREPARING",
+        "PREPARING"
+      ],
+      [
+        "RUNNING",
+        "RUNNING"
+      ],
+      [
+        "CANCELLING",
+        "CANCELLING"
+      ],
+      [
+        "FINALIZING",
+        "FINALIZING"
+      ],
+      [
+        "FINISHED",
+        "FINISHED"
+      ]
+    ],
+    "ValidationBatchStatus": [
+      [
+        "COMPLETE",
+        "COMPLETE"
+      ],
+      [
+        "PARTIAL",
+        "PARTIAL"
+      ],
+      [
+        "CANCELLED",
+        "CANCELLED"
+      ],
+      [
+        "ERROR",
+        "ERROR"
+      ]
     ]
   },
   "error_bases": {
@@ -4537,6 +5467,11 @@
     "ProductDependencyError": "ProductAppError",
     "ProductFeatureUnavailableError": "ProductCliError",
     "ProductJobCancelled": "ProductWorkerError",
+    "ProductProjectError": "ProductAppError",
+    "ProductProjectExistsError": "ProductProjectPathError",
+    "ProductProjectFormatError": "ProductProjectError",
+    "ProductProjectLimitError": "ProductProjectError",
+    "ProductProjectPathError": "ProductProjectError",
     "ProductReportError": "ProductAppError",
     "ProductReportExistsError": "ProductReportPathError",
     "ProductReportFormatError": "ProductReportError",
@@ -4629,6 +5564,31 @@
       "OPERATION_FAILED",
       "ERROR",
       "ProductJobCancelled"
+    ],
+    "ProductProjectError": [
+      "OPERATION_FAILED",
+      "ERROR",
+      "ProductProjectError"
+    ],
+    "ProductProjectExistsError": [
+      "OUTPUT_EXISTS",
+      "WARNING",
+      "ProductProjectExistsError"
+    ],
+    "ProductProjectFormatError": [
+      "INPUT_DATA",
+      "ERROR",
+      "ProductProjectFormatError"
+    ],
+    "ProductProjectLimitError": [
+      "INPUT_DATA",
+      "ERROR",
+      "ProductProjectLimitError"
+    ],
+    "ProductProjectPathError": [
+      "OUTPUT_PATH",
+      "ERROR",
+      "ProductProjectPathError"
     ],
     "ProductReportError": [
       "OPERATION_FAILED",
@@ -4769,7 +5729,14 @@
       "MAX_PRODUCT_WORKFLOW_SAMPLES",
       "MAX_PRODUCT_WORKFLOW_TEXT_CHARS",
       "MAX_REPORT_POINTS",
+      "MAX_SERIAL_CHANNEL_ALIASES",
+      "MAX_SERIAL_IDENTITY_CHARS",
       "MAX_USER_ISSUE_TEXT_CHARS",
+      "MAX_VALIDATION_HISTORY_INPUTS",
+      "MAX_VALIDATION_PRESETS",
+      "MAX_VALIDATION_PROJECT_BYTES",
+      "MAX_VALIDATION_RUN_MANIFEST_BYTES",
+      "MAX_VALIDATION_RUN_RECORDS",
       "MIN_LIVE_MONITOR_WINDOW_SECONDS",
       "MonotonicClock",
       "PORTFOLIO_DEMO_CONFIG_SCHEMA_VERSION",
@@ -4809,6 +5776,11 @@
       "ProductJobWorker",
       "ProductProfileDescriptor",
       "ProductProgressReporter",
+      "ProductProjectError",
+      "ProductProjectExistsError",
+      "ProductProjectFormatError",
+      "ProductProjectLimitError",
+      "ProductProjectPathError",
       "ProductReportError",
       "ProductReportExistsError",
       "ProductReportFormatError",
@@ -4828,6 +5800,10 @@
       "ProductWorkerState",
       "ProductWorkerTimeoutError",
       "ProductWorkflowConfiguration",
+      "ProjectMetricDelta",
+      "ProjectRunComparisonEntry",
+      "ProjectRunMetric",
+      "ProjectRunRecord",
       "REPLAY_LIMITATIONS",
       "REPORT_HARDWARE_CLAIM",
       "REPORT_HTML_FILENAME",
@@ -4845,18 +5821,45 @@
       "ReportSchemaView",
       "ReportValueView",
       "ReviewedServiceRouter",
+      "SERIAL_CHANNEL_ALIAS_SCHEMA_VERSION",
       "SERIAL_LIMITATIONS",
+      "SERIAL_SOURCE_CONFIG_SCHEMA_VERSION",
       "SIMULATOR_LIMITATIONS",
       "SerialBackendFactory",
+      "SerialChannelAlias",
       "SerialSourceConfig",
       "USER_ISSUE_SCHEMA_VERSION",
       "UserIssue",
       "UserIssueCode",
       "UserIssueSeverity",
+      "VALIDATION_PRESET_SCHEMA_VERSION",
+      "VALIDATION_PROJECT_SCHEMA_VERSION",
+      "VALIDATION_PROJECT_SNAPSHOT_FILENAME",
+      "VALIDATION_RUN_COMPARISON_SCHEMA_VERSION",
+      "VALIDATION_RUN_INPUT_ARTIFACT_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_FILENAME",
+      "VALIDATION_RUN_MANIFEST_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION",
+      "VALIDATION_RUN_RECORD_SCHEMA_VERSION",
+      "ValidationBatchCancellationToken",
+      "ValidationBatchPhase",
+      "ValidationBatchProgress",
+      "ValidationBatchProgressReporter",
+      "ValidationBatchStatus",
+      "ValidationPreset",
+      "ValidationProject",
+      "ValidationRunComparison",
+      "ValidationRunInputArtifact",
+      "ValidationRunManifest",
       "__version__",
+      "build_default_validation_project",
       "build_human_report_view",
+      "compare_validation_runs",
       "default_serial_backend_factory",
       "discover_serial_ports",
+      "dump_validation_project",
+      "dump_validation_run_manifest",
       "execute_product_job",
       "get_product_profile",
       "get_product_source",
@@ -4864,6 +5867,8 @@
       "issue_from_exception",
       "list_product_profiles",
       "list_product_sources",
+      "load_validation_project",
+      "load_validation_run_manifest",
       "make_calibration_service_factory",
       "make_csv_replay_adapter_factory",
       "make_csv_replay_dataset_adapter_factory",
@@ -4878,11 +5883,18 @@
       "prepare_product_job",
       "publish_human_report",
       "publish_portfolio_demo",
+      "publish_validation_project_run",
       "render_human_report_html",
       "render_human_report_markdown",
       "render_human_report_svg",
       "render_human_report_text",
-      "user_issue_to_dict"
+      "user_issue_to_dict",
+      "validation_project_from_dict",
+      "validation_project_to_dict",
+      "validation_run_comparison_to_dict",
+      "validation_run_manifest_from_dict",
+      "validation_run_manifest_to_dict",
+      "write_validation_project"
     ],
     "analog_validation_app.cli": [
       "CLI_CANCELLED_EXIT_CODE",
@@ -4947,6 +5959,50 @@
       "MAX_DASHBOARD_SMOKE_MS",
       "TkLoader",
       "launch_dashboard"
+    ],
+    "analog_validation_app.projects": [
+      "MAX_VALIDATION_HISTORY_INPUTS",
+      "MAX_VALIDATION_PRESETS",
+      "MAX_VALIDATION_PROJECT_BYTES",
+      "MAX_VALIDATION_RUN_MANIFEST_BYTES",
+      "MAX_VALIDATION_RUN_RECORDS",
+      "ProjectMetricDelta",
+      "ProjectRunComparisonEntry",
+      "ProjectRunMetric",
+      "ProjectRunRecord",
+      "VALIDATION_PRESET_SCHEMA_VERSION",
+      "VALIDATION_PROJECT_SCHEMA_VERSION",
+      "VALIDATION_PROJECT_SNAPSHOT_FILENAME",
+      "VALIDATION_RUN_COMPARISON_SCHEMA_VERSION",
+      "VALIDATION_RUN_INPUT_ARTIFACT_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_FILENAME",
+      "VALIDATION_RUN_MANIFEST_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION",
+      "VALIDATION_RUN_RECORD_SCHEMA_VERSION",
+      "ValidationBatchCancellationToken",
+      "ValidationBatchPhase",
+      "ValidationBatchProgress",
+      "ValidationBatchProgressReporter",
+      "ValidationBatchStatus",
+      "ValidationPreset",
+      "ValidationProject",
+      "ValidationRunComparison",
+      "ValidationRunInputArtifact",
+      "ValidationRunManifest",
+      "build_default_validation_project",
+      "compare_validation_runs",
+      "dump_validation_project",
+      "dump_validation_run_manifest",
+      "load_validation_project",
+      "load_validation_run_manifest",
+      "publish_validation_project_run",
+      "validation_project_from_dict",
+      "validation_project_to_dict",
+      "validation_run_comparison_to_dict",
+      "validation_run_manifest_from_dict",
+      "validation_run_manifest_to_dict",
+      "write_validation_project"
     ]
   },
   "new_hardware_validation": false,
@@ -4967,7 +6023,17 @@
     "PRODUCT_JOB_SCHEMA_VERSION": "product-job.v1",
     "PRODUCT_RESULT_SCHEMA_VERSION": "product-result.v1",
     "PRODUCT_WORKFLOW_CONFIG_SCHEMA_VERSION": "product-workflow-config.v1",
-    "USER_ISSUE_SCHEMA_VERSION": "user-issue.v1"
+    "SERIAL_CHANNEL_ALIAS_SCHEMA_VERSION": "serial-channel-alias.v1",
+    "SERIAL_SOURCE_CONFIG_SCHEMA_VERSION": "serial-source-config.v1",
+    "USER_ISSUE_SCHEMA_VERSION": "user-issue.v1",
+    "VALIDATION_PRESET_SCHEMA_VERSION": "validation-preset.v1",
+    "VALIDATION_PROJECT_SCHEMA_VERSION": "validation-project.v1",
+    "VALIDATION_RUN_COMPARISON_SCHEMA_VERSION": "validation-run-comparison.v1",
+    "VALIDATION_RUN_INPUT_ARTIFACT_SCHEMA_VERSION": "validation-run-input-artifact.v1",
+    "VALIDATION_RUN_MANIFEST_SCHEMA_VERSION": "validation-run-manifest.v3",
+    "VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION": "validation-run-manifest.v1",
+    "VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION": "validation-run-manifest.v2",
+    "VALIDATION_RUN_RECORD_SCHEMA_VERSION": "validation-run-record.v1"
   },
   "serialized_fields": {
     "cli_demo": [
@@ -5072,6 +6138,146 @@
       "report_schema_version",
       "run_id",
       "schema_version"
+    ],
+    "project_cli_create": [
+      "command",
+      "hardware_claim",
+      "product",
+      "project",
+      "project_file",
+      "resource_policy",
+      "schema_version",
+      "software_version"
+    ],
+    "project_cli_run": [
+      "command",
+      "hardware_claim",
+      "product",
+      "project",
+      "project_file",
+      "resource_policy",
+      "run_directory",
+      "run_manifest",
+      "schema_version",
+      "software_version"
+    ],
+    "project_file": [
+      "description",
+      "name",
+      "presets",
+      "project_id",
+      "schema_version"
+    ],
+    "project_preset": [
+      "configuration",
+      "name",
+      "preset_id",
+      "schema_version"
+    ],
+    "project_run_manifest": [
+      "batch_status",
+      "completed_at",
+      "input_artifacts",
+      "not_started_preset_ids",
+      "planned_preset_ids",
+      "project_artifact",
+      "project_id",
+      "project_sha256",
+      "records",
+      "run_id",
+      "schema_version",
+      "software_version",
+      "started_at",
+      "summary"
+    ],
+    "project_run_metric": [
+      "name",
+      "unit",
+      "value"
+    ],
+    "project_run_record": [
+      "coefficient_artifact",
+      "coefficient_sha256",
+      "configuration_sha256",
+      "engineering_outcome",
+      "evidence_source",
+      "issue_code",
+      "job_id",
+      "job_type",
+      "limitations",
+      "measurement_count",
+      "metrics",
+      "preset_id",
+      "product_status",
+      "result_artifact",
+      "result_sha256",
+      "schema_version",
+      "source_mode",
+      "worker_state"
+    ],
+    "project_run_summary": [
+      "completed_preset_count",
+      "engineering_failures",
+      "hardware_validation",
+      "input_artifact_count",
+      "not_started_preset_count",
+      "operational_failures",
+      "planned_preset_count",
+      "record_count"
+    ],
+    "project_workflow_configuration": [
+      "coefficient_id",
+      "coefficient_version",
+      "confirm_read_only",
+      "cutoff_drop_db",
+      "cutoff_relative_tolerance",
+      "falling_count",
+      "frequency_channel",
+      "frequency_input_amplitude",
+      "frequency_maximum_hz",
+      "frequency_minimum_hz",
+      "frequency_point_count",
+      "gain_tolerance",
+      "high_output_limit",
+      "job_type",
+      "low_output_limit",
+      "max_abs_offset",
+      "max_calibration_absolute_error",
+      "max_calibration_mean_absolute_error",
+      "max_calibration_rmse",
+      "max_rmse",
+      "maximum_high_threshold",
+      "maximum_low_threshold",
+      "maximum_width",
+      "maximum_width_span",
+      "min_r_squared",
+      "minimum_calibration_rmse_reduction",
+      "minimum_high_threshold",
+      "minimum_low_threshold",
+      "minimum_width",
+      "monitor_include_secondary",
+      "monitor_include_state",
+      "monitor_max_buffer_points",
+      "monitor_sample_interval_seconds",
+      "monitor_time_window_seconds",
+      "operation",
+      "primary_channel",
+      "profile_name",
+      "profile_version",
+      "replay_maximum",
+      "replay_minimum",
+      "replay_path",
+      "rising_count",
+      "sample_count",
+      "schema_version",
+      "secondary_channel",
+      "serial_config",
+      "simulated_cutoff_frequency_hz",
+      "source_mode",
+      "state_channel",
+      "target_cutoff_frequency_hz",
+      "target_gain",
+      "unit"
     ]
   },
   "signature_parameters": {
@@ -5931,6 +7137,159 @@
         false
       ]
     ],
+    "ProjectMetricDelta": [
+      [
+        "name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "unit",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "left_value",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "right_value",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "ProjectRunComparisonEntry": [
+      [
+        "preset_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "left",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "right",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "metric_deltas",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "ProjectRunMetric": [
+      [
+        "name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "value",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "unit",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "ProjectRunRecord": [
+      [
+        "preset_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "job_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "source_mode",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "job_type",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "configuration_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "worker_state",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "product_status",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "engineering_outcome",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "evidence_source",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "measurement_count",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "metrics",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "limitations",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "issue_code",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "result_artifact",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "result_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "coefficient_artifact",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "coefficient_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
     "ReportArtifact": [
       [
         "name",
@@ -5951,6 +7310,23 @@
         "sha256",
         "POSITIONAL_OR_KEYWORD",
         true
+      ]
+    ],
+    "SerialChannelAlias": [
+      [
+        "native_channel",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "canonical_channel",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
       ]
     ],
     "SerialSourceConfig": [
@@ -5981,6 +7357,21 @@
       ],
       [
         "evidence_source",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "expected_device_id",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "afe_adc_channel_aliases",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
         "POSITIONAL_OR_KEYWORD",
         false
       ]
@@ -6022,6 +7413,219 @@
         false
       ]
     ],
+    "ValidationBatchCancellationToken": [],
+    "ValidationBatchProgress": [
+      [
+        "run_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "event_index",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "phase",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "current_preset_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "current_preset_number",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "total_presets",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "completed_presets",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "batch_status",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ValidationPreset": [
+      [
+        "preset_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "configuration",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ValidationProject": [
+      [
+        "project_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "description",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "presets",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ValidationRunComparison": [
+      [
+        "project_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "left_run_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "right_run_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "left_project_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "right_project_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "entries",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ValidationRunManifest": [
+      [
+        "project_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "run_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "software_version",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "project_artifact",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "project_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "started_at",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "completed_at",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "records",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "batch_status",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "planned_preset_ids",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "not_started_preset_ids",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "input_artifacts",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "build_default_validation_project": [
+      [
+        "project_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "description",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
     "build_human_report_view": [
       [
         "bundle",
@@ -6030,6 +7634,37 @@
       ]
     ],
     "build_parser": [],
+    "compare_validation_runs": [
+      [
+        "left",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "right",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "dump_validation_project": [
+      [
+        "project",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "path",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "dump_validation_run_manifest": [
+      [
+        "manifest",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
     "execute_product_job": [
       [
         "request",
@@ -6048,6 +7683,16 @@
       ],
       [
         "join_timeout_s",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "cancellation_requested",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "report_event",
         "KEYWORD_ONLY",
         false
       ]
@@ -6366,6 +8011,105 @@
         "POSITIONAL_OR_KEYWORD",
         true
       ]
+    ],
+    "publish_validation_project_run": [
+      [
+        "project",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "output_directory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "run_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "selected_preset_ids",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "project_directory",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "clock",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "cancellation",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "report_progress",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "validation_project_from_dict": [
+      [
+        "value",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "project_directory",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "validation_project_to_dict": [
+      [
+        "project",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "project_directory",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "validation_run_comparison_to_dict": [
+      [
+        "comparison",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "validation_run_manifest_from_dict": [
+      [
+        "value",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "validation_run_manifest_to_dict": [
+      [
+        "manifest",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "write_validation_project": [
+      [
+        "path",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "project",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
     ]
   },
   "stable_constants": {
@@ -6436,6 +8180,10 @@
       "chart.svg",
       "manifest.json"
     ],
+    "serial_device_contract": {
+      "maximum_aliases": 16,
+      "maximum_identity_characters": 128
+    },
     "sources": [
       {
         "display_name": "Simulator",
@@ -6487,10 +8235,20 @@
         "schema_version": "product-catalog.v1",
         "summary": "Explicit bounded receive-only integration; no command or write surface.",
         "supported_jobs": [
-          "READ"
+          "READ",
+          "LIVE_MONITOR"
         ]
       }
     ],
+    "validation_projects": {
+      "history_inputs": 64,
+      "manifest_filename": "run-manifest.json",
+      "presets": 32,
+      "project_bytes": 1048576,
+      "project_snapshot_filename": "project.snapshot.json",
+      "run_manifest_bytes": 1048576,
+      "run_records": 32
+    },
     "worker_defaults": {
       "event_queue_size": 256,
       "join_timeout_seconds": 5.0
