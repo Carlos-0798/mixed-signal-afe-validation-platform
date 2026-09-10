@@ -1,8 +1,96 @@
 # Analog Validation Studio
 
+**Turn voltage CSV files into repeatable tests, plots, and traceable reports.**
+
+An independent Python desktop app and CLI for students and engineers who
+repeatedly check voltage measurements. Map columns and units, review criteria,
+run reusable tests, and export plots and reports with their original inputs.
+
+**Start here: [Current product and demo](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/tree/codex/calibration-workflow#analog-validation-studio) · [Two-minute reviewer guide](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/REVIEWER_GUIDE.md) · [Recorded local verification](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/reports/private-github-sync-2026-09-09.md)**
+
+## Current product — September 2026
+
+The implemented, locally verified `0.1.0b1` candidate is on
+`codex/calibration-workflow`. This default `main` branch retains the earlier
+runtime; [PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10)
+is still Draft and unmerged. Use the current-product link above to review or
+install the version described below. The repository remains private and no
+public release is claimed.
+
+| What I built | Why it matters |
+|---|---|
+| Reusable voltage CSV mapping, unit conversion, and preview | Avoid repeating manual file reformatting |
+| Shared Python analysis core behind CLI and Tkinter/ttk GUI | Keep test criteria and numerical conclusions consistent |
+| Saved projects, batch progress, cancellation, and partial-result retention | Repeat tests and recover useful completed work |
+| Automated charts/reports, archived inputs, and verifiable history | Keep each conclusion connected to its data and settings |
+
+The product automates these operations; human time savings and operator-error
+reduction have not been quantified. The linked 2026-09-09 local gate recorded
+**3,048 tests passed and 100% package statement coverage (17,567 statements)**,
+plus Ruff, mypy, dependency checks, and 15 product-quality checks. These are
+software checks, not hardware validation or 100% branch coverage.
+
+## See the current application
+
+![Current Workbench voltage-import preview using synthetic data labeled CSV_REPLAY](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/0f639b707828c2fb2f5484120a34762c9e4dcb2f/media/dashboard-import-workbench-20260909.jpg?raw=true)
+
+Actual Windows desktop capture, 2026-09-09: a synthetic voltage table is mapped
+and checked before import. The `CSV_REPLAY` label is visible.
+[Daylight, Midnight, and capture provenance](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/media/README.md).
+
+## Try the current version
+
+For an authorized reviewer with Python 3.10+ on Windows, use a new clone directory:
+
+~~~powershell
+git clone --branch codex/calibration-workflow --single-branch https://github.com/Carlos-0798/mixed-signal-afe-validation-platform.git avs-review
+cd avs-review
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e .
+.\.venv\Scripts\analog-validation.exe demo --output .\portfolio-demo
+.\.venv\Scripts\analog-validation.exe dashboard
+~~~
+
+Open `portfolio-demo/report/report.html` for the generated metrics, chart, and
+conclusion. The demo creates 12 artifacts from a 24-point `SYNTHETIC` case.
+Use a new output name when rerunning; existing results are not overwritten.
+Installation may download build tools; the demo runs offline without a board.
+[Full instructions and expected results](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/README.md#try-the-software).
+
+## Evidence, status, and scope
+
+Testing is local-first. Maintained branches use
+[manual-only cloud CI](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/LOCAL_TESTING_AND_CI.md);
+ordinary pushes and PR updates do not trigger cloud tests. Historical hosted
+passes do not establish that the latest candidate passed a hosted matrix.
+
+This is an independent personal engineering project. MSP430 Equipment Health
+Controller and OSU Lab Bench Monitor Senior Capstone are separate projects.
+`HOST_TEST`, `SYNTHETIC`, `CSV_REPLAY`, `SPICE_IDEAL`,
+`BENCH_CONTROLLER`, and `BENCH` remain distinct. No AFE hardware-performance
+claim or universal board support is made: **`NO_NEW_HARDWARE_VALIDATION`**.
+
+The current product branch has the owner-selected
+[MIT license](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/LICENSE).
+This earlier main revision retains its [existing license file](LICENSE).
+This page update does not change either license or merge the candidate.
+
+[Current architecture](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/PRODUCT_ARCHITECTURE.md) ·
+[Limitations](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/KNOWN_LIMITATIONS.md) ·
+[Completed scope and next step](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/PROJECT_RESUME_CHECKPOINT_2026-09-09.md)
+
+<details>
+<summary>Earlier main implementation and historical evidence (2026-09-04)</summary>
+
+The following documents the earlier runtime still present on main. Counts,
+screenshots, deferred features, and licensing refer to that checkpoint.
+For the current candidate use the links above. CI is now manual-only even for
+this main branch; the historical hosted results below are not current-run evidence.
+
+# Earlier main baseline
+
 > Controller-neutral software for repeatable analog front-end validation, automated test execution, and evidence-aware reporting.
 
-[![CI](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/actions/workflows/ci.yml)
 
 **Private beta · Python 3.10+ · offline by default · hardware work deferred**
 
@@ -56,7 +144,7 @@ because a source is selected.
 
 The result view separates product completion from engineering outcome and
 shows provenance, excluded points, limitations, and the explicit hardware
-claim. Both images were captured from the current Windows application using
+claim. Both images were captured from the earlier Windows application using
 the Simulator; see the [media evidence register](media/README.md).
 
 ## Why this project exists
@@ -98,7 +186,7 @@ real-time runner deadlines, long-duration physical transport testing, a
 validated configurable AFE, reference-controller output hardware, and v1.0
 publication.
 
-## 60-second software demo
+## Earlier-baseline demo
 
 Requirements: Python 3.10 or later. The primary verified development
 environment uses Python 3.12.
@@ -261,3 +349,5 @@ No open-source license has been selected. All rights are currently reserved by
 the project owner. Public visibility, if later chosen, would make the source
 viewable but would not itself grant permission to reuse, modify, or distribute
 it.
+
+</details>
