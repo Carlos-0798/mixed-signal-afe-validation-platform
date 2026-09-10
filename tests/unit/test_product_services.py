@@ -26,15 +26,21 @@ from analog_validation import (
     TestRunOutcome as RunOutcome,
 )
 from analog_validation.analysis import (
+    CalibrationAcceptanceCriteria,
+    CalibrationFitConfig,
     DCSweepAcceptanceCriteria,
     DCSweepAnalysisConfig,
+    FrequencyResponseAcceptanceCriteria,
+    FrequencyResponseAnalysisConfig,
     HysteresisAcceptanceCriteria,
     HysteresisAnalysisConfig,
 )
 from analog_validation.exports import ResultExportBundle
 from analog_validation.workflows import ReadWorkflowStatus
 from analog_validation_app import (
+    CalibrationJobService,
     DCSweepJobService,
+    FrequencyResponseJobService,
     HysteresisJobService,
     ProductCancellationToken,
     ProductJobExecution,
@@ -51,8 +57,10 @@ from analog_validation_app import (
     ProductWorkerTimeoutError,
     ReadJobService,
     execute_product_job,
+    make_calibration_service_factory,
     make_csv_replay_adapter_factory,
     make_dc_sweep_service_factory,
+    make_frequency_response_service_factory,
     make_hysteresis_service_factory,
     make_read_service_factory,
     make_simulator_adapter_factory,
@@ -115,6 +123,91 @@ def dc_parts(
     )
     analysis = DCSweepAnalysisConfig("afe.ch0.input", "afe.ch0.output", 25, 3275)
     criteria = DCSweepAcceptanceCriteria("service-dc", "1", 2.0, 0.05, 25, 0.999, 1, 3)
+    return workflow, analysis, criteria
+
+
+def calibration_parts(
+    points: int = 6,
+) -> tuple[
+    ReadWorkflowRequest,
+    CalibrationFitConfig,
+    CalibrationAcceptanceCriteria,
+]:
+    workflow = ReadWorkflowRequest(
+        (
+            ChannelReadRequest(
+                "afe.ch0.input",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                points,
+            ),
+            ChannelReadRequest(
+                "afe.ch0.output",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                points,
+            ),
+        )
+    )
+    analysis = CalibrationFitConfig(
+        "afe.ch0.input",
+        "afe.ch0.output",
+        "service-calibration",
+        "1",
+    )
+    criteria = CalibrationAcceptanceCriteria(
+        "service-calibration",
+        "1",
+        1.0,
+        1.0,
+        2.0,
+        0.0,
+        3,
+    )
+    return workflow, analysis, criteria
+
+
+def frequency_parts(
+    points: int = 10,
+) -> tuple[
+    ReadWorkflowRequest,
+    FrequencyResponseAnalysisConfig,
+    FrequencyResponseAcceptanceCriteria,
+]:
+    workflow = ReadWorkflowRequest(
+        (
+            ChannelReadRequest(
+                "afe.ch0.frequency",
+                ReadOperation.ANALOG,
+                MeasurementUnit.HERTZ,
+                points,
+            ),
+            ChannelReadRequest(
+                "afe.ch0.input",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                points,
+            ),
+            ChannelReadRequest(
+                "afe.ch0.output",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                points,
+            ),
+        )
+    )
+    analysis = FrequencyResponseAnalysisConfig(
+        "afe.ch0.frequency",
+        "afe.ch0.input",
+        "afe.ch0.output",
+    )
+    criteria = FrequencyResponseAcceptanceCriteria(
+        "service-frequency-response",
+        "1",
+        1000.0,
+        0.15,
+        points,
+    )
     return workflow, analysis, criteria
 
 
@@ -202,6 +295,29 @@ def test_service_output_and_slot_are_typed_single_publication_contracts() -> Non
         ProductServiceOutput(output.read_result, cast(Any, object()))
     with pytest.raises(ProductRequestError, match="ProductServiceOutput"):
         ProductServiceOutputSlot().publish(cast(Any, object()))
+
+
+def test_service_output_requires_typed_coefficients_and_a_result_export() -> None:
+    workflow, analysis, criteria = calibration_parts()
+    slot = ProductServiceOutputSlot()
+    execution = run_service(
+        product_request(ProductJobType.CALIBRATION_ANALYSIS),
+        make_calibration_service_factory(
+            simulator_factory(), workflow, analysis, criteria, LIMITATIONS, slot
+        ),
+        slot,
+    )
+    assert execution.output is not None
+    coefficients = execution.output.calibration_coefficients
+    assert coefficients is not None
+    with pytest.raises(ProductRequestError, match="LinearCalibrationCoefficients"):
+        ProductServiceOutput(
+            execution.output.read_result,
+            execution.output.result_export,
+            cast(Any, object()),
+        )
+    with pytest.raises(ProductRequestError, match="finalized result export"):
+        ProductServiceOutput(execution.output.read_result, None, coefficients)
 
 
 def test_read_service_completes_through_real_worker_and_progress_chain() -> None:
@@ -605,6 +721,18 @@ def test_execute_product_job_validates_inputs(
         )
 
 
+@pytest.mark.parametrize("keyword", ("cancellation_requested", "report_event"))
+def test_execute_product_job_rejects_noncallable_controls(keyword: str) -> None:
+    arguments = {keyword: object()}
+    with pytest.raises(ProductRequestError, match=keyword):
+        execute_product_job(
+            product_request(ProductJobType.READ),
+            cast(Any, lambda _request: object()),
+            ProductServiceOutputSlot(),
+            **cast(Any, arguments),
+        )
+
+
 def test_execute_product_job_timeout_cancels_and_leaves_no_service_running() -> None:
     request = product_request(ProductJobType.READ)
     stopped = Event()
@@ -632,6 +760,41 @@ def test_execute_product_job_timeout_cancels_and_leaves_no_service_running() -> 
             join_timeout_s=0.02,
         )
     assert stopped.wait(1.0)
+
+
+def test_execute_product_job_accepts_external_cooperative_cancellation() -> None:
+    request = product_request(ProductJobType.READ)
+    stopped = Event()
+    reported: list[Any] = []
+
+    class SlowService:
+        def run(
+            self,
+            request: ProductJobRequest,
+            cancellation: ProductCancellationToken,
+            report_progress: Callable[[str, int | None, int | None], None],
+        ) -> ProductJobResult:
+            while not cancellation.wait(0.001):
+                pass
+            cancellation.raise_if_cancelled()
+            raise AssertionError("unreachable")
+
+        def cleanup(self) -> None:
+            stopped.set()
+
+    execution = execute_product_job(
+        request,
+        lambda _request: SlowService(),
+        ProductServiceOutputSlot(),
+        cancellation_requested=lambda: True,
+        report_event=reported.append,
+    )
+
+    assert execution.worker_state is ProductWorkerState.CANCELLED
+    assert execution.interrupted
+    assert stopped.is_set()
+    assert reported
+    assert reported[-1].state is ProductWorkerState.CANCELLED
 
 
 def test_execute_product_job_turns_keyboard_interrupt_into_cancelled_snapshot(
@@ -884,6 +1047,317 @@ def test_dc_service_rejects_wrong_runtime_job_type() -> None:
             ProductCancellationToken(),
             lambda *_args: None,
         )
+
+
+def test_calibration_service_constructor_and_workflow_shape_fail_closed() -> None:
+    workflow, analysis, criteria = calibration_parts()
+    slot = ProductServiceOutputSlot()
+    base = (
+        SimulatorAdapter(),
+        workflow,
+        analysis,
+        criteria,
+        LIMITATIONS,
+        slot,
+    )
+    invalid_cases = (
+        ((base[0], object(), *base[2:]), "workflow_request"),
+        ((base[0], base[1], object(), *base[3:]), "analysis_config"),
+        ((base[0], base[1], base[2], object(), *base[4:]), "criteria"),
+        ((*base[:-1], object()), "output_slot"),
+    )
+    for values, message in invalid_cases:
+        with pytest.raises(ProductRequestError, match=message):
+            CalibrationJobService(*cast(Any, values))
+    with pytest.raises(ProductRequestError, match="clock"):
+        CalibrationJobService(*base, clock=cast(Any, object()))
+
+    one_channel = read_request()
+    wrong_channels = ReadWorkflowRequest(
+        (
+            ChannelReadRequest(
+                "other.observed",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                6,
+            ),
+            ChannelReadRequest(
+                "other.reference",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                6,
+            ),
+        )
+    )
+    wrong_operation = ReadWorkflowRequest(
+        (
+            ChannelReadRequest(
+                "afe.ch0.input",
+                ReadOperation.DIGITAL,
+                MeasurementUnit.BOOLEAN,
+                6,
+            ),
+            ChannelReadRequest(
+                "afe.ch0.output",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                6,
+            ),
+        )
+    )
+    unequal = ReadWorkflowRequest(
+        (
+            ChannelReadRequest(
+                "afe.ch0.input",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                5,
+            ),
+            ChannelReadRequest(
+                "afe.ch0.output",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                6,
+            ),
+        )
+    )
+    for invalid, message in (
+        (one_channel, "two channel"),
+        (wrong_channels, "match"),
+        (wrong_operation, "analog"),
+        (unequal, "counts"),
+    ):
+        with pytest.raises(ProductRequestError, match=message):
+            CalibrationJobService(
+                SimulatorAdapter(),
+                invalid,
+                analysis,
+                criteria,
+                LIMITATIONS,
+                ProductServiceOutputSlot(),
+            )
+
+
+def test_calibration_service_rejects_wrong_job_and_stops_on_missing_channels() -> None:
+    workflow, analysis, criteria = calibration_parts()
+    service = CalibrationJobService(
+        SimulatorAdapter(),
+        workflow,
+        analysis,
+        criteria,
+        LIMITATIONS,
+        ProductServiceOutputSlot(),
+    )
+    with pytest.raises(ProductRequestError, match="CALIBRATION_ANALYSIS"):
+        service.run(
+            product_request(ProductJobType.READ),
+            ProductCancellationToken(),
+            lambda *_args: None,
+        )
+
+    missing_workflow = ReadWorkflowRequest(
+        (
+            ChannelReadRequest(
+                "missing.observed",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                3,
+            ),
+            ChannelReadRequest(
+                "missing.reference",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                3,
+            ),
+        )
+    )
+    missing_analysis = CalibrationFitConfig(
+        "missing.observed",
+        "missing.reference",
+        "missing-calibration",
+        "1",
+    )
+    slot = ProductServiceOutputSlot()
+    execution = run_service(
+        product_request(ProductJobType.CALIBRATION_ANALYSIS),
+        make_calibration_service_factory(
+            simulator_factory(),
+            missing_workflow,
+            missing_analysis,
+            criteria,
+            LIMITATIONS,
+            slot,
+        ),
+        slot,
+    )
+    assert execution.result is not None
+    assert execution.result.status is ProductResultStatus.UNSUPPORTED
+    assert execution.output is not None
+    assert execution.output.result_export is None
+    assert execution.output.calibration_coefficients is None
+
+
+def test_frequency_service_constructor_and_workflow_shape_fail_closed() -> None:
+    workflow, analysis, criteria = frequency_parts()
+    slot = ProductServiceOutputSlot()
+    base = (
+        SimulatorAdapter(),
+        workflow,
+        analysis,
+        criteria,
+        LIMITATIONS,
+        slot,
+    )
+    invalid_cases = (
+        ((base[0], object(), *base[2:]), "workflow_request"),
+        ((base[0], base[1], object(), *base[3:]), "analysis_config"),
+        ((base[0], base[1], base[2], object(), *base[4:]), "criteria"),
+        ((*base[:-1], object()), "output_slot"),
+    )
+    for values, message in invalid_cases:
+        with pytest.raises(ProductRequestError, match=message):
+            FrequencyResponseJobService(*cast(Any, values))
+    with pytest.raises(ProductRequestError, match="clock"):
+        FrequencyResponseJobService(*base, clock=cast(Any, object()))
+
+    one_channel = read_request()
+    wrong_channels = ReadWorkflowRequest(
+        (
+            ChannelReadRequest(
+                "other.frequency",
+                ReadOperation.ANALOG,
+                MeasurementUnit.HERTZ,
+                10,
+            ),
+            *workflow.requirements[1:],
+        )
+    )
+    wrong_operation = ReadWorkflowRequest(
+        (
+            workflow.requirements[0],
+            ChannelReadRequest(
+                "afe.ch0.input",
+                ReadOperation.DIGITAL,
+                MeasurementUnit.BOOLEAN,
+                10,
+            ),
+            workflow.requirements[2],
+        )
+    )
+    wrong_frequency_unit = ReadWorkflowRequest(
+        (
+            ChannelReadRequest(
+                "afe.ch0.frequency",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                10,
+            ),
+            *workflow.requirements[1:],
+        )
+    )
+    wrong_amplitude_unit = ReadWorkflowRequest(
+        (
+            workflow.requirements[0],
+            ChannelReadRequest(
+                "afe.ch0.input",
+                ReadOperation.ANALOG,
+                MeasurementUnit.VOLT,
+                10,
+            ),
+            workflow.requirements[2],
+        )
+    )
+    unequal_counts = ReadWorkflowRequest(
+        (
+            *workflow.requirements[:2],
+            ChannelReadRequest(
+                "afe.ch0.output",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                11,
+            ),
+        )
+    )
+    for invalid, message in (
+        (one_channel, "three channel"),
+        (wrong_channels, "match"),
+        (wrong_operation, "analog reads"),
+        (wrong_frequency_unit, "frequency unit"),
+        (wrong_amplitude_unit, "amplitude units"),
+        (unequal_counts, "counts"),
+    ):
+        with pytest.raises(ProductRequestError, match=message):
+            FrequencyResponseJobService(
+                SimulatorAdapter(),
+                invalid,
+                analysis,
+                criteria,
+                LIMITATIONS,
+                ProductServiceOutputSlot(),
+            )
+
+
+def test_frequency_service_rejects_wrong_job_and_stops_on_missing_channels() -> None:
+    workflow, analysis, criteria = frequency_parts()
+    service = FrequencyResponseJobService(
+        SimulatorAdapter(),
+        workflow,
+        analysis,
+        criteria,
+        LIMITATIONS,
+        ProductServiceOutputSlot(),
+    )
+    with pytest.raises(ProductRequestError, match="FREQUENCY_RESPONSE_ANALYSIS"):
+        service.run(
+            product_request(ProductJobType.READ),
+            ProductCancellationToken(),
+            lambda *_args: None,
+        )
+
+    missing_workflow = ReadWorkflowRequest(
+        (
+            ChannelReadRequest(
+                "missing.frequency",
+                ReadOperation.ANALOG,
+                MeasurementUnit.HERTZ,
+                10,
+            ),
+            ChannelReadRequest(
+                "missing.input",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                10,
+            ),
+            ChannelReadRequest(
+                "missing.output",
+                ReadOperation.ANALOG,
+                MeasurementUnit.MILLIVOLT,
+                10,
+            ),
+        )
+    )
+    missing_analysis = FrequencyResponseAnalysisConfig(
+        "missing.frequency",
+        "missing.input",
+        "missing.output",
+    )
+    slot = ProductServiceOutputSlot()
+    execution = run_service(
+        product_request(ProductJobType.FREQUENCY_RESPONSE_ANALYSIS),
+        make_frequency_response_service_factory(
+            simulator_factory(),
+            missing_workflow,
+            missing_analysis,
+            criteria,
+            LIMITATIONS,
+            slot,
+        ),
+        slot,
+    )
+    assert execution.result is not None
+    assert execution.result.status is ProductResultStatus.UNSUPPORTED
+    assert execution.output is not None
+    assert execution.output.result_export is None
 
 
 def test_hysteresis_service_constructor_and_workflow_shape_fail_closed() -> None:

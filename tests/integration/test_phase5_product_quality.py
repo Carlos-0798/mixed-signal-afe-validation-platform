@@ -28,6 +28,13 @@ def test_ten_thousand_record_and_event_acceptance_is_bounded() -> None:
     assert events["dropped_events"] > 0
     assert events["cleanup_complete"] is True
     assert events["worker_state"] == "SUCCEEDED"
+    live = document["measurements"]["live_monitor"]
+    assert live["requested_points"] == live["total_points"] == 10_000
+    assert live["retained_points"] == live["retained_limit"] == 2_048
+    assert live["evicted_points"] == 7_952
+    assert live["valid_points"] == 10_000
+    assert live["suspect_points"] == live["invalid_points"] == 0
+    assert 0 < live["visible_points"] <= live["retained_points"]
 
 
 def test_demo_runtime_does_not_request_a_network_socket(

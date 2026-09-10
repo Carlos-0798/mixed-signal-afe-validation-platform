@@ -6,6 +6,13 @@ This 20–30 minute session checks whether a new user can install and understand
 Analog Validation Studio without repository knowledge or hardware. It tests the
 delivered software experience, not analog performance.
 
+This installation/demo session does not measure time saved over manual work.
+The next engineering-value evaluation uses the separate
+[task-value protocol](TASK_VALUE_VALIDATION_PLAN.md): the same DC task, inputs,
+criteria and deliverables for a manual/template baseline and AVS. Record setup,
+data conversion, report preparation and actual operator time independently;
+human measurements remain NOT_RUN until a person performs the task.
+
 Use the matching [installation guide](INSTALLATION.md),
 [checklist](BETA_TEST_CHECKLIST.md), [known limitations](KNOWN_LIMITATIONS.md),
 and [troubleshooting guide](TROUBLESHOOTING.md).
@@ -101,6 +108,95 @@ Finally, select JSON but manually enter a `.csv` path; the app must explain the
 suffix mismatch and create no file. Do not select Serial.
 Record `NOT_RUN` when no suitable display exists; never convert a skipped GUI
 test into PASS.
+
+### 6. Calibration product check
+
+Use Simulator, choose **Calibration analysis**, keep the default observed and
+reference channels, set 8 points, review, and run. Expected:
+
+- worker state is `SUCCEEDED` and engineering outcome is `PASS`;
+- evidence remains `SYNTHETIC`; the Dashboard/report says
+  `NO_NEW_HARDWARE_VALIDATION`, while the execution CLI JSON retains its frozen
+  `NO_PERFORMANCE_VALIDATION` wording. Both explicitly deny physical proof;
+- the finalized metrics show `scale = 2`, `offset = 12 mV`, and zero
+  after-calibration error for the deterministic default model;
+- the result table preserves both observed/reference lineage and shows copied
+  before/after signed errors;
+- **Choose new coefficient file...** and **Save coefficients** create one new
+  `.json` file, while selecting the same existing file again is rejected;
+- **Choose existing coefficient file...** and **Load & validate** identify the
+  coefficient ID/version and explicitly say the file was not applied or rerun;
+- saving the analysis result remains a separate action and neither output is
+  silently overwritten.
+
+The same host-only check can be run from PowerShell:
+
+```powershell
+& $Cli simulate calibration `
+  --points 8 `
+  --output (Join-Path $TestRoot "calibration-result.json") `
+  --coefficients-output (Join-Path $TestRoot "calibration-coefficients.json") `
+  --json
+
+& $Cli coefficients inspect `
+  --input (Join-Path $TestRoot "calibration-coefficients.json") `
+  --json
+```
+
+Do not describe this deterministic mapping as DMM/ADC calibration evidence.
+
+### 7. Frequency-response product check
+
+Use Simulator, choose **Frequency response analysis**, keep the default
+frequency/input/output-amplitude channels, set 21 points, review, and run.
+Expected:
+
+- worker state is `SUCCEEDED` and engineering outcome is `PASS`;
+- evidence remains `SYNTHETIC`; the Dashboard/report says
+  `NO_NEW_HARDWARE_VALIDATION`, while the execution CLI JSON retains its frozen
+  `NO_PERFORMANCE_VALIDATION` wording. Both explicitly deny physical proof;
+- the deterministic default model and independent acceptance target are both
+  1000 Hz, so the estimated cutoff is 1000 Hz;
+- each finalized point preserves frequency, input-amplitude, and
+  output-amplitude lineage;
+- the result report shows magnitude in dB on a logarithmic frequency axis and
+  marks the copied target drop and estimated cutoff;
+- saving JSON/CSV or a report still uses create-new behavior and never opens a
+  serial port or controls a waveform source.
+
+The same host-only check can be run from PowerShell:
+
+```powershell
+& $Cli simulate frequency `
+  --points 21 `
+  --simulated-cutoff-hz 1000 `
+  --target-cutoff-hz 1000 `
+  --output (Join-Path $TestRoot "frequency-result.json") `
+  --json
+
+& $Cli report `
+  --input (Join-Path $TestRoot "frequency-result.json") `
+  --output (Join-Path $TestRoot "frequency-report") `
+  --json
+```
+
+As an optional negative acceptance check, use a 2000 Hz simulated model but
+keep the target at 1000 Hz with 5% tolerance:
+
+```powershell
+& $Cli simulate frequency `
+  --points 21 `
+  --simulated-cutoff-hz 2000 `
+  --target-cutoff-hz 1000 `
+  --cutoff-relative-tolerance 0.05 `
+  --json
+```
+
+Expected exit code is `1` with engineering `FAIL`, not an application error or
+traceback. The current deterministic estimate is about 1948.015 Hz because it
+is interpolated from the bounded log-frequency sample grid. Neither the PASS
+nor deliberate FAIL is a measured Bode sweep, phase response, physical
+bandwidth, signal-generator result, or oscilloscope result.
 
 ## Optional Replay check
 

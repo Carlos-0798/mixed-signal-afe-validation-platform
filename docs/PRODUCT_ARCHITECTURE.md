@@ -1,6 +1,40 @@
-# 独立产品架构
+# Analog Validation Studio 与未来参考硬件架构
 
-状态日期：2026-08-29
+状态日期：2026-09-08
+
+## 当前软件交付架构
+
+当前交付物是独立、控制器中立的 Analog Validation Studio 软件。
+AFE 和参考控制器是未来可接入对象，硬件建成、采购和公开发布均不是
+当前软件任务收益验收的前提。主任务和优先级以
+[产品规划第 2.5 节](PRODUCT_PLAN.md#25-当前主任务与价值验收)及
+[任务收益验证方案](TASK_VALUE_VALIDATION_PLAN.md)为准。
+
+```text
+Simulator / strict CSV Replay / explicitly reviewed receive-only Serial
+                         |
+              adapter + capability boundary
+                         |
+              shared workflow / worker / analysis
+                         |
+       finalized results + configuration + evidence identity
+                         |
+              CLI / Dashboard / reports / history
+```
+
+CLI 和 Dashboard 复用工作流；报告只呈现既有结论。当前离线项目只持久化
+Simulator/CSV Replay 设置，不能携带串口权限。普通仪器 CSV 的转换成本需实测，
+严格内部格式不代表任意 CSV 即插即用。批次保存结果 JSON、系数和 manifest；
+人类报告另有生成路径，完整批次报告编排尚非现有承诺。
+
+软件已有引用链和结果完整性检查，完整 READ/LIVE 原始观察归档仍待实现；
+SHA-256 不能认证作者。近期先验证重复 DC 任务的操作收益，不新增平行分析核心。
+
+## 未来硬件参考架构的适用范围
+
+下面第 1–8 节保留 AFE 硬件路线及接口设计。其“核心”“必须”和独立性
+验收只适用于未来 AFE 参考产品，不是 AVS 当前软件的完成条件。
+原始 `DEVELOPMENT_SPEC.md` 保留用于追溯；下列未来 profile 不表示已经实现。
 
 ## 1. 产品身份
 
@@ -23,7 +57,7 @@ Schmitt/物理配置              USB/UART/I2C/SPI                     协议与
 
 ## 2. AFE Base Unit：没有MCU也必须工作
 
-这是产品最核心、最稳定的一层。断开所有MCU和电脑后，它仍必须能够：
+这是未来 AFE 参考产品的模拟核心。断开所有MCU和电脑后，它仍必须能够：
 
 - 接受安全范围内的0-3.3 V模拟输入；
 - 提供输入保护和缓冲；
@@ -63,6 +97,21 @@ DeviceAdapter
 │   └── MSP430 compatibility profile
 └── FutureInstrumentAdapter
 ```
+
+设备/分析层之上还有独立的本地测试管理边界：
+
+```text
+ValidationProject -> ValidationPreset -> reviewed product workflow
+       |
+       +-> create-new run directory
+             +-> exact project snapshot + configuration hashes
+             +-> finalized result/coefficient artifacts
+             +-> verified run manifest -> history / pure comparison
+```
+
+项目文件只允许 Simulator/CSV Replay，不能保存串口或硬件权限。历史比较只读取
+已完成结果，不重新计算 PASS/FAIL；已实现的 Dashboard 项目页面调用同一公开 API，
+不能再实现一套平行的存储或比较逻辑。
 
 分析代码不得直接调用某块板的寄存器名、COM端口号或专用SDK。板级差异封装在adapter和capability描述中，例如：
 

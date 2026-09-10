@@ -35,9 +35,7 @@ def _bounded_identity_text(name: str, value: object) -> str:
             f"{name} exceeds {MAX_PROFILE_IDENTITY_CHARS} characters"
         )
     if any(not character.isprintable() or character in "\r\n" for character in value):
-        raise SerialProfileStateError(
-            f"{name} must contain printable single-line text"
-        )
+        raise SerialProfileStateError(f"{name} must contain printable single-line text")
     return value
 
 
@@ -51,9 +49,7 @@ def _bounded_integer(
     if isinstance(value, bool) or not isinstance(value, int):
         raise SerialProfileStateError(f"{name} must be an integer")
     if not minimum <= value <= maximum:
-        raise SerialProfileStateError(
-            f"{name} must be between {minimum} and {maximum}"
-        )
+        raise SerialProfileStateError(f"{name} must be between {minimum} and {maximum}")
     return value
 
 
@@ -133,7 +129,11 @@ class SerialProfileRecord(Generic[MessageT]):
                 raise SerialProfileStateError(
                     "parsed serial profile result requires a message"
                 )
-        elif self.message is not None or self.measurements or self.capabilities is not None:
+        elif (
+            self.message is not None
+            or self.measurements
+            or self.capabilities is not None
+        ):
             raise SerialProfileStateError(
                 "rejected serial profile result cannot contain derived data"
             )

@@ -1,22 +1,42 @@
 from __future__ import annotations
 
+import sys
+from dataclasses import replace
 from pathlib import Path
 from typing import Any, cast
 
 import pytest
 
+from analog_validation import (
+    EvidenceSource,
+    MeasurementStatus,
+    MeasurementUnit,
+)
+from analog_validation import (
+    TestRunOutcome as RunOutcome,
+)
 from analog_validation.exports import load_result_export_json
 from analog_validation_app import (
     HumanReportPublication,
     ProductRequestError,
+    ProductResultStatus,
     ReportArtifact,
     UserIssue,
     UserIssueCode,
     UserIssueSeverity,
     build_human_report_view,
 )
-from analog_validation_app.dashboard import DashboardPresenter, initial_dashboard_state
+from analog_validation_app.dashboard import (
+    DashboardLivePanel,
+    DashboardLivePoint,
+    DashboardPresenter,
+    DashboardResultPanel,
+    initial_dashboard_state,
+)
 from analog_validation_app.dashboard.widgets import (
+    _render_live_chart,
+    _result_decision_text,
+    _windows_high_contrast_enabled,
     configure_dashboard_style,
     create_dashboard_widgets,
 )
@@ -100,6 +120,11 @@ class FakeRoot(FakeWidget):
         super().__init__()
         self.window_title = ""
         self.minimum = (0, 0)
+        self._avs_high_contrast = False
+        self.options: dict[str, str] = {}
+
+    def option_add(self, pattern: str, value: str) -> None:
+        self.options[pattern] = value
 
     def title(self, value: str) -> None:
         self.window_title = value
@@ -134,7 +159,8 @@ def test_optional_style_supports_legacy_factories_and_fails_open() -> None:
     class LegacyStyle:
         def __init__(self) -> None:
             self.selected_theme = ""
-            self.configured: list[str] = []
+            self.configured: dict[str, dict[str, object]] = {}
+            self.mapped: dict[str, dict[str, object]] = {}
 
         def theme_names(self) -> tuple[str, ...]:
             return ("default", "clam")
@@ -143,10 +169,10 @@ def test_optional_style_supports_legacy_factories_and_fails_open() -> None:
             self.selected_theme = value
 
         def configure(self, name: str, **kwargs: object) -> None:
-            self.configured.append(name)
+            self.configured[name] = dict(kwargs)
 
         def map(self, name: str, **kwargs: object) -> None:
-            return None
+            self.mapped[name] = dict(kwargs)
 
     class LegacyTtk:
         def __init__(self, style: LegacyStyle) -> None:
@@ -169,7 +195,15 @@ def test_optional_style_supports_legacy_factories_and_fails_open() -> None:
     assert ttk.calls[1] == ()
     assert style.selected_theme == "clam"
     assert "Primary.TButton" in style.configured
-    assert root.config["background"] == "#f4f7fb"
+    assert style.configured["App.TFrame"]["background"] == "#22262d"
+    assert style.configured["Modern.Treeview"]["rowheight"] == 30
+    assert style.configured["TEntry"]["fieldbackground"] == "#353c46"
+    assert style.configured["Accent.Horizontal.TProgressbar"]["background"] == (
+        "#a9cafa"
+    )
+    assert "Modern.Treeview" in style.mapped
+    assert root.config["background"] == "#22262d"
+    assert root.options["*TCombobox*Listbox.foreground"] == "#f2f4f7"
 
     class BrokenTtk:
         @staticmethod
@@ -177,6 +211,102 @@ def test_optional_style_supports_legacy_factories_and_fails_open() -> None:
             raise RuntimeError("optional styling is unavailable")
 
     configure_dashboard_style(root, BrokenTtk())
+
+
+def test_high_contrast_style_uses_windows_system_colors() -> None:
+    class RecordingStyle:
+        def __init__(self) -> None:
+            self.configured: dict[str, dict[str, object]] = {}
+            self.mapped: dict[str, dict[str, object]] = {}
+
+        @staticmethod
+        def theme_names() -> tuple[str, ...]:
+            return ("clam",)
+
+        @staticmethod
+        def theme_use(_value: str) -> None:
+            return None
+
+        def configure(self, name: str, **kwargs: object) -> None:
+            self.configured[name] = dict(kwargs)
+
+        def map(self, name: str, **kwargs: object) -> None:
+            self.mapped[name] = dict(kwargs)
+
+    style = RecordingStyle()
+
+    class RecordingTtk:
+        @staticmethod
+        def Style(*_args: object) -> RecordingStyle:
+            return style
+
+    root = FakeRoot()
+    configure_dashboard_style(root, RecordingTtk(), high_contrast=True)
+
+    assert style.configured["."]["background"] == "SystemWindow"
+    assert style.configured["."]["foreground"] == "SystemWindowText"
+    assert style.configured["Primary.TButton"]["background"] == "SystemHighlight"
+    assert style.configured["Primary.TButton"]["foreground"] == ("SystemHighlightText")
+    assert style.configured["Card.TLabelframe"]["borderwidth"] == 2
+    assert style.configured["Invalid.TEntry"]["borderwidth"] == 3
+    assert style.mapped["Modern.Treeview"]["background"] == [
+        ("selected", "SystemHighlight")
+    ]
+    assert root.config["background"] == "SystemWindow"
+    assert root._avs_high_contrast is True
+    assert root.options["*TCombobox*Listbox.foreground"] == "SystemWindowText"
+
+    class RigidRoot:
+        __slots__ = ("config",)
+
+        def __init__(self) -> None:
+            self.config: dict[str, object] = {}
+
+        def configure(self, **kwargs: object) -> None:
+            self.config.update(kwargs)
+
+    rigid_root = RigidRoot()
+    configure_dashboard_style(rigid_root, RecordingTtk(), high_contrast=False)
+    assert rigid_root.config["background"] == "#22262d"
+
+
+def test_high_contrast_detection_reads_enabled_bit_and_fails_closed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import analog_validation_app.dashboard.widgets as widget_module
+
+    class Key:
+        def __enter__(self) -> object:
+            return object()
+
+        def __exit__(self, *_args: object) -> None:
+            return None
+
+    class Registry:
+        HKEY_CURRENT_USER = object()
+
+        @staticmethod
+        def OpenKey(*_args: object) -> Key:
+            return Key()
+
+        @staticmethod
+        def QueryValueEx(*_args: object) -> tuple[str, int]:
+            return ("127", 1)
+
+    monkeypatch.setattr(widget_module.sys, "platform", "win32")
+    monkeypatch.setitem(sys.modules, "winreg", Registry())
+    assert _windows_high_contrast_enabled() is True
+
+    class BrokenRegistry(Registry):
+        @staticmethod
+        def QueryValueEx(*_args: object) -> tuple[str, int]:
+            raise OSError("registry unavailable")
+
+    monkeypatch.setitem(sys.modules, "winreg", BrokenRegistry())
+    assert _windows_high_contrast_enabled() is False
+
+    monkeypatch.setattr(widget_module.sys, "platform", "linux")
+    assert _windows_high_contrast_enabled() is False
 
 
 def issue() -> UserIssue:
@@ -212,9 +342,7 @@ def test_widget_builder_creates_six_text_regions_without_business_actions() -> N
         "values",
     }
     scrollbars = [
-        widget
-        for widget in ttk.created
-        if widget.kwargs.get("orient") == "vertical"
+        widget for widget in ttk.created if widget.kwargs.get("orient") == "vertical"
     ]
     assert len(scrollbars) == 1
     scrollbar = scrollbars[0]
@@ -250,6 +378,16 @@ def test_widget_builder_rejects_missing_toolkit_or_callbacks(
             on_close=cast(Any, close),
         )
 
+    with pytest.raises(ProductRequestError, match="on_pause"):
+        create_dashboard_widgets(
+            FakeRoot(),
+            FakeTk(),
+            FakeTtk(),
+            on_cancel=lambda: None,
+            on_close=lambda: None,
+            on_pause=cast(Any, object()),
+        )
+
 
 def test_render_uses_text_for_state_evidence_and_disables_idle_cancel() -> None:
     widgets = create_dashboard_widgets(
@@ -268,11 +406,245 @@ def test_render_uses_text_for_state_evidence_and_disables_idle_cancel() -> None:
     assert "State: IDLE" in widgets.progress_value.value
     assert widgets.progress_bar.config == {"maximum": 1, "value": 0}
     assert widgets.cancel_button.config["state"] == "disabled"
-    assert "NO_NEW_HARDWARE_VALIDATION" in widgets.result_value.value
+    assert widgets.pause_button.config["state"] == "disabled"
+    assert widgets.resume_button.config["state"] == "disabled"
+    assert "Memory eviction is not a transport/event drop" in widgets.live_value.value
+    assert "NO ENGINEERING DECISION" in widgets.decision_value.value
+    assert "NO_NEW_HARDWARE_VALIDATION" in widgets.decision_value.value
+    assert "No finalized product result" in widgets.result_value.value
     assert widgets.plot_table.rows == {}
 
     with pytest.raises(ProductRequestError, match="DashboardState"):
         widgets.render(cast(Any, object()))
+
+
+@pytest.mark.parametrize(
+    ("status", "outcome", "evidence", "expected"),
+    [
+        (
+            ProductResultStatus.COMPLETED,
+            RunOutcome.PASS,
+            EvidenceSource.SYNTHETIC,
+            ("PASS — reviewed criteria passed", "simulator-generated data only"),
+        ),
+        (
+            ProductResultStatus.COMPLETED,
+            None,
+            EvidenceSource.CSV_REPLAY,
+            ("NO ENGINEERING DECISION", "historical local-file evidence"),
+        ),
+        (
+            ProductResultStatus.INCOMPLETE,
+            RunOutcome.INCOMPLETE,
+            EvidenceSource.HOST_TEST,
+            ("INCOMPLETE", "host-side test evidence"),
+        ),
+        (
+            ProductResultStatus.UNSUPPORTED,
+            RunOutcome.UNSUPPORTED,
+            EvidenceSource.SPICE_IDEAL,
+            ("UNSUPPORTED", "ideal circuit-simulation evidence"),
+        ),
+        (
+            ProductResultStatus.CANCELLED,
+            RunOutcome.ABORTED,
+            EvidenceSource.BENCH_CONTROLLER,
+            ("CANCELLED", "controller-side bench evidence"),
+        ),
+        (
+            ProductResultStatus.ERROR,
+            RunOutcome.ERROR,
+            EvidenceSource.BENCH_DMM,
+            ("ERROR", "DMM bench evidence"),
+        ),
+        (
+            ProductResultStatus.COMPLETED,
+            RunOutcome.FAIL,
+            EvidenceSource.BENCH_SCOPE,
+            ("FAIL — reviewed criteria failed", "scope bench evidence"),
+        ),
+        (
+            ProductResultStatus.COMPLETED,
+            RunOutcome.PASS,
+            EvidenceSource.SPICE_MODEL,
+            ("PASS — reviewed criteria passed", "modeled circuit-simulation evidence"),
+        ),
+        (
+            ProductResultStatus.COMPLETED,
+            RunOutcome.PASS,
+            EvidenceSource.THEORY,
+            ("PASS — reviewed criteria passed", "theoretical evidence"),
+        ),
+    ],
+)
+def test_result_decision_summary_keeps_status_outcome_and_evidence_distinct(
+    status: ProductResultStatus,
+    outcome: RunOutcome | None,
+    evidence: EvidenceSource,
+    expected: tuple[str, str],
+) -> None:
+    base = initial_dashboard_state()
+    result = DashboardResultPanel(
+        status,
+        outcome,
+        evidence,
+        "Final result summary.",
+        ("One limitation.",),
+        ("Physical AFE performance.",),
+    )
+
+    text = _result_decision_text(replace(base, result=result))
+
+    assert expected[0] in text
+    assert expected[1] in text
+    assert "Claim boundary: NO_NEW_HARDWARE_VALIDATION" in text
+    assert "Not verified: Physical AFE performance." in text
+
+
+def test_live_chart_draws_analog_and_boolean_traces_without_analysis() -> None:
+    class ChartCanvas:
+        def __init__(self) -> None:
+            self.deleted: list[object] = []
+            self.lines: list[tuple[tuple[object, ...], dict[str, object]]] = []
+            self.text: list[dict[str, object]] = []
+
+        def delete(self, value: object) -> None:
+            self.deleted.append(value)
+
+        def create_line(self, *values: object, **kwargs: object) -> None:
+            self.lines.append((values, dict(kwargs)))
+
+        def create_text(self, *values: object, **kwargs: object) -> None:
+            self.text.append(dict(kwargs))
+
+        def winfo_width(self) -> int:
+            return 640
+
+        def winfo_height(self) -> int:
+            return 220
+
+    points = (
+        DashboardLivePoint(
+            1,
+            0,
+            0.0,
+            "afe.ch0.input",
+            100.0,
+            MeasurementUnit.MILLIVOLT,
+            MeasurementStatus.VALID,
+        ),
+        DashboardLivePoint(
+            2,
+            1,
+            1.0,
+            "afe.ch0.input",
+            200.0,
+            MeasurementUnit.MILLIVOLT,
+            MeasurementStatus.VALID,
+        ),
+        DashboardLivePoint(
+            3,
+            1,
+            1.0,
+            "afe.ch0.threshold",
+            1.0,
+            MeasurementUnit.BOOLEAN,
+            MeasurementStatus.VALID,
+        ),
+    )
+    panel = DashboardLivePanel(
+        False,
+        False,
+        False,
+        False,
+        "Live monitor finished.",
+        points,
+        3,
+        3,
+        0,
+        3,
+        0,
+        0,
+        0,
+        5.0,
+    )
+    canvas = ChartCanvas()
+
+    _render_live_chart(canvas, panel)
+
+    assert canvas.deleted == ["all"]
+    assert len(canvas.lines) >= 3
+    labels = {str(item.get("text")) for item in canvas.text}
+    assert "afe.ch0.input (mV)" in labels
+    assert "afe.ch0.threshold (bool)" in labels
+
+
+def test_live_chart_handles_empty_and_single_constant_series_with_fallback_size() -> (
+    None
+):
+    class MinimalCanvas:
+        def __init__(self) -> None:
+            self.lines: list[tuple[object, ...]] = []
+            self.text: list[str] = []
+
+        def delete(self, value: object) -> None:
+            assert value == "all"
+
+        def create_line(self, *values: object, **kwargs: object) -> None:
+            self.lines.append(values)
+
+        def create_text(self, *values: object, **kwargs: object) -> None:
+            self.text.append(str(kwargs.get("text")))
+
+    empty = DashboardLivePanel(
+        False,
+        False,
+        False,
+        False,
+        "Live monitor has no points.",
+        (),
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        5.0,
+    )
+    empty_canvas = MinimalCanvas()
+    _render_live_chart(empty_canvas, empty)
+    assert "No live samples in the selected time window." in empty_canvas.text
+
+    point = DashboardLivePoint(
+        1,
+        0,
+        0.0,
+        "afe.ch0.input",
+        100.0,
+        MeasurementUnit.MILLIVOLT,
+        MeasurementStatus.VALID,
+    )
+    single = DashboardLivePanel(
+        False,
+        False,
+        False,
+        False,
+        "Live monitor finished.",
+        (point,),
+        1,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        5.0,
+    )
+    single_canvas = MinimalCanvas()
+    _render_live_chart(single_canvas, single)
+    assert len(single_canvas.lines) >= 2
+    assert "afe.ch0.input (mV)" in single_canvas.text
 
 
 def test_render_copies_report_rows_artifacts_and_structured_issue() -> None:
@@ -299,7 +671,9 @@ def test_render_copies_report_rows_artifacts_and_structured_issue() -> None:
     assert first_rows
     assert widgets.plot_table.rows == first_rows
     assert len(widgets.plot_table.rows) == len(view.points)
-    assert "Engineering outcome: PASS" in widgets.result_value.value
+    assert "Engineering decision: PASS" in widgets.decision_value.value
+    assert "SYNTHETIC" in widgets.decision_value.value
+    assert "Follow the safe next step" in widgets.decision_value.value
     assert "Issue: OPERATION_FAILED" in widgets.result_value.value
     assert "Possible cause" in widgets.result_value.value
     assert "report.txt" in widgets.artifacts_value.value

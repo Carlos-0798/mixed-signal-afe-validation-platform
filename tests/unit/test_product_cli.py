@@ -12,9 +12,23 @@ from typing import Any, cast
 import pytest
 
 import analog_validation_app.cli as cli_module
-from analog_validation import EvidenceSource, __version__
+from analog_validation import (
+    DeviceCommand,
+    EvidenceSource,
+    MeasurementUnit,
+    __version__,
+)
 from analog_validation import TestRunOutcome as RunOutcome
+from analog_validation.protocol import (
+    AfeCapabilityChannel,
+    AfeCapabilityDevice,
+    AfeCapabilityEnd,
+    AfeTelemetry,
+    CapabilityChannelKind,
+    encode_afe_message,
+)
 from analog_validation.protocol.msp430_health_v1 import (
+    MSP430_HEALTH_CHANNEL_BUS_VOLTAGE,
     MSP430_HEALTH_CHANNEL_TEMPERATURE_DS,
     Msp430DeviceState,
     Msp430Telemetry,
@@ -64,6 +78,42 @@ def dependencies(
     )
 
 
+def afe_dual_capabilities(device_id: str = "afe-cli-dual") -> bytes:
+    return "".join(
+        encode_afe_message(message)
+        for message in (
+            AfeCapabilityDevice(
+                9,
+                device_id,
+                frozenset({DeviceCommand.READ_MEASUREMENT}),
+            ),
+            AfeCapabilityChannel(
+                9,
+                CapabilityChannelKind.ADC,
+                0,
+                0,
+                3300,
+                MeasurementUnit.MILLIVOLT,
+            ),
+            AfeCapabilityChannel(
+                9,
+                CapabilityChannelKind.ADC,
+                1,
+                0,
+                3300,
+                MeasurementUnit.MILLIVOLT,
+            ),
+            AfeCapabilityEnd(9, 2),
+        )
+    ).encode("ascii")
+
+
+def afe_telemetry(sequence: int, input_mv: int) -> bytes:
+    return encode_afe_message(
+        AfeTelemetry(sequence, sequence * 10, 0, input_mv, input_mv * 2, 2000, 0, 0)
+    ).encode("ascii")
+
+
 def test_cli_parser_has_one_product_name_and_stable_step3_commands() -> None:
     parser = build_parser()
 
@@ -79,12 +129,16 @@ def test_cli_parser_has_one_product_name_and_stable_step3_commands() -> None:
         "version",
         "profiles",
         "ports",
+        "coefficients",
         "simulate",
         "replay",
+        "serial",
         "observe",
+        "project",
         "report",
         "demo",
         "dashboard",
+        "import-csv",
     )
 
 
@@ -546,6 +600,339 @@ def test_observe_msp430_memory_stream_is_bounded_receive_only() -> None:
     assert not hasattr(backend, "write_calls")
 
 
+def test_serial_monitor_requires_confirmation_before_backend_construction() -> None:
+    backend = MemorySerialBackend()
+    errors = io.StringIO()
+
+    assert (
+        main(
+            [
+                "serial",
+                "monitor",
+                "--port",
+                "MEMORY:MSP",
+                "--profile",
+                "msp430-equipment-health",
+                "--primary-channel",
+                MSP430_HEALTH_CHANNEL_BUS_VOLTAGE,
+            ],
+            stderr=errors,
+            dependencies=dependencies(backend),
+        )
+        == CLI_USAGE_EXIT_CODE
+    )
+    assert "confirm-read-only" in errors.getvalue()
+    assert backend.open_calls == []
+    assert backend.read_calls == []
+
+
+def test_serial_command_requires_a_monitor_workflow_before_backend_construction() -> None:
+    backend = MemorySerialBackend()
+    errors = io.StringIO()
+
+    assert (
+        main(
+            ["serial"],
+            stderr=errors,
+            dependencies=dependencies(backend),
+        )
+        == CLI_USAGE_EXIT_CODE
+    )
+    assert "serial requires a WORKFLOW" in errors.getvalue()
+    assert backend.open_calls == []
+    assert backend.read_calls == []
+
+
+def test_serial_monitor_requires_an_exact_primary_channel_before_backend_construction() -> None:
+    backend = MemorySerialBackend()
+    errors = io.StringIO()
+
+    assert (
+        main(
+            [
+                "serial",
+                "monitor",
+                "--port",
+                "MEMORY:MSP",
+                "--profile",
+                "msp430-equipment-health",
+                "--confirm-read-only",
+            ],
+            stderr=errors,
+            dependencies=dependencies(backend),
+        )
+        == CLI_USAGE_EXIT_CODE
+    )
+    assert "--primary-channel" in errors.getvalue()
+    assert backend.open_calls == []
+    assert backend.read_calls == []
+
+
+def test_serial_monitor_msp430_memory_stream_is_finite_and_receive_only() -> None:
+    records = tuple(
+        encode_msp430_message(
+            Msp430Telemetry(
+                sequence,
+                sequence * 1000,
+                421,
+                418,
+                bus_mv,
+                186,
+                932,
+                650,
+                Msp430DeviceState.COOLING_HIGH,
+                0,
+            )
+        ).encode("ascii")
+        for sequence, bus_mv in ((0, 5012), (1, 5024))
+    )
+    backend = MemorySerialBackend.scripted(reads=records)
+    output = io.StringIO()
+
+    assert (
+        main(
+            [
+                "serial",
+                "monitor",
+                "--port",
+                "MEMORY:MSP",
+                "--profile",
+                "msp430-equipment-health",
+                "--primary-channel",
+                MSP430_HEALTH_CHANNEL_BUS_VOLTAGE,
+                "--cycles",
+                "2",
+                "--sample-interval",
+                "0",
+                "--read-timeout",
+                "0.01",
+                "--max-polls",
+                "2",
+                "--confirm-read-only",
+                "--json",
+            ],
+            stdout=output,
+            dependencies=dependencies(backend),
+        )
+        == 0
+    )
+
+    document = json.loads(output.getvalue())
+    assert document["request"]["source_mode"] == "SERIAL_READ_ONLY"
+    assert document["request"]["job_type"] == "LIVE_MONITOR"
+    assert document["result"]["evidence_source"] == "HOST_TEST"
+    assert [point["measurement"]["value"] for point in document["live_monitor"]["points"]] == [
+        5012.0,
+        5024.0,
+    ]
+    assert len(backend.open_calls) == 1
+    assert len(backend.read_calls) == 2
+    assert backend.close_calls == 1
+    assert not hasattr(backend, "write_calls")
+
+
+def test_serial_monitor_afe_identity_and_aliases_enable_reviewed_dual_trace() -> None:
+    backend = MemorySerialBackend.scripted(
+        reads=(afe_dual_capabilities(), afe_telemetry(1, 500))
+    )
+    output = io.StringIO()
+
+    assert (
+        main(
+            [
+                "serial",
+                "monitor",
+                "--port",
+                "MEMORY:AFE:DUAL",
+                "--profile",
+                "afe",
+                "--primary-channel",
+                "afe.ch0.input",
+                "--secondary-channel",
+                "afe.ch0.output",
+                "--secondary",
+                "--no-state",
+                "--cycles",
+                "1",
+                "--sample-interval",
+                "0",
+                "--read-timeout",
+                "0.01",
+                "--max-polls",
+                "2",
+                "--expected-device-id",
+                "afe-cli-dual",
+                "--afe-adc-alias",
+                "adc0=afe.ch0.input",
+                "--afe-adc-alias",
+                "adc1=afe.ch0.output",
+                "--confirm-read-only",
+                "--json",
+            ],
+            stdout=output,
+            dependencies=dependencies(backend),
+        )
+        == 0
+    )
+
+    document = json.loads(output.getvalue())
+    assert document["read"]["device_id"] == "afe-cli-dual"
+    assert document["read"]["profile_name"] == "afe"
+    assert document["read"]["profile_version"] == "1"
+    assert document["read"]["readable_analog_channels"] == [
+        "afe.ch0.input",
+        "afe.ch0.output",
+    ]
+    assert [
+        point["measurement"]["channel"]
+        for point in document["live_monitor"]["points"]
+    ] == ["afe.ch0.input", "afe.ch0.output"]
+    assert [
+        point["measurement"]["value"]
+        for point in document["live_monitor"]["points"]
+    ] == [500.0, 1000.0]
+    assert len(backend.open_calls) == 1
+    assert len(backend.read_calls) == 2
+    assert backend.close_calls == 1
+    assert not hasattr(backend, "write_calls")
+
+
+def test_observe_afe_identity_and_aliases_select_mapped_output() -> None:
+    backend = MemorySerialBackend.scripted(
+        reads=(afe_dual_capabilities(), afe_telemetry(1, 500))
+    )
+    output = io.StringIO()
+
+    assert (
+        main(
+            [
+                "observe",
+                "--port",
+                "MEMORY:AFE:OUTPUT",
+                "--profile",
+                "afe",
+                "--channel",
+                "afe.ch0.output",
+                "--operation",
+                "analog",
+                "--unit",
+                "mV",
+                "--max-records",
+                "1",
+                "--read-timeout",
+                "0.01",
+                "--max-polls",
+                "2",
+                "--expected-device-id",
+                "afe-cli-dual",
+                "--afe-adc-alias",
+                "adc0=afe.ch0.input",
+                "--afe-adc-alias",
+                "adc1=afe.ch0.output",
+                "--confirm-read-only",
+                "--json",
+            ],
+            stdout=output,
+            dependencies=dependencies(backend),
+        )
+        == 0
+    )
+
+    document = json.loads(output.getvalue())
+    assert document["read"]["device_id"] == "afe-cli-dual"
+    assert document["read"]["readable_analog_channels"] == [
+        "afe.ch0.input",
+        "afe.ch0.output",
+    ]
+    assert [
+        measurement["channel"] for measurement in document["read"]["measurements"]
+    ] == ["afe.ch0.output"]
+    assert [
+        measurement["value"] for measurement in document["read"]["measurements"]
+    ] == [1000.0]
+    assert len(backend.open_calls) == 1
+    assert len(backend.read_calls) == 2
+    assert backend.close_calls == 1
+    assert not hasattr(backend, "write_calls")
+
+
+def test_serial_device_contract_cli_rejects_bad_alias_before_backend_access() -> None:
+    backend = MemorySerialBackend()
+    errors = io.StringIO()
+
+    assert (
+        main(
+            [
+                "observe",
+                "--port",
+                "MEMORY:AFE",
+                "--profile",
+                "afe",
+                "--channel",
+                "afe.ch0.input",
+                "--operation",
+                "analog",
+                "--unit",
+                "mV",
+                "--expected-device-id",
+                "afe-cli-dual",
+                "--afe-adc-alias",
+                "not-a-mapping",
+                "--confirm-read-only",
+            ],
+            stderr=errors,
+            dependencies=dependencies(backend),
+        )
+        == CLI_USAGE_EXIT_CODE
+    )
+    assert "native=canonical" in errors.getvalue()
+    assert backend.open_calls == []
+    assert backend.read_calls == []
+
+
+def test_serial_device_identity_mismatch_stops_after_capability_read() -> None:
+    backend = MemorySerialBackend.scripted(
+        reads=(afe_dual_capabilities("reported-device"), afe_telemetry(1, 500))
+    )
+    output = io.StringIO()
+
+    assert (
+        main(
+            [
+                "observe",
+                "--port",
+                "MEMORY:AFE",
+                "--profile",
+                "afe",
+                "--channel",
+                "afe.ch0.input",
+                "--operation",
+                "analog",
+                "--unit",
+                "mV",
+                "--max-records",
+                "1",
+                "--read-timeout",
+                "0.01",
+                "--max-polls",
+                "1",
+                "--expected-device-id",
+                "expected-device",
+                "--confirm-read-only",
+                "--json",
+            ],
+            stdout=output,
+            dependencies=dependencies(backend),
+        )
+        == CLI_OPERATION_ERROR_EXIT_CODE
+    )
+    assert json.loads(output.getvalue())["issue"]["code"] == "INPUT_DATA"
+    assert len(backend.open_calls) == 1
+    assert len(backend.read_calls) == 1
+    assert backend.close_calls == 1
+    assert not hasattr(backend, "write_calls")
+
+
 def test_demo_command_publishes_machine_and_human_views(tmp_path: Path) -> None:
     machine = io.StringIO()
     machine_path = tmp_path / "machine-demo"
@@ -945,3 +1332,48 @@ def test_output_request_never_masks_failed_or_incomplete_execution(
         is None
     )
     assert not arguments.output.exists()
+
+
+def test_calibration_artifact_preflight_and_absent_outputs_fail_closed(
+    tmp_path: Path,
+) -> None:
+    same_path = tmp_path / "same.json"
+    with pytest.raises(cli_module.CliUsageError, match="different files"):
+        cli_module._preflight_artifact_paths(
+            argparse.Namespace(output=same_path, coefficients_output=same_path)
+        )
+    with pytest.raises(cli_module.ResultExportPathError, match="parent directory"):
+        cli_module._preflight_artifact_paths(
+            argparse.Namespace(
+                output=None,
+                coefficients_output=tmp_path / "missing" / "coefficients.json",
+            )
+        )
+
+    arguments = argparse.Namespace(coefficients_output=tmp_path / "unused.json")
+    assert (
+        cli_module._write_coefficient_artifact(
+            arguments,
+            _execution_for_status(None, worker_state=ProductWorkerState.FAILED),
+        )
+        is None
+    )
+    assert (
+        cli_module._write_coefficient_artifact(
+            arguments,
+            _execution_for_status(ProductResultStatus.INCOMPLETE),
+        )
+        is None
+    )
+    with pytest.raises(ProductServiceError, match="did not publish coefficients"):
+        cli_module._write_coefficient_artifact(
+            arguments,
+            _execution_for_status(ProductResultStatus.COMPLETED),
+        )
+    assert not arguments.coefficients_output.exists()
+
+
+def test_coefficients_command_requires_an_action() -> None:
+    errors = io.StringIO()
+    assert cli_module.main(["coefficients"], stderr=errors) == CLI_USAGE_EXIT_CODE
+    assert "requires an ACTION" in errors.getvalue()

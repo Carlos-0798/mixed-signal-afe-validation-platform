@@ -46,3 +46,6 @@ Date: YYYY-MM-DD
 - `0002-evidence-provenance-is-part-of-the-domain.md`
 - `0003-versioned-profiles-for-controller-compatibility.md`
 
+待所有者批准的 Proposed ADR：
+
+- `0004-accessible-dashboard-runtime.md`

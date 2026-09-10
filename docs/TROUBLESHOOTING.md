@@ -12,6 +12,7 @@ laboratory equipment.
 | PowerShell blocks `Activate.ps1` | execution policy prevents activation | Do not change policy; use the full venv executable paths from `INSTALLATION.md` |
 | `No matching distribution` or Python-version error | unsupported Python or wrong package | Confirm Python 3.10/3.12/3.14 and wheel version; Python 3.12 is recommended |
 | `WinError 206` / filename too long | venv/output is nested too deeply | Start again under a short directory such as `C:\avs-beta`; preserve prior evidence |
+| `WinError 4551` when a console command starts from a temporary directory | managed Windows application control blocks generated launchers in that location | Do not weaken security policy; create the beta/verification root in a short, private, writable non-system directory and rerun from there |
 | `OUTPUT_EXISTS` | create-new protection found prior output | Choose a new directory name; do not automatically delete the earlier run |
 | `OUTPUT_PATH` / permission denied | parent missing, read-only, synchronized, or protected | Create a short private writable directory outside protected/system folders |
 | Version is not `0.1.0b1` | mixed environment or older install | Stop; create another new venv and install only the reviewed wheel |

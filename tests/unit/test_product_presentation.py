@@ -96,7 +96,7 @@ def test_generic_and_conflicting_source_schema_detection() -> None:
             ExportSchemaReference("hysteresis-analysis", "hysteresis-analysis.v1"),
         ),
     )
-    with pytest.raises(ProductReportFormatError, match="both DC and hysteresis"):
+    with pytest.raises(ProductReportFormatError, match="multiple analysis schemas"):
         build_human_report_view(conflicting)
 
 

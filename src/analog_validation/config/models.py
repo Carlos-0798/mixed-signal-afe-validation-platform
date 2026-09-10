@@ -75,9 +75,7 @@ class TimeoutConfig:
         if self.settle_s < 0:
             raise ConfigurationError("settle_s must not be negative")
         if self.test_s < self.command_s + self.settle_s:
-            raise ConfigurationError(
-                "test_s must be at least command_s plus settle_s"
-            )
+            raise ConfigurationError("test_s must be at least command_s plus settle_s")
 
 
 @dataclass(frozen=True, slots=True)
@@ -110,9 +108,15 @@ class ChannelConfig:
             raise ConfigurationError(
                 "safe_output_range unit must match the channel unit"
             )
-        if self.role is ChannelRole.DIGITAL_INPUT and self.unit is not MeasurementUnit.BOOLEAN:
+        if (
+            self.role is ChannelRole.DIGITAL_INPUT
+            and self.unit is not MeasurementUnit.BOOLEAN
+        ):
             raise ConfigurationError("DIGITAL_INPUT channels must use bool units")
-        if self.role is ChannelRole.PWM_OUTPUT and self.unit is not MeasurementUnit.RATIO:
+        if (
+            self.role is ChannelRole.PWM_OUTPUT
+            and self.unit is not MeasurementUnit.RATIO
+        ):
             raise ConfigurationError("PWM_OUTPUT channels must use ratio units")
 
     @property
@@ -214,7 +218,9 @@ class ValidationConfig:
         try:
             in_range = safe_range.contains(value)
         except ValidationError as error:
-            raise ConfigurationError("output value must be finite and numeric") from error
+            raise ConfigurationError(
+                "output value must be finite and numeric"
+            ) from error
         if not in_range:
             raise ConfigurationError(
                 f"output value {value} is outside [{safe_range.minimum}, "

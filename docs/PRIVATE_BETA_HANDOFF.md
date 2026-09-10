@@ -60,6 +60,7 @@ requires a separate device-specific plan and authorization.
 
 ## 5. Owner-only decisions
 
+The owner's MIT license selection is recorded and implemented locally.
 Do not infer approval for merge, tag, GitHub Release, PyPI upload, visibility
-change, history rewrite, license selection, LinkedIn publication, or v1.0. Each
-requires an exact preview and explicit owner approval.
+change, history rewrite, future license changes, LinkedIn publication, or v1.0.
+Each requires an exact preview and explicit owner approval.

@@ -32,7 +32,9 @@ ReportScalar: TypeAlias = str | int | float | bool | None
 class ReportChartKind(str, Enum):
     """Supported presentation plots; values do not select analysis code."""
 
+    CALIBRATION = "CALIBRATION"
     DC_SWEEP = "DC_SWEEP"
+    FREQUENCY_RESPONSE = "FREQUENCY_RESPONSE"
     HYSTERESIS = "HYSTERESIS"
     NONE = "NONE"
 
@@ -373,17 +375,24 @@ class HumanReportView:
 
 def _chart_kind(bundle: ResultExportBundle) -> ReportChartKind:
     schemas = {schema.name for schema in bundle.source_schemas}
-    has_dc = "dc-sweep-analysis" in schemas
-    has_hysteresis = "hysteresis-analysis" in schemas
-    if has_dc and has_hysteresis:
-        raise ProductReportFormatError(
-            "one report cannot contain both DC and hysteresis analysis schemas"
+    selected = tuple(
+        kind
+        for schema_name, kind in (
+            ("calibration-analysis", ReportChartKind.CALIBRATION),
+            ("dc-sweep-analysis", ReportChartKind.DC_SWEEP),
+            (
+                "frequency-response-analysis",
+                ReportChartKind.FREQUENCY_RESPONSE,
+            ),
+            ("hysteresis-analysis", ReportChartKind.HYSTERESIS),
         )
-    if has_dc:
-        return ReportChartKind.DC_SWEEP
-    if has_hysteresis:
-        return ReportChartKind.HYSTERESIS
-    return ReportChartKind.NONE
+        if schema_name in schemas
+    )
+    if len(selected) > 1:
+        raise ProductReportFormatError(
+            "one report cannot contain multiple analysis schemas"
+        )
+    return selected[0] if selected else ReportChartKind.NONE
 
 
 def _not_verified(source: EvidenceSource) -> tuple[str, ...]:
@@ -415,7 +424,9 @@ def build_human_report_view(bundle: ResultExportBundle) -> HumanReportView:
         )
     kind = _chart_kind(bundle)
     titles = {
+        ReportChartKind.CALIBRATION: "Calibration Validation Report",
         ReportChartKind.DC_SWEEP: "DC Sweep Validation Report",
+        ReportChartKind.FREQUENCY_RESPONSE: ("Frequency Response Validation Report"),
         ReportChartKind.HYSTERESIS: "Hysteresis Validation Report",
         ReportChartKind.NONE: "Analog Validation Report",
     }

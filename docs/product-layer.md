@@ -43,9 +43,10 @@ not import adapters, profiles, serial code, analysis, exports, or GUI modules.
 | `product-job-event.v1` | Immutable worker state/progress event | Index is positive and monotonic; text and queue are bounded; only failures carry a safe issue |
 | `product-catalog.v1` | Reviewed sources and profiles | Lookup is exact; an unknown profile is rejected rather than guessed |
 | `user-issue.v1` | Stable user-facing failure explanation | Expected errors map by type; unexpected internal details are not exposed |
-| `product-cli-output.v1` | Versioned machine-readable CLI output | JSON identifies schema/software, source, worker/product/engineering state, limitations, and an explicit no-hardware-performance claim |
+| `product-cli-output.v2` | Versioned machine-readable CLI output | Adds calibration result/coefficient artifacts while retaining schema/software, source, worker/product/engineering state, limitations, and an explicit no-hardware-performance claim |
 | `product-workflow-config.v1` | Shared CLI/Dashboard typed workflow intent | Source-specific resources are mutually exclusive; Serial requires explicit receive-only confirmation |
-| `dashboard-wizard.v1` | Immutable six-step UI state | A reviewed request is invalidated by navigation/editing and only finalized analysis can be exported |
+| `live-monitor.v1` | Immutable bounded live points and control snapshot | Finite duration, bounded memory, cooperative pause/resume, and no engineering PASS/FAIL |
+| `dashboard-wizard.v1` | Immutable six-step UI state | A reviewed request is invalidated by navigation/editing; finalized analyses and calibration coefficients use separate create-new exports |
 | `human-report.v1` | Immutable presentation-only copy of a finalized result | No analysis methods; evidence/outcome/limitations remain unchanged |
 | `human-report-manifest.v1` | Identity of one five-file report publication | Canonical input hash and rendered artifact hashes; explicit no-new-hardware-validation claim |
 
@@ -99,8 +100,8 @@ Worker state and engineering outcome are deliberately separate:
 
 | Source | Evidence allowed by the contract | Jobs declared in Step 1 | Notes |
 |---|---|---|---|
-| `SIMULATOR` | `SYNTHETIC` | read, DC analysis, hysteresis analysis | Default; never a physical measurement |
-| `CSV_REPLAY` | `CSV_REPLAY` | read, DC analysis, hysteresis analysis | Local replay; preserves lineage |
+| `SIMULATOR` | `SYNTHETIC` | read, live monitor, DC, hysteresis, calibration, frequency response | Default; never a physical measurement |
+| `CSV_REPLAY` | `CSV_REPLAY` | read, live monitor, DC, hysteresis, calibration, frequency response | Local replay; preserves lineage |
 | `SERIAL_READ_ONLY` | `HOST_TEST` or `BENCH_CONTROLLER` | read only | Requires optional serial extra; exposes no product write command |
 
 Two exact profile identities are reviewed:
@@ -114,8 +115,18 @@ a physical AFE, MSP430 firmware image, sensor, fan, wiring, or instrument works.
 
 ## Application services and current CLI
 
-Step 3 adds one explicit adapter factory for each source and three product
-services: bounded read, formal DC evaluation, and formal hysteresis evaluation.
+Step 3 adds one explicit adapter factory for each source. The post-beta
+increments add calibration, frequency-response, and finite live-monitor
+services alongside bounded read, formal DC evaluation, and formal hysteresis
+evaluation. Calibration
+acquires paired observed/reference records and publishes a finalized result plus
+versioned coefficients. Frequency response acquires explicit Hz/input/output
+triples, computes amplitude ratio and dB through the core, and evaluates a
+reviewed cutoff target and minimum evidence size.
+Live monitoring interleaves enabled channel reads by cycle and publishes copied
+measurements into a bounded ring buffer. It exposes pause/resume only at safe
+cooperative checkpoints and never maps successful orchestration to an
+engineering PASS or FAIL.
 The factory validates the exact catalog request before constructing a resource;
 the worker thread then owns that resource through cleanup. A thread-safe output
 slot publishes detailed read/export data only after a safe service checkpoint.
@@ -134,8 +145,29 @@ analog-validation profiles
 analog-validation simulate read --samples 3
 analog-validation simulate dc --points 12 --json
 analog-validation simulate hysteresis
+analog-validation simulate calibration --points 8 --json
+analog-validation simulate frequency --points 21 --json
+analog-validation simulate monitor --cycles 10 --sample-interval 0.1 --json
 analog-validation replay read --input .\data.csv --samples 2 --json
 ```
+
+Calibration is available for Simulator and CSV Replay, not the receive-only
+serial path. Its coefficient JSON uses strict bounded parsing, includes fit
+lineage and source labels, and is written create-new by default. Loading a file
+through `coefficients inspect` or the Dashboard validates and displays it but
+does not automatically apply it to observations or firmware.
+
+Frequency response is also available only for Simulator and CSV Replay. Its
+deterministic Simulator has an explicit model cutoff independent of the
+acceptance target; Replay requires three explicit same-source channel series.
+Neither path generates a waveform, controls an instrument, calculates phase,
+or authorizes serial output.
+
+Live monitoring is likewise available only for Simulator and CSV Replay. It is
+finite, limits total measurements and retained points, and treats its visible
+time window as presentation state. Memory eviction, worker-event drops, and
+measurement-quality failures remain three separate counters/meanings. See
+[`live-monitoring.md`](live-monitoring.md).
 
 `ports` performs discovery without opening a port. `observe` is the only real
 serial entry and requires an exact port, profile, channel, unit, record/poll
@@ -145,10 +177,12 @@ opened during Step 3.
 
 Step 4 implements `report`. It loads one strict finalized JSON/CSV result, builds
 an immutable display view, and creates text, Markdown, HTML, SVG, and manifest
-files in a new directory. The DC line uses exported predicted values, and the
+files in a new directory. The DC line uses exported predicted values, the
 hysteresis chart uses exported direction/transition data and copied threshold
-metrics; neither path calls an analysis or evaluator. `demo` remains a stable
-reserved command that fails honestly with exit code 4.
+metrics, the calibration chart uses exported before/after signed errors, and
+the frequency chart uses exported gain dB/cutoff values on a logarithmic axis;
+none calls an analysis or evaluator. `demo` remains the stable one-command
+synthetic DC portfolio workflow and does not silently substitute another test.
 
 Step 5 adds `analog_validation_app.dashboard` as a headless-first presentation
 boundary. Immutable state/actions and the owner-thread presenter copy only the

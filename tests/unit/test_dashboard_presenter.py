@@ -8,11 +8,18 @@ from typing import Any, cast
 import pytest
 
 import analog_validation_app.dashboard.presenter as presenter_module
-from analog_validation import EvidenceSource
+from analog_validation import (
+    EvidenceSource,
+    Measurement,
+    MeasurementStatus,
+    MeasurementUnit,
+)
 from analog_validation import TestRunOutcome as RunOutcome
 from analog_validation.exports import load_result_export_json
 from analog_validation_app import (
     HumanReportPublication,
+    LiveMonitorSnapshot,
+    LiveTracePoint,
     ProductCatalogError,
     ProductJobEvent,
     ProductJobRequest,
@@ -31,6 +38,7 @@ from analog_validation_app import (
 from analog_validation_app.dashboard import (
     DashboardAction,
     DashboardActionType,
+    DashboardArtifactView,
     DashboardPresenter,
     initial_dashboard_state,
 )
@@ -363,6 +371,58 @@ def test_result_issue_and_bench_boundary_are_copied_without_promotion() -> None:
         presenter.present_issue(cast(Any, object()))
 
 
+def test_live_monitor_presentation_validates_snapshot_and_active_flag() -> None:
+    presenter = DashboardPresenter()
+    measurement = Measurement(
+        "live-1",
+        "raw-live-1",
+        datetime(2026, 9, 5, tzinfo=timezone.utc),
+        "afe.ch0.input",
+        100.0,
+        MeasurementUnit.MILLIVOLT,
+        MeasurementStatus.VALID,
+        EvidenceSource.SYNTHETIC,
+    )
+    snapshot = LiveMonitorSnapshot(
+        (LiveTracePoint(1, 0, 0.0, measurement),),
+        1,
+        0,
+        False,
+        0,
+        5.0,
+        1,
+        0,
+        0,
+    )
+
+    state = presenter.present_live_monitor(snapshot, active=True)
+    assert state.live.can_pause is True
+    assert state.live.paused is False
+
+    paused_snapshot = LiveMonitorSnapshot(
+        snapshot.points,
+        snapshot.total_points,
+        snapshot.evicted_points,
+        True,
+        1,
+        snapshot.time_window_seconds,
+        snapshot.valid_points,
+        snapshot.suspect_points,
+        snapshot.invalid_points,
+    )
+    terminal_state = presenter.present_live_monitor(paused_snapshot, active=False)
+    assert terminal_state.live.active is False
+    assert terminal_state.live.paused is False
+    assert terminal_state.live.can_pause is False
+    assert terminal_state.live.can_resume is False
+    assert "Live monitor finished" in terminal_state.live.summary
+
+    with pytest.raises(ProductRequestError, match="LiveMonitorSnapshot"):
+        presenter.present_live_monitor(cast(Any, object()), active=True)
+    with pytest.raises(ProductRequestError, match="active"):
+        presenter.present_live_monitor(snapshot, active=cast(Any, 1))
+
+
 def test_report_view_and_publication_copy_points_values_and_path_free_artifacts() -> (
     None
 ):
@@ -392,6 +452,12 @@ def test_report_view_and_publication_copy_points_values_and_path_free_artifacts(
         presenter.present_report(report_view(), cast(Any, object()))
     with pytest.raises(ProductRequestError, match="ReadWorkflowResult"):
         presenter.present_read_observations(cast(Any, object()))
+
+    extra = DashboardArtifactView("coefficients.json", "application/json", 2, "a" * 64)
+    updated = presenter.present_artifact(extra)
+    assert updated.artifacts.artifacts[-1] == extra
+    with pytest.raises(ProductRequestError, match="DashboardArtifactView"):
+        presenter.present_artifact(cast(Any, object()))
 
 
 def test_presenter_rejects_updates_from_a_non_owner_thread() -> None:

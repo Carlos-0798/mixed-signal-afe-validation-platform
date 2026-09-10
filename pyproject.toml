@@ -5,6 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "mixed-signal-afe-validation-platform"
 dynamic = ["version"]
+license = "MIT"
 license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 description = "Controller-neutral analog front-end validation and test automation software"
 readme = "README.md"

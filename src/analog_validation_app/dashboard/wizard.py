@@ -10,11 +10,16 @@ from threading import get_ident
 from typing import Any
 
 from analog_validation import EvidenceSource, MeasurementUnit, ReadOperation
+from analog_validation.protocol.msp430_health_v1 import (
+    MSP430_HEALTH_CHANNEL_BUS_VOLTAGE,
+    MSP430_HEALTH_PROFILE_NAME,
+    MSP430_HEALTH_PROFILE_VERSION,
+)
 from analog_validation.transport import SerialPortInfo
 
 from ..catalog import get_product_profile, get_product_source, list_product_profiles
-from ..errors import ProductCatalogError, ProductRequestError
-from ..factories import SerialSourceConfig
+from ..errors import ProductCatalogError, ProductFieldError, ProductRequestError
+from ..factories import SerialChannelAlias, SerialSourceConfig
 from ..issues import UserIssue
 from ..models import ProductJobType, ProductSourceMode
 from ..product_workflows import ProductWorkflowConfiguration
@@ -45,15 +50,15 @@ class DashboardExportFormat(str, Enum):
 
 def _text(name: str, value: object, *, allow_empty: bool = False) -> str:
     if not isinstance(value, str) or value != value.strip():
-        raise ProductRequestError(f"{name} must be stripped text")
+        raise ProductFieldError(f"{name} must be stripped text", name)
     if not value and not allow_empty:
-        raise ProductRequestError(f"{name} cannot be empty")
+        raise ProductFieldError(f"{name} cannot be empty", name)
     if len(value) > MAX_DASHBOARD_WIZARD_TEXT_CHARS:
-        raise ProductRequestError(
-            f"{name} exceeds {MAX_DASHBOARD_WIZARD_TEXT_CHARS} characters"
+        raise ProductFieldError(
+            f"{name} exceeds {MAX_DASHBOARD_WIZARD_TEXT_CHARS} characters", name
         )
     if value and not value.isprintable():
-        raise ProductRequestError(f"{name} must contain only printable characters")
+        raise ProductFieldError(f"{name} must contain only printable characters", name)
     return value
 
 
@@ -62,7 +67,7 @@ def _integer(name: str, value: str) -> int:
     try:
         return int(checked)
     except ValueError as error:
-        raise ProductRequestError(f"{name} must be an integer") from error
+        raise ProductFieldError(f"{name} must be an integer", name) from error
 
 
 def _number(name: str, value: str) -> float:
@@ -70,10 +75,39 @@ def _number(name: str, value: str) -> float:
     try:
         parsed = float(checked)
     except ValueError as error:
-        raise ProductRequestError(f"{name} must be numeric") from error
+        raise ProductFieldError(f"{name} must be numeric", name) from error
     if not math.isfinite(parsed):
-        raise ProductRequestError(f"{name} must be finite")
+        raise ProductFieldError(f"{name} must be finite", name)
     return parsed
+
+
+def _serial_aliases(value: str) -> tuple[SerialChannelAlias, ...]:
+    checked = _text("serial_afe_adc_aliases", value, allow_empty=True)
+    if not checked:
+        return ()
+    entries = tuple(part.strip() for part in checked.split(","))
+    if any(not entry for entry in entries):
+        raise ProductFieldError(
+            "serial_afe_adc_aliases contains an empty comma-separated entry",
+            "serial_afe_adc_aliases",
+        )
+    try:
+        return tuple(SerialChannelAlias.parse(entry) for entry in entries)
+    except ProductRequestError as error:
+        raise ProductFieldError(str(error), "serial_afe_adc_aliases") from error
+
+
+def _dashboard_serial_field(field_id: str) -> str:
+    return {
+        "port_id": "serial_port",
+        "baud_rate": "serial_baud_rate",
+        "read_timeout_seconds": "serial_read_timeout",
+        "max_polls_per_operation": "serial_max_polls",
+        "expected_device_id": "serial_expected_device_id",
+        "afe_adc_channel_aliases": "serial_afe_adc_aliases",
+        "native_channel": "serial_afe_adc_aliases",
+        "canonical_channel": "serial_afe_adc_aliases",
+    }.get(field_id, field_id)
 
 
 @dataclass(frozen=True, slots=True)
@@ -108,7 +142,7 @@ _GUIDANCE = {
     DashboardWizardStep.TEST: DashboardWizardGuidance(
         2,
         "Choose the test",
-        "We choose a bounded read, DC analysis, or hysteresis analysis.",
+        "We choose a bounded read, live monitor, DC, hysteresis, calibration, or frequency-response analysis.",
         "A test defines required channels and calculations, independent of the device brand.",
         "Confirm that the selected source declares support for this test.",
     ),
@@ -166,6 +200,8 @@ class DashboardWizardDraft:
     serial_baud_rate: str = "115200"
     serial_read_timeout: str = "0.25"
     serial_max_polls: str = "32"
+    serial_expected_device_id: str = ""
+    serial_afe_adc_aliases: str = ""
     serial_confirm_read_only: bool = False
     low_output_limit: str = "25"
     high_output_limit: str = "3275"
@@ -174,6 +210,12 @@ class DashboardWizardDraft:
     max_abs_offset: str = "25"
     min_r_squared: str = "0.999"
     max_rmse: str = "1"
+    coefficient_id: str = "afe-linear-calibration"
+    coefficient_version: str = "1"
+    max_calibration_rmse: str = "1"
+    max_calibration_mean_absolute_error: str = "1"
+    max_calibration_absolute_error: str = "2"
+    minimum_calibration_rmse_reduction: str = "0"
     minimum_high_threshold: str = "900"
     maximum_high_threshold: str = "1100"
     minimum_low_threshold: str = "800"
@@ -183,6 +225,20 @@ class DashboardWizardDraft:
     maximum_width_span: str = "0"
     export_path: str = ""
     export_format: DashboardExportFormat = DashboardExportFormat.JSON
+    frequency_channel: str = "afe.ch0.frequency"
+    frequency_point_count: str = "21"
+    frequency_minimum_hz: str = "10"
+    frequency_maximum_hz: str = "100000"
+    frequency_input_amplitude: str = "1000"
+    simulated_cutoff_frequency_hz: str = "1000"
+    target_cutoff_frequency_hz: str = "1000"
+    cutoff_relative_tolerance: str = "0.15"
+    cutoff_drop_db: str = "3.010299956639812"
+    monitor_sample_interval_seconds: str = "0.05"
+    monitor_time_window_seconds: str = "5"
+    monitor_max_buffer_points: str = "2048"
+    monitor_include_secondary: bool = True
+    monitor_include_state: bool = True
 
     def __post_init__(self) -> None:
         if not isinstance(self.source_mode, ProductSourceMode):
@@ -201,12 +257,26 @@ class DashboardWizardDraft:
             "primary_channel",
             "secondary_channel",
             "state_channel",
+            "frequency_channel",
+            "coefficient_id",
+            "coefficient_version",
         ):
             _text(name, getattr(self, name))
         for name in (
             "sample_count",
             "rising_count",
             "falling_count",
+            "frequency_point_count",
+            "frequency_minimum_hz",
+            "frequency_maximum_hz",
+            "frequency_input_amplitude",
+            "simulated_cutoff_frequency_hz",
+            "target_cutoff_frequency_hz",
+            "cutoff_relative_tolerance",
+            "cutoff_drop_db",
+            "monitor_sample_interval_seconds",
+            "monitor_time_window_seconds",
+            "monitor_max_buffer_points",
             "replay_path",
             "replay_minimum",
             "replay_maximum",
@@ -214,6 +284,8 @@ class DashboardWizardDraft:
             "serial_baud_rate",
             "serial_read_timeout",
             "serial_max_polls",
+            "serial_expected_device_id",
+            "serial_afe_adc_aliases",
             "low_output_limit",
             "high_output_limit",
             "target_gain",
@@ -221,6 +293,10 @@ class DashboardWizardDraft:
             "max_abs_offset",
             "min_r_squared",
             "max_rmse",
+            "max_calibration_rmse",
+            "max_calibration_mean_absolute_error",
+            "max_calibration_absolute_error",
+            "minimum_calibration_rmse_reduction",
             "minimum_high_threshold",
             "maximum_high_threshold",
             "minimum_low_threshold",
@@ -233,6 +309,9 @@ class DashboardWizardDraft:
             _text(name, getattr(self, name), allow_empty=True)
         if not isinstance(self.serial_confirm_read_only, bool):
             raise ProductRequestError("serial_confirm_read_only must be boolean")
+        for name in ("monitor_include_secondary", "monitor_include_state"):
+            if not isinstance(getattr(self, name), bool):
+                raise ProductRequestError(f"{name} must be boolean")
         source = get_product_source(self.source_mode)
         profile = get_product_profile(self.profile_name, self.profile_version)
         if self.job_type not in source.supported_jobs:
@@ -247,7 +326,22 @@ class DashboardWizardDraft:
     def to_product_configuration(self) -> ProductWorkflowConfiguration:
         """Parse the form once, before any worker or serial resource starts."""
 
+        replay_bounds: dict[str, float] = {}
+        try:
+            minimum = _number("replay_minimum", self.replay_minimum)
+            maximum = _number("replay_maximum", self.replay_maximum)
+            if minimum >= maximum:
+                raise ProductFieldError(
+                    "replay_minimum must be below replay_maximum", "replay_maximum"
+                )
+            replay_bounds = {"replay_minimum": minimum, "replay_maximum": maximum}
+        except ProductFieldError:
+            if self.source_mode is ProductSourceMode.CSV_REPLAY:
+                raise
+            # Hidden invalid Replay scratch must not block another source. Omit
+            # both fields to use the typed configuration's own default bounds.
         values: dict[str, Any] = {
+            **replay_bounds,
             "primary_channel": self.primary_channel,
             "secondary_channel": self.secondary_channel,
             "state_channel": self.state_channel,
@@ -256,6 +350,42 @@ class DashboardWizardDraft:
             "sample_count": _integer("sample_count", self.sample_count),
             "rising_count": _integer("rising_count", self.rising_count),
             "falling_count": _integer("falling_count", self.falling_count),
+            "frequency_channel": self.frequency_channel,
+            "frequency_point_count": _integer(
+                "frequency_point_count", self.frequency_point_count
+            ),
+            "frequency_minimum_hz": _number(
+                "frequency_minimum_hz", self.frequency_minimum_hz
+            ),
+            "frequency_maximum_hz": _number(
+                "frequency_maximum_hz", self.frequency_maximum_hz
+            ),
+            "frequency_input_amplitude": _number(
+                "frequency_input_amplitude", self.frequency_input_amplitude
+            ),
+            "simulated_cutoff_frequency_hz": _number(
+                "simulated_cutoff_frequency_hz",
+                self.simulated_cutoff_frequency_hz,
+            ),
+            "target_cutoff_frequency_hz": _number(
+                "target_cutoff_frequency_hz", self.target_cutoff_frequency_hz
+            ),
+            "cutoff_relative_tolerance": _number(
+                "cutoff_relative_tolerance", self.cutoff_relative_tolerance
+            ),
+            "cutoff_drop_db": _number("cutoff_drop_db", self.cutoff_drop_db),
+            "monitor_sample_interval_seconds": _number(
+                "monitor_sample_interval_seconds",
+                self.monitor_sample_interval_seconds,
+            ),
+            "monitor_time_window_seconds": _number(
+                "monitor_time_window_seconds", self.monitor_time_window_seconds
+            ),
+            "monitor_max_buffer_points": _integer(
+                "monitor_max_buffer_points", self.monitor_max_buffer_points
+            ),
+            "monitor_include_secondary": self.monitor_include_secondary,
+            "monitor_include_state": self.monitor_include_state,
             "low_output_limit": _number("low_output_limit", self.low_output_limit),
             "high_output_limit": _number("high_output_limit", self.high_output_limit),
             "target_gain": _number("target_gain", self.target_gain),
@@ -263,6 +393,23 @@ class DashboardWizardDraft:
             "max_abs_offset": _number("max_abs_offset", self.max_abs_offset),
             "min_r_squared": _number("min_r_squared", self.min_r_squared),
             "max_rmse": _number("max_rmse", self.max_rmse),
+            "coefficient_id": self.coefficient_id,
+            "coefficient_version": self.coefficient_version,
+            "max_calibration_rmse": _number(
+                "max_calibration_rmse", self.max_calibration_rmse
+            ),
+            "max_calibration_mean_absolute_error": _number(
+                "max_calibration_mean_absolute_error",
+                self.max_calibration_mean_absolute_error,
+            ),
+            "max_calibration_absolute_error": _number(
+                "max_calibration_absolute_error",
+                self.max_calibration_absolute_error,
+            ),
+            "minimum_calibration_rmse_reduction": _number(
+                "minimum_calibration_rmse_reduction",
+                self.minimum_calibration_rmse_reduction,
+            ),
             "minimum_high_threshold": _number(
                 "minimum_high_threshold", self.minimum_high_threshold
             ),
@@ -285,22 +432,44 @@ class DashboardWizardDraft:
             values.update(
                 {
                     "replay_path": Path(_text("replay_path", self.replay_path)),
-                    "replay_minimum": _number("replay_minimum", self.replay_minimum),
-                    "replay_maximum": _number("replay_maximum", self.replay_maximum),
                 }
             )
         elif self.source_mode is ProductSourceMode.SERIAL_READ_ONLY:
             sample_count = _integer("sample_count", self.sample_count)
+            try:
+                serial_config = SerialSourceConfig(
+                    port_id=_text("serial_port", self.serial_port),
+                    baud_rate=_integer("serial_baud_rate", self.serial_baud_rate),
+                    read_timeout_seconds=_number(
+                        "serial_read_timeout", self.serial_read_timeout
+                    ),
+                    max_polls_per_operation=_integer(
+                        "serial_max_polls", self.serial_max_polls
+                    ),
+                    max_buffered_measurements=max(128, sample_count * 8),
+                    evidence_source=EvidenceSource.HOST_TEST,
+                    expected_device_id=(
+                        _text(
+                            "serial_expected_device_id",
+                            self.serial_expected_device_id,
+                            allow_empty=True,
+                        )
+                        or None
+                    ),
+                    afe_adc_channel_aliases=_serial_aliases(
+                        self.serial_afe_adc_aliases
+                    ),
+                )
+            except ProductRequestError as error:
+                field_id = _dashboard_serial_field(
+                    str(getattr(error, "field_id", "serial_afe_adc_aliases"))
+                )
+                if isinstance(error, ProductFieldError) and error.field_id == field_id:
+                    raise
+                raise ProductFieldError(str(error), field_id) from error
             values.update(
                 {
-                    "serial_config": SerialSourceConfig(
-                        _text("serial_port", self.serial_port),
-                        _integer("serial_baud_rate", self.serial_baud_rate),
-                        _number("serial_read_timeout", self.serial_read_timeout),
-                        _integer("serial_max_polls", self.serial_max_polls),
-                        max(128, sample_count * 8),
-                        EvidenceSource.HOST_TEST,
-                    ),
+                    "serial_config": serial_config,
                     "confirm_read_only": self.serial_confirm_read_only,
                 }
             )
@@ -324,6 +493,31 @@ def _compatible_profile_identities(mode: ProductSourceMode) -> tuple[str, ...]:
     return values
 
 
+def _normalize_live_monitor_draft(
+    draft: DashboardWizardDraft,
+) -> DashboardWizardDraft:
+    """Apply safe, finite defaults when a source enters live-monitor mode."""
+
+    unit = (
+        MeasurementUnit.MILLIVOLT
+        if draft.unit is MeasurementUnit.BOOLEAN
+        else draft.unit
+    )
+    if draft.source_mode is ProductSourceMode.SERIAL_READ_ONLY:
+        return replace(
+            draft,
+            operation=ReadOperation.ANALOG,
+            unit=unit,
+            sample_count="20",
+            monitor_sample_interval_seconds="0.02",
+            monitor_include_secondary=False,
+            monitor_include_state=False,
+            serial_read_timeout="0.05",
+            serial_max_polls="4",
+        )
+    return replace(draft, operation=ReadOperation.ANALOG, unit=unit)
+
+
 @dataclass(frozen=True, slots=True)
 class DashboardWizardState:
     """Complete immutable wizard view owned by the UI thread."""
@@ -336,6 +530,8 @@ class DashboardWizardState:
     issue: UserIssue | None = None
     export_available: bool = False
     export_message: str = "No finalized analysis export is available."
+    coefficient_available: bool = False
+    coefficient_message: str = "No calibration coefficient artifact is available."
     schema_version: str = DASHBOARD_WIZARD_SCHEMA_VERSION
 
     def __post_init__(self) -> None:
@@ -370,6 +566,9 @@ class DashboardWizardState:
         if not isinstance(self.export_available, bool):
             raise ProductRequestError("export_available must be boolean")
         _text("export_message", self.export_message)
+        if not isinstance(self.coefficient_available, bool):
+            raise ProductRequestError("coefficient_available must be boolean")
+        _text("coefficient_message", self.coefficient_message)
         if self.schema_version != DASHBOARD_WIZARD_SCHEMA_VERSION:
             raise ProductRequestError(
                 f"unsupported Dashboard wizard schema: {self.schema_version}"
@@ -418,6 +617,14 @@ class DashboardWizardState:
     @property
     def can_export(self) -> bool:
         return self.step is DashboardWizardStep.RESULT and self.export_available
+
+    @property
+    def can_save_coefficients(self) -> bool:
+        return self.step is DashboardWizardStep.RESULT and self.coefficient_available
+
+    @property
+    def can_load_coefficients(self) -> bool:
+        return self.step is DashboardWizardStep.RESULT
 
     @property
     def can_modify_setup(self) -> bool:
@@ -469,19 +676,24 @@ class DashboardWizardPresenter:
             if self._state.draft.job_type in source.supported_jobs
             else source.supported_jobs[0]
         )
+        draft = replace(
+            self._state.draft,
+            source_mode=mode,
+            job_type=job,
+            profile_name=profile_name,
+            profile_version=profile_version,
+            serial_confirm_read_only=False,
+        )
+        if job is ProductJobType.LIVE_MONITOR:
+            draft = _normalize_live_monitor_draft(draft)
         return self._replace(
-            draft=replace(
-                self._state.draft,
-                source_mode=mode,
-                job_type=job,
-                profile_name=profile_name,
-                profile_version=profile_version,
-                serial_confirm_read_only=False,
-            ),
+            draft=draft,
             review_lines=(),
             discovered_ports=(),
             issue=None,
             export_available=False,
+            coefficient_available=False,
+            coefficient_message="No calibration coefficient artifact is available.",
         )
 
     def select_profile(self, name: str, version: str) -> DashboardWizardState:
@@ -493,9 +705,20 @@ class DashboardWizardPresenter:
                 f"profile {profile.identity} does not support "
                 f"{self._state.draft.source_mode.value}"
             )
+        primary_channel = (
+            MSP430_HEALTH_CHANNEL_BUS_VOLTAGE
+            if (name, version)
+            == (MSP430_HEALTH_PROFILE_NAME, MSP430_HEALTH_PROFILE_VERSION)
+            else "afe.ch0.input"
+        )
         return self._replace(
             draft=replace(
-                self._state.draft, profile_name=name, profile_version=version
+                self._state.draft,
+                profile_name=name,
+                profile_version=version,
+                primary_channel=primary_channel,
+                operation=ReadOperation.ANALOG,
+                unit=MeasurementUnit.MILLIVOLT,
             ),
             issue=None,
         )
@@ -508,8 +731,11 @@ class DashboardWizardPresenter:
             raise ProductCatalogError(
                 f"{source.mode.value} does not support {job_type.value}"
             )
+        draft = replace(self._state.draft, job_type=job_type)
+        if job_type is ProductJobType.LIVE_MONITOR:
+            draft = _normalize_live_monitor_draft(draft)
         return self._replace(
-            draft=replace(self._state.draft, job_type=job_type),
+            draft=draft,
             issue=None,
         )
 
@@ -533,6 +759,29 @@ class DashboardWizardPresenter:
                 "configuration cannot silently change source, test, or profile"
             )
         return self._replace(draft=draft, issue=None)
+
+    def load_preset_draft(self, draft: DashboardWizardDraft) -> DashboardWizardState:
+        """Replace an idle setup with an offline preset, requiring a fresh review."""
+        if self._state.step is DashboardWizardStep.RUN:
+            raise ProductRequestError(
+                "Wait for the current run before loading a preset"
+            )
+        if not isinstance(draft, DashboardWizardDraft) or draft.source_mode not in {
+            ProductSourceMode.SIMULATOR,
+            ProductSourceMode.CSV_REPLAY,
+        }:
+            raise ProductRequestError("Preset loading requires an offline wizard draft")
+        return self._replace(
+            step=DashboardWizardStep.CONFIGURATION,
+            draft=draft,
+            review_lines=(),
+            discovered_ports=(),
+            issue=None,
+            export_available=False,
+            coefficient_available=False,
+            export_message="Preset loaded. Validate this setup before running.",
+            coefficient_message="No calibration coefficient artifact is available.",
+        )
 
     def next(self) -> DashboardWizardState:
         target = {
@@ -558,6 +807,8 @@ class DashboardWizardPresenter:
             issue=None,
             export_available=False,
             export_message="No finalized analysis export is available.",
+            coefficient_available=False,
+            coefficient_message="No calibration coefficient artifact is available.",
         )
 
     def modify_setup(self) -> DashboardWizardState:
@@ -574,6 +825,8 @@ class DashboardWizardPresenter:
                 "The previous result remains visible for reference. "
                 "Validate the edited setup before running again."
             ),
+            coefficient_available=False,
+            coefficient_message="No calibration coefficient artifact is available.",
         )
 
     def start_new_test(self) -> DashboardWizardState:
@@ -589,6 +842,8 @@ class DashboardWizardPresenter:
             issue=None,
             export_available=False,
             export_message="No finalized analysis export is available.",
+            coefficient_available=False,
+            coefficient_message="No calibration coefficient artifact is available.",
         )
 
     def present_review(
@@ -619,13 +874,22 @@ class DashboardWizardPresenter:
             issue=None,
             export_available=False,
             export_message="The worker is running; no export is finalized yet.",
+            coefficient_available=False,
+            coefficient_message="The worker is running; no coefficient artifact is finalized yet.",
         )
 
-    def finish_run(self, *, export_available: bool) -> DashboardWizardState:
+    def finish_run(
+        self,
+        *,
+        export_available: bool,
+        coefficient_available: bool = False,
+    ) -> DashboardWizardState:
         if self._state.step is not DashboardWizardStep.RUN:
             raise ProductRequestError("only a running workflow can finish")
         if not isinstance(export_available, bool):
             raise ProductRequestError("export_available must be boolean")
+        if not isinstance(coefficient_available, bool):
+            raise ProductRequestError("coefficient_available must be boolean")
         message = (
             "A finalized analysis export is available; choose a new JSON or CSV path."
             if export_available
@@ -635,6 +899,12 @@ class DashboardWizardPresenter:
             step=DashboardWizardStep.RESULT,
             export_available=export_available,
             export_message=message,
+            coefficient_available=coefficient_available,
+            coefficient_message=(
+                "Calibration coefficients are ready to save as a new JSON file."
+                if coefficient_available
+                else "No calibration coefficient artifact is available for this result."
+            ),
         )
 
     def present_ports(self, ports: tuple[SerialPortInfo, ...]) -> DashboardWizardState:
@@ -654,6 +924,16 @@ class DashboardWizardPresenter:
             raise ProductRequestError("no finalized analysis export is available")
         checked = _text("filename", filename)
         return self._replace(export_message=f"Exported safely: {checked}", issue=None)
+
+    def present_coefficient_artifact(self, message: str) -> DashboardWizardState:
+        if self._state.step is not DashboardWizardStep.RESULT:
+            raise ProductRequestError(
+                "calibration coefficient files can only be managed on the Result step"
+            )
+        return self._replace(
+            coefficient_message=_text("coefficient message", message),
+            issue=None,
+        )
 
 
 __all__ = [

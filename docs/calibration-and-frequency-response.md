@@ -1,6 +1,9 @@
 # 校准与离线频率响应
 
-**软件 schema：** `calibration-analysis.v1`、`frequency-response-analysis.v1`  
+**软件 schema：** `calibration-analysis.v1`、`calibration-criteria.v1`、
+`calibration-evaluation.v1`、`calibration-coefficients.v1`、
+`frequency-response-analysis.v1`、`frequency-response-criteria.v1`、
+`frequency-response-evaluation.v1`
 **证据状态：** HOST_TEST / SYNTHETIC  
 **硬件校准或带宽验证：** 未进行
 
@@ -76,6 +79,47 @@ if fit.is_complete and fit.coefficients is not None:
     )
 ```
 
+### 2.3 已落地的产品工作流
+
+校准不再只是可由 Python 调用的数学函数。Simulator 和 CSV Replay 现在
+都能通过同一个产品编译器、worker 和 service 完成以下闭环：
+
+```text
+两路成对 Measurement
+  -> 质量/单位检查
+  -> 线性拟合
+  -> 校准前后误差与验收准则
+  -> TestRun PASS/FAIL/INCOMPLETE
+  -> result-export.v1
+  -> JSON/CSV、Dashboard、文字/HTML/SVG 报告
+  -> 独立 calibration-coefficients.v1 文件
+```
+
+命令行示例：
+
+```powershell
+analog-validation simulate calibration `
+  --points 8 `
+  --output .\calibration-result.json `
+  --coefficients-output .\calibration-coefficients.json `
+  --json
+
+analog-validation coefficients inspect `
+  --input .\calibration-coefficients.json `
+  --json
+```
+
+结果文件和系数文件均默认拒绝覆盖。系数检查只做有界 schema、数值、
+来源与 lineage 验证，明确返回“未应用”；当前版本不会自动修改之后的
+Measurement，也不会写入控制器或固件。Dashboard 提供同样的选择路径、
+保存新文件和加载检查按钮。
+
+底层校准算法可以比较两个不同 EvidenceSource 的批次；当前产品 v1
+TestRun 只有一个 evidence source 字段，因此 Simulator/Replay 产品工作流
+要求 observed 与 reference 来自同一次运行或同一个 replay 数据集。未来
+若要组合 ADC 与独立 DMM 的 BENCH 证据，必须先版本化扩展多来源 TestRun，
+不能把两种来源压缩成一个标签。
+
 ## 3. 初学者先理解频率响应
 
 对一个正弦信号，幅值比定义为：
@@ -135,11 +179,49 @@ result = analyze_frequency_response(
 )
 ```
 
+### 3.4 已落地的频响产品工作流
+
+频率响应现已从纯 Python 数学函数接入与 DC、迟滞、校准相同的产品链：
+
+```text
+显式 Hz / 输入幅值 / 输出幅值三路 Measurement
+  -> 单位、质量、顺序与 lineage 检查
+  -> 幅值比与 dB 曲线
+  -> -3 dB 截止频率插值
+  -> 目标截止频率容差与最小点数准则
+  -> TestRun PASS/FAIL/INCOMPLETE
+  -> result-export.v1
+  -> JSON/CSV、Dashboard、文字/HTML/SVG 幅频报告
+```
+
+Simulator 使用确定性单极点幅值模型。`simulated cutoff` 是合成数据模型
+的参数，`target cutoff` 是独立的验收目标；把两者分开可以有意识地构造
+PASS 或 FAIL，而不会让模拟器为了迎合标准而自动改变结果。默认使用 21 个
+对数分布点、10 Hz–100 kHz、1000 Hz 模型截止和 15% 目标容差。
+
+```powershell
+analog-validation simulate frequency `
+  --points 21 `
+  --simulated-cutoff-hz 1000 `
+  --target-cutoff-hz 1000 `
+  --output .\frequency-result.json `
+  --json
+
+analog-validation report `
+  --input .\frequency-result.json `
+  --output .\frequency-report `
+  --json
+```
+
+CSV Replay 使用同一分析、准则、结果和报告代码，但要求文件显式提供三路
+等长记录。当前产品没有输出型频响 runner，也没有 Serial 频响任务：它不会
+产生扫频信号、控制仪器或把接收到的任意串口值解释成物理带宽。
+
 ## 4. 质量与 incomplete 语义
 
 两个分析都复用默认拒绝的质量策略：VALID 且有限的点可使用；SUSPECT 点只有在调用者显式允许其具体质量 flag 时才可使用；INVALID、缺失和非有限点不能被提升。
 
-校准点保留 observed/reference 各自的决定。频响点保留 frequency/input/output 三个决定。数据不足时结果保留全部逐点证据和 `missing_requirements`，但不发布看似完整的系数或截止频率。
+校准点保留 observed/reference 各自的决定。频响点保留 frequency/input/output 三个决定。频响 v1 采用有意保守的完整性规则：至少需要 10 个请求点，而且每个请求点都必须可用、频率必须严格递增，才会发布截止频率；任何被排除的点都会产生 `usable-points:n/total` 缺口。数据不足或不完整时结果仍保留全部逐点证据和 `missing_requirements`，但不发布看似完整的系数或截止频率。
 
 ## 5. 当前验证和明确未验证内容
 
@@ -149,6 +231,8 @@ result = analyze_frequency_response(
 - 系数身份、版本、双来源和参与记录链；
 - 校准前后误差指标；
 - ratio、dB、唯一交点和对数频率插值；
+- 频响 criteria/TestRun、三引用逐点导出、Simulator/Replay 产品链、
+  CLI/Dashboard 与确定性幅频 SVG；
 - 质量排除、点数不足、相同被测值；
 - 零/负幅值、非正频率、频率乱序、无交点和多交点。
 

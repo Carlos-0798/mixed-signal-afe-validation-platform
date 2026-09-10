@@ -23,9 +23,7 @@ def _text(name: str, value: object) -> str:
     if not isinstance(value, str) or not value or value != value.strip():
         raise ProductCatalogError(f"{name} must be a non-empty stripped string")
     if len(value) > MAX_CATALOG_TEXT_CHARS:
-        raise ProductCatalogError(
-            f"{name} exceeds {MAX_CATALOG_TEXT_CHARS} characters"
-        )
+        raise ProductCatalogError(f"{name} exceeds {MAX_CATALOG_TEXT_CHARS} characters")
     if not value.isprintable():
         raise ProductCatalogError(f"{name} must contain only printable characters")
     return value
@@ -129,6 +127,9 @@ PRODUCT_SOURCES = (
             ProductJobType.READ,
             ProductJobType.DC_ANALYSIS,
             ProductJobType.HYSTERESIS_ANALYSIS,
+            ProductJobType.CALIBRATION_ANALYSIS,
+            ProductJobType.FREQUENCY_RESPONSE_ANALYSIS,
+            ProductJobType.LIVE_MONITOR,
         ),
         is_default=True,
     ),
@@ -141,6 +142,9 @@ PRODUCT_SOURCES = (
             ProductJobType.READ,
             ProductJobType.DC_ANALYSIS,
             ProductJobType.HYSTERESIS_ANALYSIS,
+            ProductJobType.CALIBRATION_ANALYSIS,
+            ProductJobType.FREQUENCY_RESPONSE_ANALYSIS,
+            ProductJobType.LIVE_MONITOR,
         ),
     ),
     ProductSourceDescriptor(
@@ -148,7 +152,7 @@ PRODUCT_SOURCES = (
         "Serial (read-only)",
         "Explicit bounded receive-only integration; no command or write surface.",
         (EvidenceSource.HOST_TEST, EvidenceSource.BENCH_CONTROLLER),
-        (ProductJobType.READ,),
+        (ProductJobType.READ, ProductJobType.LIVE_MONITOR),
         requires_serial_extra=True,
     ),
 )

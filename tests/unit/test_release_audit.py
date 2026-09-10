@@ -13,7 +13,7 @@ import pytest
 
 import tools.release_audit as release_module
 from tools.release_audit import (
-    LICENSE_POLICY_TEXT,
+    LICENSE_POLICY_SHA256,
     RELEASE_AUDIT_SCHEMA_VERSION,
     ReleaseAuditDestinationError,
     ReleaseAuditError,
@@ -139,10 +139,69 @@ def test_non_github_noreply_identities_are_rejected(email: str) -> None:
     assert not _is_approved_github_noreply(email)
 
 
-def test_license_placeholder_matches_the_reviewed_exact_text() -> None:
+def test_mit_license_matches_the_owner_selected_text() -> None:
     license_path = Path(__file__).resolve().parents[2] / "LICENSE"
 
-    assert license_path.read_text(encoding="utf-8") == LICENSE_POLICY_TEXT
+    payload = license_path.read_bytes().replace(b"\r\n", b"\n")
+    assert hashlib.sha256(payload).hexdigest() == LICENSE_POLICY_SHA256
+    release_module._validate_mit_license(payload)
+    release_module._validate_mit_license(payload.replace(b"\n", b"\r\n"))
+
+
+@pytest.mark.parametrize("payload", [b"MIT", b"All rights reserved", b""])
+def test_mit_audit_rejects_missing_or_replaced_license(payload: bytes) -> None:
+    with pytest.raises(ReleaseAuditError, match="owner-selected MIT"):
+        release_module._validate_mit_license(payload)
+
+
+@pytest.mark.parametrize("expression", [None, "Apache-2.0", "MIT OR Apache-2.0"])
+def test_license_audit_rejects_inconsistent_source_metadata(
+    tmp_path: Path, expression: str | None
+) -> None:
+    root = Path(__file__).resolve().parents[2]
+    for name in ("LICENSE", "THIRD_PARTY_NOTICES.md"):
+        (tmp_path / name).write_bytes((root / name).read_bytes())
+    metadata = '[project]\n'
+    if expression is not None:
+        metadata += f'license = "{expression}"\n'
+    (tmp_path / "pyproject.toml").write_text(metadata, encoding="utf-8")
+    with pytest.raises(ReleaseAuditError, match="pyproject must declare"):
+        release_module._audit_license_and_notices(tmp_path)
+
+
+def test_license_audit_accepts_selected_mit_and_retains_third_party_terms() -> None:
+    root = Path(__file__).resolve().parents[2]
+    result = release_module._audit_license_and_notices(root)
+    assert result["project_license_state"] == "MIT"
+    assert result["open_source_license_selected"] is True
+    assert result["project_license_metadata_present"] is True
+
+
+@pytest.mark.parametrize("expression", [None, "Apache-2.0", "MIT"])
+def test_wheel_audit_checks_license_metadata_and_embedded_text(
+    tmp_path: Path, expression: str | None
+) -> None:
+    root = Path(__file__).resolve().parents[2]
+    wheel = tmp_path / "package.whl"
+    prefix = "mixed_signal_afe_validation_platform-0.1.0b1.dist-info/"
+    metadata = (
+        "Metadata-Version: 2.4\n"
+        f"Name: {release_module.PACKAGE_NAME}\n"
+        f"Version: {release_module.PACKAGE_VERSION}\n"
+        'Requires-Dist: pyserial>=3.5,<4; extra == "serial"\n'
+    )
+    if expression is not None:
+        metadata += f"License-Expression: {expression}\n"
+    with zipfile.ZipFile(wheel, "w") as archive:
+        archive.writestr(prefix + "METADATA", metadata)
+        archive.writestr(prefix + "licenses/LICENSE", (root / "LICENSE").read_bytes())
+        archive.writestr(prefix + "licenses/THIRD_PARTY_NOTICES.md", b"third-party terms")
+    if expression == "MIT":
+        _, result = release_module._audit_wheel(wheel)
+        assert result["license_expression"] == "MIT"
+    else:
+        with pytest.raises(ReleaseAuditError, match="MIT License-Expression"):
+            release_module._audit_wheel(wheel)
 
 
 def test_sensitive_scan_returns_only_rule_and_relative_path() -> None:

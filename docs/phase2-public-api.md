@@ -4,7 +4,7 @@
 
 **Workflow behavior:** `phase2-workflow-golden.v1`
 
-**Package version at freeze:** `0.1.0.dev0`
+**Current manifest package version:** `0.1.0b1`
 **Evidence:** HOST_TEST / SYNTHETIC / CSV_REPLAY
 
 Software Phase 2 Step 8 freezes the software device and acquisition boundary before analysis runners are built on top of it. “Frozen” means accidental incompatible changes fail automated tests. It does not prohibit intentional evolution.
@@ -30,6 +30,13 @@ Software Phase 2 Step 8 freezes the software device and acquisition boundary bef
 
 The reusable eight-check adapter contract separately freezes lifecycle, capability caching, typed read, provenance, error, shutdown, and reconnect behavior for reference, Simulator, and CSV Replay adapters.
 
+The reviewed post-beta live-monitor addition extends this compatible boundary
+with `run_streaming_read_workflow()`. It retains the same request/result,
+capability preflight, evidence, incomplete-replay, and cleanup meanings while
+adding optional per-cycle checkpoints, per-measurement observation, and an
+injectable bounded interval wait. Existing `run_read_workflow()` behavior and
+golden results are unchanged.
+
 ## Change policy
 
 An intentional compatible addition may extend a future manifest after tests and documentation are updated. An intentional breaking change must:
@@ -48,6 +55,9 @@ A parser can continue to “pass tests” while a fixture is accidentally edited
 
 ## Current boundary
 
-This freeze covers only the Software Phase 2 host device/acquisition layer. It does not freeze future analysis-runner, report, CLI, Dashboard, serial-transport, firmware, or hardware APIs. It also does not claim physical accuracy, electrical safety, real-time timing, or laboratory validation.
+This freeze covers only the Software Phase 2 host device/acquisition layer. It does not freeze future analysis-runner, report, CLI, Dashboard, serial-transport, firmware, or hardware APIs. The streaming callback and wait contract does not claim physical accuracy, electrical safety, hard-real-time timing, loss-free transport, or laboratory validation.
 
-The package remains `0.1.0.dev0` and pre-MVP. Phase 3 must build analysis and evidence-aware TestRun results without weakening these provenance and capability boundaries.
+The current compatibility manifest records package `0.1.0b1`. Phase 3 and later
+product workflows build analysis and evidence-aware TestRun results without
+weakening these provenance and capability boundaries. Earlier reports retain
+the historical `0.1.0.dev0` identity that was true when those checkpoints ran.

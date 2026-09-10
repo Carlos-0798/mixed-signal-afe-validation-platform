@@ -15,18 +15,24 @@ import analog_validation
 from analog_validation.analysis import (
     ANALYSIS_COMMON_SCHEMA_VERSION,
     CALIBRATION_ANALYSIS_SCHEMA_VERSION,
+    CALIBRATION_CRITERIA_SCHEMA_VERSION,
+    CALIBRATION_EVALUATION_SCHEMA_VERSION,
     CALIBRATION_METHOD,
     CUTOFF_INTERPOLATION_METHOD,
     DC_SWEEP_ANALYSIS_SCHEMA_VERSION,
     DC_SWEEP_CRITERIA_SCHEMA_VERSION,
     DC_SWEEP_EVALUATION_SCHEMA_VERSION,
     FREQUENCY_RESPONSE_ANALYSIS_SCHEMA_VERSION,
+    FREQUENCY_RESPONSE_CRITERIA_SCHEMA_VERSION,
+    FREQUENCY_RESPONSE_EVALUATION_SCHEMA_VERSION,
     HYSTERESIS_ANALYSIS_SCHEMA_VERSION,
     HYSTERESIS_CRITERIA_SCHEMA_VERSION,
     HYSTERESIS_EVALUATION_SCHEMA_VERSION,
     AnalysisQualityPolicy,
     AnalysisRecordReference,
+    CalibrationAcceptanceCriteria,
     CalibrationApplicationConfig,
+    CalibrationCriterionName,
     CalibrationFitConfig,
     CalibrationPointExclusionReason,
     DCSweepAcceptanceCriteria,
@@ -34,7 +40,9 @@ from analog_validation.analysis import (
     DCSweepCriterionName,
     DCSweepPointExclusionReason,
     FrequencyPointExclusionReason,
+    FrequencyResponseAcceptanceCriteria,
     FrequencyResponseAnalysisConfig,
+    FrequencyResponseCriterionName,
     HysteresisAcceptanceCriteria,
     HysteresisAnalysisConfig,
     HysteresisCriterionName,
@@ -46,12 +54,16 @@ from analog_validation.analysis import (
     analyze_frequency_response,
     analyze_hysteresis,
     apply_linear_calibration,
+    evaluate_calibration,
     evaluate_dc_sweep,
+    evaluate_frequency_response,
     evaluate_hysteresis,
     fit_linear_calibration,
 )
 from analog_validation.exports import (
+    CALIBRATION_COEFFICIENTS_SCHEMA_VERSION,
     CSV_RESULT_EXPORT_COLUMNS,
+    MAX_CALIBRATION_COEFFICIENT_BYTES,
     MAX_RESULT_EXPORT_BYTES,
     MAX_RESULT_EXPORT_ROWS,
     RESULT_EXPORT_SCHEMA_VERSION,
@@ -62,16 +74,22 @@ from analog_validation.exports import (
     ResultExportLimitError,
     ResultExportPathError,
     UnsupportedResultExportVersion,
+    build_calibration_export,
     build_dc_sweep_export,
+    build_frequency_response_export,
     build_hysteresis_export,
+    dump_calibration_coefficients_json,
     dump_result_export_csv,
     dump_result_export_json,
+    load_calibration_coefficients_json,
     load_result_export_csv,
     load_result_export_json,
+    parse_calibration_coefficients_json,
     parse_result_export_csv,
     parse_result_export_json,
     result_export_from_dict,
     result_export_to_dict,
+    write_calibration_coefficients_json,
     write_result_export_csv,
     write_result_export_json,
 )
@@ -98,12 +116,23 @@ MODULES = {name: importlib.import_module(name) for name in MODULE_NAMES}
 SCHEMAS = {
     "ANALYSIS_COMMON_SCHEMA_VERSION": ANALYSIS_COMMON_SCHEMA_VERSION,
     "CALIBRATION_ANALYSIS_SCHEMA_VERSION": CALIBRATION_ANALYSIS_SCHEMA_VERSION,
+    "CALIBRATION_COEFFICIENTS_SCHEMA_VERSION": (
+        CALIBRATION_COEFFICIENTS_SCHEMA_VERSION
+    ),
+    "CALIBRATION_CRITERIA_SCHEMA_VERSION": CALIBRATION_CRITERIA_SCHEMA_VERSION,
+    "CALIBRATION_EVALUATION_SCHEMA_VERSION": CALIBRATION_EVALUATION_SCHEMA_VERSION,
     "DC_SWEEP_ANALYSIS_SCHEMA_VERSION": DC_SWEEP_ANALYSIS_SCHEMA_VERSION,
     "DC_SWEEP_CRITERIA_SCHEMA_VERSION": DC_SWEEP_CRITERIA_SCHEMA_VERSION,
     "DC_SWEEP_EVALUATION_SCHEMA_VERSION": DC_SWEEP_EVALUATION_SCHEMA_VERSION,
     "DC_SWEEP_RUNNER_SCHEMA_VERSION": DC_SWEEP_RUNNER_SCHEMA_VERSION,
     "FREQUENCY_RESPONSE_ANALYSIS_SCHEMA_VERSION": (
         FREQUENCY_RESPONSE_ANALYSIS_SCHEMA_VERSION
+    ),
+    "FREQUENCY_RESPONSE_CRITERIA_SCHEMA_VERSION": (
+        FREQUENCY_RESPONSE_CRITERIA_SCHEMA_VERSION
+    ),
+    "FREQUENCY_RESPONSE_EVALUATION_SCHEMA_VERSION": (
+        FREQUENCY_RESPONSE_EVALUATION_SCHEMA_VERSION
     ),
     "HYSTERESIS_ANALYSIS_SCHEMA_VERSION": HYSTERESIS_ANALYSIS_SCHEMA_VERSION,
     "HYSTERESIS_CRITERIA_SCHEMA_VERSION": HYSTERESIS_CRITERIA_SCHEMA_VERSION,
@@ -112,10 +141,12 @@ SCHEMAS = {
     "RESULT_EXPORT_SCHEMA_VERSION": RESULT_EXPORT_SCHEMA_VERSION,
 }
 ENUMS: dict[str, type[Enum]] = {
+    "CalibrationCriterionName": CalibrationCriterionName,
     "CalibrationPointExclusionReason": CalibrationPointExclusionReason,
     "DCSweepCriterionName": DCSweepCriterionName,
     "DCSweepPointExclusionReason": DCSweepPointExclusionReason,
     "FrequencyPointExclusionReason": FrequencyPointExclusionReason,
+    "FrequencyResponseCriterionName": FrequencyResponseCriterionName,
     "HysteresisCriterionName": HysteresisCriterionName,
     "PointDisposition": PointDisposition,
     "PointExclusionReason": PointExclusionReason,
@@ -125,11 +156,13 @@ SIGNATURES: dict[str, Callable[..., Any]] = {
     "AnalysisQualityPolicy": AnalysisQualityPolicy,
     "AnalysisRecordReference": AnalysisRecordReference,
     "CalibrationApplicationConfig": CalibrationApplicationConfig,
+    "CalibrationAcceptanceCriteria": CalibrationAcceptanceCriteria,
     "CalibrationFitConfig": CalibrationFitConfig,
     "DCSweepAcceptanceCriteria": DCSweepAcceptanceCriteria,
     "DCSweepAnalysisConfig": DCSweepAnalysisConfig,
     "DCSweepPlan": DCSweepPlan,
     "FrequencyResponseAnalysisConfig": FrequencyResponseAnalysisConfig,
+    "FrequencyResponseAcceptanceCriteria": FrequencyResponseAcceptanceCriteria,
     "HysteresisAcceptanceCriteria": HysteresisAcceptanceCriteria,
     "HysteresisAnalysisConfig": HysteresisAnalysisConfig,
     "HysteresisPlan": HysteresisPlan,
@@ -139,23 +172,31 @@ SIGNATURES: dict[str, Callable[..., Any]] = {
     "analyze_frequency_response": analyze_frequency_response,
     "analyze_hysteresis": analyze_hysteresis,
     "apply_linear_calibration": apply_linear_calibration,
+    "build_calibration_export": build_calibration_export,
     "build_dc_sweep_export": build_dc_sweep_export,
+    "build_frequency_response_export": build_frequency_response_export,
     "build_hysteresis_export": build_hysteresis_export,
     "dump_result_export_csv": dump_result_export_csv,
     "dump_result_export_json": dump_result_export_json,
+    "dump_calibration_coefficients_json": dump_calibration_coefficients_json,
+    "evaluate_calibration": evaluate_calibration,
     "evaluate_dc_sweep": evaluate_dc_sweep,
+    "evaluate_frequency_response": evaluate_frequency_response,
     "evaluate_hysteresis": evaluate_hysteresis,
     "fit_linear_calibration": fit_linear_calibration,
     "load_result_export_csv": load_result_export_csv,
     "load_result_export_json": load_result_export_json,
+    "load_calibration_coefficients_json": load_calibration_coefficients_json,
     "parse_result_export_csv": parse_result_export_csv,
     "parse_result_export_json": parse_result_export_json,
+    "parse_calibration_coefficients_json": parse_calibration_coefficients_json,
     "result_export_from_dict": result_export_from_dict,
     "result_export_to_dict": result_export_to_dict,
     "run_dc_sweep": run_dc_sweep,
     "run_hysteresis": run_hysteresis,
     "write_result_export_csv": write_result_export_csv,
     "write_result_export_json": write_result_export_json,
+    "write_calibration_coefficients_json": write_calibration_coefficients_json,
 }
 ERRORS: dict[str, type[Exception]] = {
     "ResultExportError": ResultExportError,
@@ -196,6 +237,7 @@ def _actual_manifest() -> dict[str, object]:
             "CALIBRATION_METHOD": CALIBRATION_METHOD,
             "CUTOFF_INTERPOLATION_METHOD": CUTOFF_INTERPOLATION_METHOD,
             "CSV_RESULT_EXPORT_COLUMNS": list(CSV_RESULT_EXPORT_COLUMNS),
+            "MAX_CALIBRATION_COEFFICIENT_BYTES": MAX_CALIBRATION_COEFFICIENT_BYTES,
             "MAX_RESULT_EXPORT_BYTES": MAX_RESULT_EXPORT_BYTES,
             "MAX_RESULT_EXPORT_ROWS": MAX_RESULT_EXPORT_ROWS,
         },
@@ -246,9 +288,10 @@ def test_phase3_enum_values_match_frozen_manifest() -> None:
 
 
 def test_phase3_signature_shapes_match_frozen_manifest() -> None:
-    assert _manifest()["signature_parameters"] == _actual_manifest()[
-        "signature_parameters"
-    ]
+    assert (
+        _manifest()["signature_parameters"]
+        == _actual_manifest()["signature_parameters"]
+    )
 
 
 def test_phase3_error_families_match_frozen_manifest() -> None:

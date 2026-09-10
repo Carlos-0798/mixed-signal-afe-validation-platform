@@ -52,16 +52,13 @@ def project_afe_v1_read_only_capabilities(
         raise ConfigurationError("capabilities are not AFE v1")
 
     adc_names = {
-        name: _adapter_name(name, "adc", "input")
-        for name in capabilities.adc_channels
+        name: _adapter_name(name, "adc", "input") for name in capabilities.adc_channels
     }
     dac_names = {
-        name: _adapter_name(name, "dac", "dac")
-        for name in capabilities.dac_channels
+        name: _adapter_name(name, "dac", "dac") for name in capabilities.dac_channels
     }
     pwm_names = {
-        name: _adapter_name(name, "pwm", "pwm")
-        for name in capabilities.pwm_channels
+        name: _adapter_name(name, "pwm", "pwm") for name in capabilities.pwm_channels
     }
     digital_names = {
         name: _adapter_name(name, "din", "threshold")

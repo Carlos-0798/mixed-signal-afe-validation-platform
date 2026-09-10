@@ -28,10 +28,12 @@ Think of the result bundle as a sealed engineering folder:
 
 ## Typed builders
 
-Two builders connect the finalized Phase 3 evaluations to the generic bundle:
+Four builders connect finalized evaluations to the generic bundle:
 
 - `build_dc_sweep_export` preserves fit metrics, DC criteria, input/output references, predictions, residuals, quality flags, and saturation/exclusion reasons;
-- `build_hysteresis_export` preserves cycle/direction points, analog/state references, thresholds/width statistics when analysis is complete, criteria, and quality/exclusion reasons.
+- `build_hysteresis_export` preserves cycle/direction points, analog/state references, thresholds/width statistics when analysis is complete, criteria, and quality/exclusion reasons;
+- `build_calibration_export` preserves observed/reference decisions and lineage, fitted coefficient identity/value, before/after error metrics, explicit criteria, and every point disposition without refitting;
+- `build_frequency_response_export` preserves frequency/input/output references, amplitude ratio, gain dB, cutoff metrics, criteria, quality decisions, and incomplete semantics without re-interpolating the curve.
 
 They copy existing values only. If a hysteresis direction contains an excluded or invalid point, the analysis remains incomplete and the builder does not invent threshold metrics.
 
@@ -105,6 +107,11 @@ These rules protect result history, but explicit overwrite is still destructive.
 
 ## Current boundary
 
-Phase 3 Step 7 itself provides structured interchange, not an end-user report. Software Phase 5 Step 4 now consumes this stable bundle through `analog-validation report` and creates text, Markdown, self-contained HTML, deterministic SVG, and a hash manifest without changing the bundle's conclusion. PDF, Dashboard, digital signatures, and long-term database storage remain outside this layer. See `human-reports.md`.
+The export layer provides structured interchange, not an end-user report. The
+product consumes this stable bundle through `analog-validation report` and the
+Dashboard, creating text, Markdown, self-contained HTML, deterministic SVG,
+and a hash manifest without changing the bundle's conclusion. PDF, digital
+signatures, and long-term database storage remain outside this layer. See
+`human-reports.md`.
 
 All Step 7 tests use software fixtures. No AFE, MSP430, ADC, DAC, UART, wire, power supply, DMM, oscilloscope, or laboratory instrument was connected.

@@ -58,7 +58,9 @@ def _require_speed(value: object) -> float:
         raise ConfigurationError("speed_multiplier must be numeric")
     speed = float(value)
     if not math.isfinite(speed) or speed <= 0:
-        raise ConfigurationError("speed_multiplier must be finite and greater than zero")
+        raise ConfigurationError(
+            "speed_multiplier must be finite and greater than zero"
+        )
     return speed
 
 
@@ -118,9 +120,7 @@ class CsvReplayAdapterConfig:
             raise ConfigurationError("channels must be an iterable")
         frozen: tuple[object, ...] = tuple(self.channels)
         if not all(isinstance(channel, ReplayChannelConfig) for channel in frozen):
-            raise ConfigurationError(
-                "channels must contain ReplayChannelConfig values"
-            )
+            raise ConfigurationError("channels must contain ReplayChannelConfig values")
         channels = cast(tuple[ReplayChannelConfig, ...], frozen)
         names = [channel.name for channel in channels]
         if len(names) != len(set(names)):
@@ -285,9 +285,7 @@ class CsvReplayAdapter(DeviceAdapter):
             )
 
     def _connect(self) -> None:
-        self._cursors = {
-            channel.name: 0 for channel in self._replay_config.channels
-        }
+        self._cursors = {channel.name: 0 for channel in self._replay_config.channels}
         self._previous_records.clear()
         self._speed_multiplier = self._replay_config.speed_multiplier
         self._paused = False

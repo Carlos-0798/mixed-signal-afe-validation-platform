@@ -8,6 +8,10 @@ from typing import Any, cast
 import pytest
 
 import analog_validation_app.dashboard.wizard as wizard_module
+from analog_validation import MeasurementUnit, ReadOperation
+from analog_validation.protocol.msp430_health_v1 import (
+    MSP430_HEALTH_CHANNEL_BUS_VOLTAGE,
+)
 from analog_validation.transport import SerialPortInfo
 from analog_validation_app import (
     DASHBOARD_WIZARD_SCHEMA_VERSION,
@@ -23,6 +27,7 @@ from analog_validation_app import (
     ProductJobType,
     ProductRequestError,
     ProductSourceMode,
+    SerialChannelAlias,
     UserIssue,
     UserIssueCode,
     UserIssueSeverity,
@@ -98,6 +103,7 @@ def test_guidance_rejects_invalid_number_and_text(
         ({"sample_count": " bad"}, "stripped"),
         ({"sample_count": "bad\nvalue"}, "printable"),
         ({"serial_confirm_read_only": "yes"}, "boolean"),
+        ({"monitor_include_secondary": "yes"}, "boolean"),
         (
             {
                 "source_mode": ProductSourceMode.SERIAL_READ_ONLY,
@@ -134,26 +140,95 @@ def test_draft_converts_simulator_replay_and_serial_without_opening_resources() 
         serial_port="MEMORY:1",
         serial_confirm_read_only=True,
         sample_count="20",
+        serial_expected_device_id="afe-dual",
+        serial_afe_adc_aliases=(
+            "adc0=afe.ch0.input, adc1=afe.ch0.output"
+        ),
     ).to_product_configuration()
 
     assert simulator.source_mode is ProductSourceMode.SIMULATOR
     assert replay.replay_path == GOLDEN_REPLAY
     assert serial.serial_config is not None
     assert serial.serial_config.max_buffered_measurements == 160
+    assert serial.serial_config.expected_device_id == "afe-dual"
+    assert serial.serial_config.afe_adc_channel_aliases == (
+        SerialChannelAlias("adc0", "afe.ch0.input"),
+        SerialChannelAlias("adc1", "afe.ch0.output"),
+    )
     assert serial.confirm_read_only is True
+
+    calibration = DashboardWizardDraft(
+        job_type=ProductJobType.CALIBRATION_ANALYSIS,
+        coefficient_id="bench-linear",
+        coefficient_version="2",
+        max_calibration_rmse="0.5",
+        max_calibration_mean_absolute_error="0.4",
+        max_calibration_absolute_error="1.2",
+        minimum_calibration_rmse_reduction="3",
+    ).to_product_configuration()
+    assert calibration.coefficient_id == "bench-linear"
+    assert calibration.coefficient_version == "2"
+    assert calibration.max_calibration_rmse == 0.5
+    assert calibration.minimum_calibration_rmse_reduction == 3.0
 
 
 @pytest.mark.parametrize(
     ("changes", "message"),
     [
-        ({"sample_count": "many"}, "integer"),
-        ({"target_gain": "much"}, "numeric"),
-        ({"target_gain": "nan"}, "finite"),
+        (
+            {
+                "serial_afe_adc_aliases": "adc0=afe.ch0.input,",
+                "serial_expected_device_id": "afe-dual",
+            },
+            "empty comma-separated entry",
+        ),
+        (
+            {
+                "serial_afe_adc_aliases": "not-an-alias",
+                "serial_expected_device_id": "afe-dual",
+            },
+            "native=canonical",
+        ),
+        (
+            {"serial_afe_adc_aliases": "adc0=afe.ch0.input"},
+            "require expected_device_id",
+        ),
+        (
+            {
+                "profile_name": "msp430-equipment-health",
+                "serial_expected_device_id": "msp-profile-label",
+                "serial_afe_adc_aliases": "adc0=afe.ch0.input",
+            },
+            "only by the AFE v1 profile",
+        ),
+    ],
+)
+def test_serial_device_contract_form_fails_before_resource_construction(
+    changes: dict[str, object],
+    message: str,
+) -> None:
+    values: dict[str, object] = {
+        "source_mode": ProductSourceMode.SERIAL_READ_ONLY,
+        "serial_port": "MEMORY:1",
+        "serial_confirm_read_only": True,
+    }
+    values.update(changes)
+    with pytest.raises(ProductRequestError, match=message):
+        DashboardWizardDraft(**cast(Any, values)).to_product_configuration()
+
+
+@pytest.mark.parametrize(
+    ("changes", "message", "field_id"),
+    [
+        ({"sample_count": "many"}, "integer", "sample_count"),
+        ({"target_gain": "much"}, "numeric", "target_gain"),
+        ({"target_gain": "nan"}, "finite", "target_gain"),
         (
             {
                 "source_mode": ProductSourceMode.CSV_REPLAY,
                 "replay_path": "",
             },
+            "replay_path",
             "replay_path",
         ),
         (
@@ -162,6 +237,7 @@ def test_draft_converts_simulator_replay_and_serial_without_opening_resources() 
                 "serial_port": "",
                 "serial_confirm_read_only": True,
             },
+            "serial_port",
             "serial_port",
         ),
         (
@@ -172,15 +248,63 @@ def test_draft_converts_simulator_replay_and_serial_without_opening_resources() 
                 "serial_confirm_read_only": True,
             },
             "serial_baud_rate",
+            "serial_baud_rate",
         ),
     ],
 )
 def test_draft_conversion_rejects_unparseable_values(
-    changes: dict[str, object], message: str
+    changes: dict[str, object], message: str, field_id: str
 ) -> None:
     draft = DashboardWizardDraft(**cast(Any, changes))
-    with pytest.raises(ProductRequestError, match=message):
+    with pytest.raises(ProductRequestError, match=message) as caught:
         draft.to_product_configuration()
+    assert getattr(caught.value, "field_id", None) == field_id
+
+
+@pytest.mark.parametrize(
+    ("changes", "field_id"),
+    [
+        (
+            {
+                "job_type": ProductJobType.DC_ANALYSIS,
+                "secondary_channel": "afe.ch0.input",
+            },
+            "secondary_channel",
+        ),
+        (
+            {
+                "source_mode": ProductSourceMode.CSV_REPLAY,
+                "replay_path": str(GOLDEN_REPLAY),
+                "replay_minimum": "3300",
+                "replay_maximum": "3300",
+            },
+            "replay_maximum",
+        ),
+        (
+            {
+                "job_type": ProductJobType.FREQUENCY_RESPONSE_ANALYSIS,
+                "target_cutoff_frequency_hz": "200000",
+            },
+            "target_cutoff_frequency_hz",
+        ),
+        (
+            {
+                "job_type": ProductJobType.HYSTERESIS_ANALYSIS,
+                "state_channel": "afe.ch0.input",
+            },
+            "state_channel",
+        ),
+    ],
+)
+def test_cross_field_validation_identifies_the_field_to_correct(
+    changes: dict[str, object], field_id: str
+) -> None:
+    draft = DashboardWizardDraft(**cast(Any, changes))
+
+    with pytest.raises(ProductRequestError) as caught:
+        draft.to_product_configuration()
+
+    assert getattr(caught.value, "field_id", None) == field_id
 
 
 def test_wizard_state_exposes_fixed_choices_guidance_and_permissions() -> None:
@@ -193,6 +317,9 @@ def test_wizard_state_exposes_fixed_choices_guidance_and_permissions() -> None:
         ProductJobType.READ,
         ProductJobType.DC_ANALYSIS,
         ProductJobType.HYSTERESIS_ANALYSIS,
+        ProductJobType.CALIBRATION_ANALYSIS,
+        ProductJobType.FREQUENCY_RESPONSE_ANALYSIS,
+        ProductJobType.LIVE_MONITOR,
     )
     assert initial.profile_identities == ("afe/1",)
     assert initial.can_back is False
@@ -201,6 +328,8 @@ def test_wizard_state_exposes_fixed_choices_guidance_and_permissions() -> None:
     assert initial.can_run is False
     assert initial.can_cancel is False
     assert initial.can_export is False
+    assert initial.can_save_coefficients is False
+    assert initial.can_load_coefficients is False
     assert initial.can_modify_setup is False
     assert initial.can_review_same_setup is False
     assert initial.can_start_new_test is False
@@ -226,6 +355,7 @@ def test_wizard_state_exposes_fixed_choices_guidance_and_permissions() -> None:
         {"issue": object()},
         {"export_available": "yes"},
         {"export_message": ""},
+        {"coefficient_available": "yes"},
         {"schema_version": "dashboard-wizard.v2"},
     ],
 )
@@ -271,15 +401,112 @@ def test_presenter_runs_the_six_steps_and_preserves_review_permissions() -> None
     assert presenter.state.can_run is True
     presenter.begin_run()
     assert presenter.state.can_cancel is True
-    presenter.finish_run(export_available=True)
+    presenter.finish_run(export_available=True, coefficient_available=True)
     assert presenter.state.can_export is True
+    assert presenter.state.can_save_coefficients is True
+    assert presenter.state.can_load_coefficients is True
     assert presenter.state.can_modify_setup is True
     assert presenter.state.can_review_same_setup is True
     assert presenter.state.can_start_new_test is True
     presenter.present_export("result.json")
     assert presenter.state.export_message == "Exported safely: result.json"
+    presenter.present_coefficient_artifact("Coefficient file saved safely.")
+    assert presenter.state.coefficient_message == "Coefficient file saved safely."
     presenter.back()
     assert presenter.state.step is DashboardWizardStep.CONFIGURATION
+
+
+def test_selecting_live_monitor_normalizes_a_digital_read_draft() -> None:
+    presenter = DashboardWizardPresenter(
+        DashboardWizardState(
+            0,
+            DashboardWizardStep.TEST,
+            DashboardWizardDraft(
+                operation=ReadOperation.DIGITAL,
+                unit=MeasurementUnit.BOOLEAN,
+            ),
+        )
+    )
+
+    state = presenter.select_job(ProductJobType.LIVE_MONITOR)
+
+    assert state.draft.job_type is ProductJobType.LIVE_MONITOR
+    assert state.draft.operation is ReadOperation.ANALOG
+    assert state.draft.unit is MeasurementUnit.MILLIVOLT
+
+
+def test_selecting_serial_live_monitor_applies_safe_single_channel_defaults() -> None:
+    presenter = DashboardWizardPresenter(
+        DashboardWizardState(
+            0,
+            DashboardWizardStep.TEST,
+            DashboardWizardDraft(
+                source_mode=ProductSourceMode.SERIAL_READ_ONLY,
+                job_type=ProductJobType.READ,
+                profile_name="afe",
+                profile_version="1",
+                serial_read_timeout="0.25",
+                serial_max_polls="32",
+                monitor_include_secondary=True,
+                monitor_include_state=True,
+            ),
+        )
+    )
+
+    state = presenter.select_job(ProductJobType.LIVE_MONITOR)
+
+    assert state.draft.sample_count == "20"
+    assert state.draft.monitor_sample_interval_seconds == "0.02"
+    assert state.draft.monitor_include_secondary is False
+    assert state.draft.monitor_include_state is False
+    assert state.draft.serial_read_timeout == "0.05"
+    assert state.draft.serial_max_polls == "4"
+
+
+def test_switching_an_existing_live_monitor_to_serial_reapplies_safe_defaults() -> None:
+    presenter = DashboardWizardPresenter(
+        DashboardWizardState(
+            0,
+            DashboardWizardStep.SOURCE,
+            DashboardWizardDraft(
+                source_mode=ProductSourceMode.SIMULATOR,
+                job_type=ProductJobType.LIVE_MONITOR,
+                sample_count="999",
+                monitor_sample_interval_seconds="1",
+                monitor_include_secondary=True,
+                monitor_include_state=True,
+                serial_read_timeout="0.25",
+                serial_max_polls="32",
+            ),
+        )
+    )
+
+    state = presenter.select_source(ProductSourceMode.SERIAL_READ_ONLY)
+
+    assert state.draft.job_type is ProductJobType.LIVE_MONITOR
+    assert state.draft.sample_count == "20"
+    assert state.draft.monitor_sample_interval_seconds == "0.02"
+    assert state.draft.monitor_include_secondary is False
+    assert state.draft.monitor_include_state is False
+    assert state.draft.serial_read_timeout == "0.05"
+    assert state.draft.serial_max_polls == "4"
+
+
+def test_coefficient_result_transitions_reject_wrong_step_and_flag_type() -> None:
+    presenter = DashboardWizardPresenter()
+    with pytest.raises(ProductRequestError, match="Result step"):
+        presenter.present_coefficient_artifact("not yet available")
+
+    presenter.next()
+    presenter.next()
+    presenter.submit_configuration(presenter.state.draft)
+    presenter.present_review(presenter.state.draft, ("Reviewed.",))
+    presenter.begin_run()
+    with pytest.raises(ProductRequestError, match="coefficient_available"):
+        presenter.finish_run(
+            export_available=False,
+            coefficient_available=cast(Any, "yes"),
+        )
 
 
 def test_result_specific_transitions_preserve_or_reset_the_draft_explicitly() -> None:
@@ -315,6 +542,9 @@ def test_source_and_profile_selection_follow_compatibility_without_guessing() ->
     )
     state = presenter.select_profile("msp430-equipment-health", "1")
     assert state.draft.profile_name == "msp430-equipment-health"
+    assert state.draft.primary_channel == MSP430_HEALTH_CHANNEL_BUS_VOLTAGE
+    assert state.draft.operation is ReadOperation.ANALOG
+    assert state.draft.unit is MeasurementUnit.MILLIVOLT
 
 
 def test_back_transitions_are_explicit_for_test_configuration_and_review() -> None:

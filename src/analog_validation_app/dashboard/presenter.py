@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import replace
 from threading import get_ident
 from typing import Any, cast
@@ -18,6 +19,7 @@ from ..catalog import (
 )
 from ..errors import ProductCatalogError, ProductRequestError
 from ..issues import UserIssue
+from ..live import LiveMonitorSnapshot
 from ..models import (
     ProductJobEvent,
     ProductJobRequest,
@@ -36,6 +38,8 @@ from .state import (
     DashboardArtifactsPanel,
     DashboardArtifactView,
     DashboardConfigurationPanel,
+    DashboardLivePanel,
+    DashboardLivePoint,
     DashboardPlotPanel,
     DashboardPlotPoint,
     DashboardProgressPanel,
@@ -53,6 +57,9 @@ _JOB_NAMES = {
     ProductJobType.READ: "Read observations",
     ProductJobType.DC_ANALYSIS: "DC analysis",
     ProductJobType.HYSTERESIS_ANALYSIS: "Hysteresis analysis",
+    ProductJobType.CALIBRATION_ANALYSIS: "Calibration analysis",
+    ProductJobType.FREQUENCY_RESPONSE_ANALYSIS: "Frequency response analysis",
+    ProductJobType.LIVE_MONITOR: "Live monitor",
 }
 
 _WORKER_STATUS = {
@@ -133,6 +140,25 @@ def _empty_progress() -> DashboardProgressPanel:
     )
 
 
+def _empty_live() -> DashboardLivePanel:
+    return DashboardLivePanel(
+        False,
+        False,
+        False,
+        False,
+        "Live view is inactive; no monitor session is running.",
+        (),
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        5.0,
+    )
+
+
 def _empty_plot() -> DashboardPlotPanel:
     return DashboardPlotPanel(
         "Plot / point table",
@@ -175,6 +201,7 @@ def initial_dashboard_state() -> DashboardState:
         source=_source_panel(source, profiles[0]),
         configuration=_configuration_panel(source, job_type),
         progress=_empty_progress(),
+        live=_empty_live(),
         plot=_empty_plot(),
         result=_empty_result(),
         artifacts=_empty_artifacts(),
@@ -227,9 +254,7 @@ def _read_observation_values(
                 f"source={measurement.source.value}",
                 "quality="
                 + (
-                    ",".join(
-                        sorted(flag.value for flag in measurement.quality_flags)
-                    )
+                    ",".join(sorted(flag.value for flag in measurement.quality_flags))
                     or "none"
                 ),
                 f"timestamp={measurement.timestamp.isoformat()}",
@@ -342,6 +367,7 @@ class DashboardPresenter:
                 configuration=_configuration_panel(
                     source, self._state.configuration.job_type
                 ),
+                live=_empty_live(),
                 plot=_empty_plot(),
                 result=_empty_result(),
                 artifacts=_empty_artifacts(),
@@ -380,6 +406,7 @@ class DashboardPresenter:
                 _WORKER_STATUS[ProductWorkerState.STARTING],
                 can_cancel=True,
             ),
+            live=_empty_live(),
             plot=_empty_plot(),
             result=_empty_result(),
             artifacts=_empty_artifacts(),
@@ -411,6 +438,7 @@ class DashboardPresenter:
                 can_run=True,
             ),
             progress=_empty_progress(),
+            live=_empty_live(),
             plot=_empty_plot(),
             result=_empty_result(),
             artifacts=_empty_artifacts(),
@@ -554,10 +582,76 @@ class DashboardPresenter:
                 (
                     f"Copied {len(points)} of {requested} acquired observations. "
                     "This table is presentation-only and does not calculate an "
-                    "engineering PASS or FAIL."
+                    "engineering PASS or FAIL. "
+                    "Capability identity: "
+                    f"{result.capabilities.device_id} "
+                    f"({result.capabilities.profile_name}/"
+                    f"{result.capabilities.profile_version}); this is reported "
+                    "protocol/profile evidence, not a physical serial-number claim."
                 ),
                 points,
                 len(points),
+            )
+        )
+
+    def present_live_monitor(
+        self,
+        snapshot: LiveMonitorSnapshot,
+        *,
+        active: bool,
+    ) -> DashboardState:
+        """Copy one thread-safe live snapshot without recalculating measurements."""
+
+        self._require_owner()
+        if not isinstance(snapshot, LiveMonitorSnapshot):
+            raise ProductRequestError("snapshot must be a LiveMonitorSnapshot")
+        if not isinstance(active, bool):
+            raise ProductRequestError("active must be boolean")
+        points = tuple(
+            DashboardLivePoint(
+                point.index,
+                point.cycle_index,
+                point.elapsed_seconds,
+                point.measurement.channel,
+                (
+                    None
+                    if point.measurement.value is None
+                    or not math.isfinite(float(point.measurement.value))
+                    else float(point.measurement.value)
+                ),
+                point.measurement.unit,
+                point.measurement.status,
+            )
+            for point in snapshot.visible_points
+        )
+        # A pause request can race with the worker's terminal notification.  Once
+        # acquisition is inactive, the terminal state wins: the result must not
+        # look resumable merely because the last copied session snapshot still
+        # carries a paused flag.
+        paused = active and snapshot.paused
+        status = "paused" if paused else ("running" if active else "finished")
+        summary = (
+            f"Live monitor {status}: {snapshot.total_points} acquired; "
+            f"{len(snapshot.points)} retained; {len(points)} visible in the "
+            f"last {snapshot.time_window_seconds:g} s. "
+            f"Oldest points evicted by memory bound: {snapshot.evicted_points}."
+        )
+        return self._replace(
+            live=DashboardLivePanel(
+                active,
+                paused,
+                active and not paused,
+                paused,
+                summary,
+                points,
+                snapshot.total_points,
+                len(snapshot.points),
+                snapshot.evicted_points,
+                snapshot.valid_points,
+                snapshot.suspect_points,
+                snapshot.invalid_points,
+                snapshot.pause_count,
+                snapshot.time_window_seconds,
             )
         )
 
@@ -629,6 +723,25 @@ class DashboardPresenter:
                 view.not_verified,
             ),
             artifacts=artifact_panel,
+        )
+
+    def present_artifact(self, artifact: DashboardArtifactView) -> DashboardState:
+        """Append one path-free artifact identity without hiding earlier saves."""
+
+        self._require_owner()
+        if not isinstance(artifact, DashboardArtifactView):
+            raise ProductRequestError("artifact must be a DashboardArtifactView")
+        existing = tuple(
+            item
+            for item in self._state.artifacts.artifacts
+            if item.name != artifact.name
+        )
+        artifacts = (*existing, artifact)
+        return self._replace(
+            artifacts=DashboardArtifactsPanel(
+                f"{len(artifacts)} artifacts saved; absolute paths are hidden in this view.",
+                artifacts,
+            )
         )
 
 

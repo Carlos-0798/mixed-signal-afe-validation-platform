@@ -5,7 +5,7 @@ from typing import Any, cast
 
 import pytest
 
-from analog_validation import EvidenceSource
+from analog_validation import EvidenceSource, MeasurementStatus, MeasurementUnit
 from analog_validation import TestRunOutcome as RunOutcome
 from analog_validation_app import ProductRequestError, UserIssue, UserIssueCode
 from analog_validation_app import UserIssueSeverity as IssueSeverity
@@ -20,6 +20,8 @@ from analog_validation_app.dashboard import (
     DashboardActionType,
     DashboardArtifactsPanel,
     DashboardArtifactView,
+    DashboardLivePanel,
+    DashboardLivePoint,
     DashboardPlotPanel,
     DashboardPlotPoint,
     DashboardProgressPanel,
@@ -67,6 +69,8 @@ def test_initial_state_is_immutable_simulator_first_and_text_explicit() -> None:
     assert state.configuration.job_type is ProductJobType.READ
     assert state.configuration.can_run is False
     assert state.progress.worker_state is ProductWorkerState.IDLE
+    assert state.live.active is False
+    assert state.live.total_points == 0
     assert "NOT RUN" in state.result.summary
     assert state.hardware_claim == DASHBOARD_HARDWARE_CLAIM
     with pytest.raises(FrozenInstanceError):
@@ -202,6 +206,57 @@ def test_progress_panel_validates_counts_progress_and_cancel_semantics() -> None
         ),
     )
     for factory in factories:
+        with pytest.raises(ProductRequestError):
+            factory()
+
+
+def test_live_panel_validates_control_counts_and_visible_points() -> None:
+    point = DashboardLivePoint(
+        1,
+        0,
+        0.0,
+        "afe.ch0.input",
+        100.0,
+        MeasurementUnit.MILLIVOLT,
+        MeasurementStatus.VALID,
+    )
+    panel = DashboardLivePanel(
+        True,
+        False,
+        True,
+        False,
+        "Live monitor running.",
+        (point,),
+        2,
+        2,
+        0,
+        1,
+        1,
+        0,
+        0,
+        5.0,
+    )
+    assert panel.can_pause is True
+
+    for factory in (
+        lambda: replace(point, index=0),
+        lambda: replace(point, elapsed_seconds=float("nan")),
+        lambda: replace(point, channel=""),
+        lambda: replace(point, value=float("inf")),
+        lambda: replace(point, unit=cast(Any, "mV")),
+        lambda: replace(point, status=cast(Any, "VALID")),
+        lambda: replace(panel, active=cast(Any, 1)),
+        lambda: replace(panel, can_pause=False),
+        lambda: replace(panel, can_resume=True),
+        lambda: replace(panel, points=cast(Any, [point])),
+        lambda: replace(panel, points=(point,) * (MAX_DASHBOARD_PLOT_POINTS + 1)),
+        lambda: replace(panel, pause_count=cast(Any, True)),
+        lambda: replace(panel, retained_points=0),
+        lambda: replace(panel, retained_points=0, evicted_points=2),
+        lambda: replace(panel, evicted_points=1),
+        lambda: replace(panel, valid_points=0),
+        lambda: replace(panel, time_window_seconds=0.0),
+    ):
         with pytest.raises(ProductRequestError):
             factory()
 

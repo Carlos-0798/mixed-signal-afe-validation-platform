@@ -9,10 +9,10 @@ import inspect
 import io
 import json
 from collections.abc import Callable, Iterable
-from dataclasses import MISSING, fields, is_dataclass
+from dataclasses import MISSING, fields, is_dataclass, replace
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -23,10 +23,25 @@ from analog_validation_app import (
     DASHBOARD_HARDWARE_CLAIM,
     DASHBOARD_STATE_SCHEMA_VERSION,
     DASHBOARD_WIZARD_SCHEMA_VERSION,
+    DEFAULT_LIVE_MONITOR_MAX_POINTS,
     DEFAULT_PRODUCT_EVENT_QUEUE_SIZE,
     DEFAULT_PRODUCT_JOIN_TIMEOUT_S,
     HUMAN_REPORT_MANIFEST_SCHEMA_VERSION,
     HUMAN_REPORT_SCHEMA_VERSION,
+    LIVE_MONITOR_CONTROL_POLL_SECONDS,
+    LIVE_MONITOR_SCHEMA_VERSION,
+    MAX_LIVE_MONITOR_DURATION_SECONDS,
+    MAX_LIVE_MONITOR_INTERVAL_SECONDS,
+    MAX_LIVE_MONITOR_MAX_POINTS,
+    MAX_LIVE_MONITOR_WINDOW_SECONDS,
+    MAX_SERIAL_CHANNEL_ALIASES,
+    MAX_SERIAL_IDENTITY_CHARS,
+    MAX_VALIDATION_HISTORY_INPUTS,
+    MAX_VALIDATION_PRESETS,
+    MAX_VALIDATION_PROJECT_BYTES,
+    MAX_VALIDATION_RUN_MANIFEST_BYTES,
+    MAX_VALIDATION_RUN_RECORDS,
+    MIN_LIVE_MONITOR_WINDOW_SECONDS,
     PORTFOLIO_DEMO_CONFIG_SCHEMA_VERSION,
     PORTFOLIO_DEMO_EPOCH,
     PORTFOLIO_DEMO_JOB_ID,
@@ -47,9 +62,22 @@ from analog_validation_app import (
     REPORT_MARKDOWN_FILENAME,
     REPORT_SVG_FILENAME,
     REPORT_TEXT_FILENAME,
+    SERIAL_CHANNEL_ALIAS_SCHEMA_VERSION,
     SERIAL_LIMITATIONS,
+    SERIAL_SOURCE_CONFIG_SCHEMA_VERSION,
     SIMULATOR_LIMITATIONS,
     USER_ISSUE_SCHEMA_VERSION,
+    VALIDATION_PRESET_SCHEMA_VERSION,
+    VALIDATION_PROJECT_SCHEMA_VERSION,
+    VALIDATION_PROJECT_SNAPSHOT_FILENAME,
+    VALIDATION_RUN_COMPARISON_SCHEMA_VERSION,
+    VALIDATION_RUN_INPUT_ARTIFACT_SCHEMA_VERSION,
+    VALIDATION_RUN_MANIFEST_FILENAME,
+    VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
+    VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION,
+    VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION,
+    VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
+    VALIDATION_RUN_RECORD_SCHEMA_VERSION,
     issue_from_exception,
 )
 from analog_validation_app.dashboard.app import (
@@ -67,6 +95,7 @@ MODULE_NAMES = (
     "analog_validation_app.cli",
     "analog_validation_app.dashboard",
     "analog_validation_app.dashboard.app",
+    "analog_validation_app.projects",
 )
 MODULES = {name: importlib.import_module(name) for name in MODULE_NAMES}
 
@@ -77,6 +106,7 @@ SCHEMAS = {
     "DASHBOARD_WIZARD_SCHEMA_VERSION": DASHBOARD_WIZARD_SCHEMA_VERSION,
     "HUMAN_REPORT_MANIFEST_SCHEMA_VERSION": HUMAN_REPORT_MANIFEST_SCHEMA_VERSION,
     "HUMAN_REPORT_SCHEMA_VERSION": HUMAN_REPORT_SCHEMA_VERSION,
+    "LIVE_MONITOR_SCHEMA_VERSION": LIVE_MONITOR_SCHEMA_VERSION,
     "PORTFOLIO_DEMO_CONFIG_SCHEMA_VERSION": PORTFOLIO_DEMO_CONFIG_SCHEMA_VERSION,
     "PORTFOLIO_DEMO_SCHEMA_VERSION": PORTFOLIO_DEMO_SCHEMA_VERSION,
     "PRODUCT_CATALOG_SCHEMA_VERSION": PRODUCT_CATALOG_SCHEMA_VERSION,
@@ -84,7 +114,18 @@ SCHEMAS = {
     "PRODUCT_JOB_SCHEMA_VERSION": PRODUCT_JOB_SCHEMA_VERSION,
     "PRODUCT_RESULT_SCHEMA_VERSION": PRODUCT_RESULT_SCHEMA_VERSION,
     "PRODUCT_WORKFLOW_CONFIG_SCHEMA_VERSION": PRODUCT_WORKFLOW_CONFIG_SCHEMA_VERSION,
+    "SERIAL_CHANNEL_ALIAS_SCHEMA_VERSION": SERIAL_CHANNEL_ALIAS_SCHEMA_VERSION,
+    "SERIAL_SOURCE_CONFIG_SCHEMA_VERSION": SERIAL_SOURCE_CONFIG_SCHEMA_VERSION,
     "USER_ISSUE_SCHEMA_VERSION": USER_ISSUE_SCHEMA_VERSION,
+    "VALIDATION_PRESET_SCHEMA_VERSION": VALIDATION_PRESET_SCHEMA_VERSION,
+    "VALIDATION_PROJECT_SCHEMA_VERSION": VALIDATION_PROJECT_SCHEMA_VERSION,
+    "VALIDATION_RUN_COMPARISON_SCHEMA_VERSION": VALIDATION_RUN_COMPARISON_SCHEMA_VERSION,
+    "VALIDATION_RUN_INPUT_ARTIFACT_SCHEMA_VERSION": VALIDATION_RUN_INPUT_ARTIFACT_SCHEMA_VERSION,
+    "VALIDATION_RUN_MANIFEST_SCHEMA_VERSION": VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
+    "VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION": VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION,
+    "VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION": VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION,
+    "VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION": VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
+    "VALIDATION_RUN_RECORD_SCHEMA_VERSION": VALIDATION_RUN_RECORD_SCHEMA_VERSION,
 }
 
 ENUM_NAMES = (
@@ -98,6 +139,8 @@ ENUM_NAMES = (
     "ReportChartKind",
     "UserIssueCode",
     "UserIssueSeverity",
+    "ValidationBatchPhase",
+    "ValidationBatchStatus",
 )
 ENUMS: dict[str, type[Enum]] = {
     name: getattr(analog_validation_app, name) for name in ENUM_NAMES
@@ -108,6 +151,8 @@ DATACLASS_NAMES = (
     "DashboardArtifactView",
     "DashboardArtifactsPanel",
     "DashboardConfigurationPanel",
+    "DashboardLivePanel",
+    "DashboardLivePoint",
     "DashboardPlotPanel",
     "DashboardPlotPoint",
     "DashboardProgressPanel",
@@ -120,6 +165,8 @@ DATACLASS_NAMES = (
     "DemoArtifact",
     "HumanReportPublication",
     "HumanReportView",
+    "LiveMonitorSnapshot",
+    "LiveTracePoint",
     "PortfolioDemoPublication",
     "PreparedProductJob",
     "ProductJobEvent",
@@ -130,14 +177,26 @@ DATACLASS_NAMES = (
     "ProductServiceOutput",
     "ProductSourceDescriptor",
     "ProductWorkflowConfiguration",
+    "ProjectMetricDelta",
+    "ProjectRunComparisonEntry",
+    "ProjectRunMetric",
+    "ProjectRunRecord",
     "ReportArtifact",
     "ReportCriterionView",
     "ReportPointView",
     "ReportReferenceView",
     "ReportSchemaView",
     "ReportValueView",
+    "SerialChannelAlias",
     "SerialSourceConfig",
     "UserIssue",
+    "ValidationBatchPreparationFailure",
+    "ValidationBatchProgress",
+    "ValidationPreset",
+    "ValidationProject",
+    "ValidationRunComparison",
+    "ValidationRunInputArtifact",
+    "ValidationRunManifest",
 )
 DATACLASSES: dict[str, type[object]] = {
     name: getattr(analog_validation_app, name) for name in DATACLASS_NAMES
@@ -153,6 +212,8 @@ SIGNATURE_NAMES = (
     "DemoArtifact",
     "HumanReportPublication",
     "HumanReportView",
+    "LiveMonitorJobService",
+    "LiveMonitorSession",
     "PortfolioDemoPublication",
     "PreparedProductJob",
     "ProductJobEvent",
@@ -163,19 +224,45 @@ SIGNATURE_NAMES = (
     "ProductServiceOutputSlot",
     "ProductSourceDescriptor",
     "ProductWorkflowConfiguration",
+    "ProjectMetricDelta",
+    "ProjectRunComparisonEntry",
+    "ProjectRunMetric",
+    "ProjectRunRecord",
     "ReportArtifact",
+    "SerialChannelAlias",
     "SerialSourceConfig",
     "UserIssue",
+    "ValidationBatchCancellationToken",
+    "ValidationBatchPreparationFailure",
+    "ValidationBatchProgress",
+    "ValidationPreset",
+    "ValidationProject",
+    "ValidationRunComparison",
+    "ValidationRunManifest",
+    "build_default_validation_project",
     "build_human_report_view",
+    "compare_validation_runs",
+    "dump_validation_project",
+    "dump_validation_run_manifest",
     "execute_product_job",
     "initial_dashboard_state",
     "issue_from_exception",
+    "make_calibration_service_factory",
     "make_dc_sweep_service_factory",
+    "make_frequency_response_service_factory",
     "make_hysteresis_service_factory",
+    "make_live_monitor_service_factory",
     "make_read_service_factory",
     "prepare_product_job",
     "publish_human_report",
     "publish_portfolio_demo",
+    "publish_validation_project_run",
+    "validation_project_from_dict",
+    "validation_project_to_dict",
+    "validation_run_comparison_to_dict",
+    "validation_run_manifest_from_dict",
+    "validation_run_manifest_to_dict",
+    "write_validation_project",
 )
 SIGNATURES: dict[str, Callable[..., Any]] = {
     name: getattr(analog_validation_app, name) for name in SIGNATURE_NAMES
@@ -184,6 +271,15 @@ SIGNATURES.update(
     {
         "CliDependencies": product_cli.CliDependencies,
         "DashboardSessionResult": DashboardSessionResult,
+        "DashboardApplication.load_preset_configuration": analog_validation_app.DashboardApplication.load_preset_configuration,
+        "DashboardApplication.save_report_bundle": analog_validation_app.DashboardApplication.save_report_bundle,
+        "DashboardApplication.report_publication": cast(
+            Callable[..., Any],
+            inspect.getattr_static(
+                analog_validation_app.DashboardApplication, "report_publication"
+            ).fget,
+        ),
+        "DashboardWizardPresenter.load_preset_draft": analog_validation_app.DashboardWizardPresenter.load_preset_draft,
         "build_parser": product_cli.build_parser,
         "launch_dashboard": launch_dashboard,
         "main": product_cli.main,
@@ -314,7 +410,9 @@ def _run_json(argv: list[str]) -> dict[str, Any]:
     stderr = io.StringIO()
     status = product_cli.main(argv, stdout=stdout, stderr=stderr)
     if status != 0:
-        raise AssertionError(f"CLI contract command failed ({status}): {stderr.getvalue()}")
+        raise AssertionError(
+            f"CLI contract command failed ({status}): {stderr.getvalue()}"
+        )
     return json.loads(stdout.getvalue())
 
 
@@ -322,15 +420,63 @@ def _serialized_fields(output_parent: Path) -> dict[str, list[str]]:
     version = _run_json(["version", "--json"])
     profiles = _run_json(["profiles", "--json"])
     demo_directory = output_parent / "demo"
-    demo_cli = _run_json(
-        ["demo", "--output", str(demo_directory), "--json"]
-    )
+    demo_cli = _run_json(["demo", "--output", str(demo_directory), "--json"])
     demo_manifest = json.loads(
         (demo_directory / "manifest.json").read_text(encoding="utf-8")
     )
     report_manifest = json.loads(
         (demo_directory / "report" / "manifest.json").read_text(encoding="utf-8")
     )
+    project_path = output_parent / "project.json"
+    project_create = _run_json(
+        [
+            "project",
+            "create",
+            "--output",
+            str(project_path),
+            "--project-id",
+            "golden-project",
+            "--name",
+            "Golden project",
+            "--json",
+        ]
+    )
+    project_run_directory = output_parent / "project-run"
+    project_run = _run_json(
+        [
+            "project",
+            "run",
+            "--input",
+            str(project_path),
+            "--output",
+            str(project_run_directory),
+            "--run-id",
+            "golden-run",
+            "--preset",
+            "dc-default",
+            "--json",
+        ]
+    )
+    project_file = json.loads(project_path.read_text(encoding="utf-8"))
+    project_manifest = json.loads(
+        (project_run_directory / VALIDATION_RUN_MANIFEST_FILENAME).read_text(
+            encoding="utf-8"
+        )
+    )
+    failure_manifest = analog_validation_app.validation_run_manifest_to_dict(
+        replace(
+            analog_validation_app.validation_run_manifest_from_dict(project_manifest),
+            batch_status=analog_validation_app.ValidationBatchStatus.ERROR,
+            planned_preset_ids=("dc-default", "read-default"),
+            not_started_preset_ids=("read-default",),
+            preparation_failure=analog_validation_app.ValidationBatchPreparationFailure(
+                "read-default", analog_validation_app.UserIssueCode.INVALID_REQUEST,
+                "ProductRequestError", "Preset preparation rejected.",
+            ),
+        )
+    )
+    preparation_failure = failure_manifest["preparation_failure"]
+    assert isinstance(preparation_failure, dict)
     return {
         "cli_demo": sorted(demo_cli),
         "cli_demo_artifact": sorted(demo_cli["artifacts"][0]),
@@ -345,6 +491,18 @@ def _serialized_fields(output_parent: Path) -> dict[str, list[str]]:
         "demo_workflow": sorted(demo_manifest["workflow"]),
         "human_report_artifact": sorted(report_manifest["artifacts"][0]),
         "human_report_manifest": sorted(report_manifest),
+        "project_cli_create": sorted(project_create),
+        "project_cli_run": sorted(project_run),
+        "project_file": sorted(project_file),
+        "project_preset": sorted(project_file["presets"][0]),
+        "project_preparation_failure": sorted(preparation_failure),
+        "project_run_manifest": sorted(project_manifest),
+        "project_run_metric": sorted(project_manifest["records"][0]["metrics"][0]),
+        "project_run_record": sorted(project_manifest["records"][0]),
+        "project_run_summary": sorted(project_manifest["summary"]),
+        "project_workflow_configuration": sorted(
+            project_file["presets"][0]["configuration"]
+        ),
     }
 
 
@@ -384,6 +542,28 @@ def _actual_manifest(output_parent: Path) -> dict[str, object]:
                 "event_queue_size": DEFAULT_PRODUCT_EVENT_QUEUE_SIZE,
                 "join_timeout_seconds": DEFAULT_PRODUCT_JOIN_TIMEOUT_S,
             },
+            "live_monitor": {
+                "default_max_points": DEFAULT_LIVE_MONITOR_MAX_POINTS,
+                "max_points": MAX_LIVE_MONITOR_MAX_POINTS,
+                "minimum_window_seconds": MIN_LIVE_MONITOR_WINDOW_SECONDS,
+                "maximum_window_seconds": MAX_LIVE_MONITOR_WINDOW_SECONDS,
+                "maximum_interval_seconds": MAX_LIVE_MONITOR_INTERVAL_SECONDS,
+                "maximum_duration_seconds": MAX_LIVE_MONITOR_DURATION_SECONDS,
+                "control_poll_seconds": LIVE_MONITOR_CONTROL_POLL_SECONDS,
+            },
+            "serial_device_contract": {
+                "maximum_aliases": MAX_SERIAL_CHANNEL_ALIASES,
+                "maximum_identity_characters": MAX_SERIAL_IDENTITY_CHARS,
+            },
+            "validation_projects": {
+                "history_inputs": MAX_VALIDATION_HISTORY_INPUTS,
+                "manifest_filename": VALIDATION_RUN_MANIFEST_FILENAME,
+                "presets": MAX_VALIDATION_PRESETS,
+                "project_bytes": MAX_VALIDATION_PROJECT_BYTES,
+                "project_snapshot_filename": VALIDATION_PROJECT_SNAPSHOT_FILENAME,
+                "run_manifest_bytes": MAX_VALIDATION_RUN_MANIFEST_BYTES,
+                "run_records": MAX_VALIDATION_RUN_RECORDS,
+            },
             "report_filenames": [
                 REPORT_TEXT_FILENAME,
                 REPORT_MARKDOWN_FILENAME,
@@ -392,9 +572,7 @@ def _actual_manifest(output_parent: Path) -> dict[str, object]:
                 REPORT_MANIFEST_FILENAME,
             ],
             "demo_identity": {
-                "epoch_utc": PORTFOLIO_DEMO_EPOCH.strftime(
-                    "%Y-%m-%dT%H:%M:%S.%fZ"
-                ),
+                "epoch_utc": PORTFOLIO_DEMO_EPOCH.strftime("%Y-%m-%dT%H:%M:%S.%fZ"),
                 "job_id": PORTFOLIO_DEMO_JOB_ID,
                 "manifest_filename": PORTFOLIO_DEMO_MANIFEST_FILENAME,
                 "point_count": PORTFOLIO_DEMO_POINT_COUNT,
@@ -511,8 +689,14 @@ def test_phase5_freeze_keeps_receive_only_and_hardware_claim_boundaries() -> Non
     }
     assert all(profile["product_read_only"] for profile in constants["profiles"])
     serial_source = next(
-        value
-        for value in constants["sources"]
-        if value["mode"] == "SERIAL_READ_ONLY"
+        value for value in constants["sources"] if value["mode"] == "SERIAL_READ_ONLY"
     )
-    assert serial_source["supported_jobs"] == ["READ"]
+    assert serial_source["supported_jobs"] == ["READ", "LIVE_MONITOR"]
+    offline_sources = {
+        value["mode"]: value
+        for value in constants["sources"]
+        if value["mode"] in {"SIMULATOR", "CSV_REPLAY"}
+    }
+    assert "LIVE_MONITOR" in offline_sources["SIMULATOR"]["supported_jobs"]
+    assert "LIVE_MONITOR" in offline_sources["CSV_REPLAY"]["supported_jobs"]
+    assert constants["live_monitor"]["maximum_duration_seconds"] == 55.0

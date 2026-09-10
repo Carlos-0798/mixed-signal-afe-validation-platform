@@ -9,6 +9,14 @@ class ProductRequestError(ProductAppError):
     """A product request or presentation contract is invalid."""
 
 
+class ProductFieldError(ProductRequestError):
+    """Internal request error that identifies one presentation field."""
+
+    def __init__(self, message: str, field_id: str) -> None:
+        super().__init__(message)
+        self.field_id = field_id
+
+
 class ProductCatalogError(ProductAppError):
     """A requested source or profile is absent from the reviewed catalog."""
 
@@ -73,6 +81,26 @@ class ProductReportExistsError(ProductReportPathError):
     """A report destination exists while replacement is disabled."""
 
 
+class ProductProjectError(ProductAppError):
+    """Base class for local validation-project and run-history failures."""
+
+
+class ProductProjectFormatError(ProductProjectError):
+    """A project or run manifest violates its versioned data contract."""
+
+
+class ProductProjectLimitError(ProductProjectError):
+    """A project, batch, or history input exceeds a bounded product limit."""
+
+
+class ProductProjectPathError(ProductProjectError):
+    """A project or run-history path cannot be read or published safely."""
+
+
+class ProductProjectExistsError(ProductProjectPathError):
+    """A project or run destination exists while replacement is disabled."""
+
+
 class ProductWorkerError(ProductAppError):
     """Base class for expected product-worker failures."""
 
@@ -110,6 +138,11 @@ __all__ = [
     "ProductDependencyError",
     "ProductFeatureUnavailableError",
     "ProductJobCancelled",
+    "ProductProjectError",
+    "ProductProjectExistsError",
+    "ProductProjectFormatError",
+    "ProductProjectLimitError",
+    "ProductProjectPathError",
     "ProductReportError",
     "ProductReportExistsError",
     "ProductReportFormatError",

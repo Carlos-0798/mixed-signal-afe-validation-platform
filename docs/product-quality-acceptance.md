@@ -17,23 +17,31 @@ Use `--output <new-file.json>` to retain a create-new machine record.
 
 ## Reviewed targets and recorded Windows result
 
-The following result was recorded on 2026-08-31 with CPython 3.12.10 on Windows
+The original Software Phase 5 result was recorded on 2026-08-31. The bounded
+live-monitor extension was last rerun on 2026-09-06 with CPython 3.12.10 on Windows
 11 AMD64. Wall-clock values vary by host; the fixed limits are deliberately
 broad product-interaction guards rather than performance marketing claims.
 
 | Check | Target | Recorded result | Status |
 |---|---:|---:|---|
-| Parse strict CSV Replay | 10,000 records in ≤ 5.0 s | 0.823268 s | PASS |
+| Parse strict CSV Replay | 10,000 records in ≤ 5.0 s | 0.495200 s | PASS |
 | Parser peak traced memory | ≤ 128 MiB at 10,000 records | 13.102 MiB | PASS |
-| Process progress volume | 10,000 events in ≤ 5.0 s | 0.048879 s | PASS |
+| Process progress volume | 10,000 events in ≤ 5.0 s | 0.032538 s | PASS |
 | Retained worker events | ≤ 256 | 256 | PASS |
 | Dropped-event accounting | visible and monotonic | 9,747 dropped; last index 10,003 | PASS |
 | Worker cleanup | terminal `SUCCEEDED`, cleanup complete | yes | PASS |
-| Complete demo publication | ≤ 5.0 s | 0.040913 s, 12 artifacts | PASS |
+| Publish live observations | 10,000 points in ≤ 5.0 s | 0.177198 s | PASS |
+| Live peak traced memory | ≤ 64 MiB at 10,000 points | 1.348 MiB | PASS |
+| Retained live points | ≤ 2,048 | 2,048 | PASS |
+| Live eviction accounting | total = retained + evicted | 10,000 = 2,048 + 7,952 | PASS |
+| Live status accounting | VALID + SUSPECT + INVALID = total | 10,000 + 0 + 0 = 10,000 | PASS |
+| Complete demo publication | ≤ 5.0 s | 0.026080 s, 12 artifacts | PASS |
 
 The parser tiers of 100, 1,000, and 10,000 records were all executed. The event
 queue kept its newest bounded snapshot rather than allowing memory to grow with
-the producer.
+the producer. The live monitor similarly retained only its newest 2,048 display
+points while keeping separate total, eviction, and quality counters. This
+in-process synthetic stress is not a device sample-rate or hard-real-time test.
 
 ## Accessibility acceptance
 
@@ -73,7 +81,7 @@ is recorded as a path-length condition, not counted as a passing install.
 
 ## What remains unverified
 
-- sustained behavior beyond the bounded 10,000-record/event acceptance;
+- sustained behavior beyond the bounded 10,000-record/event/measurement acceptance;
 - hard deadlines, process scheduling latency, or real-time guarantees;
 - screen-reader behavior across all Windows configurations;
 - long-duration physical serial transport;

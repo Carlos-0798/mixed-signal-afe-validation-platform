@@ -132,10 +132,14 @@ class TestRunResult:
                 )
             if not evidence:
                 raise ValidationError("complete PASS/FAIL results require evidence")
-        elif self.outcome in {
-            TestRunOutcome.INCOMPLETE,
-            TestRunOutcome.UNSUPPORTED,
-        } and not missing:
+        elif (
+            self.outcome
+            in {
+                TestRunOutcome.INCOMPLETE,
+                TestRunOutcome.UNSUPPORTED,
+            }
+            and not missing
+        ):
             raise ValidationError(
                 f"{self.outcome.value} result must identify missing requirements"
             )

@@ -62,7 +62,7 @@ def test_troubleshooting_and_limit_docs_preserve_stop_conditions() -> None:
     ):
         assert value in troubleshooting
     for value in (
-        "No public license has been selected",
+        "The owner selected the MIT License",
         "not v1.0 or production-ready",
         "macOS",
         "pyserial is optional",

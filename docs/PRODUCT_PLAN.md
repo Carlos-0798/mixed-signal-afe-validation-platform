@@ -2,9 +2,9 @@
 
 **所属项目：** Configurable Analog Front-End & Validation Platform  
 **产品策略：** 软件优先，硬件后置，接口先行，证据分级  
-**文档版本：** 1.1<br>
-**状态：** Software Phase 6 发布工程进行中（7/8，Private Beta Publication Review）<br>
-**日期：** 2026-09-04<br>
+**文档版本：** 1.3<br>
+**状态：** 软件实现已进入 TD-049 功能冻结与成果收敛；重复模拟验证主链已有受控软件证据，人工效率实测延期；Software Phase 6 发布状态仍为 7/8<br>
+**日期：** 2026-09-08<br>
 **项目性质：** 独立个人项目  
 
 ---
@@ -54,16 +54,39 @@ Analog Validation Studio 是一个本地运行、硬件无关、可扩展的测�
 - **无硬件也可用：** 模拟器和 CSV 回放模式可以完整运行测试流程；
 - **控制器无关：** MSP430 是受支持对象，不是软件运行前提；
 - **可重复：** 同一输入数据和配置应得到确定性结果；
-- **可追溯：** 原始数据、配置、软件版本和数据来源一同保存；
+- **可追溯：** 分析结果保留逐点引用，项目运行保存配置快照、版本、来源与结果身份；READ/LIVE 历史尚不归档完整原始观察流，项目快照也不等于原始 CSV 文件副本；
 - **可扩展：** 新设备通过适配器接入，不修改分析核心；
 - **诚实验证：** 不把合成数据、SPICE 或主机测试描述成实物测量。
 
 ### 2.4 目标用户
 
-- 学习嵌入式测试、数据采集和模拟电路验证的学生；
-- 需要低成本自动化验证工具的个人开发者；
-- 希望统一管理串口遥测、回放数据和测试报告的固件开发者；
-- 未来使用本项目 AFE 硬件或 MSP430 Equipment Health Controller 的用户。
+首要使用对象是需要反复处理模拟信号链测量数据的个人工程师、小型硬件研发团队
+和工程项目学生。先验证共同任务，再按使用困难改进软件；不以付费意愿或市场规模
+作为当前工程阶段的完成条件。
+
+教学演示、串口观察和未来控制器兼容继续保留，但不同时扩展成多个首要应用方向。
+
+### 2.5 当前主任务与价值验收
+
+当前交付物是独立的 Analog Validation Studio 软件。首个主任务为：
+对模拟信号调理电路不同版本的已有数据，重复完成 DC 增益、偏置、线性检查，
+记录异常点和验收依据，并交付可复查的结果与报告。
+
+目标是减少重复配置、转录和报告整理，保持结果一致与规则可解释。功能存在、
+100% statement coverage 或单次解析速度不直接证明人工效率提升，也不证明
+物理测量准确度提高。当前收益仍为待验证假设。
+
+后续顺序固定为：
+
+1. 依照 [任务收益验证方案](TASK_VALUE_VALIDATION_PLAN.md)冻结任务、独立参考答案和公平基线；
+2. 用受控软件数据打通现有 CLI/Replay/项目/报告路径，再由实际操作者完成对照；
+3. 只修复被记录的导入、重复配置、结果查看或报告交接障碍；
+4. 用同一协议复测，保留改善、不改善、失败和未运行结果，形成可复查的展示案例。
+
+本次调整保留已有算法、适配器、批次、CLI、Dashboard、报告与质量门禁。
+TD-047A 显示层后续建议暂不排入执行；原始数据留存、曲线叠加和签名分别按任务
+需要排序。GUI 迁移、广泛设备适配、云服务、通用爬取和硬件路线不因本调整启动。
+展示与工程价值验收不要求提前完成公开发布或 v1.0。
 
 ---
 
@@ -72,7 +95,7 @@ Analog Validation Studio 是一个本地运行、硬件无关、可扩展的测�
 ### 3.1 本产品包含
 
 - 本地 Python 软件包；
-- 命令行界面和后续图形界面；
+- 命令行界面和本地 Dashboard；
 - 通用测量与测试数据模型；
 - 设备能力协商与适配器接口；
 - Simulator、CSV Replay 和 Serial 适配器；
@@ -117,7 +140,9 @@ Analog Validation Studio 是一个本地运行、硬件无关、可扩展的测�
 
 ### UC-003：串口实时监视
 
-用户选择设备 profile 和串口，软件解析遥测、校验 CRC、显示状态、记录坏帧并保存原始数据。
+既有显式 receive-only 路径按 profile 解析遥测、校验 CRC、显示状态并保留有界内存记录。
+完整原始数据用户归档尚未实现；当前主任务不枚举或打开串口，不以历史 UART
+兼容证据推断现场采集可靠性。
 
 ### UC-004：自动测试
 
@@ -130,6 +155,17 @@ Analog Validation Studio 是一个本地运行、硬件无关、可扩展的测�
 ### UC-006：未来仪器或新控制器接入
 
 开发者根据公开的 `DeviceAdapter` 契约新增适配器，并复用同一套测试、分析和报告功能。
+
+### UC-007：可重复测试项目与历史比较
+
+用户把多项离线测试保存为版本化预设，显式运行全部或选定预设；每次运行生成新的项目快照、配置身份、结果清单和可校验 artifact。用户可加载明确选定的历史并比较两次运行，但比较层不得重新计算或改变既有 PASS/FAIL。
+
+### UC-008：重复验证任务的效率与可靠性对照（计划，尚未实测）
+
+使用相同输入、验收条件和交付要求，对比合理的 Excel 模板或已有脚本流程与 AVS。
+分别记录首次准备、重复执行、人工介入、数值/结论一致性、遗漏和报告完整性；
+外部 CSV 转换及单独生成报告的成本不得隐藏。具体协议和退出条件见
+[任务收益验证方案](TASK_VALUE_VALIDATION_PLAN.md)，不预先承诺提升百分比。
 
 ---
 
@@ -211,6 +247,8 @@ class DeviceAdapter:
 | SW-FR-044 | JSON 摘要 | 生成机器可读的测试配置和结果 |
 | SW-FR-045 | 人类可读报告 | 包含目标、环境、来源、结果、限制、PASS/FAIL 和未验证项 |
 | SW-FR-046 | 错误说明 | 面向用户的错误包含发生了什么、可能原因和安全下一步 |
+| SW-FR-047 | 有界实时监控 | 显示有限时间窗、质量和丢弃计数；实时观察本身不产生工程 PASS/FAIL |
+| SW-FR-048 | 测试项目与历史 | 版本化项目/预设、显式批量运行、create-new 历史、配置与 artifact 完整性、同项目运行比较；不保存串口权限或重算结论 |
 
 ---
 
@@ -330,6 +368,8 @@ DISCONNECTED
 - **串口替身测试：** 使用内存流或伪终端测试超时、分段和重连；
 - **端到端测试：** 从 CLI 启动到生成报告；
 - **人工体验检查：** 初学者按 README 能否完成首次运行。
+- **任务收益对照：** 相同任务的人工基线与 AVS 路径分开记录准备成本、实际操作、
+  参考答案一致性和交付完整性；实测前不得用自动化运行时间代替人工效率。
 
 ### 10.2 每次阶段验收必须保存
 
@@ -798,8 +838,8 @@ Requirement ID
 | M0 | 规划基准 | 产品范围、需求、安全、阶段和硬件路线 |
 | M1 | 软件核心 | 版本化模型、协议、配置和自动测试 |
 | M2 | 软件 MVP | 无硬件模拟/回放、测试执行和结构化结果 |
-| M3 | 软件 Beta | 串口 profiles、CLI、Dashboard 和报告 |
-| M4 | 软件 v1.0 | 干净环境安装、文档、示例、扩展接口和发布报告 |
+| M3 | 软件 Beta | 串口 profiles、CLI、Dashboard、报告和本地测试项目 |
+| M4 | 软件 v1.0 | 干净环境安装、文档、示例、扩展接口、可追溯历史和发布报告 |
 | M5 | 硬件原型 | 低压 AFE 的 BENCH_DMM/BENCH_CONTROLLER 证据 |
 | M6 | 自动验证系统 | 软件控制真实硬件并生成可追溯报告 |
 | M7 | 产品化硬件 | PCB、装配、bring-up 和完整限制说明 |
@@ -809,6 +849,12 @@ M4 完成时，项目已经是一个成熟的独立软件产品。M5–M7 是第
 ---
 
 ## 22. 当前状态与下一步
+
+**当前执行顺序（2026-09-08）：** 已进入
+[功能冻结与成果收敛](FEATURE_FREEZE.md)。只处理发布阻断的正确性、安全、兼容、
+隐私、安装问题或已观察到的主链交互缺陷；任务量化、显示层迁移和其他扩展保持延期。
+实现与门禁记录以 [PROJECT_STATUS.md](PROJECT_STATUS.md) 为入口；发布仍为独立授权事项。
+以下保留建立规划及后续增量时的历史记录，其中“下一步”不覆盖当前执行顺序。
 
 截至本文档建立时：
 
@@ -827,3 +873,110 @@ Software Phase 0 已于 2026-08-29 完成。当前基线、逐模块结论、60 
 - `docs/TECHNICAL_DEBT.md`。
 
 Software Phase 1–5 均已完成各自 8/8，Software Phase 6 已完成 7/8。Phase 4 的 bounded stream、16/32-bit sequence、neutral CRC envelope、AFE wrapper/channel map、serial lifecycle/raw events、独立 AFE/MSP430 profiles、receive-only `SerialAdapter`、可选 pyserial backend 和本仓库 COM4 passive HIL 均已实现并冻结兼容边界。Phase 5 的 `analog_validation_app` 提供 output-denying product contracts、exact reviewed catalog、what/why/safe-next-step issue mapping、有界 single-owner/cooperative-cancel worker、安装后的 `analog-validation` Simulator/Replay read/DC/迟滞和显式 receive-only observe 工作流、确定性人类报告、共享同一 reviewed workflow/service/worker 的六步本地 Dashboard、12-artifact synthetic demo，以及最终公开兼容冻结。Phase 6 已完成 release contract、Windows/Ubuntu × Python 3.10/3.12/3.14 hosted CI、`0.1.0b1` metadata、deterministic release verifier、beginner tester/feedback 闭环、只依赖 installed top-level API 的外部 adapter 证明，以及 `PASS_WITH_REVIEW` 的 final candidate audit。当前本地基线为 2,277 项完整回归和 11,911/11,911 package 语句覆盖；Dashboard UX PR #7 的最终 head `c9710fe` 已在 run `33933549983` 通过 8/8，并通过 merge commit `b4f0fef` 进入 `main`；post-merge run `33934417152` attempt 2 同样通过 8/8。Phase 4 Step 7 HIL 的 5/5 CRC-valid TEL、25 个 `BENCH_CONTROLLER` Measurements 和 0 发送字节仍只说明窄范围 UART/Profile 兼容，无法被动确认 exact firmware，也没有验证 external sensors/fan/wiring 或任何 AFE 性能。下一步是 Software Phase 6 Step 8：完成隐私历史复核，并由 owner 分别决定可见性、许可证、标签、Release、包发布和公开展示；当前仍不采购或搭建 AFE 硬件。
+
+2026-09-05 的本地 `codex/calibration-workflow` 组合增量已把 Phase 3
+线性校准和幅值频率响应数学接入同一 product compiler、bounded worker、
+Simulator/CSV Replay、criteria/TestRun、JSON/CSV、CLI、Dashboard 和人类报告，
+并增加共用 streaming-read 路径的有限 `live-monitor.v1` 观察工作流。
+校准另提供严格版本化系数文件；频响另提供模型截止频率与验收目标分离、
+三引用逐点 lineage 和确定性对数频率幅值图；实时监控提供最多 10,000 条
+观测、独立有界环形缓冲、质量/淘汰/事件丢弃计数、协作暂停/恢复、展示时间窗
+和 Dashboard 曲线，但不产生 PASS/FAIL。最终本地预提交门禁为 2,459 项测试、
+13,834/13,834 package 语句、全量 Ruff、218 个源文件 mypy、依赖一致性、15/15
+产品质量、两次逐字节一致构建、fresh base/serial 安装及 installed
+Simulator/Replay monitor 链全部通过。release verifier 还会清除 clean-install
+子进程继承的 `PYTHONPATH`，避免外层开发 checkout 让 pip 错误跳过候选 wheel。
+整个增量没有串口或实物操作，且尚未提交、推送、合并或进入 hosted CI，因此
+不改变 Software Phase 6 仍为 7/8 的发布治理状态。正式 commit-bound
+candidate/audit 将在用户批准干净提交后运行。后续本地增量已将 Serial 实时监控
+接入同一有限 `LIVE_MONITOR` 产品链：默认仅启用主通道，显式要求 receive-only
+确认，并以采样节拍加最坏轮询等待的组合预算在 Run 前拒绝超过 55 秒的配置；
+内存串口覆盖成功、坏 CRC、超时、断连、取消、清理、能力不支持和零应用层写入。
+当前本地完整门禁为 2,508 项测试、14,006/14,006 package 语句覆盖、全量 Ruff、
+218 个源文件 mypy、依赖一致性和 15/15 产品质量检查；wheel/sdist 构建及新的
+仓库外基础安装也确认公开 alias 类型、`analog-validation serial monitor` 新参数
+与 malformed alias 在 backend 构造前失败的行为。
+下一本地增量增加 `serial-source-config.v1` / `serial-channel-alias.v1`：用户可在
+Review 阶段钉住预期 capability `device_id`，并为 AFE v1 完整声明 native
+`adcN` 到唯一 `afe.chM.input|output` 的含义。设备实际 identity 不符、alias
+缺失/额外/重复都会在 measurement telemetry 前关闭失败；没有 alias 时仍保持
+原有 `adcN`→`afe.chN.input` 兼容行为。该机制让内存后端可以验证输入/输出双曲线
+产品链，但 capability ID 未认证，alias 也只是 host contract，不能证明固件唯一性
+或实物接线。真实串口、真实仪器扫频和物理 AFE 验证仍须分别经过身份、权限、
+断连/重连、数据率、30 分钟/2 小时 soak 与接线安全门禁，单独授权、单独取证，
+不能由本次软件结果替代。
+
+2026-09-06 的下一本地产品增量落实 SW-FR-048：`validation-project.v1`
+用最多 32 个不可变 Simulator/CSV Replay 预设组织既有六类工作流；显式 `run`
+将全部或选定预设顺序执行到新的历史目录，并保存原项目快照、每个预设的规范化
+配置 SHA-256、最终结果/系数和 `validation-run-manifest.v1`。`history` 只加载用户
+明确指定的最多 64 个 manifest，不递归扫描；`compare` 只比较同一 project 的已
+保存结论、证据、计数与数值指标，不重算 PASS/FAIL。保存项目拒绝 Serial 配置，
+因此旧文件不能恢复 COM 权限或跳过真实设备的重新评审。当前完整回归为 2,590 项，
+15,287/15,287 package statements；全量 Ruff、225 个源文件 mypy、依赖一致性、
+wheel/sdist 构建和仓库外全新安装后的完整项目 CLI 链均已通过。该功能
+当前通过 public API、CLI 与 Dashboard 的 Projects & history 页面提供。
+Dashboard 支持创建/打开/另存项目、保存当前表单为新预设、评审后后台顺序运行、
+历史加载及指标表格比较；逐预设进度、批次取消和曲线叠加仍属于后续增强。
+
+2026-09-07 的 TD-040A 在不修改 Dashboard 的前提下冻结核心批次语义：新运行写入
+`validation-run-manifest.v2`，以 `COMPLETE/PARTIAL/CANCELLED/ERROR`、有序 planned
+列表、终态 records 和 not-started 列表表达完整或部分执行；严格 v1 继续精确读取且
+不改写。线程安全批次令牌把请求传给当前 worker，等待既有 cleanup 后停止后续预设；
+进度事件携带当前预设、序号、总数、终态记录数和阶段。CLI 将进度写 stderr，JSON
+只写 stdout，取消返回 130。完整门禁为 2,620 tests、15,555/15,555 statements、
+Ruff、225 文件 mypy、`pip check` 和 `git diff --check` 全部通过，证据仅为
+`HOST_TEST/SYNTHETIC`。下一阶段 TD-040B 只负责 Dashboard 接入；原始 READ/LIVE
+持久化、曲线叠加和签名继续分离。
+
+同日完成的 TD-040B 只消费上述冻结契约：Dashboard 由 UI owner thread 轮询后台
+进度队列，显示阶段、当前预设、序号、总数和已完成终态记录数；安全取消只设置共享
+令牌，按钮在首次请求后禁用，窗口关闭也走同一路径并等待 worker cleanup 和 manifest
+原子发布。历史表刷新 v2 的 `COMPLETE/PARTIAL/CANCELLED/ERROR`、planned/completed/
+not-started 数；v1 明示 `LEGACY_V1`，不推断不存在的终态。本阶段没有修改 public
+API、manifest schema、READ/LIVE 原始数据、曲线叠加或签名。完整本地门禁为 2,623
+tests、15,606/15,606 statements、Ruff、225 文件 mypy、`pip check` 和
+`git diff --check`；真实 Tk 三种缩放使用各自的新进程。证据仅为
+`HOST_TEST/SYNTHETIC`，不是 AFE 或仪器验证。
+
+2026-09-08 的 TD-040C1A 将离线 Replay 历史补成可自包含验证的输入包：新运行升级为
+`validation-run-manifest.v3`，每个实际执行的 `CSV_REPLAY` 预设在 prepare 前把有界源文件
+复制到 create-new staging，并从该副本运行；manifest 保存安全相对路径、精确字节数和
+SHA-256。同一个解析后源路径只保存一份物理副本，但每个执行预设仍保留引用；取消前未
+开始的预设不打开、不归档。缺失、超限或复制失败会清理 staging 且不发布目标目录，
+加载历史会检查路径边界、大小和哈希。严格 v1/v2 继续按原字段读取和序列化，旧产物
+不改写。该增量不加入 Dashboard 控件、READ/LIVE 输出 observation、曲线叠加、签名或
+硬件路径，证据仅为 `HOST_TEST/CSV_REPLAY`。
+
+紧随其后的 TD-040C1B 只把上述既有 v3 数据接入 Dashboard 历史显示：单选一个运行时，
+独立只读表展示每个 Replay 预设的归档路径、字节数和完整 SHA-256，并区分逐预设引用数
+与物理文件数；v1/v2、Simulator-only、未开始和多选比较状态均给出白话说明。现有八列
+历史表、双选比较、manifest、CLI、worker 和证据语义不变，也不提供文件打开或自动重跑。
+五档 Windows Tk 缩放、25 项定向测试、2,709 项完整回归与 16,356/16,356 statements
+通过；证据是 `HOST_TEST` 和受控 `CSV_REPLAY`，不是硬件验证。
+
+同日的显示层陌生用户评估在不改变 batch/API/manifest 的前提下修复了项目表格把
+保存、目录、安全取消和清理按钮推出最小窗口的问题，并把新项目默认名称改为控制器
+中立表达。真实 Tk 门禁扩展为 1.0/1.25/1.5/1.75/2.0 五档缩放并检查关键控件水平
+边界；完整结果为 2,627 tests、15,639/15,639 statements、100% statement coverage。
+TD-043A 随后完成字段级错误定位：内部字段键不进入 `user-issue.v1` 或任何历史
+artifact，Dashboard 可在同一步内滚动、聚焦、用文字点名并高亮确切输入框，未知字段
+保持 issue 卡片回退。TD-043B1 将支持下限降到 1040×760，通过三列配置和收紧 Results
+宽度预算避免隐藏操作，并在启动时只读 Windows 高对比度、使用系统色覆盖 ttk 与 Canvas。
+标准/强制高对比度的五档真实 Tk 与完整 2,648 tests、15,819/15,819 statements 通过。
+屏幕阅读器、Remote Desktop、长期纯键盘真实用户、本地化、低于 1040 px 与运行中主题
+热切换继续由 TD-043B2 跟踪。
+
+TD-043B2A 的程序化辅助技术检查随后确认当前 Windows/Python 3.12 候选使用 Tk 8.6.15，
+没有 `tk accessible` 接口；Windows UI Automation 只看到 37 个无名称应用 Pane。因此
+Dashboard 的屏幕阅读器支持保持未完成。当前增量加入运行时能力门禁，并为未来提供该
+接口的 Tk 运行时准备名称、角色、帮助、文本替代和去重动态状态通知；这些 fake-toolkit
+契约测试不替代未来候选上的 UIA、Narrator 和真实用户验收。CLI 是当前文本路径，但也
+不声称已经完成屏幕阅读器用户研究。
+
+TD-043B2A2 完成运行时决策验证：Python 3.14/3.15 的 Windows Tk 9.0.4 仍不含
+`tk accessible`，而 Tk 9.1 当前是 beta，官方 Windows 路线主要以 MSAA/NVDA 验证，
+不能作为当前 Narrator/UIA 目标的稳健生产运行时。仓库外 PySide6 Essentials 6.10.1
+原型在相同 UI Automation 检查中暴露六个具名/正确类型控件、三个可聚焦输入/动作和
+可变化状态属性。代价为 74.5 MB wheel、约 206.3 MiB 原型环境及 LGPL/GPL/商业许可
+审查。ADR-0004 因此保持 Proposed；未经所有者批准不增加依赖、不修改许可证或入口。

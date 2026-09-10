@@ -63,15 +63,37 @@ vocabulary. It never guesses whether a string is legacy or canonical.
 
 The frozen `telemetry_to_measurements()` API continues to emit its historical
 legacy names. Its signature, record IDs, values, units, status, quality, and
-provenance are unchanged. Future AFE serial-profile integration will cross the
-explicit mapping boundary before using canonical adapter/workflow channel names.
+provenance are unchanged. The AFE serial profile crosses this explicit mapping
+boundary before using canonical adapter/workflow channel names.
 
 This avoids two unsafe outcomes:
 
 1. old reports or golden data changing without a version migration;
 2. configuration code relying on an undocumented string replacement.
 
-## 5. Evidence boundary
+## 5. Product-level native ADC observation map
+
+The legacy/canonical spelling conversion above is separate from the optional
+`serial-channel-alias.v1` product contract. A capability response describes
+native ADC endpoints such as `adc0` and `adc1`; the optional product map records
+which canonical observations those endpoints are expected to represent, for
+example:
+
+```text
+adc0=afe.ch0.input
+adc1=afe.ch0.output
+```
+
+This second map is accepted only for AFE v1, requires an exact expected
+capability `device_id`, and must cover every advertised ADC exactly once. It
+preserves the native channel count and safe ranges and cannot add commands. If
+the map is absent, compatibility behavior remains `adcN` → `afe.chN.input`.
+
+The capability ID is not authenticated, and the mapping is host metadata. They
+prevent accidental semantic guessing inside the application but do not verify
+firmware uniqueness, board identity, or physical wiring.
+
+## 6. Evidence boundary
 
 Host tests cover every role in both vocabularies, channel boundaries, invalid
 names, typed modes, legacy telemetry preservation, explicit conversion, and

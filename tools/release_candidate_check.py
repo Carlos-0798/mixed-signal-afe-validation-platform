@@ -408,7 +408,10 @@ def _load_json(text: str, label: str) -> dict[str, Any]:
 
 
 def _verify_installed_demo(
-    cli: Path, temporary_root: Path
+    cli: Path,
+    temporary_root: Path,
+    *,
+    environment: Mapping[str, str] | None = None,
 ) -> dict[str, object]:
     first_path = temporary_root / "demo-normal"
     second_path = temporary_root / "演示-beta"
@@ -417,6 +420,7 @@ def _verify_installed_demo(
             "installed synthetic demo in normal path",
             (str(cli), "demo", "--output", str(first_path), "--json"),
             cwd=temporary_root,
+            environment=environment,
             timeout=120,
             launch_attempts=3,
         ),
@@ -427,6 +431,7 @@ def _verify_installed_demo(
             "installed synthetic demo in Unicode path",
             (str(cli), "demo", "--output", str(second_path), "--json"),
             cwd=temporary_root,
+            environment=environment,
             timeout=120,
             launch_attempts=3,
         ),
@@ -475,7 +480,10 @@ def _verify_installed_demo(
 
 
 def _verify_external_public_adapter(
-    base_python: Path, temporary_root: Path
+    base_python: Path,
+    temporary_root: Path,
+    *,
+    environment: Mapping[str, str] | None = None,
 ) -> dict[str, object]:
     if not PUBLIC_ADAPTER_EXAMPLE.is_file() or PUBLIC_ADAPTER_EXAMPLE.is_symlink():
         raise ReleaseCandidateError("public adapter example is missing or unsafe")
@@ -488,6 +496,7 @@ def _verify_external_public_adapter(
             "external public-API-only adapter",
             (str(base_python), "-I", str(external_example)),
             cwd=external_root,
+            environment=environment,
             timeout=120,
             launch_attempts=3,
         ),
@@ -511,15 +520,31 @@ def _verify_external_public_adapter(
     return document
 
 
-def _clean_install_checks(wheel: Path) -> dict[str, object]:
-    with tempfile.TemporaryDirectory(prefix="afe-release-install-") as directory:
+def _clean_install_checks(
+    wheel: Path, *, temporary_parent: Path
+) -> dict[str, object]:
+    """Verify fresh installs beside the requested output, then remove them.
+
+    Some managed Windows hosts prohibit generated console launchers under the
+    system temporary directory.  The candidate output parent is already an
+    explicit writable destination, so using it keeps the launcher inside the
+    caller-selected validation boundary without weakening the executable gate.
+    """
+
+    if not temporary_parent.is_dir():
+        raise ReleaseCandidateError("clean-install temporary parent must exist")
+    with tempfile.TemporaryDirectory(
+        prefix="afe-release-install-", dir=temporary_parent
+    ) as directory:
         temporary_root = Path(directory)
         base_root = temporary_root / "base"
         serial_root = temporary_root / "serial"
+        clean_environment = {"PYTHONPATH": ""}
         _run(
             "create clean base environment",
             (sys.executable, "-m", "venv", str(base_root)),
             cwd=temporary_root,
+            environment=clean_environment,
             timeout=300,
         )
         base_python, base_cli = _venv_paths(base_root)
@@ -527,12 +552,14 @@ def _clean_install_checks(wheel: Path) -> dict[str, object]:
             "install base wheel without dependencies",
             (str(base_python), "-m", "pip", "install", "--no-deps", str(wheel)),
             cwd=temporary_root,
+            environment=clean_environment,
             timeout=300,
         )
         _run(
             "check base dependencies",
             (str(base_python), "-m", "pip", "check"),
             cwd=temporary_root,
+            environment=clean_environment,
         )
         _run(
             "verify headless base import boundary",
@@ -546,6 +573,7 @@ def _clean_install_checks(wheel: Path) -> dict[str, object]:
                 ),
             ),
             cwd=temporary_root,
+            environment=clean_environment,
         )
         if not base_cli.is_file():
             raise ReleaseCandidateError("installed console entry point is missing")
@@ -554,19 +582,25 @@ def _clean_install_checks(wheel: Path) -> dict[str, object]:
                 "installed CLI version",
                 (str(base_cli), "version", "--json"),
                 cwd=temporary_root,
+                environment=clean_environment,
                 launch_attempts=3,
             ),
             "installed version",
         )
         if version_document.get("software_version") != __version__:
             raise ReleaseCandidateError("installed CLI version does not match the candidate")
-        demo = _verify_installed_demo(base_cli, temporary_root)
-        public_adapter = _verify_external_public_adapter(base_python, temporary_root)
+        demo = _verify_installed_demo(
+            base_cli, temporary_root, environment=clean_environment
+        )
+        public_adapter = _verify_external_public_adapter(
+            base_python, temporary_root, environment=clean_environment
+        )
 
         _run(
             "create clean serial-extra environment",
             (sys.executable, "-m", "venv", str(serial_root)),
             cwd=temporary_root,
+            environment=clean_environment,
             timeout=300,
         )
         serial_python, _ = _venv_paths(serial_root)
@@ -574,12 +608,14 @@ def _clean_install_checks(wheel: Path) -> dict[str, object]:
             "install wheel with serial extra",
             (str(serial_python), "-m", "pip", "install", f"{wheel}[serial]"),
             cwd=temporary_root,
+            environment=clean_environment,
             timeout=300,
         )
         _run(
             "check serial-extra dependencies",
             (str(serial_python), "-m", "pip", "check"),
             cwd=temporary_root,
+            environment=clean_environment,
         )
         substitute_probe = (
             "from types import SimpleNamespace; "
@@ -594,6 +630,7 @@ def _clean_install_checks(wheel: Path) -> dict[str, object]:
             "verify injected serial substitute without physical discovery",
             (str(serial_python), "-c", substitute_probe),
             cwd=temporary_root,
+            environment=clean_environment,
         )
     return {
         "base_install": "PASS",
@@ -849,7 +886,7 @@ def verify_release_candidate(output: Path) -> dict[str, object]:
         _compare_builds(first, second)
         wheel = first_directory / _wheel_record(first).filename
         metadata = _wheel_metadata(wheel)
-        install = _clean_install_checks(wheel)
+        install = _clean_install_checks(wheel, temporary_parent=output.parent)
         final_status = _run(
             "final clean Git working tree",
             ("git", "status", "--porcelain=v1", "--untracked-files=all"),

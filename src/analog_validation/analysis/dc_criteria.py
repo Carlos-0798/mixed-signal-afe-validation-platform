@@ -21,9 +21,7 @@ DC_SWEEP_CRITERIA_SCHEMA_VERSION = "dc-sweep-criteria.v1"
 DC_SWEEP_EVALUATION_SCHEMA_VERSION = "dc-sweep-evaluation.v1"
 DC_SWEEP_TEST_TYPE = "dc-sweep"
 
-_VOLTAGE_UNITS = frozenset(
-    {MeasurementUnit.VOLT, MeasurementUnit.MILLIVOLT}
-)
+_VOLTAGE_UNITS = frozenset({MeasurementUnit.VOLT, MeasurementUnit.MILLIVOLT})
 
 
 class DCSweepCriterionName(str, Enum):
@@ -158,9 +156,7 @@ class DCSweepCriterionResult:
         actual = _require_finite_number("actual_value", self.actual_value)
         unit = _require_identifier("unit", self.unit)
         if unit not in _CRITERION_UNITS[self.criterion]:
-            raise ValidationError(
-                f"unit is not valid for {self.criterion.value}"
-            )
+            raise ValidationError(f"unit is not valid for {self.criterion.value}")
         if not isinstance(self.passed, bool):
             raise ValidationError("passed must be a bool")
         lower = _optional_finite_number("lower_limit", self.lower_limit)
@@ -308,8 +304,7 @@ def _derive_evaluation(
     if criteria is None:
         missing.append("acceptance-criteria")
     missing.extend(
-        f"analysis:{requirement}"
-        for requirement in analysis.missing_requirements
+        f"analysis:{requirement}" for requirement in analysis.missing_requirements
     )
     if missing:
         return (
@@ -365,9 +360,7 @@ class DCSweepEvaluationResult:
             self.criteria,
             DCSweepAcceptanceCriteria,
         ):
-            raise ValidationError(
-                "criteria must be DCSweepAcceptanceCriteria or None"
-            )
+            raise ValidationError("criteria must be DCSweepAcceptanceCriteria or None")
         values = self.criterion_results
         if isinstance(values, (str, bytes)) or not isinstance(values, Iterable):
             raise ValidationError("criterion_results must be an iterable")
@@ -385,9 +378,7 @@ class DCSweepEvaluationResult:
             _derive_evaluation(self.analysis, self.criteria)
         )
         if results != expected_results:
-            raise ValidationError(
-                "criterion_results must match analysis and criteria"
-            )
+            raise ValidationError("criterion_results must match analysis and criteria")
         if self.test_run_result.outcome is not expected_outcome:
             raise ValidationError("TestRun outcome must match criteria evaluation")
         if self.test_run_result.summary != expected_summary:

@@ -1,16 +1,62 @@
 # Project Status
 
-**Last updated:** 2026-09-04<br>
-**Current milestone:** Software Phase 6 release engineering — 7 of 8 checkpoints<br>
-**Release maturity:** Audited `0.1.0b1` private-beta baseline with Dashboard UX PR #7 merged to `main` at `b4f0fef`; no tag or Release<br>
+**Last updated:** 2026-09-09<br>
+**Current milestone:** TD-050/TD-051/TD-052 locally complete; feature expansion paused for job-search preparation<br>
+**Synchronization stage:** Private branch and Draft PR synchronized; local testing is the default and hosted CI is manual-only; no merge or hosted PASS claimed<br>
+**Release maturity:** `0.1.0b1` local candidate; untagged and unreleased<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
+
+## Current execution priority
+
+The owner selected [local testing with manual-only cloud CI](LOCAL_TESTING_AND_CI.md)
+on 2026-09-09. Routine synchronization does not require a hosted run. The earlier
+account-blocked run remains historical NOT_RUN evidence; restoring account access
+does not authorize a rerun. Product feature expansion remains paused.
+
+The 2026-09-08 feature freeze remains a historical baseline. The owner then
+authorized themes/readability (TD-050), the runtime/UI review (TD-051), and a
+focused expansion of file input compatibility (TD-052); all three are locally
+complete. The current increment maps ordinary voltage tables into
+the existing offline replay/analysis/report chain, with reusable templates and
+preserved source bytes. Generic serial text and additional device protocols are
+future work. See [the freeze policy](FEATURE_FREEZE.md),
+[the voltage import guide](voltage-data-import.md), and
+[the original consolidation report](../reports/feature-freeze-and-consolidation-2026-09-08.md).
+
+The owner has now requested a documented pause and job-search preparation,
+followed by committing and pushing the existing private development branch and
+updating its existing Draft PR. This authorization does not include marking
+the PR Ready, merging, tagging, publishing a Release, or changing visibility.
+The [resume checkpoint](PROJECT_RESUME_CHECKPOINT_2026-09-09.md) records the
+preserved state and follow-up route. TD-053 remains deferred until real source
+samples justify a specific next input format or protocol.
+
+The primary product task remains repeated DC gain/offset/linearity validation of
+existing analog signal-chain datasets, from input preparation to reviewable reports.
+Five frozen synthetic cases and an independent reference establish the current
+software automation chain. Quantitative human benchmarking is optional future
+evidence and no longer blocks product work.
+
+Five frozen synthetic cases and an independent rational reference now agree
+with the CLI, reports and project-history path; 258 targeted checks passed.
+See [the TD-048 dry-run report](../reports/td-048-casepack-software-dry-run-2026-09-08.md).
+The human baseline pilot remains NOT_RUN and is now DEFERRED; existing throughput,
+coverage and machine timings are not measurements of manual time saved. TD-040C1A
+now makes each executed offline CSV Replay project preset retain a verifiable
+input copy, so later history review no longer depends on the original path still
+existing. TD-051 subsequently introduced manifest v4 preparation-failure records;
+strict v1/v2/v3 remain readable without rewriting. Dashboard history exposes retained inputs on single-row
+selection without opening files or changing the two-row comparison flow. TD-047A display work
+is not scheduled; the runtime migration remains deferred.
+Phase 6 remains 7/8; external actions beyond the private synchronization scope
+still need explicit owner authorization.
 
 ## Current product baseline
 
 The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC implementation, a profile-neutral CRC envelope with a backward-compatible AFE wrapper, the versioned AFE v1 protocol, explicit AFE channel-name mapping, strict non-executable JSON configuration, frozen protocol and replay compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, a configurable deterministic read-only SimulatorAdapter, a strict immutable CSV Replay v1 parser, a read-only CsvReplayAdapter, a shared adapter-neutral read workflow, a profile-neutral bounded byte-stream/sequence foundation, a replaceable serial backend port, deterministic host-tested serial lifecycle, bounded memory-only raw-record provenance, a public serial-profile extension point, independent AFE and read-only MSP430 Equipment Health v1 profiles, a receive-only `SerialAdapter`, an optional packaged pyserial backend that leaves the formal core driver-free, and a Phase 4 machine-readable compatibility freeze.
 
-The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow remains a frozen read-only acquisition API. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, versioned structured result exports, both serial business profiles, their receive-only adapter composition, and a narrow MSP430 UART HIL are implemented. Phase 5 adds immutable product request/result/event contracts, a reviewed source/profile catalog, stable user issues, a bounded single-owner cancellable worker, explicit adapter factories, shared read/DC/hysteresis services and workflow compilation, stable installed Simulator/Replay/receive-only CLI workflows, deterministic human reports that only present finalized results, a runnable six-step local Dashboard, a one-command reproducible synthetic demo with bounded performance/accessibility/privacy acceptance, and an executable product public-contract freeze. A validated physical AFE is not yet implemented.
+The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow now has both frozen finite-read and compatible finite streaming-read entry points. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, versioned structured result exports, both serial business profiles, their receive-only adapter composition, and a narrow MSP430 UART HIL are implemented. Phase 5 adds immutable product request/result/event contracts, a reviewed source/profile catalog, stable user issues, a bounded single-owner cancellable worker, explicit adapter factories, shared services/workflow compilation, stable installed Simulator/Replay/receive-only CLI workflows, deterministic human reports that only present finalized results, a runnable six-step local Dashboard, a one-command reproducible synthetic demo with bounded performance/accessibility/privacy acceptance, and an executable product public-contract freeze. The current combined increment extends that same product path with calibration and frequency-response services, explicit criteria/TestRun mappings, strict coefficient persistence, presentation-only calibration/frequency charts, and a finite `live-monitor.v1` Simulator/Replay workflow with bounded curves, pause/resume, quality totals, and explicit eviction accounting. The previously validated Serial extension adds the same finite observation path to receive-only Serial with a primary-only safe default, explicit confirmation, a conservative 55-second combined runtime bound, and memory-backend failure/cleanup tests. It also adds optional exact capability-ID pinning and a versioned AFE native-ADC observation map that can expose a reviewed input/output pair only after full capability coverage. No physical serial port was opened, and a validated physical AFE is not yet implemented.
 
 The reviewed Software Phase 5 plan defines a separate `analog_validation_app` product layer, one `analog-validation` command, a bounded single-owner cancellable worker, deterministic HTML/SVG reporting, a local offline Tkinter/ttk Dashboard, a six-step beginner workflow, and an installed-package deterministic demo. All 8 checkpoints are implemented. The final checkpoint freezes product imports, schemas, CLI commands/options and exits, dataclass/function shapes, report/demo fields, worker states, errors/issues, and prior manifest hashes. The workflow defaults to Simulator/AFE, expresses status and criteria in text, prevalidates Replay, and gates Serial behind exact receive-only settings. Architecture tests enforce consumption of the frozen core without copying device/profile or engineering-analysis logic. Software Phase 6 Steps 1–7 now add the release contract, hosted compatibility CI, `0.1.0b1` metadata, a deterministic create-new candidate verifier, an executable beginner tester path, a public-API-only third-party-style read adapter proved from the installed wheel outside the repository, and a complete-history/privacy/license/workbook/claims audit with a four-file private-beta handoff contract.
 
@@ -23,6 +69,90 @@ hierarchy, step-aware keyboard focus, a recruiter-first README, two classified
 Simulator screenshots, repository governance, and a reusable interaction
 design guide. Its final PR head `c9710fe` passed all eight hosted CI jobs in
 Actions run `33933549983` attempt 1.
+
+The local `codex/calibration-workflow` increment now connects the previously
+host-tested calibration and amplitude-response cores to the shared product
+compiler and worker. Calibration evaluates before/after errors and emits a
+strict versioned coefficient artifact. Frequency response acquires explicit
+Hz/input/output triples, evaluates an independently reviewed cutoff target and
+minimum point count, retains all three references per point, and renders a
+logarithmic-frequency gain chart. The bounded live monitor reuses the compatible
+streaming-read API and the same reviewed worker for at most 10,000 observations;
+its ring buffer, quality totals, pause/resume, display window, CLI, and Dashboard
+remain presentation-only and never create an engineering PASS/FAIL. All three
+workflows support Simulator/CSV Replay; bounded live monitoring additionally has
+a receive-only Serial path verified against memory backends. That path can
+optionally compare the reported capability ID exactly and, for AFE v1, map every
+advertised native ADC to a unique canonical input/output observation. Identity
+or mapping failures stop before telemetry; the accepted identity is visible in
+CLI JSON/human output and the Dashboard observation summary. All evidence is
+`SYNTHETIC`, `CSV_REPLAY`, or `HOST_TEST`; no serial port, signal source,
+oscilloscope, or physical hardware was accessed. The final local precommit gate
+passed 2,459 tests with
+13,834/13,834 package statements covered, full Ruff/mypy/dependency checks,
+15/15 bounded product-quality checks, two byte-identical isolated builds,
+fresh base and `[serial]` installs, and installed Simulator/Replay monitor
+chains. The live stress published 10,000 synthetic points in 0.177198 seconds
+with 1.348 MiB peak traced memory, retained 2,048, and accounted for 7,952
+evictions on this host; those timings are not real-time claims. The release
+verifier clears inherited `PYTHONPATH` from every clean-install subprocess so an
+outer checkout cannot make pip skip the candidate wheel. Following owner
+approval, the 109-file increment was committed as `5dcc2d0`. Its formal
+release-candidate verification passed; the release audit returned
+`PASS_WITH_REVIEW` for eight historical privacy findings, with zero current
+privacy findings and zero high-confidence credential findings. These are local
+results, not hosted CI or publication approval.
+
+The follow-up MIT integration is present in the current baseline as `bf8c4c6`.
+It replaces the previous license placeholder, adds SPDX package metadata, and
+checks the license in source and distribution archives. Its local regression
+passed 2,470 tests with 100% package statement coverage, Ruff, and mypy. A managed
+Windows application-control policy initially blocked the pip-generated console
+launcher under the system temporary directory (`WinError 4551`). The verifier
+now creates fresh-install environments beside the caller-selected candidate
+destination, still removes them automatically, and retains the real console
+launcher gate. The complete base/serial-extra install, normal/Unicode demo, and
+external-adapter chain then passed without serial discovery or hardware access.
+This does not retroactively change the license findings in the preserved
+`5dcc2d0` audit.
+
+The previously validated Serial live-monitor/device-contract extension exposes finite
+receive-only monitoring through the same compiler, worker, CLI, and Dashboard.
+It requires an exact profile, port, and primary channel; defaults to one trace;
+requires explicit receive-only confirmation; and rejects a cadence plus worst-
+case receive-wait budget above 55 seconds before Run. It can optionally pin the
+reported capability ID and fully map AFE native ADCs to unique canonical
+input/output observations. In-memory AFE and MSP430 chains cover success, bad
+CRC, timeout/disconnect, cancellation, cleanup, unsupported capabilities,
+identity/mapping failures, input/output dual trace, and zero application write
+calls. That checkpoint's full gate passed 2,508 tests with 14,006/14,006 package
+statements, Ruff, mypy, pip dependency consistency, 15/15 product-quality
+checks, wheel/sdist build, and an isolated installed-CLI device-contract smoke.
+No real port or hardware was accessed.
+
+The subsequent project/history increment added a reusable test-management layer without copying
+any analysis. Strict `validation-project.v1` files hold up to 32 immutable
+Simulator/CSV Replay presets and refuse persisted Serial settings. An explicit
+run executes all or selected presets sequentially through the existing reviewed
+compiler/service/worker and atomically creates a new history directory. Each
+directory includes the exact project snapshot and hash, per-preset canonical
+configuration hash, copied terminal/outcome/evidence/metric facts, and strict
+result/coefficient artifacts where applicable. History loads at most 64 explicit
+manifest paths and verifies every referenced artifact; it never scans a drive.
+Two-run comparison detects project/configuration/status/outcome/evidence/count/
+metric changes without recalculating PASS/FAIL. The Dashboard now adds a
+Projects & history tab for new/open/save-as projects, current-form preset capture,
+reviewed background batches, explicit history loading, and tabular comparisons.
+Single tests and batches are mutually exclusive. The core API, CLI, and
+Dashboard now share per-preset progress, cooperative cancellation,
+cleanup-before-stop behavior, and versioned partial history. The project page
+shows real phase/current/total/completed state, disables its cancel action after
+the first request, waits for cleanup and atomic manifest publication on close,
+and refreshes terminal v2 history; v1 rows remain readable and are labeled
+`LEGACY_V1` rather than assigned a new status. New v3 runs also retain each
+executed Replay preset's bounded input copy, byte count, and hash; v1/v2 retain
+their original shapes. Trace overlays remain deferred. SHA-256 supplies relative
+integrity, not authenticated authorship.
 
 Before merge, GitHub's generated merge ref `70c5bf1` was checked in an
 independent worktree. It passed 174 focused Dashboard/architecture tests, all
@@ -38,7 +168,7 @@ coverage; a failed-job-only rerun then completed all eight hosted jobs
 successfully on attempt 2. All interaction checks remained Simulator/CSV-only
 and did not touch a physical serial port.
 
-Software Phase 3 is complete. Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. Step 8 freezes the 84-symbol Phase 2 top level, 68 analysis exports, 10 runner exports, 28 export symbols, 12 Phase 3 schemas, public enums/signatures/errors, and exact representative DC/hysteresis results. The golden values remain HOST_TEST/SYNTHETIC software evidence.
+Software Phase 3 is complete. Steps 1–7 add the versioned analysis foundation, formal DC and directional hysteresis math, criteria mapping, `analog_validation.runners`, immutable linear calibration, offline amplitude-response analysis, and `result-export.v1`. The current local calibration/frequency/live product extensions expand the public top-level/analysis/export namespaces to 92/84/38 symbols, 17 Phase 3 schemas, 10 enum sets, and 44 frozen public call shapes; the additive top-level names include the compatible streaming-read entry point rather than new engineering analysis. Exact representative DC/hysteresis results remain unchanged; all golden values remain HOST_TEST/SYNTHETIC software evidence.
 
 Software Phase 4 Step 1 adds `analog_validation.transport`: a device/profile-neutral bounded LF stream state machine and modular sequence tracker. It handles fragmented/coalesced chunks, bounded overlong discard/recovery, disconnect reset, first/in-order/gap/duplicate/out-of-order classification, and AFE 16-bit/MSP430 32-bit wrap under HOST_TEST. No serial backend, COM access, controller profile, SerialAdapter, or HIL claim was added.
 
@@ -102,20 +232,65 @@ port and did not repeat or broaden the Step 7 HIL.
 
 ## Current verification snapshot
 
+The first row is the latest complete local acceptance. The remaining rows
+retain evidence from earlier checkpoints; their test counts, audits, and
+hosted runs are not fresh results for the current synchronization.
+
 | Gate | Result |
 |---|---|
-| Full pytest suite | 2,277 passed in the latest full local quality run |
-| Formal + optional + product package statement coverage | 100% of 11,911 statements |
+| Private synchronization gate, 2026-09-09 | 3,048 tests passed, 17,567/17,567 statements covered, Ruff/mypy/dependency checks and 15/15 product-quality checks passed. One cross-platform regression was added; product runtime files are unchanged from TD-052. [Preparation report](../reports/private-github-sync-2026-09-09.md); current-head hosted CI remains separately visible on PR #10. |
+| TD-052 latest local acceptance, including completed TD-050/TD-051 | 3,047 tests passed with no failures or skips; 17,567/17,567 package statements covered; Ruff, 252-file mypy, dependency checks, 15/15 product-quality checks, 23 installed CLI commands, installed GUI acceptance, and 100 runtime-file identity checks passed. Evidence: HOST_TEST with SYNTHETIC fixtures and CSV_REPLAY workflows; no new hardware or hosted-matrix claim. See [TD-052 report](../reports/td-052-voltage-import-2026-09-09.md). |
+| TD-040C1B Dashboard input visibility | One selected v3 history row shows Replay preset/path/bytes/full SHA-256 and same-source reference/file counts; v1/v2, empty v3 and multiple-selection states explain the boundary without changing the eight-column history or comparison semantics; 25 project-page/real-Tk tests, five Windows scaling levels, 2,709 full tests and 16,356/16,356 statements passed; `HOST_TEST` with bounded `CSV_REPLAY` fixtures, no hardware validation |
+| TD-040C1A Replay input archival | Manifest v3 archives the exact bounded input before each executed Replay preset and runs from that staging copy; same-source presets share one file, not-started presets remain unopened, and history verifies path/size/SHA-256 while v1/v2 remain exact-readable; 2,708 passed, 16,325/16,325 statements, Ruff, 218-file mypy, pip consistency and diff check passed; independent CLI JSON/stderr/source-mutation chain passed; `HOST_TEST/CSV_REPLAY`, no hardware validation |
+| TD-046B batch Review decision summary | Before Run, Projects & history shows the exact frozen project/run identities, create-new destination, project-order presets, readable Source/Test labels, and per-preset `SYNTHETIC`/`CSV_REPLAY` evidence; the view clears when Run consumes Review and changes no execution/schema/API contract; 2,696 passed, 16,210/16,210 statements, API/quality 17/17, real Tk project five-scaling and standard/high-contrast matrices retained; `HOST_TEST`/`SYNTHETIC` with bounded `CSV_REPLAY` configuration fixtures |
+| TD-046A project first-use and empty-state guidance | Projects & history derives the next action and Save/Add/Review/Run/Compare/Clear availability from the existing workspace state; current Setup preview preserves `SYNTHETIC`/`CSV_REPLAY` and rejects persisted Serial, while zero/one/multiple history states, unsaved changes and stale Review are explicit; 2,695 passed, 16,168/16,168 statements, API/quality 17/17, real Tk project five-scaling and standard/high-contrast matrices retained; `HOST_TEST`/`SYNTHETIC` only |
+| TD-045B project history comparison guidance | Projects & history names baseline/candidate identity and batch states, snapshot drift, matched/one-sided/not-started coverage, exact evidence-label matches/mismatches, changed preset IDs, and arithmetic delta direction without assigning improvement/regression; 2,694 passed, 16,091/16,091 statements, API/quality 17/17, real Tk project five-scaling and standard/high-contrast matrices retained; `HOST_TEST`/`SYNTHETIC` only |
+| TD-045A result decision hierarchy | Results separates product terminal status, engineering PASS/FAIL, exact evidence meaning, claim boundary, first unverified item, and safe next action; observation-only paths show `NO ENGINEERING DECISION`; 2,693 passed, 16,034/16,034 statements, API/quality 17/17, real Tk five-scaling standard/high-contrast matrix retained; `HOST_TEST` only |
+| TD-044B source selection and Replay flow | Readable Source/Test aliases round-trip to stable enums; Replay/Serial controls are mutually exclusive; native Replay picker preserves Cancel and does not read before Review; 2,684 passed, 16,013/16,013 statements, API golden 15/15, real Tk 1040×760 standard/high-contrast five-scaling matrix 10/10; `HOST_TEST` only |
+| TD-044A contextual novice guidance | Configure now exposes source boundaries and plain-language definitions for all six tests; action guidance follows the existing wizard state and explains next/blocked behavior; 2,670 passed, 15,964/15,964 statements, API golden 15/15, real Tk 1040×760 standard/high-contrast five-scaling matrix 10/10; private presentation helpers only, no schema/API/manifest change; `HOST_TEST` with `SYNTHETIC`/temporary `CSV_REPLAY` CLI acceptance |
+| TD-043B2A2 accessible runtime decision | COMPLETE decision spike: local `_tkinter` ABI is 8.6; stable CPython Windows Tk 9.0.4 lacks `tk accessible`; Tk 9.1 beta rejected as the production candidate; isolated PySide6 Essentials 6.10.1 exposed six named/typed controls, three UIA-focusable actions/inputs and a changing status property; 74.5 MB wheel and ~206.3 MiB prototype footprint recorded; ADR-0004 remains Proposed with no production dependency/license change; `HOST_TEST` only |
+| TD-043B2A assistive-technology capability gate | 2,655 passed; 15,805/15,805 statements; 15/15 public golden; Tk 8.6.15 lacks `tk accessible`; Windows UI Automation exposed 37 unnamed application panes and no named/focusable application control; runtime-gated Tk 9.1 metadata and deduplicated status-event adapter added; Dashboard screen-reader support remains blocked; `HOST_TEST` only |
+| TD-043B1 narrow/high-contrast Dashboard | 2,648 passed; 15,819/15,819 statements; 100.00%; exact Phase 5 public golden 15/15; 1040×760 Windows Tk Setup/Results/Projects at scaling 1.0/1.25/1.5/1.75/2.0; standard and forced high-contrast style paths; `HOST_TEST` only |
+| TD-043A field-level error navigation | 2,641 passed; 15,748/15,748 statements; 100.00%; exact Phase 5 public golden 15/15; Windows Tk scaling 1.0/1.25/1.5/1.75/2.0 verified error focus/highlight/reveal/clear; `HOST_TEST` only |
+| Dashboard novice/product display evaluation | 2,627 passed; 15,639/15,639 statements; 100.00%; real Windows Tk scaling 1.0/1.25/1.5/1.75/2.0 with critical-action boundary checks; Ruff/mypy/pip/public-API/diff gates passed; `HOST_TEST` with `SYNTHETIC`/temporary `CSV_REPLAY` only |
+| TD-040B full pytest and package statement coverage | 2,623 passed; 15,606/15,606 statements; 100.00%; `HOST_TEST` only |
+| TD-040B focused Dashboard batch control | 19/19 workspace/widget/real-project-Tk tests passed; both changed Dashboard modules 419/419 statements |
+| TD-040B real Windows Tk isolation | 6/6 accessibility and project workflows passed at scaling 1.0/1.5/2.0, each in a fresh process |
+| TD-040B compatibility/static checks | Phase 5 public API golden unchanged and 15/15 passed; Ruff PASS; mypy PASS across 225 source files; `pip check` PASS; `git diff --check` PASS |
+| TD-040A full pytest and package statement coverage | 2,620 passed; 15,555/15,555 statements; 100.00%; `HOST_TEST` only |
+| TD-040A focused cancellation/cleanup/v1-v2 chain | 11/11 passed: pre-first, between-preset, running-worker and finish-boundary cancellation; cleanup error; CLI exits 130/5; strict v1 round trip |
+| TD-040A real CLI Simulator chain | COMPLETE with 6 planned/completed records; progress isolated to stderr; stdout parsed as JSON; history load passed; existing output collision returned 5 and left manifest SHA-256 unchanged |
+| TD-040A static/dependency checks | Ruff PASS; mypy PASS across 225 source files; `pip check` PASS; `git diff --check` PASS |
+| Current local project/history Dashboard expansion full pytest suite | 2,591 passed in 34.59 s after keyboard/isolation fixes; no skipped tests; see `reports/dashboard-keyboard-isolation-acceptance-2026-09-06.md` |
+| Current local project/history package statement coverage | 100% of 15,324 statements |
+| Current local project/history focused and CLI chain | 63 focused tests plus 15 public-golden checks passed; editable create/inspect/all-six run/selected-two run/history/compare smoke passed with no Serial/device access |
+| Current local project/history static/dependency checks | Full Ruff PASS; mypy PASS across 225 source files; `pip check` PASS |
+| Current local project/history product-quality acceptance | 15/15 PASS; 10,000-record Replay 0.683011 s/13.102 MiB and 10,000-point live buffer 0.284917 s/1.355 MiB on this Windows/Python 3.12 host |
+| Current local project/history build/install | PASS — wheel and sdist built; a fresh repository-external base-wheel install exposed the public project API and completed create/inspect/six-preset run/selected run/history/compare with `pip check` PASS |
+| Receive-only Serial live-monitor/device-contract pre-project baseline | 2,508 passed in its local code/coverage gate |
+| Receive-only Serial/device-contract package statement baseline | 100% of 14,006 statements |
+| Receive-only Serial/device-contract static/dependency baseline | Full Ruff PASS; mypy PASS across 218 source files; `pip check` PASS |
+| Receive-only Serial/device-contract product-quality baseline | 15/15 PASS; 10,000-record Replay 0.509990 s/13.102 MiB and 10,000-point live buffer 0.175368 s/1.338 MiB on this Windows/Python 3.12 host |
+| Receive-only Serial/device-contract build/install baseline | PASS — wheel and sdist built; a repository-external base install exposed version `0.1.0b1`, public alias types, new Serial options, and invalid-alias fail-fast behavior; no port opened |
+| Calibration + frequency + bounded live-monitor increment full pytest suite | 2,459 passed in the final local precommit code/coverage gate |
+| Combined increment package statement coverage | 100% of 13,834 statements |
+| Combined increment static/dependency checks | Full Ruff PASS; mypy PASS across 218 source files; `pip check` PASS |
+| Combined increment product-quality acceptance | 15/15 PASS; 10,000-record Replay 0.495200 s/13.102 MiB and 10,000-point live buffer 0.177198 s/1.348 MiB on this Windows/Python 3.12 host |
+| Combined increment build/install | PASS — two byte-identical isolated builds; fresh base and `[serial]` installs; injected serial substitute only; inherited `PYTHONPATH` scrubbed |
+| Installed frequency workflow | PASS — default 1000 Hz model/target returned PASS, 63 Measurements, 21 points, 3 references/point and five report artifacts; 2000/1000 Hz mismatch returned engineering FAIL/exit 1 at 1948.014806 Hz |
+| Installed bounded live monitor | PASS — Simulator 15 total/3 retained/12 evicted; CSV Replay 3 total/3 retained/0 evicted; engineering outcome `none`; no port discovery |
+| Merged `main` full pytest baseline | 2,277 passed before the unmerged calibration increment |
+| Merged `main` package statement baseline | 100% of 11,911 statements |
 | Dashboard UX PR #7 | MERGED — final head `c9710fe` passed eight jobs in run `33933549983`; merge commit `b4f0fef` passed eight post-merge jobs in run `33934417152` attempt 2 |
 | Verified merge candidate and audit | PASS / `PASS_WITH_REVIEW` — tested merge ref `70c5bf1`; current-tree privacy findings 0; eight legacy-history review items retained for owner review |
 | Interaction-safety delivery | PASS and merged — adaptive scrolling, native format-aware save selection, suffix validation, fresh result destinations, unsaved-result recovery, button hierarchy, and step focus; physical port discovery/open/write all 0 |
 | Phase 6 hosted CI | PASS — Windows/Ubuntu with Python 3.10, 3.12, and 3.14; quality/build/base/serial jobs passed |
-| Phase 6 beta metadata | PASS — import, CLI, wheel, public manifests, README, and changelog aligned at `0.1.0b1`; no license/tag/Release selected |
+| Phase 6 beta metadata | PASS — import, CLI, wheel, public manifests, README, and changelog aligned at `0.1.0b1`; the later owner-selected MIT license does not create a tag or Release |
 | Phase 6 deterministic candidate | PASS — local and hosted Windows/Python 3.12 outputs for commit `0c04aee` were byte-identical; manifest records only HOST_TEST/SYNTHETIC evidence and zero AFE bench claims |
 | Phase 6 private-beta tester path | PASS — hosted commit `5dc10db` wheel hash/base install/version/two byte-identical demos/report/create-new/Replay checks passed in a new short repository-external Python 3.12 environment; Dashboard and Serial were explicitly NOT_RUN |
 | Phase 6 public adapter proof | PASS — commit `2c01e7d` example imports only installed top-level public API; fresh base wheel + external `python -I` run completed three SYNTHETIC reads, cleanup, and zero writes; local/hosted candidates are byte-identical |
 | Phase 6 final candidate audit | `PASS_WITH_REVIEW` — commit `f6721b5`; exact private binary beta `READY`; candidate/current tree/workbook/license/claims passed; 8 legacy history review items, 0 high-confidence credentials; local/hosted four-file bundle byte-identical; CI run `33451305940` passed |
-| Phase 5 public compatibility | 15 new tests; 154 complete golden checks; 4 namespaces, 14 schemas, 10 enum sets, 36 dataclasses, 35 signatures, 24 errors, 25 issue mappings, 16 CLI paths, 8 exits, 13 serialized groups, and 6 hashes frozen |
+| Current product public compatibility | 5 namespaces, 22 schemas, 10 enum sets, 49 dataclasses, 60 signatures, 29 errors, 30 issue mappings, 32 CLI paths, 8 exits, 22 serialized groups, and 6 hashes frozen after the local project/history extension |
 | Phase 5 Step 7 reproducible demo and product quality | 186 focused tests; two installed demos in normal/Unicode paths were byte-identical; 10,000-record Replay, 10,000-event bounded queue, privacy/offline, and real Tk scaling/focus smoke passed |
 | Phase 4 golden compatibility | 13 checks; 121 exports, 3 schemas, 12 enum/flag sets, 21 signatures, 17 errors, 5 fixture hashes, and exact AFE/MSP external-backend results frozen |
 | Phase 4 optional pyserial backend and receive-only HIL | 127/127 optional-package statements covered; base/serial external installs passed; 5/5 CRC-valid continuous TEL through COM4, 25 Measurements, zero writes, exact firmware unconfirmed |
@@ -193,6 +368,11 @@ port and did not repeat or broaden the Step 7 HIL.
 
 ## Software Phase 6 checkpoints
 
+Software Phase 6 remains at 7 of 8 checkpoints: Step 8 is deliberately
+owner-gated because repository visibility, final licensing, tagging, and a
+public Release require separate approval. The local calibration/frequency/live
+increment does not change that publication decision.
+
 | Step | Deliverable | Status | Evidence |
 |---:|---|---|---|
 | 1 | Release contract, version strategy, support scope, and stop conditions | Complete | HOST_TEST planning record |
@@ -245,6 +425,10 @@ Safe to claim now:
 - froze 10 valid and 11 invalid repository-owned MSP430 interoperability records and verified a fragmented in-memory serial chain without importing the peer project's runtime code.
 - implemented one receive-only `SerialAdapter` composition for both AFE and MSP430 profiles, with explicit identity matching, bounded polling/buffering, raw provenance, stable error translation, and fail-closed capability invalidation after reconnect.
 - explicitly projected AFE wire capability names to canonical workflow channels while retaining the native snapshot and preventing output-command escalation.
+- added optional exact capability-ID pinning plus `serial-channel-alias.v1` for
+  complete, unique AFE native-ADC to canonical input/output observation
+  mapping; mismatches stop before measurement telemetry and cannot add commands
+  or channels.
 - passed the same reusable adapter contract and shared workflow with both serial profiles, and proved read-only MSP430 DC/hysteresis runner degradation is `UNSUPPORTED` with zero writes.
 - implemented an optional pyserial backend with lazy dependency loading, exact
   line-setting mapping, bounded reads, privacy-minimal discovery, deterministic
@@ -297,14 +481,24 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 6 Steps 1–7 are complete, and Dashboard UX PR #7 is delivered
-to `main` at merge commit `b4f0fef` with a successful eight-job post-merge CI
-run. Phase 6 Step 8 remains owner-gated because merging the UX work does not
-select repository visibility or a license and does not authorize a tag,
-GitHub Release, package publication, public-history exposure, social preview,
-beta-feedback disposition, or LinkedIn handoff. Simulator remains the default.
-Real-port reliability and future physical AFE work stay separately gated and
-are not inherited by the software release path.
+Software Phase 6 Steps 1–7 are complete, and the current product-feature branch
+baseline includes the owner-selected MIT license at `bf8c4c6`. Themes (TD-050),
+runtime and workflow improvements (TD-051), and voltage-file import (TD-052)
+are locally complete. Feature expansion is paused while the owner prepares
+job-search materials and synchronizes the private branch and existing Draft PR.
+See [the resume checkpoint](PROJECT_RESUME_CHECKPOINT_2026-09-09.md).
+
+When development resumes, use real source samples and observed workflow
+friction to select the next bounded TD-053 input extension. READ/LIVE output
+persistence, one-click rerun, UI runtime migration, and physical validation
+remain separate work; none is required to explain or demonstrate this software
+checkpoint. Private branch/Draft PR synchronization is now authorized, while
+Phase 6 Step 8 remains
+owner-gated: licensing does not authorize a tag, GitHub Release, package
+publication, public-history exposure, social preview, beta-feedback disposition,
+or LinkedIn handoff. Simulator remains the default. Real-port reliability and
+future physical AFE work stay separately gated and are not inherited by the
+software release path.
 
 ## GitHub and LinkedIn presentation policy
 

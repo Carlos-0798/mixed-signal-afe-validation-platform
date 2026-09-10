@@ -17,7 +17,7 @@ def test_public_version_matches_distribution_metadata() -> None:
     )
 
 
-def test_distribution_metadata_describes_beta_without_inventing_a_license() -> None:
+def test_distribution_metadata_describes_beta_with_owner_selected_mit() -> None:
     document = metadata("mixed-signal-afe-validation-platform")
     classifiers = set(document.get_all("Classifier") or ())
     project_urls = set(document.get_all("Project-URL") or ())
@@ -39,6 +39,7 @@ def test_distribution_metadata_describes_beta_without_inventing_a_license() -> N
     }
     assert not document.get("Author-email")
     assert not document.get("License")
+    assert document["License-Expression"] == "MIT"
     assert not any(value.startswith("License ::") for value in classifiers)
 
 

@@ -95,7 +95,9 @@ class Measurement:
             raise ValidationError(
                 "non-finite value and NON_FINITE quality flag must agree"
             )
-        if (is_missing or is_non_finite) and self.status is not MeasurementStatus.INVALID:
+        if (
+            is_missing or is_non_finite
+        ) and self.status is not MeasurementStatus.INVALID:
             raise ValidationError("missing or non-finite values must be INVALID")
 
         if self.status is MeasurementStatus.VALID and flags:

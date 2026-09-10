@@ -18,8 +18,8 @@ For a beginner, the separation is important:
 3. `reporting.py` renders the copied values as text, Markdown, HTML, and SVG;
 4. the publisher writes all files into one new directory and records hashes.
 
-This is similar to printing a lab result that has already been signed: changing
-the layout must not change the signed result.
+This is similar to presenting a completed lab worksheet: changing its layout
+must not change the recorded result. Hashes do not provide signatures or author authentication.
 
 ## Run it
 
@@ -49,7 +49,7 @@ its exit code:
 
 ## Output directory
 
-Every successful publication contains exactly five UTF-8 artifacts:
+The existing CLI/default API publication contains five UTF-8 artifacts:
 
 | File | Purpose |
 |---|---|
@@ -61,6 +61,15 @@ Every successful publication contains exactly five UTF-8 artifacts:
 
 The CLI also reports the hash of `manifest.json`. The manifest does not hash
 itself, avoiding an impossible circular self-reference.
+
+The Dashboard **Save report package…** action passes the optional `result_bundle`
+argument to `publish_human_report`. This adds a sixth file, `result.json`, using
+the canonical existing result serializer; its size and SHA-256 appear in the
+same manifest. The publisher checks that the supplied bundle produces exactly
+the given report view before writing any files. Report images and conclusions
+cannot be silently paired with a different result. All six files share the same
+atomic create-new publication. Omitting the new argument preserves every old
+default artifact byte. No measurement or engineering analysis is repeated.
 
 The files show the source run's start/end UTC times. They deliberately omit the
 current wall-clock report-generation time so the same finalized input produces
@@ -81,6 +90,28 @@ line.
 The chart separates rising and falling observations, marks adjacent exported
 state-transition brackets, and copies the finalized mean high and low threshold
 metrics. It does not search for new transitions or recalculate a threshold.
+
+### Calibration
+
+The calibration chart plots the signed error before and after correction for
+each finalized point. Both series are copied from the result bundle, so report
+generation cannot refit the line, change coefficients, or recalculate
+PASS/FAIL. The report also lists coefficient identity/version, scale, offset,
+before/after error metrics, criteria, provenance, and point lineage. A
+`SYNTHETIC` or `CSV_REPLAY` calibration report is not a traceable instrument
+calibration certificate.
+
+### Frequency response
+
+The frequency-response chart copies each finalized frequency and gain value and
+plots gain in dB against a logarithmic frequency axis. It marks the copied
+target gain drop and estimated cutoff frequency. It does not re-interpolate the
+crossing, recalculate PASS/FAIL, or infer phase. The report preserves the three
+record references behind every point and explicitly identifies Simulator or
+Replay evidence.
+
+The chart is an amplitude-response view only. It is not an oscilloscope trace,
+FFT result, phase plot, or proof of physical filter bandwidth.
 
 If a result has no supported specialized analysis schema, the report remains
 readable and explicitly says that no supported chart is available.
@@ -113,12 +144,11 @@ tests cover escaping, missing data, invalid/non-finite display values, plot
 semantics, atomic publication, path races, write failures, strict SVG embedding,
 CLI format detection, and outcome-preserving exit codes.
 
-Specialized charts currently cover DC sweep and hysteresis result bundles.
-Calibration and frequency-response analyses still need dedicated TestRun/export
-mappings before they can receive specialized human reports. PDF generation
-remains later work. Dashboard display, the beginner wizard, and the one-command
-portfolio demo now reuse this presentation-only report boundary; none of them
-promotes synthetic evidence into a hardware claim.
+Specialized charts currently cover DC sweep, hysteresis, calibration, and
+frequency-response result bundles. PDF generation remains later work.
+Dashboard display, the beginner wizard, and the one-command portfolio demo now
+reuse this presentation-only report boundary; none of them promotes synthetic
+or replay evidence into a hardware claim.
 
 See the [result export contract](result-exports.md),
 [product CLI](product-cli.md), and

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -21,7 +22,11 @@ def test_ci_workflow_exists_with_read_only_permissions_and_safe_triggers() -> No
     assert "packages: write" not in text
     assert "id-token: write" not in text
     assert "secrets." not in text
-    assert "workflow_dispatch:" in text
+    assert text.count("\non:") == 1
+    trigger_block = text.split("\non:\n", 1)[1].split("\npermissions:", 1)[0]
+    assert re.findall(r"^  ([a-z_]+):", trigger_block, re.MULTILINE) == [
+        "workflow_dispatch"
+    ]
     assert "cancel-in-progress: true" in text
 
 

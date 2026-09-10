@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+import math
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from enum import Enum
+from time import sleep
 from typing import cast
 
 from analog_validation.adapters import AdapterState, DeviceAdapter
@@ -22,6 +24,11 @@ from analog_validation.errors import (
 )
 
 READ_WORKFLOW_SCHEMA_VERSION = "read-workflow.v1"
+MAX_READ_WORKFLOW_INTERVAL_SECONDS = 60.0
+
+ReadWorkflowCheckpoint = Callable[[], None]
+ReadMeasurementObserver = Callable[[int, Measurement], None]
+ReadIntervalWaiter = Callable[[float], None]
 
 
 class ReadOperation(str, Enum):
@@ -54,9 +61,7 @@ def _freeze_typed_tuple(
         raise ValidationError(f"{name} must be an iterable")
     frozen: tuple[object, ...] = tuple(values)
     if not all(isinstance(value, expected_type) for value in frozen):
-        raise ValidationError(
-            f"{name} must contain {expected_type.__name__} values"
-        )
+        raise ValidationError(f"{name} must contain {expected_type.__name__} values")
     return frozen
 
 
@@ -305,15 +310,50 @@ def _uncollected_sample_requirements(
     return tuple(missing)
 
 
+def _stream_interval_seconds(value: object) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValidationError("sample_interval_seconds must be a finite number")
+    checked = float(value)
+    if not math.isfinite(checked):
+        raise ValidationError("sample_interval_seconds must be a finite number")
+    if not 0.0 <= checked <= MAX_READ_WORKFLOW_INTERVAL_SECONDS:
+        raise ValidationError(
+            "sample_interval_seconds must be between 0 and "
+            f"{MAX_READ_WORKFLOW_INTERVAL_SECONDS:g}"
+        )
+    return checked
+
+
+def _streaming_uncollected_requirements(
+    request: ReadWorkflowRequest,
+    measurements: list[Measurement],
+) -> tuple[str, ...]:
+    counts = dict.fromkeys(
+        (requirement.channel for requirement in request.requirements), 0
+    )
+    for measurement in measurements:
+        counts[measurement.channel] += 1
+    return tuple(
+        f"samples:{requirement.operation.value}:"
+        f"{requirement.channel}:{requirement.sample_count - counts[requirement.channel]}"
+        for requirement in request.requirements
+        if counts[requirement.channel] < requirement.sample_count
+    )
+
+
 def run_read_workflow(
     adapter: DeviceAdapter,
     request: ReadWorkflowRequest,
+    *,
+    checkpoint: ReadWorkflowCheckpoint | None = None,
 ) -> ReadWorkflowResult:
     """Acquire requested channels through one adapter-neutral workflow.
 
     Capability preflight is atomic: if any requirement is unavailable, no read
     is attempted. The workflow owns a disconnected adapter for this call and
     always disconnects it before returning or re-raising an execution error.
+    An optional cooperative checkpoint runs before connecting and before each
+    sample; it cannot interrupt an adapter call that is already in progress.
     """
 
     if not isinstance(adapter, DeviceAdapter):
@@ -324,7 +364,11 @@ def run_read_workflow(
         raise AdapterStateError(
             "read workflow requires a disconnected adapter it can own"
         )
+    if checkpoint is not None and not callable(checkpoint):
+        raise ValidationError("checkpoint must be callable or None")
 
+    if checkpoint is not None:
+        checkpoint()
     adapter.connect()
     try:
         capabilities = adapter.get_capabilities()
@@ -341,6 +385,8 @@ def run_read_workflow(
         measurements: list[Measurement] = []
         for requirement_index, requirement in enumerate(request.requirements):
             for sample_index in range(requirement.sample_count):
+                if checkpoint is not None:
+                    checkpoint()
                 try:
                     if requirement.operation is ReadOperation.ANALOG:
                         measurement = adapter.read_measurement(requirement.channel)
@@ -372,12 +418,115 @@ def run_read_workflow(
         adapter.disconnect()
 
 
+def run_streaming_read_workflow(
+    adapter: DeviceAdapter,
+    request: ReadWorkflowRequest,
+    *,
+    sample_interval_seconds: float = 0.0,
+    checkpoint: ReadWorkflowCheckpoint | None = None,
+    on_measurement: ReadMeasurementObserver | None = None,
+    wait_interval: ReadIntervalWaiter = sleep,
+) -> ReadWorkflowResult:
+    """Acquire equal-length channel series in sample-major order.
+
+    This is the bounded streaming companion to :func:`run_read_workflow`.
+    Every cycle reads each requested channel once, optionally publishes the
+    immutable Measurement to a caller-owned observer, and waits only between
+    complete cycles.  Callbacks run synchronously on the owning worker thread;
+    any callback failure still triggers adapter cleanup.
+
+    The function deliberately returns the same immutable ReadWorkflowResult as
+    the non-streaming path.  It performs no background work, opens no output
+    capability, and cannot turn Simulator or CSV Replay data into bench
+    evidence.
+    """
+
+    if not isinstance(adapter, DeviceAdapter):
+        raise ValidationError("adapter must be a DeviceAdapter")
+    if not isinstance(request, ReadWorkflowRequest):
+        raise ValidationError("request must be a ReadWorkflowRequest")
+    if adapter.state is not AdapterState.DISCONNECTED:
+        raise AdapterStateError(
+            "streaming read workflow requires a disconnected adapter it can own"
+        )
+    counts = {requirement.sample_count for requirement in request.requirements}
+    if len(counts) != 1:
+        raise ValidationError(
+            "streaming read workflow requires equal sample counts per channel"
+        )
+    interval = _stream_interval_seconds(sample_interval_seconds)
+    if checkpoint is not None and not callable(checkpoint):
+        raise ValidationError("checkpoint must be callable or None")
+    if on_measurement is not None and not callable(on_measurement):
+        raise ValidationError("on_measurement must be callable or None")
+    if not callable(wait_interval):
+        raise ValidationError("wait_interval must be callable")
+
+    if checkpoint is not None:
+        checkpoint()
+    adapter.connect()
+    try:
+        capabilities = adapter.get_capabilities()
+        missing = _missing_capabilities(capabilities, request)
+        if missing:
+            return ReadWorkflowResult(
+                request,
+                capabilities,
+                adapter.evidence_source,
+                ReadWorkflowStatus.UNSUPPORTED,
+                missing_requirements=missing,
+            )
+
+        measurements: list[Measurement] = []
+        cycle_count = next(iter(counts))
+        for cycle_index in range(cycle_count):
+            for requirement in request.requirements:
+                if checkpoint is not None:
+                    checkpoint()
+                try:
+                    if requirement.operation is ReadOperation.ANALOG:
+                        measurement = adapter.read_measurement(requirement.channel)
+                    else:
+                        measurement = adapter.read_digital_state(requirement.channel)
+                except ReplayEndOfData:
+                    return ReadWorkflowResult(
+                        request,
+                        capabilities,
+                        adapter.evidence_source,
+                        ReadWorkflowStatus.INCOMPLETE,
+                        tuple(measurements),
+                        _streaming_uncollected_requirements(request, measurements),
+                    )
+                measurements.append(measurement)
+                if on_measurement is not None:
+                    on_measurement(cycle_index, measurement)
+            if interval and cycle_index + 1 < cycle_count:
+                if checkpoint is not None:
+                    checkpoint()
+                wait_interval(interval)
+
+        return ReadWorkflowResult(
+            request,
+            capabilities,
+            adapter.evidence_source,
+            ReadWorkflowStatus.COMPLETED,
+            tuple(measurements),
+        )
+    finally:
+        adapter.disconnect()
+
+
 __all__ = [
+    "MAX_READ_WORKFLOW_INTERVAL_SECONDS",
     "READ_WORKFLOW_SCHEMA_VERSION",
     "ChannelReadRequest",
+    "ReadIntervalWaiter",
+    "ReadMeasurementObserver",
     "ReadOperation",
+    "ReadWorkflowCheckpoint",
     "ReadWorkflowRequest",
     "ReadWorkflowResult",
     "ReadWorkflowStatus",
     "run_read_workflow",
+    "run_streaming_read_workflow",
 ]

@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+import math
 from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum
 
-from analog_validation import EvidenceSource, TestRunOutcome
+from analog_validation import (
+    EvidenceSource,
+    MeasurementStatus,
+    MeasurementUnit,
+    TestRunOutcome,
+)
 
 from ..errors import ProductRequestError
 from ..issues import UserIssue
@@ -206,6 +212,127 @@ class DashboardProgressPanel:
 
 
 @dataclass(frozen=True, slots=True)
+class DashboardLivePoint:
+    """One numeric live point copied to the UI thread for plotting."""
+
+    index: int
+    cycle_index: int
+    elapsed_seconds: float
+    channel: str
+    value: float | None
+    unit: MeasurementUnit
+    status: MeasurementStatus
+
+    def __post_init__(self) -> None:
+        for name in ("index", "cycle_index"):
+            value = getattr(self, name)
+            minimum = 1 if name == "index" else 0
+            if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+                raise ProductRequestError(
+                    f"live {name} must be an integer of at least {minimum}"
+                )
+        if (
+            isinstance(self.elapsed_seconds, bool)
+            or not isinstance(self.elapsed_seconds, (int, float))
+            or not math.isfinite(float(self.elapsed_seconds))
+            or self.elapsed_seconds < 0.0
+        ):
+            raise ProductRequestError(
+                "live elapsed_seconds must be a finite non-negative number"
+            )
+        _text("live channel", self.channel)
+        if self.value is not None and (
+            isinstance(self.value, bool)
+            or not isinstance(self.value, (int, float))
+            or not math.isfinite(float(self.value))
+        ):
+            raise ProductRequestError("live value must be finite numeric or None")
+        if not isinstance(self.unit, MeasurementUnit):
+            raise ProductRequestError("live unit must be a MeasurementUnit")
+        if not isinstance(self.status, MeasurementStatus):
+            raise ProductRequestError("live status must be a MeasurementStatus")
+
+
+@dataclass(frozen=True, slots=True)
+class DashboardLivePanel:
+    """Bounded live-view state; eviction is separate from worker event drops."""
+
+    active: bool
+    paused: bool
+    can_pause: bool
+    can_resume: bool
+    summary: str
+    points: tuple[DashboardLivePoint, ...]
+    total_points: int
+    retained_points: int
+    evicted_points: int
+    valid_points: int
+    suspect_points: int
+    invalid_points: int
+    pause_count: int
+    time_window_seconds: float
+
+    def __post_init__(self) -> None:
+        for name in ("active", "paused", "can_pause", "can_resume"):
+            if not isinstance(getattr(self, name), bool):
+                raise ProductRequestError(f"live {name} must be boolean")
+        if self.can_pause != (self.active and not self.paused):
+            raise ProductRequestError("live can_pause is inconsistent")
+        if self.can_resume != (self.active and self.paused):
+            raise ProductRequestError("live can_resume is inconsistent")
+        _text("live summary", self.summary)
+        if not isinstance(self.points, tuple) or not all(
+            isinstance(point, DashboardLivePoint) for point in self.points
+        ):
+            raise ProductRequestError(
+                "live points must be a tuple of DashboardLivePoint values"
+            )
+        if len(self.points) > MAX_DASHBOARD_PLOT_POINTS:
+            raise ProductRequestError(
+                f"live points exceeds {MAX_DASHBOARD_PLOT_POINTS} entries"
+            )
+        counts: dict[str, int] = {}
+        for name in (
+            "total_points",
+            "retained_points",
+            "evicted_points",
+            "valid_points",
+            "suspect_points",
+            "invalid_points",
+            "pause_count",
+        ):
+            value = getattr(self, name)
+            if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                raise ProductRequestError(f"live {name} must be a non-negative integer")
+            counts[name] = value
+        if counts["total_points"] != (
+            counts["retained_points"] + counts["evicted_points"]
+        ):
+            raise ProductRequestError(
+                "live total_points must equal retained plus evicted points"
+            )
+        if counts["retained_points"] < len(self.points):
+            raise ProductRequestError(
+                "visible live points cannot exceed retained points"
+            )
+        if counts["total_points"] != (
+            counts["valid_points"] + counts["suspect_points"] + counts["invalid_points"]
+        ):
+            raise ProductRequestError(
+                "live measurement status counts must equal total_points"
+            )
+        if (
+            isinstance(self.time_window_seconds, bool)
+            or not isinstance(self.time_window_seconds, (int, float))
+            or not math.isfinite(float(self.time_window_seconds))
+            or self.time_window_seconds <= 0.0
+        ):
+            raise ProductRequestError(
+                "live time_window_seconds must be finite and positive"
+            )
+
+
+@dataclass(frozen=True, slots=True)
 class DashboardPlotPoint:
     """One copied report row; values are display strings, not calculations."""
 
@@ -354,6 +481,7 @@ class DashboardState:
     source: DashboardSourcePanel
     configuration: DashboardConfigurationPanel
     progress: DashboardProgressPanel
+    live: DashboardLivePanel
     plot: DashboardPlotPanel
     result: DashboardResultPanel
     artifacts: DashboardArtifactsPanel
@@ -372,6 +500,7 @@ class DashboardState:
             ("source", DashboardSourcePanel),
             ("configuration", DashboardConfigurationPanel),
             ("progress", DashboardProgressPanel),
+            ("live", DashboardLivePanel),
             ("plot", DashboardPlotPanel),
             ("result", DashboardResultPanel),
             ("artifacts", DashboardArtifactsPanel),
@@ -409,6 +538,8 @@ __all__ = [
     "DashboardArtifactView",
     "DashboardArtifactsPanel",
     "DashboardConfigurationPanel",
+    "DashboardLivePanel",
+    "DashboardLivePoint",
     "DashboardPlotPanel",
     "DashboardPlotPoint",
     "DashboardProgressPanel",

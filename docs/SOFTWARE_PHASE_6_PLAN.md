@@ -1,12 +1,18 @@
 # Software Phase 6 文件级实施计划
 
 **阶段名称：** 发布工程、外部测试与 v1.0 准备<br>
-**规划状态：** 已完成；实现进度 7/8<br>
+**规划状态：** Steps 1–7 已完成；Step 8 未执行，实现进度 7/8<br>
 **首个交付目标：** 私有测试版 `0.1.0b1`（展示名 `v0.1.0-beta.1`）<br>
 **最终阶段目标：** owner-approved Analog Validation Studio v1.0<br>
 **预计时间：** 4–7 个有效开发日；初学者兼职约 1–2 周<br>
 **默认硬件要求：** 无<br>
 **AFE 硬件验证：** 0
+
+**当前范围说明（2026-09-08）：** 本文是发布工程路线，历史验收记录不代表
+当前未提交扩展已重新构建或发布。近期工作以
+[任务收益验证方案](TASK_VALUE_VALIDATION_PLAN.md)为主，公开发布与 v1.0
+不是其验收前提。既有 MIT 许可证已在当前 `LICENSE` 中选择；文末未选择许可证
+的描述仅属于当时的候选审计记录，不构成当前许可证待办。
 
 ## 当前进度
 
@@ -191,6 +197,9 @@ Steps 1–7 通过后，可称：
 - MSP430 exact firmware/peripheral validation。
 
 ## 8. 下一检查点
+
+以下为当时 Step 7 候选的历史交接记录；当前执行优先级见
+[PROJECT_STATUS.md](PROJECT_STATUS.md)，不自动启动 Step 8。
 
 Step 7 已完成：`release-audit.v1` 检查候选 archives/metadata、当前 tracked tree、完整
 Git history、commit identities、唯一工作簿、third-party notices、LICENSE、claims 和独立

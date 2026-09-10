@@ -1,7 +1,7 @@
 # Frozen Software Phase 5 Product Compatibility
 
 **Freeze schema:** `phase5-public-api-golden.v1`<br>
-**Package version at freeze:** `0.1.0.dev0`<br>
+**Current manifest package version:** `0.1.0b1`<br>
 **Software evidence:** `HOST_TEST`<br>
 **New physical hardware validation in this step:** no<br>
 **Verified AFE bench-performance claims:** 0
@@ -32,49 +32,84 @@ pins. Private functions and implementation details remain free to evolve.
 The public manifest hashes six earlier/current golden manifests but does not
 hash itself, which avoids a circular dependency.
 
+API golden JSON uses UTF-8 with LF line endings, as required by
+`.gitattributes`. The 2026-09-09 update normalized local API golden line endings
+and refreshed the dependent Phase 5 hashes so local files and clean Git
+checkouts use the same bytes. Phase 3 API JSON then matched its existing HEAD
+blob exactly; its schema and values did not change. Historical result, run, and
+CSV artifacts were not rewritten.
+
+The voltage import increment adds `import-csv` to the existing CLI contract.
+Its new public namespaces `analog_validation_app.tabular_import` and
+`analog_validation_app.import_packages` have a separate
+`test-data/golden/voltage_import_v1.json` contract and tests. The existing
+`csv-replay.v1`, project, result, and run-manifest formats are unchanged by
+importing. `voltage-import-mapping.v1` and `voltage-import-manifest.v1` are new
+formats, not migrations of previous artifacts. See
+[Voltage data import](voltage-data-import.md).
+
 ## Public surface frozen
 
-The manifest freezes exports from four explicit namespaces:
+The manifest freezes exports from five explicit namespaces:
 
-- `analog_validation_app`: 164 exports;
+- `analog_validation_app`: 239 exports;
 - `analog_validation_app.cli`: 13 exports;
-- `analog_validation_app.dashboard`: 35 exports;
-- `analog_validation_app.dashboard.app`: 8 exports.
+- `analog_validation_app.dashboard`: 37 exports;
+- `analog_validation_app.dashboard.app`: 8 exports;
+- `analog_validation_app.projects`: 44 exports.
 
 It also freezes:
 
-- 14 schema-version constants;
-- 10 enum member sets;
-- 36 dataclass field contracts, including required/default and keyword-only
+- 26 schema-version constants;
+- 12 enum member sets;
+- 52 dataclass field contracts, including required/default and keyword-only
   behavior;
-- 35 public constructor/function parameter shapes;
-- 24 product-error inheritance relationships;
-- 25 exception-to-user-issue mappings, including the internal-error fallback;
+- 67 public constructor/function/accessor parameter shapes;
+- 29 product-error inheritance relationships;
+- 30 exception-to-user-issue mappings, including the internal-error fallback;
 - product identity, evidence statements, source/profile catalogs, worker
   defaults, report filenames, deterministic-demo identity, and documented
   limitations;
-- 13 serialized CLI/report/demo field groups;
+- 23 serialized CLI/report/demo/project field groups;
 - six earlier/current golden-manifest SHA-256 values;
 - the absence of a product-level hardware-control/write surface.
 
 ## CLI contract
 
-The parser contract freezes these 16 command paths:
+The local parser contract freezes these 32 command paths after the additive
+calibration, frequency-response, bounded live-monitor, receive-only Serial, and
+local test-project extensions:
 
 ```text
 <root>
 version
 profiles
 ports
+project
+project create
+project inspect
+project run
+project history
+project compare
+coefficients
+coefficients inspect
 simulate
 simulate read
 simulate dc
 simulate hysteresis
+simulate calibration
+simulate frequency
+simulate monitor
 replay
 replay read
 replay dc
 replay hysteresis
+replay calibration
+replay frequency
+replay monitor
 observe
+serial
+serial monitor
 report
 demo
 dashboard
@@ -82,6 +117,143 @@ dashboard
 
 For every path, the option names, destinations, required flags, argument
 counts, and choices are exact compatibility data.
+
+## Calibration, frequency, and live-monitor extensions
+
+The local post-beta calibration increment intentionally adds
+`CalibrationJobService`, `make_calibration_service_factory`,
+`CALIBRATION_ANALYSIS`, the calibration chart kind, defaulted configuration/UI
+fields, and the four command paths shown above. Existing read, DC, hysteresis,
+serial, report, demo, and Dashboard commands retain their option behavior.
+
+Machine-readable CLI documents now declare `product-cli-output.v2`. Existing
+v1 fields retain their meaning; execution documents add the nullable
+`calibration_coefficients` and `coefficient_artifact` members, while structured
+error documents add the explicit `hardware_claim` field. A strict v1 consumer
+must explicitly add v2 support rather than ignoring the version change. The
+separate `calibration-coefficients.v1` file is bounded, deterministic, and
+create-new by default; loading validates it but never means it was applied.
+
+The frequency-response increment adds `FrequencyResponseJobService`, its
+Simulator factory, `FREQUENCY_RESPONSE_ANALYSIS`, a dedicated report chart,
+defaulted configuration/UI fields, and `simulate frequency` / `replay
+frequency`. Existing command paths retain their option behavior. Frequency
+results use the existing v2 execution document and `result-export.v1`; no
+additional nullable CLI artifact field was needed.
+
+The bounded live-monitor increment adds `LIVE_MONITOR`,
+`LiveMonitorJobService`, `LiveMonitorSession`, immutable trace/snapshot and
+Dashboard panel types, `make_live_monitor_service_factory`, and `simulate
+monitor` / `replay monitor` / `serial monitor`. The manifest freezes its memory,
+time-window, interval, duration, and cooperative-control constants. Serial
+monitoring retains the receive-only confirmation and adds no output permission,
+analysis bundle, or engineering PASS/FAIL meaning. Existing CLI documents
+remain `product-cli-output.v2`; execution documents use the nullable
+`live_monitor` field only for this job.
+
+The serial device-contract increment freezes `serial-source-config.v1`,
+`serial-channel-alias.v1`, `SerialChannelAlias`, its public constructor/parse
+shape, and the maximum identity/alias bounds. Both Serial commands accept an
+optional exact expected capability ID; AFE v1 may additionally require a
+complete unique native-ADC to canonical input/output mapping. The JSON `read`
+object now makes the accepted capability identity/profile and readable channel
+lists explicit. These additions do not authenticate a device or prove wiring.
+
+The local test-project increment freezes `validation-project.v1`,
+`validation-preset.v1`, `validation-run-record.v1`,
+`validation-run-manifest.v1`, and `validation-run-comparison.v1`; eight public
+dataclasses; strict load/dump/write/publish/compare functions; five project
+error families; resource limits; and the six new CLI paths. Run manifests bind
+an exact `project.snapshot.json`, per-preset canonical configuration hashes,
+copied terminal/outcome/evidence/metric facts, and any result/coefficient
+artifacts. Comparison never recalculates engineering conclusions. Saved projects
+exclude Serial so a local file cannot silently restore device authority.
+
+TD-040A adds `validation-run-manifest.v2` while keeping the strict v1 parser and
+exact v1 serialization shape. The public freeze now includes the legacy schema
+constant, four terminal batch statuses, five progress phases, an immutable
+progress snapshot, and a thread-safe cooperative cancellation token. The v2
+shape adds planned/not-started preset IDs and explicit planned/completed/not-
+started counts. `execute_product_job` accepts optional cancellation polling and
+event reporting callbacks; `project run` writes progress only to `stderr` so
+its JSON `stdout` contract remains parseable.
+
+TD-040C1A introduced `validation-run-manifest.v3` and
+`validation-run-input-artifact.v1`. The v3 contract binds every executed CSV Replay
+preset to a create-new, run-relative input copy with exact bytes and SHA-256;
+the worker consumes that staged copy. Same-source presets may reference one
+physical copy, while presets skipped before preparation have no input record.
+`ValidationRunInputArtifact`, the earlier manifest constants, strict v1/v2
+parsing and their original serialization shapes remain public and frozen.
+
+New runs now use `validation-run-manifest.v4`. The additive public type
+`ValidationBatchPreparationFailure` and optional final
+`ValidationRunManifest.preparation_failure` constructor argument describe a
+preset rejected during preparation, before its worker starts. The v4 JSON
+always contains `preparation_failure`: either `null` or an object with exactly
+`preset_id`, `issue_code`, `technical_type`, and `message`.
+
+If a later preset cannot be prepared after earlier workers have finished, the
+batch publishes `ERROR` and retains those earlier result artifacts. The failed
+preset is the first `not_started_preset_ids` entry; it does not receive an
+invented worker result, measurement count, engineering outcome, or evidence
+label. The operational-failure count includes the preparation failure, while
+completed counts still count actual worker records. If its Replay copy was
+successfully archived before a subsequent preparation rejection, v4 may retain
+that verified input as the final input-artifact entry. An archived input alone
+does not mean the preset ran.
+
+First-preset preparation rejection still fails without publishing a run.
+Cancellation observed before preparation skips the preset; an actual
+preparation error is not hidden by a concurrent cancellation request. Worker
+execution/cleanup and final publication errors retain their own failure
+boundaries. The added metadata does not claim successful cleanup following a
+worker timeout or recover results after a publication failure.
+
+`VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION`,
+`VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION`, and
+`VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION` identify the unchanged legacy
+formats. Their parsers and serializers retain the exact original field shapes;
+they reject the new v4 field. Existing v1/v2/v3 files remain readable and are
+not migrated in place. A consumer reading newly produced v4 files must add
+explicit v4 support. CLI command options and exit codes are unchanged; human
+run/history output explains preparation failure, and JSON remains on `stdout`
+with progress on `stderr`.
+
+## Dashboard reuse and report publication additions
+
+The public freeze includes these additive entry points:
+
+- `DashboardApplication.load_preset_configuration(configuration, *,
+  discard_unsaved=False)` loads an offline preset copy into Setup. It requires
+  an idle, open Dashboard, protects an unsaved result unless explicitly
+  discarded, and invalidates the previous review. Loading does not start a job
+  or change the saved project preset.
+- `DashboardWizardPresenter.load_preset_draft(draft)` accepts an offline draft,
+  returns the Configure state, and clears stale review and export permissions.
+- `DashboardApplication.save_report_bundle(path_text)` publishes a readable
+  report and its exact finalized analysis JSON into a new directory. It requires
+  an exportable analysis result; READ/LIVE observations do not acquire an
+  engineering report through this method.
+- `DashboardApplication.report_publication` exposes the latest complete report
+  publication for presentation. It does not recalculate analysis results.
+- `publish_human_report(output_directory, view, *, result_bundle=None)` can now
+  include the matching canonical `result-export.v1` as `result.json`. The
+  supplied bundle must reproduce the same report view. Its bytes, size, and
+  SHA-256 join the report manifest; the directory is published atomically
+  without replacing an existing destination. Omitting `result_bundle` retains
+  the existing report artifacts and behavior.
+
+The separate Phase 2 public API also adds the optional keyword-only
+`checkpoint=None` to `run_read_workflow(adapter, request, *, checkpoint=None)`.
+Existing calls remain valid. Product services supply their cooperative
+cancellation checkpoint before connection and before each read, so a cancelled
+job stops before acquiring the next sample and follows the existing cleanup
+path. This cannot interrupt an adapter call already in progress. The read
+result schema, evidence rules, and cancelled-job output restrictions remain
+unchanged; Phase 5 records the updated Phase 2 API golden hash.
+
+## Exit codes
 
 | Exit code | Meaning |
 |---:|---|
@@ -102,8 +274,9 @@ outcomes without scraping human-facing text.
 Schema versions identify meaning, while serialized-field lists identify shape.
 Both are frozen. A consumer can therefore check the version first and then
 parse the documented fields without depending on private Python objects. The
-freeze covers CLI version/profile/demo payloads, demo workflow/results/safety
-metadata, demo artifacts, and human-report artifacts/manifests.
+freeze covers CLI version/profile/demo/project payloads, demo workflow/results/
+safety metadata, demo artifacts, human-report artifacts/manifests, project
+documents, run records/manifests, and comparisons.
 
 ## Change procedure
 

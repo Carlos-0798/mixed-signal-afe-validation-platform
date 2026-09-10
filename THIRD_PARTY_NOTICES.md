@@ -36,7 +36,8 @@ Their repositories contain their respective license and dependency notices.
 
 ## Project license boundary
 
-No open-source license has been selected for this project. `LICENSE` currently
-reserves all rights pending the owner's decision. This notice documents
-third-party terms; it does not grant a license to this project's source code,
-documentation, binaries, name, or assets.
+Original project software and accompanying documentation are licensed under
+the MIT License in `LICENSE`, as selected by the project owner. Third-party
+components retain their upstream licenses. This notice does not grant a license
+to third-party material beyond its upstream terms, or transfer ownership of
+third-party names or marks.

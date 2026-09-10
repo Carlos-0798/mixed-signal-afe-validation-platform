@@ -31,6 +31,48 @@
           "required": false
         }
       ],
+      "coefficients": [
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "coefficients inspect": [
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
       "dashboard": [
         {
           "choices": null,
@@ -82,7 +124,149 @@
           "required": false
         }
       ],
+      "import-csv": [
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "import-csv convert": [
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "mapping",
+          "flags": [
+            "--mapping"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "import-csv inspect": [
+        {
+          "choices": [
+            "comma",
+            "semicolon",
+            "tab"
+          ],
+          "dest": "delimiter",
+          "flags": [
+            "--delimiter"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "import-csv verify": [
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
       "observe": [
+        {
+          "choices": null,
+          "dest": "afe_adc_alias",
+          "flags": [
+            "--afe-adc-alias"
+          ],
+          "nargs": null,
+          "required": false
+        },
         {
           "choices": null,
           "dest": "baud_rate",
@@ -108,6 +292,15 @@
             "--confirm-read-only"
           ],
           "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "expected_device_id",
+          "flags": [
+            "--expected-device-id"
+          ],
+          "nargs": null,
           "required": false
         },
         {
@@ -260,7 +453,421 @@
           "required": false
         }
       ],
+      "project": [
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "project compare": [
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "left",
+          "flags": [
+            "--left"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "right",
+          "flags": [
+            "--right"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "project create": [
+        {
+          "choices": null,
+          "dest": "description",
+          "flags": [
+            "--description"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "name",
+          "flags": [
+            "--name"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "project_id",
+          "flags": [
+            "--project-id"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "project history": [
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "run_files",
+          "flags": [
+            "--run"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "project inspect": [
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "project run": [
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "preset",
+          "flags": [
+            "--preset"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "run_id",
+          "flags": [
+            "--run-id"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
       "replay": [
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "replay calibration": [
+        {
+          "choices": null,
+          "dest": "coefficient_id",
+          "flags": [
+            "--coefficient-id"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "coefficient_version",
+          "flags": [
+            "--coefficient-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "coefficients_output",
+          "flags": [
+            "--coefficients-output"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "json",
+            "csv"
+          ],
+          "dest": "output_format",
+          "flags": [
+            "--format"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_after_absolute_error",
+          "flags": [
+            "--max-after-absolute-error"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_after_mean_absolute_error",
+          "flags": [
+            "--max-after-mean-absolute-error"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_after_rmse",
+          "flags": [
+            "--max-after-rmse"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum",
+          "flags": [
+            "--maximum"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum",
+          "flags": [
+            "--minimum"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum_rmse_reduction",
+          "flags": [
+            "--minimum-rmse-reduction"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "observed_channel",
+          "flags": [
+            "--observed-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "points",
+          "flags": [
+            "--points"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "reference_channel",
+          "flags": [
+            "--reference-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "mV",
+            "V"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
+        },
         {
           "choices": null,
           "dest": "help",
@@ -434,6 +1041,204 @@
           "dest": "target_gain",
           "flags": [
             "--target-gain"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "mV",
+            "V"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "replay frequency": [
+        {
+          "choices": null,
+          "dest": "cutoff_drop_db",
+          "flags": [
+            "--cutoff-drop-db"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "cutoff_relative_tolerance",
+          "flags": [
+            "--cutoff-relative-tolerance"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "json",
+            "csv"
+          ],
+          "dest": "output_format",
+          "flags": [
+            "--format"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "frequency_channel",
+          "flags": [
+            "--frequency-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "frequency_maximum_hz",
+          "flags": [
+            "--frequency-maximum-hz"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "frequency_minimum_hz",
+          "flags": [
+            "--frequency-minimum-hz"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "input_amplitude",
+          "flags": [
+            "--input-amplitude"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "input_amplitude_channel",
+          "flags": [
+            "--input-amplitude-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum",
+          "flags": [
+            "--maximum"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum",
+          "flags": [
+            "--minimum"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output_amplitude_channel",
+          "flags": [
+            "--output-amplitude-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "points",
+          "flags": [
+            "--points"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "simulated_cutoff_hz",
+          "flags": [
+            "--simulated-cutoff-hz"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "target_cutoff_hz",
+          "flags": [
+            "--target-cutoff-hz"
           ],
           "nargs": null,
           "required": false
@@ -659,6 +1464,183 @@
           "required": false
         }
       ],
+      "replay monitor": [
+        {
+          "choices": null,
+          "dest": "cycles",
+          "flags": [
+            "--cycles"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_buffer_points",
+          "flags": [
+            "--max-buffer-points"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "maximum",
+          "flags": [
+            "--maximum"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum",
+          "flags": [
+            "--minimum"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_secondary",
+          "flags": [
+            "--no-secondary"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_state",
+          "flags": [
+            "--no-state"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "primary_channel",
+          "flags": [
+            "--primary-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "sample_interval",
+          "flags": [
+            "--sample-interval"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_secondary",
+          "flags": [
+            "--secondary"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "secondary_channel",
+          "flags": [
+            "--secondary-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_state",
+          "flags": [
+            "--state"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "state_channel",
+          "flags": [
+            "--state-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "time_window",
+          "flags": [
+            "--time-window"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "mV",
+            "V"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
       "replay read": [
         {
           "choices": null,
@@ -829,7 +1811,394 @@
           "required": false
         }
       ],
+      "serial": [
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "serial monitor": [
+        {
+          "choices": null,
+          "dest": "afe_adc_alias",
+          "flags": [
+            "--afe-adc-alias"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "baud_rate",
+          "flags": [
+            "--baud-rate"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "confirm_read_only",
+          "flags": [
+            "--confirm-read-only"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "cycles",
+          "flags": [
+            "--cycles"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "expected_device_id",
+          "flags": [
+            "--expected-device-id"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_buffer_points",
+          "flags": [
+            "--max-buffer-points"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_polls",
+          "flags": [
+            "--max-polls"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_secondary",
+          "flags": [
+            "--no-secondary"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_state",
+          "flags": [
+            "--no-state"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "port",
+          "flags": [
+            "--port"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "primary_channel",
+          "flags": [
+            "--primary-channel"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "read_timeout",
+          "flags": [
+            "--read-timeout"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "sample_interval",
+          "flags": [
+            "--sample-interval"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_secondary",
+          "flags": [
+            "--secondary"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "secondary_channel",
+          "flags": [
+            "--secondary-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_state",
+          "flags": [
+            "--state"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "state_channel",
+          "flags": [
+            "--state-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "time_window",
+          "flags": [
+            "--time-window"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "mV",
+            "V"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
       "simulate": [
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "simulate calibration": [
+        {
+          "choices": null,
+          "dest": "coefficient_id",
+          "flags": [
+            "--coefficient-id"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "coefficient_version",
+          "flags": [
+            "--coefficient-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "coefficients_output",
+          "flags": [
+            "--coefficients-output"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "json",
+            "csv"
+          ],
+          "dest": "output_format",
+          "flags": [
+            "--format"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_after_absolute_error",
+          "flags": [
+            "--max-after-absolute-error"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_after_mean_absolute_error",
+          "flags": [
+            "--max-after-mean-absolute-error"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_after_rmse",
+          "flags": [
+            "--max-after-rmse"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "minimum_rmse_reduction",
+          "flags": [
+            "--minimum-rmse-reduction"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "observed_channel",
+          "flags": [
+            "--observed-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "points",
+          "flags": [
+            "--points"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "reference_channel",
+          "flags": [
+            "--reference-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "mV",
+            "V"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
+        },
         {
           "choices": null,
           "dest": "help",
@@ -1003,6 +2372,177 @@
           "required": false
         }
       ],
+      "simulate frequency": [
+        {
+          "choices": null,
+          "dest": "cutoff_drop_db",
+          "flags": [
+            "--cutoff-drop-db"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "cutoff_relative_tolerance",
+          "flags": [
+            "--cutoff-relative-tolerance"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "json",
+            "csv"
+          ],
+          "dest": "output_format",
+          "flags": [
+            "--format"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "frequency_channel",
+          "flags": [
+            "--frequency-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "frequency_maximum_hz",
+          "flags": [
+            "--frequency-maximum-hz"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "frequency_minimum_hz",
+          "flags": [
+            "--frequency-minimum-hz"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "input_amplitude",
+          "flags": [
+            "--input-amplitude"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "input_amplitude_channel",
+          "flags": [
+            "--input-amplitude-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "output_amplitude_channel",
+          "flags": [
+            "--output-amplitude-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "points",
+          "flags": [
+            "--points"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "simulated_cutoff_hz",
+          "flags": [
+            "--simulated-cutoff-hz"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "target_cutoff_hz",
+          "flags": [
+            "--target-cutoff-hz"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "mV",
+            "V"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
       "simulate hysteresis": [
         {
           "choices": null,
@@ -1147,6 +2687,156 @@
           "dest": "state_channel",
           "flags": [
             "--state-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": [
+            "mV",
+            "V"
+          ],
+          "dest": "unit",
+          "flags": [
+            "--unit"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "simulate monitor": [
+        {
+          "choices": null,
+          "dest": "cycles",
+          "flags": [
+            "--cycles"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "max_buffer_points",
+          "flags": [
+            "--max-buffer-points"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_secondary",
+          "flags": [
+            "--no-secondary"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_state",
+          "flags": [
+            "--no-state"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "primary_channel",
+          "flags": [
+            "--primary-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile",
+          "flags": [
+            "--profile"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "profile_version",
+          "flags": [
+            "--profile-version"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "sample_interval",
+          "flags": [
+            "--sample-interval"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_secondary",
+          "flags": [
+            "--secondary"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "secondary_channel",
+          "flags": [
+            "--secondary-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "include_state",
+          "flags": [
+            "--state"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "state_channel",
+          "flags": [
+            "--state-channel"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "time_window",
+          "flags": [
+            "--time-window"
           ],
           "nargs": null,
           "required": false
@@ -1400,6 +3090,115 @@
         false
       ]
     ],
+    "DashboardLivePanel": [
+      [
+        "active",
+        true,
+        false
+      ],
+      [
+        "paused",
+        true,
+        false
+      ],
+      [
+        "can_pause",
+        true,
+        false
+      ],
+      [
+        "can_resume",
+        true,
+        false
+      ],
+      [
+        "summary",
+        true,
+        false
+      ],
+      [
+        "points",
+        true,
+        false
+      ],
+      [
+        "total_points",
+        true,
+        false
+      ],
+      [
+        "retained_points",
+        true,
+        false
+      ],
+      [
+        "evicted_points",
+        true,
+        false
+      ],
+      [
+        "valid_points",
+        true,
+        false
+      ],
+      [
+        "suspect_points",
+        true,
+        false
+      ],
+      [
+        "invalid_points",
+        true,
+        false
+      ],
+      [
+        "pause_count",
+        true,
+        false
+      ],
+      [
+        "time_window_seconds",
+        true,
+        false
+      ]
+    ],
+    "DashboardLivePoint": [
+      [
+        "index",
+        true,
+        false
+      ],
+      [
+        "cycle_index",
+        true,
+        false
+      ],
+      [
+        "elapsed_seconds",
+        true,
+        false
+      ],
+      [
+        "channel",
+        true,
+        false
+      ],
+      [
+        "value",
+        true,
+        false
+      ],
+      [
+        "unit",
+        true,
+        false
+      ],
+      [
+        "status",
+        true,
+        false
+      ]
+    ],
     "DashboardPlotPanel": [
       [
         "title",
@@ -1624,6 +3423,11 @@
         false
       ],
       [
+        "live",
+        true,
+        false
+      ],
+      [
         "plot",
         true,
         false
@@ -1761,6 +3565,16 @@
         false
       ],
       [
+        "serial_expected_device_id",
+        false,
+        false
+      ],
+      [
+        "serial_afe_adc_aliases",
+        false,
+        false
+      ],
+      [
         "serial_confirm_read_only",
         false,
         false
@@ -1797,6 +3611,36 @@
       ],
       [
         "max_rmse",
+        false,
+        false
+      ],
+      [
+        "coefficient_id",
+        false,
+        false
+      ],
+      [
+        "coefficient_version",
+        false,
+        false
+      ],
+      [
+        "max_calibration_rmse",
+        false,
+        false
+      ],
+      [
+        "max_calibration_mean_absolute_error",
+        false,
+        false
+      ],
+      [
+        "max_calibration_absolute_error",
+        false,
+        false
+      ],
+      [
+        "minimum_calibration_rmse_reduction",
         false,
         false
       ],
@@ -1842,6 +3686,76 @@
       ],
       [
         "export_format",
+        false,
+        false
+      ],
+      [
+        "frequency_channel",
+        false,
+        false
+      ],
+      [
+        "frequency_point_count",
+        false,
+        false
+      ],
+      [
+        "frequency_minimum_hz",
+        false,
+        false
+      ],
+      [
+        "frequency_maximum_hz",
+        false,
+        false
+      ],
+      [
+        "frequency_input_amplitude",
+        false,
+        false
+      ],
+      [
+        "simulated_cutoff_frequency_hz",
+        false,
+        false
+      ],
+      [
+        "target_cutoff_frequency_hz",
+        false,
+        false
+      ],
+      [
+        "cutoff_relative_tolerance",
+        false,
+        false
+      ],
+      [
+        "cutoff_drop_db",
+        false,
+        false
+      ],
+      [
+        "monitor_sample_interval_seconds",
+        false,
+        false
+      ],
+      [
+        "monitor_time_window_seconds",
+        false,
+        false
+      ],
+      [
+        "monitor_max_buffer_points",
+        false,
+        false
+      ],
+      [
+        "monitor_include_secondary",
+        false,
+        false
+      ],
+      [
+        "monitor_include_state",
         false,
         false
       ]
@@ -1911,6 +3825,16 @@
       ],
       [
         "export_message",
+        false,
+        false
+      ],
+      [
+        "coefficient_available",
+        false,
+        false
+      ],
+      [
+        "coefficient_message",
         false,
         false
       ],
@@ -2096,6 +4020,85 @@
         false
       ]
     ],
+    "LiveMonitorSnapshot": [
+      [
+        "points",
+        true,
+        false
+      ],
+      [
+        "total_points",
+        true,
+        false
+      ],
+      [
+        "evicted_points",
+        true,
+        false
+      ],
+      [
+        "paused",
+        true,
+        false
+      ],
+      [
+        "pause_count",
+        true,
+        false
+      ],
+      [
+        "time_window_seconds",
+        true,
+        false
+      ],
+      [
+        "valid_points",
+        true,
+        false
+      ],
+      [
+        "suspect_points",
+        true,
+        false
+      ],
+      [
+        "invalid_points",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "LiveTracePoint": [
+      [
+        "index",
+        true,
+        false
+      ],
+      [
+        "cycle_index",
+        true,
+        false
+      ],
+      [
+        "elapsed_seconds",
+        true,
+        false
+      ],
+      [
+        "measurement",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
     "PortfolioDemoPublication": [
       [
         "output_directory",
@@ -2147,6 +4150,11 @@
       [
         "review_lines",
         true,
+        false
+      ],
+      [
+        "live_monitor_session",
+        false,
         false
       ]
     ],
@@ -2360,6 +4368,16 @@
         "result_export",
         false,
         false
+      ],
+      [
+        "calibration_coefficients",
+        false,
+        false
+      ],
+      [
+        "live_monitor",
+        false,
+        false
       ]
     ],
     "ProductSourceDescriptor": [
@@ -2526,6 +4544,36 @@
         false
       ],
       [
+        "coefficient_id",
+        false,
+        false
+      ],
+      [
+        "coefficient_version",
+        false,
+        false
+      ],
+      [
+        "max_calibration_rmse",
+        false,
+        false
+      ],
+      [
+        "max_calibration_mean_absolute_error",
+        false,
+        false
+      ],
+      [
+        "max_calibration_absolute_error",
+        false,
+        false
+      ],
+      [
+        "minimum_calibration_rmse_reduction",
+        false,
+        false
+      ],
+      [
         "minimum_high_threshold",
         false,
         false
@@ -2557,6 +4605,229 @@
       ],
       [
         "maximum_width_span",
+        false,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ],
+      [
+        "frequency_channel",
+        false,
+        false
+      ],
+      [
+        "frequency_point_count",
+        false,
+        false
+      ],
+      [
+        "frequency_minimum_hz",
+        false,
+        false
+      ],
+      [
+        "frequency_maximum_hz",
+        false,
+        false
+      ],
+      [
+        "frequency_input_amplitude",
+        false,
+        false
+      ],
+      [
+        "simulated_cutoff_frequency_hz",
+        false,
+        false
+      ],
+      [
+        "target_cutoff_frequency_hz",
+        false,
+        false
+      ],
+      [
+        "cutoff_relative_tolerance",
+        false,
+        false
+      ],
+      [
+        "cutoff_drop_db",
+        false,
+        false
+      ],
+      [
+        "monitor_sample_interval_seconds",
+        false,
+        false
+      ],
+      [
+        "monitor_time_window_seconds",
+        false,
+        false
+      ],
+      [
+        "monitor_max_buffer_points",
+        false,
+        false
+      ],
+      [
+        "monitor_include_secondary",
+        false,
+        false
+      ],
+      [
+        "monitor_include_state",
+        false,
+        false
+      ]
+    ],
+    "ProjectMetricDelta": [
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "unit",
+        true,
+        false
+      ],
+      [
+        "left_value",
+        true,
+        false
+      ],
+      [
+        "right_value",
+        true,
+        false
+      ]
+    ],
+    "ProjectRunComparisonEntry": [
+      [
+        "preset_id",
+        true,
+        false
+      ],
+      [
+        "left",
+        true,
+        false
+      ],
+      [
+        "right",
+        true,
+        false
+      ],
+      [
+        "metric_deltas",
+        true,
+        false
+      ]
+    ],
+    "ProjectRunMetric": [
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "value",
+        true,
+        false
+      ],
+      [
+        "unit",
+        true,
+        false
+      ]
+    ],
+    "ProjectRunRecord": [
+      [
+        "preset_id",
+        true,
+        false
+      ],
+      [
+        "job_id",
+        true,
+        false
+      ],
+      [
+        "source_mode",
+        true,
+        false
+      ],
+      [
+        "job_type",
+        true,
+        false
+      ],
+      [
+        "configuration_sha256",
+        true,
+        false
+      ],
+      [
+        "worker_state",
+        true,
+        false
+      ],
+      [
+        "product_status",
+        true,
+        false
+      ],
+      [
+        "engineering_outcome",
+        true,
+        false
+      ],
+      [
+        "evidence_source",
+        true,
+        false
+      ],
+      [
+        "measurement_count",
+        true,
+        false
+      ],
+      [
+        "metrics",
+        true,
+        false
+      ],
+      [
+        "limitations",
+        true,
+        false
+      ],
+      [
+        "issue_code",
+        false,
+        false
+      ],
+      [
+        "result_artifact",
+        false,
+        false
+      ],
+      [
+        "result_sha256",
+        false,
+        false
+      ],
+      [
+        "coefficient_artifact",
+        false,
+        false
+      ],
+      [
+        "coefficient_sha256",
         false,
         false
       ],
@@ -2713,6 +4984,23 @@
         false
       ]
     ],
+    "SerialChannelAlias": [
+      [
+        "native_channel",
+        true,
+        false
+      ],
+      [
+        "canonical_channel",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
     "SerialSourceConfig": [
       [
         "port_id",
@@ -2741,6 +5029,21 @@
       ],
       [
         "evidence_source",
+        false,
+        false
+      ],
+      [
+        "expected_device_id",
+        false,
+        false
+      ],
+      [
+        "afe_adc_channel_aliases",
+        false,
+        false
+      ],
+      [
+        "schema_version",
         false,
         false
       ]
@@ -2778,6 +5081,260 @@
       ],
       [
         "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ValidationBatchPreparationFailure": [
+      [
+        "preset_id",
+        true,
+        false
+      ],
+      [
+        "issue_code",
+        true,
+        false
+      ],
+      [
+        "technical_type",
+        true,
+        false
+      ],
+      [
+        "message",
+        true,
+        false
+      ]
+    ],
+    "ValidationBatchProgress": [
+      [
+        "run_id",
+        true,
+        false
+      ],
+      [
+        "event_index",
+        true,
+        false
+      ],
+      [
+        "phase",
+        true,
+        false
+      ],
+      [
+        "current_preset_id",
+        true,
+        false
+      ],
+      [
+        "current_preset_number",
+        true,
+        false
+      ],
+      [
+        "total_presets",
+        true,
+        false
+      ],
+      [
+        "completed_presets",
+        true,
+        false
+      ],
+      [
+        "batch_status",
+        false,
+        false
+      ]
+    ],
+    "ValidationPreset": [
+      [
+        "preset_id",
+        true,
+        false
+      ],
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "configuration",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ValidationProject": [
+      [
+        "project_id",
+        true,
+        false
+      ],
+      [
+        "name",
+        true,
+        false
+      ],
+      [
+        "description",
+        true,
+        false
+      ],
+      [
+        "presets",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ValidationRunComparison": [
+      [
+        "project_id",
+        true,
+        false
+      ],
+      [
+        "left_run_id",
+        true,
+        false
+      ],
+      [
+        "right_run_id",
+        true,
+        false
+      ],
+      [
+        "left_project_sha256",
+        true,
+        false
+      ],
+      [
+        "right_project_sha256",
+        true,
+        false
+      ],
+      [
+        "entries",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ValidationRunInputArtifact": [
+      [
+        "preset_id",
+        true,
+        false
+      ],
+      [
+        "source_mode",
+        true,
+        false
+      ],
+      [
+        "artifact",
+        true,
+        false
+      ],
+      [
+        "size_bytes",
+        true,
+        false
+      ],
+      [
+        "sha256",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ]
+    ],
+    "ValidationRunManifest": [
+      [
+        "project_id",
+        true,
+        false
+      ],
+      [
+        "run_id",
+        true,
+        false
+      ],
+      [
+        "software_version",
+        true,
+        false
+      ],
+      [
+        "project_artifact",
+        true,
+        false
+      ],
+      [
+        "project_sha256",
+        true,
+        false
+      ],
+      [
+        "started_at",
+        true,
+        false
+      ],
+      [
+        "completed_at",
+        true,
+        false
+      ],
+      [
+        "records",
+        true,
+        false
+      ],
+      [
+        "schema_version",
+        false,
+        false
+      ],
+      [
+        "batch_status",
+        false,
+        false
+      ],
+      [
+        "planned_preset_ids",
+        false,
+        false
+      ],
+      [
+        "not_started_preset_ids",
+        false,
+        false
+      ],
+      [
+        "input_artifacts",
+        false,
+        false
+      ],
+      [
+        "preparation_failure",
         false,
         false
       ]
@@ -2858,6 +5415,18 @@
       [
         "HYSTERESIS_ANALYSIS",
         "HYSTERESIS_ANALYSIS"
+      ],
+      [
+        "CALIBRATION_ANALYSIS",
+        "CALIBRATION_ANALYSIS"
+      ],
+      [
+        "FREQUENCY_RESPONSE_ANALYSIS",
+        "FREQUENCY_RESPONSE_ANALYSIS"
+      ],
+      [
+        "LIVE_MONITOR",
+        "LIVE_MONITOR"
       ]
     ],
     "ProductResultStatus": [
@@ -2928,8 +5497,16 @@
     ],
     "ReportChartKind": [
       [
+        "CALIBRATION",
+        "CALIBRATION"
+      ],
+      [
         "DC_SWEEP",
         "DC_SWEEP"
+      ],
+      [
+        "FREQUENCY_RESPONSE",
+        "FREQUENCY_RESPONSE"
       ],
       [
         "HYSTERESIS",
@@ -2995,6 +5572,46 @@
         "ERROR",
         "ERROR"
       ]
+    ],
+    "ValidationBatchPhase": [
+      [
+        "PREPARING",
+        "PREPARING"
+      ],
+      [
+        "RUNNING",
+        "RUNNING"
+      ],
+      [
+        "CANCELLING",
+        "CANCELLING"
+      ],
+      [
+        "FINALIZING",
+        "FINALIZING"
+      ],
+      [
+        "FINISHED",
+        "FINISHED"
+      ]
+    ],
+    "ValidationBatchStatus": [
+      [
+        "COMPLETE",
+        "COMPLETE"
+      ],
+      [
+        "PARTIAL",
+        "PARTIAL"
+      ],
+      [
+        "CANCELLED",
+        "CANCELLED"
+      ],
+      [
+        "ERROR",
+        "ERROR"
+      ]
     ]
   },
   "error_bases": {
@@ -3010,6 +5627,11 @@
     "ProductDependencyError": "ProductAppError",
     "ProductFeatureUnavailableError": "ProductCliError",
     "ProductJobCancelled": "ProductWorkerError",
+    "ProductProjectError": "ProductAppError",
+    "ProductProjectExistsError": "ProductProjectPathError",
+    "ProductProjectFormatError": "ProductProjectError",
+    "ProductProjectLimitError": "ProductProjectError",
+    "ProductProjectPathError": "ProductProjectError",
     "ProductReportError": "ProductAppError",
     "ProductReportExistsError": "ProductReportPathError",
     "ProductReportFormatError": "ProductReportError",
@@ -3035,8 +5657,8 @@
     "usage": 2
   },
   "golden_sha256": {
-    "phase2_public_api.json": "b90bd8070cc3e93b61749c9d8345489c4dace51301dc7e06d5f7e97434acc096",
-    "phase3_public_api.json": "c79ad82a9889c9408b270451d74a05295d9c75d07106aeb81fc7dc6527d4a3ca",
+    "phase2_public_api.json": "b5321854ee73f907bbdd9e4022280326688b7e44144f3a5b1df68d4e56b66a59",
+    "phase3_public_api.json": "cbb3bbb5707a722ae17f23c425ec9a649ce397fb72886ea419baffc2d54c8413",
     "phase4_composite_v1.json": "9059a4fd1abff086c0f633dab2d17a07467966c1617aa830868245ed16cad1e5",
     "phase4_public_api.json": "8815de4379d4d236f05ffce39f9f492497c2e8f50052ff41ebf1c8cd36713346",
     "phase5_demo_v1.json": "7e85b988113c9681d9571f3f2af73a0722931dee221afec94ae9fecd82688773",
@@ -3102,6 +5724,31 @@
       "OPERATION_FAILED",
       "ERROR",
       "ProductJobCancelled"
+    ],
+    "ProductProjectError": [
+      "OPERATION_FAILED",
+      "ERROR",
+      "ProductProjectError"
+    ],
+    "ProductProjectExistsError": [
+      "OUTPUT_EXISTS",
+      "WARNING",
+      "ProductProjectExistsError"
+    ],
+    "ProductProjectFormatError": [
+      "INPUT_DATA",
+      "ERROR",
+      "ProductProjectFormatError"
+    ],
+    "ProductProjectLimitError": [
+      "INPUT_DATA",
+      "ERROR",
+      "ProductProjectLimitError"
+    ],
+    "ProductProjectPathError": [
+      "OUTPUT_PATH",
+      "ERROR",
+      "ProductProjectPathError"
     ],
     "ProductReportError": [
       "OPERATION_FAILED",
@@ -3172,12 +5819,14 @@
   "module_exports": {
     "analog_validation_app": [
       "AdapterFactory",
+      "CalibrationJobService",
       "CliUsageError",
       "Clock",
       "DASHBOARD_HARDWARE_CLAIM",
       "DASHBOARD_STATE_SCHEMA_VERSION",
       "DASHBOARD_WIZARD_SCHEMA_VERSION",
       "DCSweepJobService",
+      "DEFAULT_LIVE_MONITOR_MAX_POINTS",
       "DEFAULT_PRODUCT_EVENT_QUEUE_SIZE",
       "DEFAULT_PRODUCT_JOIN_TIMEOUT_S",
       "DashboardAction",
@@ -3189,6 +5838,8 @@
       "DashboardController",
       "DashboardExportFormat",
       "DashboardJobIdFactory",
+      "DashboardLivePanel",
+      "DashboardLivePoint",
       "DashboardPlotPanel",
       "DashboardPlotPoint",
       "DashboardPresenter",
@@ -3204,11 +5855,18 @@
       "DashboardWizardStep",
       "DashboardWorkerPort",
       "DemoArtifact",
+      "FrequencyResponseJobService",
       "HUMAN_REPORT_MANIFEST_SCHEMA_VERSION",
       "HUMAN_REPORT_SCHEMA_VERSION",
       "HumanReportPublication",
       "HumanReportView",
       "HysteresisJobService",
+      "LIVE_MONITOR_CONTROL_POLL_SECONDS",
+      "LIVE_MONITOR_SCHEMA_VERSION",
+      "LiveMonitorJobService",
+      "LiveMonitorSession",
+      "LiveMonitorSnapshot",
+      "LiveTracePoint",
       "MAX_CATALOG_TEXT_CHARS",
       "MAX_DASHBOARD_ARTIFACTS",
       "MAX_DASHBOARD_EVENT_HISTORY",
@@ -3217,6 +5875,10 @@
       "MAX_DASHBOARD_WIZARD_PORTS",
       "MAX_DASHBOARD_WIZARD_REVIEW_LINES",
       "MAX_DASHBOARD_WIZARD_TEXT_CHARS",
+      "MAX_LIVE_MONITOR_DURATION_SECONDS",
+      "MAX_LIVE_MONITOR_INTERVAL_SECONDS",
+      "MAX_LIVE_MONITOR_MAX_POINTS",
+      "MAX_LIVE_MONITOR_WINDOW_SECONDS",
       "MAX_PRODUCT_CANCELLATION_WAIT_S",
       "MAX_PRODUCT_EVENT_QUEUE_SIZE",
       "MAX_PRODUCT_EVENT_TEXT_CHARS",
@@ -3227,7 +5889,16 @@
       "MAX_PRODUCT_WORKFLOW_SAMPLES",
       "MAX_PRODUCT_WORKFLOW_TEXT_CHARS",
       "MAX_REPORT_POINTS",
+      "MAX_SERIAL_CHANNEL_ALIASES",
+      "MAX_SERIAL_IDENTITY_CHARS",
       "MAX_USER_ISSUE_TEXT_CHARS",
+      "MAX_VALIDATION_HISTORY_INPUTS",
+      "MAX_VALIDATION_PRESETS",
+      "MAX_VALIDATION_PROJECT_BYTES",
+      "MAX_VALIDATION_RUN_MANIFEST_BYTES",
+      "MAX_VALIDATION_RUN_RECORDS",
+      "MIN_LIVE_MONITOR_WINDOW_SECONDS",
+      "MonotonicClock",
       "PORTFOLIO_DEMO_CONFIG_SCHEMA_VERSION",
       "PORTFOLIO_DEMO_EPOCH",
       "PORTFOLIO_DEMO_JOB_ID",
@@ -3265,6 +5936,11 @@
       "ProductJobWorker",
       "ProductProfileDescriptor",
       "ProductProgressReporter",
+      "ProductProjectError",
+      "ProductProjectExistsError",
+      "ProductProjectFormatError",
+      "ProductProjectLimitError",
+      "ProductProjectPathError",
       "ProductReportError",
       "ProductReportExistsError",
       "ProductReportFormatError",
@@ -3284,6 +5960,10 @@
       "ProductWorkerState",
       "ProductWorkerTimeoutError",
       "ProductWorkflowConfiguration",
+      "ProjectMetricDelta",
+      "ProjectRunComparisonEntry",
+      "ProjectRunMetric",
+      "ProjectRunRecord",
       "REPLAY_LIMITATIONS",
       "REPORT_HARDWARE_CLAIM",
       "REPORT_HTML_FILENAME",
@@ -3301,18 +5981,47 @@
       "ReportSchemaView",
       "ReportValueView",
       "ReviewedServiceRouter",
+      "SERIAL_CHANNEL_ALIAS_SCHEMA_VERSION",
       "SERIAL_LIMITATIONS",
+      "SERIAL_SOURCE_CONFIG_SCHEMA_VERSION",
       "SIMULATOR_LIMITATIONS",
       "SerialBackendFactory",
+      "SerialChannelAlias",
       "SerialSourceConfig",
       "USER_ISSUE_SCHEMA_VERSION",
       "UserIssue",
       "UserIssueCode",
       "UserIssueSeverity",
+      "VALIDATION_PRESET_SCHEMA_VERSION",
+      "VALIDATION_PROJECT_SCHEMA_VERSION",
+      "VALIDATION_PROJECT_SNAPSHOT_FILENAME",
+      "VALIDATION_RUN_COMPARISON_SCHEMA_VERSION",
+      "VALIDATION_RUN_INPUT_ARTIFACT_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_FILENAME",
+      "VALIDATION_RUN_MANIFEST_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION",
+      "VALIDATION_RUN_RECORD_SCHEMA_VERSION",
+      "ValidationBatchCancellationToken",
+      "ValidationBatchPhase",
+      "ValidationBatchPreparationFailure",
+      "ValidationBatchProgress",
+      "ValidationBatchProgressReporter",
+      "ValidationBatchStatus",
+      "ValidationPreset",
+      "ValidationProject",
+      "ValidationRunComparison",
+      "ValidationRunInputArtifact",
+      "ValidationRunManifest",
       "__version__",
+      "build_default_validation_project",
       "build_human_report_view",
+      "compare_validation_runs",
       "default_serial_backend_factory",
       "discover_serial_ports",
+      "dump_validation_project",
+      "dump_validation_run_manifest",
       "execute_product_job",
       "get_product_profile",
       "get_product_source",
@@ -3320,21 +6029,34 @@
       "issue_from_exception",
       "list_product_profiles",
       "list_product_sources",
+      "load_validation_project",
+      "load_validation_run_manifest",
+      "make_calibration_service_factory",
       "make_csv_replay_adapter_factory",
       "make_csv_replay_dataset_adapter_factory",
       "make_dc_sweep_service_factory",
+      "make_frequency_response_service_factory",
+      "make_frequency_response_simulator_adapter_factory",
       "make_hysteresis_service_factory",
+      "make_live_monitor_service_factory",
       "make_read_service_factory",
       "make_serial_adapter_factory",
       "make_simulator_adapter_factory",
       "prepare_product_job",
       "publish_human_report",
       "publish_portfolio_demo",
+      "publish_validation_project_run",
       "render_human_report_html",
       "render_human_report_markdown",
       "render_human_report_svg",
       "render_human_report_text",
-      "user_issue_to_dict"
+      "user_issue_to_dict",
+      "validation_project_from_dict",
+      "validation_project_to_dict",
+      "validation_run_comparison_to_dict",
+      "validation_run_manifest_from_dict",
+      "validation_run_manifest_to_dict",
+      "write_validation_project"
     ],
     "analog_validation_app.cli": [
       "CLI_CANCELLED_EXIT_CODE",
@@ -3364,6 +6086,8 @@
       "DashboardController",
       "DashboardExportFormat",
       "DashboardJobIdFactory",
+      "DashboardLivePanel",
+      "DashboardLivePoint",
       "DashboardPlotPanel",
       "DashboardPlotPoint",
       "DashboardPresenter",
@@ -3397,18 +6121,65 @@
       "MAX_DASHBOARD_SMOKE_MS",
       "TkLoader",
       "launch_dashboard"
+    ],
+    "analog_validation_app.projects": [
+      "MAX_VALIDATION_HISTORY_INPUTS",
+      "MAX_VALIDATION_PRESETS",
+      "MAX_VALIDATION_PROJECT_BYTES",
+      "MAX_VALIDATION_RUN_MANIFEST_BYTES",
+      "MAX_VALIDATION_RUN_RECORDS",
+      "ProjectMetricDelta",
+      "ProjectRunComparisonEntry",
+      "ProjectRunMetric",
+      "ProjectRunRecord",
+      "VALIDATION_PRESET_SCHEMA_VERSION",
+      "VALIDATION_PROJECT_SCHEMA_VERSION",
+      "VALIDATION_PROJECT_SNAPSHOT_FILENAME",
+      "VALIDATION_RUN_COMPARISON_SCHEMA_VERSION",
+      "VALIDATION_RUN_INPUT_ARTIFACT_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_FILENAME",
+      "VALIDATION_RUN_MANIFEST_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION",
+      "VALIDATION_RUN_RECORD_SCHEMA_VERSION",
+      "ValidationBatchCancellationToken",
+      "ValidationBatchPhase",
+      "ValidationBatchPreparationFailure",
+      "ValidationBatchProgress",
+      "ValidationBatchProgressReporter",
+      "ValidationBatchStatus",
+      "ValidationPreset",
+      "ValidationProject",
+      "ValidationRunComparison",
+      "ValidationRunInputArtifact",
+      "ValidationRunManifest",
+      "build_default_validation_project",
+      "compare_validation_runs",
+      "dump_validation_project",
+      "dump_validation_run_manifest",
+      "load_validation_project",
+      "load_validation_run_manifest",
+      "publish_validation_project_run",
+      "validation_project_from_dict",
+      "validation_project_to_dict",
+      "validation_run_comparison_to_dict",
+      "validation_run_manifest_from_dict",
+      "validation_run_manifest_to_dict",
+      "write_validation_project"
     ]
   },
   "new_hardware_validation": false,
   "package_version": "0.1.0b1",
   "schema_version": "phase5-public-api-golden.v1",
   "schema_versions": {
-    "CLI_OUTPUT_SCHEMA_VERSION": "product-cli-output.v1",
+    "CLI_OUTPUT_SCHEMA_VERSION": "product-cli-output.v2",
     "DASHBOARD_SESSION_SCHEMA_VERSION": "dashboard-session.v1",
     "DASHBOARD_STATE_SCHEMA_VERSION": "dashboard-state.v1",
     "DASHBOARD_WIZARD_SCHEMA_VERSION": "dashboard-wizard.v1",
     "HUMAN_REPORT_MANIFEST_SCHEMA_VERSION": "human-report-manifest.v1",
     "HUMAN_REPORT_SCHEMA_VERSION": "human-report.v1",
+    "LIVE_MONITOR_SCHEMA_VERSION": "live-monitor.v1",
     "PORTFOLIO_DEMO_CONFIG_SCHEMA_VERSION": "portfolio-demo-config.v1",
     "PORTFOLIO_DEMO_SCHEMA_VERSION": "portfolio-demo.v1",
     "PRODUCT_CATALOG_SCHEMA_VERSION": "product-catalog.v1",
@@ -3416,7 +6187,18 @@
     "PRODUCT_JOB_SCHEMA_VERSION": "product-job.v1",
     "PRODUCT_RESULT_SCHEMA_VERSION": "product-result.v1",
     "PRODUCT_WORKFLOW_CONFIG_SCHEMA_VERSION": "product-workflow-config.v1",
-    "USER_ISSUE_SCHEMA_VERSION": "user-issue.v1"
+    "SERIAL_CHANNEL_ALIAS_SCHEMA_VERSION": "serial-channel-alias.v1",
+    "SERIAL_SOURCE_CONFIG_SCHEMA_VERSION": "serial-source-config.v1",
+    "USER_ISSUE_SCHEMA_VERSION": "user-issue.v1",
+    "VALIDATION_PRESET_SCHEMA_VERSION": "validation-preset.v1",
+    "VALIDATION_PROJECT_SCHEMA_VERSION": "validation-project.v1",
+    "VALIDATION_RUN_COMPARISON_SCHEMA_VERSION": "validation-run-comparison.v1",
+    "VALIDATION_RUN_INPUT_ARTIFACT_SCHEMA_VERSION": "validation-run-input-artifact.v1",
+    "VALIDATION_RUN_MANIFEST_SCHEMA_VERSION": "validation-run-manifest.v4",
+    "VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION": "validation-run-manifest.v1",
+    "VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION": "validation-run-manifest.v2",
+    "VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION": "validation-run-manifest.v3",
+    "VALIDATION_RUN_RECORD_SCHEMA_VERSION": "validation-run-record.v1"
   },
   "serialized_fields": {
     "cli_demo": [
@@ -3521,6 +6303,153 @@
       "report_schema_version",
       "run_id",
       "schema_version"
+    ],
+    "project_cli_create": [
+      "command",
+      "hardware_claim",
+      "product",
+      "project",
+      "project_file",
+      "resource_policy",
+      "schema_version",
+      "software_version"
+    ],
+    "project_cli_run": [
+      "command",
+      "hardware_claim",
+      "product",
+      "project",
+      "project_file",
+      "resource_policy",
+      "run_directory",
+      "run_manifest",
+      "schema_version",
+      "software_version"
+    ],
+    "project_file": [
+      "description",
+      "name",
+      "presets",
+      "project_id",
+      "schema_version"
+    ],
+    "project_preparation_failure": [
+      "issue_code",
+      "message",
+      "preset_id",
+      "technical_type"
+    ],
+    "project_preset": [
+      "configuration",
+      "name",
+      "preset_id",
+      "schema_version"
+    ],
+    "project_run_manifest": [
+      "batch_status",
+      "completed_at",
+      "input_artifacts",
+      "not_started_preset_ids",
+      "planned_preset_ids",
+      "preparation_failure",
+      "project_artifact",
+      "project_id",
+      "project_sha256",
+      "records",
+      "run_id",
+      "schema_version",
+      "software_version",
+      "started_at",
+      "summary"
+    ],
+    "project_run_metric": [
+      "name",
+      "unit",
+      "value"
+    ],
+    "project_run_record": [
+      "coefficient_artifact",
+      "coefficient_sha256",
+      "configuration_sha256",
+      "engineering_outcome",
+      "evidence_source",
+      "issue_code",
+      "job_id",
+      "job_type",
+      "limitations",
+      "measurement_count",
+      "metrics",
+      "preset_id",
+      "product_status",
+      "result_artifact",
+      "result_sha256",
+      "schema_version",
+      "source_mode",
+      "worker_state"
+    ],
+    "project_run_summary": [
+      "completed_preset_count",
+      "engineering_failures",
+      "hardware_validation",
+      "input_artifact_count",
+      "not_started_preset_count",
+      "operational_failures",
+      "planned_preset_count",
+      "record_count"
+    ],
+    "project_workflow_configuration": [
+      "coefficient_id",
+      "coefficient_version",
+      "confirm_read_only",
+      "cutoff_drop_db",
+      "cutoff_relative_tolerance",
+      "falling_count",
+      "frequency_channel",
+      "frequency_input_amplitude",
+      "frequency_maximum_hz",
+      "frequency_minimum_hz",
+      "frequency_point_count",
+      "gain_tolerance",
+      "high_output_limit",
+      "job_type",
+      "low_output_limit",
+      "max_abs_offset",
+      "max_calibration_absolute_error",
+      "max_calibration_mean_absolute_error",
+      "max_calibration_rmse",
+      "max_rmse",
+      "maximum_high_threshold",
+      "maximum_low_threshold",
+      "maximum_width",
+      "maximum_width_span",
+      "min_r_squared",
+      "minimum_calibration_rmse_reduction",
+      "minimum_high_threshold",
+      "minimum_low_threshold",
+      "minimum_width",
+      "monitor_include_secondary",
+      "monitor_include_state",
+      "monitor_max_buffer_points",
+      "monitor_sample_interval_seconds",
+      "monitor_time_window_seconds",
+      "operation",
+      "primary_channel",
+      "profile_name",
+      "profile_version",
+      "replay_maximum",
+      "replay_minimum",
+      "replay_path",
+      "rising_count",
+      "sample_count",
+      "schema_version",
+      "secondary_channel",
+      "serial_config",
+      "simulated_cutoff_frequency_hz",
+      "source_mode",
+      "state_channel",
+      "target_cutoff_frequency_hz",
+      "target_gain",
+      "unit"
     ]
   },
   "signature_parameters": {
@@ -3561,6 +6490,42 @@
         "job_id_factory",
         "KEYWORD_ONLY",
         false
+      ]
+    ],
+    "DashboardApplication.load_preset_configuration": [
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "configuration",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "discard_unsaved",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "DashboardApplication.report_publication": [
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "DashboardApplication.save_report_bundle": [
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "path_text",
+        "POSITIONAL_OR_KEYWORD",
+        true
       ]
     ],
     "DashboardController": [
@@ -3619,6 +6584,18 @@
         "state",
         "POSITIONAL_OR_KEYWORD",
         false
+      ]
+    ],
+    "DashboardWizardPresenter.load_preset_draft": [
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "draft",
+        "POSITIONAL_OR_KEYWORD",
+        true
       ]
     ],
     "DemoArtifact": [
@@ -3797,6 +6774,55 @@
         false
       ]
     ],
+    "LiveMonitorJobService": [
+      [
+        "adapter",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "workflow_request",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "limitations",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "output_slot",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "live_session",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "sample_interval_seconds",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "LiveMonitorSession": [
+      [
+        "max_points",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "time_window_seconds",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "clock",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
     "PortfolioDemoPublication": [
       [
         "output_directory",
@@ -3849,6 +6875,11 @@
         "review_lines",
         "POSITIONAL_OR_KEYWORD",
         true
+      ],
+      [
+        "live_monitor_session",
+        "POSITIONAL_OR_KEYWORD",
+        false
       ]
     ],
     "ProductJobEvent": [
@@ -4186,6 +7217,36 @@
         false
       ],
       [
+        "coefficient_id",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "coefficient_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "max_calibration_rmse",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "max_calibration_mean_absolute_error",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "max_calibration_absolute_error",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "minimum_calibration_rmse_reduction",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
         "minimum_high_threshold",
         "POSITIONAL_OR_KEYWORD",
         false
@@ -4224,6 +7285,229 @@
         "schema_version",
         "POSITIONAL_OR_KEYWORD",
         false
+      ],
+      [
+        "frequency_channel",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "frequency_point_count",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "frequency_minimum_hz",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "frequency_maximum_hz",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "frequency_input_amplitude",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "simulated_cutoff_frequency_hz",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "target_cutoff_frequency_hz",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "cutoff_relative_tolerance",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "cutoff_drop_db",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "monitor_sample_interval_seconds",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "monitor_time_window_seconds",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "monitor_max_buffer_points",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "monitor_include_secondary",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "monitor_include_state",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ProjectMetricDelta": [
+      [
+        "name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "unit",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "left_value",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "right_value",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "ProjectRunComparisonEntry": [
+      [
+        "preset_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "left",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "right",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "metric_deltas",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "ProjectRunMetric": [
+      [
+        "name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "value",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "unit",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "ProjectRunRecord": [
+      [
+        "preset_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "job_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "source_mode",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "job_type",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "configuration_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "worker_state",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "product_status",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "engineering_outcome",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "evidence_source",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "measurement_count",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "metrics",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "limitations",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "issue_code",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "result_artifact",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "result_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "coefficient_artifact",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "coefficient_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
       ]
     ],
     "ReportArtifact": [
@@ -4246,6 +7530,23 @@
         "sha256",
         "POSITIONAL_OR_KEYWORD",
         true
+      ]
+    ],
+    "SerialChannelAlias": [
+      [
+        "native_channel",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "canonical_channel",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
       ]
     ],
     "SerialSourceConfig": [
@@ -4276,6 +7577,21 @@
       ],
       [
         "evidence_source",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "expected_device_id",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "afe_adc_channel_aliases",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "schema_version",
         "POSITIONAL_OR_KEYWORD",
         false
       ]
@@ -4317,6 +7633,246 @@
         false
       ]
     ],
+    "ValidationBatchCancellationToken": [],
+    "ValidationBatchPreparationFailure": [
+      [
+        "preset_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "issue_code",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "technical_type",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "message",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "ValidationBatchProgress": [
+      [
+        "run_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "event_index",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "phase",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "current_preset_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "current_preset_number",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "total_presets",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "completed_presets",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "batch_status",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ValidationPreset": [
+      [
+        "preset_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "configuration",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ValidationProject": [
+      [
+        "project_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "description",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "presets",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ValidationRunComparison": [
+      [
+        "project_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "left_run_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "right_run_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "left_project_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "right_project_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "entries",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "ValidationRunManifest": [
+      [
+        "project_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "run_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "software_version",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "project_artifact",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "project_sha256",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "started_at",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "completed_at",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "records",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "schema_version",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "batch_status",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "planned_preset_ids",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "not_started_preset_ids",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "input_artifacts",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "preparation_failure",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
+    "build_default_validation_project": [
+      [
+        "project_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "name",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "description",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ]
+    ],
     "build_human_report_view": [
       [
         "bundle",
@@ -4325,6 +7881,37 @@
       ]
     ],
     "build_parser": [],
+    "compare_validation_runs": [
+      [
+        "left",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "right",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "dump_validation_project": [
+      [
+        "project",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "path",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "dump_validation_run_manifest": [
+      [
+        "manifest",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
     "execute_product_job": [
       [
         "request",
@@ -4343,6 +7930,16 @@
       ],
       [
         "join_timeout_s",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "cancellation_requested",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "report_event",
         "KEYWORD_ONLY",
         false
       ]
@@ -4404,7 +8001,81 @@
         false
       ]
     ],
+    "make_calibration_service_factory": [
+      [
+        "adapter_factory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "workflow_request",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "analysis_config",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "criteria",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "limitations",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "output_slot",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "clock",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
     "make_dc_sweep_service_factory": [
+      [
+        "adapter_factory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "workflow_request",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "analysis_config",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "criteria",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "limitations",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "output_slot",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "clock",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "make_frequency_response_service_factory": [
       [
         "adapter_factory",
         "POSITIONAL_OR_KEYWORD",
@@ -4488,6 +8159,38 @@
         false
       ]
     ],
+    "make_live_monitor_service_factory": [
+      [
+        "adapter_factory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "workflow_request",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "limitations",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "output_slot",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "live_session",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "sample_interval_seconds",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
     "make_read_service_factory": [
       [
         "adapter_factory",
@@ -4547,11 +8250,115 @@
         "view",
         "POSITIONAL_OR_KEYWORD",
         true
+      ],
+      [
+        "result_bundle",
+        "KEYWORD_ONLY",
+        false
       ]
     ],
     "publish_portfolio_demo": [
       [
         "output_directory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "publish_validation_project_run": [
+      [
+        "project",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "output_directory",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "run_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "selected_preset_ids",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "project_directory",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "clock",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "cancellation",
+        "KEYWORD_ONLY",
+        false
+      ],
+      [
+        "report_progress",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "validation_project_from_dict": [
+      [
+        "value",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "project_directory",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "validation_project_to_dict": [
+      [
+        "project",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "project_directory",
+        "KEYWORD_ONLY",
+        true
+      ]
+    ],
+    "validation_run_comparison_to_dict": [
+      [
+        "comparison",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "validation_run_manifest_from_dict": [
+      [
+        "value",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "validation_run_manifest_to_dict": [
+      [
+        "manifest",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "write_validation_project": [
+      [
+        "path",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "project",
         "POSITIONAL_OR_KEYWORD",
         true
       ]
@@ -4581,6 +8388,15 @@
         "Synthetic software observations only; no physical hardware was measured.",
         "A software PASS or FAIL does not validate an assembled analog front end."
       ]
+    },
+    "live_monitor": {
+      "control_poll_seconds": 0.05,
+      "default_max_points": 2048,
+      "max_points": 10000,
+      "maximum_duration_seconds": 55.0,
+      "maximum_interval_seconds": 60.0,
+      "maximum_window_seconds": 3600.0,
+      "minimum_window_seconds": 0.1
     },
     "product_display_name": "Analog Validation Studio",
     "profiles": [
@@ -4616,6 +8432,10 @@
       "chart.svg",
       "manifest.json"
     ],
+    "serial_device_contract": {
+      "maximum_aliases": 16,
+      "maximum_identity_characters": 128
+    },
     "sources": [
       {
         "display_name": "Simulator",
@@ -4630,7 +8450,10 @@
         "supported_jobs": [
           "READ",
           "DC_ANALYSIS",
-          "HYSTERESIS_ANALYSIS"
+          "HYSTERESIS_ANALYSIS",
+          "CALIBRATION_ANALYSIS",
+          "FREQUENCY_RESPONSE_ANALYSIS",
+          "LIVE_MONITOR"
         ]
       },
       {
@@ -4646,7 +8469,10 @@
         "supported_jobs": [
           "READ",
           "DC_ANALYSIS",
-          "HYSTERESIS_ANALYSIS"
+          "HYSTERESIS_ANALYSIS",
+          "CALIBRATION_ANALYSIS",
+          "FREQUENCY_RESPONSE_ANALYSIS",
+          "LIVE_MONITOR"
         ]
       },
       {
@@ -4661,13 +8487,23 @@
         "schema_version": "product-catalog.v1",
         "summary": "Explicit bounded receive-only integration; no command or write surface.",
         "supported_jobs": [
-          "READ"
+          "READ",
+          "LIVE_MONITOR"
         ]
       }
     ],
+    "validation_projects": {
+      "history_inputs": 64,
+      "manifest_filename": "run-manifest.json",
+      "presets": 32,
+      "project_bytes": 1048576,
+      "project_snapshot_filename": "project.snapshot.json",
+      "run_manifest_bytes": 1048576,
+      "run_records": 32
+    },
     "worker_defaults": {
       "event_queue_size": 256,
-      "join_timeout_seconds": 5
+      "join_timeout_seconds": 5.0
     }
   }
 }
