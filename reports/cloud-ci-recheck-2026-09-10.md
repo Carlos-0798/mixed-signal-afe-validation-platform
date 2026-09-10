@@ -1,5 +1,10 @@
 # Hosted CI recheck and Python 3.10 timestamp correction — 2026-09-10
 
+**Later follow-up:** the separately authorized correction run passed 8/8 jobs
+at `709c18f` and was integrated through PR #11. See the
+[compatibility closeout](python310-compatibility-closeout-2026-09-10.md).
+The first-attempt and local results below retain their original outcomes.
+
 ## Executed cloud result
 
 The owner explicitly requested one hosted test attempt. Workflow

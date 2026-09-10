@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-09-10<br>
 **Current milestone:** TD-050/TD-051/TD-052 locally complete; feature expansion paused for job-search preparation<br>
-**Synchronization stage:** Source is public; the 2026-09-10 manual hosted recheck passed 6/8 jobs and exposed a Python 3.10 timestamp defect; local correction is awaiting integration and a separately authorized hosted recheck<br>
+**Synchronization stage:** Source is public; Python 3.10 timestamp correction passed all 8 hosted jobs at `709c18f` and was integrated through PR #11; feature expansion remains paused<br>
 **Release maturity:** `0.1.0b1` installable software beta; untagged and unreleased<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
@@ -14,13 +14,15 @@ on 2026-09-09. Routine synchronization does not require a hosted run. The earlie
 account-blocked run remains historical NOT_RUN evidence; restoring account access
 does not authorize a rerun. Product feature expansion remains paused.
 
-The owner authorized one new hosted attempt on 2026-09-10. Run `34531879037`
-executed at `4a73e32`: Python 3.12/3.14 host tests, quality, and package jobs
-passed; both Python 3.10 jobs failed on the same valid fractional-second Replay
-input. TD-054 now tracks a minimal local correction for Replay and voltage-table
-timestamp parsing. The published source has not yet received that correction;
-the full hosted matrix is not a PASS. See the
-[recheck and correction report](../reports/cloud-ci-recheck-2026-09-10.md).
+The first owner-authorized hosted attempt on 2026-09-10, run `34531879037`
+at `4a73e32`, passed six jobs and failed both Python 3.10 jobs on valid
+fractional-second Replay input. After local reproduction and a minimal Replay/
+voltage-table parser correction, the owner authorized synchronization and one
+further manual check. Run `34533435977` passed **8/8 jobs** at `709c18f`.
+PR #11 merged as `f9cbfff`, with an identical source tree. TD-054 is closed;
+the earlier failure and local focus-test limitation remain in the dated
+[first-attempt report](../reports/cloud-ci-recheck-2026-09-10.md) and
+[compatibility closeout](../reports/python310-compatibility-closeout-2026-09-10.md).
 
 The 2026-09-08 feature freeze remains a historical baseline. The owner then
 authorized themes/readability (TD-050), the runtime/UI review (TD-051), and a
@@ -243,12 +245,15 @@ port and did not repeat or broaden the Step 7 HIL.
 
 ## Current verification snapshot
 
-The first row records the latest complete local suite gate, dated 2026-09-09.
-Later documentation, integration, and focused installation checks do not rerun
-that suite. Other rows retain their earlier test counts, audits, and hosted results.
+Each row records its own revision and environment. The 2026-09-10 hosted result
+verifies the timestamp correction; the latest local full-suite execution and
+unchanged focused recheck are reported separately. Later documentation-only
+edits do not create a new full-suite result. Earlier checkpoint rows are retained.
 
 | Gate | Result |
 |---|---|
+| TD-054 corrected hosted verification, 2026-09-10 | Run `34533435977`, `709c18f`: 8/8 jobs passed. Each Windows version: 3,116 passed/1 skipped; each Ubuntu version: 3,088 passed/29 skipped. Quality: 17,574/17,574 statements, Ruff/mypy/pip checks passed. Candidate: 11/11 gates, audit PASS_WITH_REVIEW with the same accepted historical groups. [Closeout](../reports/python310-compatibility-closeout-2026-09-10.md). |
+| TD-054 final local correction, 2026-09-10 | 280 targeted tests passed. Full suite: 3,113 passed/4 real-Tk focus failures, 100% of 17,574 statements; exact unchanged serial recheck: 4/4 passed. Ruff/mypy/pip checks passed; actual CPython 3.10.11 parser checks: Replay 22/22 and voltage import 94/94. [Local evidence](../reports/cloud-ci-recheck-2026-09-10.md). |
 | Private synchronization gate, 2026-09-09 | 3,048 tests passed, 17,567/17,567 statements covered, Ruff/mypy/dependency checks and 15/15 product-quality checks passed. One cross-platform regression was added; product runtime files are unchanged from TD-052. [Preparation report](../reports/private-github-sync-2026-09-09.md). The hosted matrix was NOT_RUN; no new hosted PASS is claimed. |
 | TD-052 latest local acceptance, including completed TD-050/TD-051 | 3,047 tests passed with no failures or skips; 17,567/17,567 package statements covered; Ruff, 252-file mypy, dependency checks, 15/15 product-quality checks, 23 installed CLI commands, installed GUI acceptance, and 100 runtime-file identity checks passed. Evidence: HOST_TEST with SYNTHETIC fixtures and CSV_REPLAY workflows; no new hardware or hosted-matrix claim. See [TD-052 report](../reports/td-052-voltage-import-2026-09-09.md). |
 | TD-040C1B Dashboard input visibility | One selected v3 history row shows Replay preset/path/bytes/full SHA-256 and same-source reference/file counts; v1/v2, empty v3 and multiple-selection states explain the boundary without changing the eight-column history or comparison semantics; 25 project-page/real-Tk tests, five Windows scaling levels, 2,709 full tests and 16,356/16,356 statements passed; `HOST_TEST` with bounded `CSV_REPLAY` fixtures, no hardware validation |

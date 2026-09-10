@@ -14,13 +14,17 @@ These limits are part of the product contract, not hidden footnotes.
 
 ## Supported environments
 
-- The [2026-09-10 hosted recheck](../reports/cloud-ci-recheck-2026-09-10.md) at
-  `4a73e32` passed Windows/Ubuntu host tests on Python 3.12 and 3.14, the quality
-  gate, and the deterministic candidate job. Both Python 3.10 jobs failed on
-  valid fractional-second Replay timestamps. The same issue affects explicit
-  timestamps in ordinary voltage CSV import. Prefer Python 3.12 or 3.14 for that
-  published revision; a local correction is awaiting integration and separately
-  authorized cloud verification. The complete hosted matrix is not a PASS.
+- The [2026-09-10 corrected hosted verification](../reports/python310-compatibility-closeout-2026-09-10.md)
+  passed all eight jobs at `709c18f`: Windows/Ubuntu host tests on Python
+  3.10/3.12/3.14, quality, and Windows/Python 3.12 candidate installation.
+  PR #11 integrated the correction into `main`. The earlier `4a73e32` revision
+  still has the documented Python 3.10 fractional-timestamp defect; its
+  [six-pass/two-failure result](../reports/cloud-ci-recheck-2026-09-10.md) is retained.
+- Four local real-Tk focus assertions failed in the final correction suite,
+  then passed 4/4 unchanged in a serial recheck. All three hosted Windows suites
+  subsequently passed those tests. The original local failures remain recorded;
+  a passing hosted run does not establish reliable focus under every desktop
+  interaction or window-manager condition.
 - The current Windows/Python 3.12 candidate uses Tk 8.6.15. That runtime has no
   `tk accessible` API, and a Windows UI Automation audit exposed the 37
   application descendants only as unnamed panes. The Dashboard is therefore

@@ -4,6 +4,12 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Software checkpoint reports (each report states its own evidence level):
 
+- [python310-compatibility-closeout-2026-09-10.md](python310-compatibility-closeout-2026-09-10.md) —
+  corrected timestamp compatibility, eight successful hosted jobs, package/audit
+  evidence, and PR #11 integration; manual-only CI remains in effect.
+- [cloud-ci-recheck-2026-09-10.md](cloud-ci-recheck-2026-09-10.md) —
+  preserved first hosted attempt, Python 3.10 failure reproduction, local
+  correction, and separate full-suite/focus-recheck results.
 - [public-source-integration-2026-09-10.md](public-source-integration-2026-09-10.md) —
   approved history disclosure, preserved merge, default source entry, and
   evidence boundaries for public portfolio access.

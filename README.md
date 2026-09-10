@@ -150,7 +150,7 @@ mismatched artifacts; hashes are not digital signatures or proof of hardware ori
 |---|---|
 | [Local product synchronization, 2026-09-09](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/main/reports/private-github-sync-2026-09-09.md) | **3,048 tests passed; 17,567/17,567 package statements covered (100%)**; Ruff, mypy, pip check, and 15 product-quality checks passed |
 | [Installed voltage-import acceptance, 2026-09-09](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/main/reports/td-052-voltage-import-2026-09-09.md) | 23 installed CLI commands across seven scenarios; real Tk import/review/report workflow; three synthetic table layouts produce identical Replay bytes |
-| Cloud tests | Manual-only; no current hosted matrix PASS is claimed. Local tests are the primary gate |
+| [Manual hosted verification, 2026-09-10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/main/reports/python310-compatibility-closeout-2026-09-10.md) | **8/8 jobs passed** at `709c18f`: Windows/Ubuntu × Python 3.10/3.12/3.14, quality, and clean-install package verification; **17,574/17,574 statements covered**. Local tests remain the primary gate |
 | AFE hardware bench tests | Not run |
 
 The full-suite counts belong to the linked product checkpoint, not to a new

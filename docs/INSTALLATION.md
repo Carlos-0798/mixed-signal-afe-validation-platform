@@ -58,18 +58,19 @@ correct.
 
 ## Supported beta environments
 
-Current product and installation evidence is Windows with Python 3.12.
-The optional manual hosted matrix is configured for:
+Primary local product and installation evidence is Windows with Python 3.12.
+The [2026-09-10 manual hosted verification](../reports/python310-compatibility-closeout-2026-09-10.md)
+passed all eight jobs at `709c18f`, integrated through PR #11:
 
 - Windows latest with Python 3.10, 3.12, and 3.14;
 - Ubuntu latest with Python 3.10, 3.12, and 3.14;
 - the full deterministic candidate build/install path on Windows with Python
   3.12.
 
-Configuration is not proof that the current revision passed those environments.
-No current hosted matrix PASS is claimed; earlier hosted results apply to their
-recorded revisions. macOS and Linux GUI behavior remain unverified. Python 3.12
-is the recommended beta-test choice; see [local-first testing](LOCAL_TESTING_AND_CI.md).
+The six host-test jobs passed; clean-install candidate verification was performed
+on Windows/Python 3.12. Ubuntu skips Windows-specific GUI tests, so macOS and
+Linux GUI behavior remain unverified. Python 3.12 is still the recommended
+beta-test choice; see [local-first testing](LOCAL_TESTING_AND_CI.md).
 
 ## Windows: base installation
 
