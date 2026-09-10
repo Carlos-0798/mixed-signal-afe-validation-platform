@@ -2,12 +2,17 @@
 
 **Last updated:** 2026-09-09<br>
 **Current milestone:** TD-050/TD-051/TD-052 locally complete; feature expansion paused for job-search preparation<br>
-**Synchronization stage:** Owner-authorized private development-branch and existing Draft PR update; no new hosted CI or merge result claimed<br>
+**Synchronization stage:** Private branch and Draft PR synchronized; local testing is the default and hosted CI is manual-only; no merge or hosted PASS claimed<br>
 **Release maturity:** `0.1.0b1` local candidate; untagged and unreleased<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
 
 ## Current execution priority
+
+The owner selected [local testing with manual-only cloud CI](LOCAL_TESTING_AND_CI.md)
+on 2026-09-09. Routine synchronization does not require a hosted run. The earlier
+account-blocked run remains historical NOT_RUN evidence; restoring account access
+does not authorize a rerun. Product feature expansion remains paused.
 
 The 2026-09-08 feature freeze remains a historical baseline. The owner then
 authorized themes/readability (TD-050), the runtime/UI review (TD-051), and a

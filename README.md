@@ -2,9 +2,13 @@
 
 > Controller-neutral software for repeatable analog front-end validation, automated test execution, and evidence-aware reporting.
 
-[![main CI](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/actions/workflows/ci.yml)
+[Cloud CI (manual only)](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/actions/workflows/ci.yml)
 
-Development-branch progress and its own CI: [Draft PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10).
+Local testing is the default. Pushes and PR updates on the maintained branches
+do not start cloud tests; run the preserved compatibility matrix only when
+explicitly needed. See [local testing and manual CI](docs/LOCAL_TESTING_AND_CI.md).
+
+Development-branch progress and validation records: [Draft PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10).
 
 **Private beta · Python 3.10+ · offline by default · hardware work deferred**
 
