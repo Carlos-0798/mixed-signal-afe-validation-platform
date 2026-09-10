@@ -1,11 +1,42 @@
-# Private beta installation
+# Installation
 
-- **Audience:** first-time invited software tester
+- **Audience:** first-time software user or invited package tester
 - **Package:** `mixed-signal-afe-validation-platform 0.1.0b1`
 - **Default test source:** deterministic Simulator
 - **Hardware required:** none
 
-## What you receive
+## Start from the source on main
+
+The completed software is on the default `main` branch. No tagged Release or
+prebuilt public download is published. Use a new, short directory and Python
+3.12 for the primary verified Windows setup:
+
+~~~powershell
+git clone https://github.com/Carlos-0798/mixed-signal-afe-validation-platform.git avs-review
+cd avs-review
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -e .
+.\.venv\Scripts\python.exe -m pip check
+.\.venv\Scripts\analog-validation.exe version --json
+.\.venv\Scripts\analog-validation.exe demo --output .\portfolio-demo --json
+~~~
+
+Installation may download build tools. The base software has no third-party
+runtime dependency; running the Simulator demo is offline and requires no
+hardware. Expect version `0.1.0b1`, a 24-point `SYNTHETIC` PASS and 12 files.
+Open `portfolio-demo/report/report.html` to inspect the result. Use a new output
+directory for each run; existing evidence is never overwritten.
+
+For the GUI, run `.\.venv\Scripts\analog-validation.exe dashboard`. Tkinter
+requires a normal desktop and a Python installation with Tk. See the
+[README workflow](../README.md#try-the-software) and [troubleshooting](TROUBLESHOOTING.md).
+Software PASS is not physical AFE validation.
+
+## Optional: an owner-provided package
+
+The remaining package instructions apply only if the owner separately supplies
+a reviewed candidate bundle. A source clone does not contain the following
+prebuilt files; source users can use the path above.
 
 The owner-provided candidate directory contains exactly three files:
 
@@ -27,16 +58,18 @@ correct.
 
 ## Supported beta environments
 
-The automated host matrix currently covers:
+Current product and installation evidence is Windows with Python 3.12.
+The optional manual hosted matrix is configured for:
 
 - Windows latest with Python 3.10, 3.12, and 3.14;
 - Ubuntu latest with Python 3.10, 3.12, and 3.14;
 - the full deterministic candidate build/install path on Windows with Python
   3.12.
 
-This is evidence for those exact categories, not for every Windows/Linux
-version, macOS, every Python minor release, or every graphical desktop. Python
-3.12 is the recommended beta-test choice.
+Configuration is not proof that the current revision passed those environments.
+No current hosted matrix PASS is claimed; earlier hosted results apply to their
+recorded revisions. macOS and Linux GUI behavior remain unverified. Python 3.12
+is the recommended beta-test choice; see [local-first testing](LOCAL_TESTING_AND_CI.md).
 
 ## Windows: base installation
 

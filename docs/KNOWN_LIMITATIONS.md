@@ -4,9 +4,9 @@ These limits are part of the product contract, not hidden footnotes.
 
 ## Release and distribution
 
-- This is private beta candidate preparation, not v1.0 or production-ready.
+- This is an installable software beta, not v1.0 or production-ready.
 - No Git tag, GitHub Release, PyPI publication, signed installer, automatic
-  update channel, or public download has been approved.
+  update channel, or packaged binary download has been approved.
 - The owner selected the MIT License; it is included in `LICENSE`. Licensing
   does not imply that a public release or a hardware test has been performed.
 - CI artifacts have bounded retention and are not a permanent distribution
@@ -14,9 +14,11 @@ These limits are part of the product contract, not hidden footnotes.
 
 ## Supported environments
 
-- Host tests cover current GitHub Windows/Ubuntu runners with Python 3.10,
-  3.12, and 3.14; this does not imply every OS/Python minor combination.
-- The full deterministic candidate job is verified on Windows/Python 3.12.
+- Current local evidence is from Windows/Python 3.12. The optional hosted matrix
+  is configured for Python 3.10, 3.12, and 3.14 on Windows/Ubuntu; no current
+  hosted PASS is claimed. Earlier hosted results retain their dated scope.
+- The full deterministic candidate job has historical Windows/Python 3.12
+  evidence; it was not rerun as part of the current source-publication work.
 - The current Windows/Python 3.12 candidate uses Tk 8.6.15. That runtime has no
   `tk accessible` API, and a Windows UI Automation audit exposed the 37
   application descendants only as unnamed panes. The Dashboard is therefore

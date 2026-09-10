@@ -1,7 +1,7 @@
 # Contributing
 
-Analog Validation Studio is currently an owner-led private-beta project.
-Contributions are reviewed by the maintainer. This branch uses the
+Analog Validation Studio is currently an owner-led software beta project.
+Contributions are reviewed by the maintainer. The project uses the
 [MIT License](LICENSE); dependency licenses are listed in
 [Third-Party Notices](THIRD_PARTY_NOTICES.md). Repository visibility and
 maintainer release decisions are separate from the rights granted by the license.

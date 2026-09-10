@@ -1,9 +1,10 @@
 # Portfolio copy and publication preview
 
-Reviewed 2026-09-10. Current implemented software is on
-`codex/calibration-workflow`; [Draft PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10)
-is not merged. The repository remains private. This file supplies copy for owner
-review; it does not authorize LinkedIn posting or public exposure.
+Reviewed 2026-09-10. Current implemented software is on the default `main`
+after [PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10)
+integration. Source publication is owner-approved; visibility and anonymous
+verification are pending. This copy does not authorize LinkedIn posting,
+a tagged release, or package publication.
 
 ## Project title and role
 
@@ -80,8 +81,8 @@ The table is synthetic and its preview is `CSV_REPLAY`, not a hardware capture.
 The [media register](../media/README.md) retains capture dates and hashes.
 
 A social-preview upload or LinkedIn post is a separate action. Reuse only
-reviewed assets and label their evidence. Private repository links are usable
-only by authorized reviewers, not by ordinary external recruiters.
+reviewed assets and label their evidence. Verify signed-out access before
+sharing the repository link with external recruiters.
 
 ## Claims and next step
 
@@ -97,11 +98,10 @@ An unexecuted hosted matrix remains NOT_RUN; a historical badge is not evidence
 that the current software passed it. A future cloud run needs the owner's
 explicit instruction for that run.
 
-The current branch already uses the owner-selected MIT license; main retains
-its older license file until separately authorized integration. Do not change
-either license as part of presentation work. Before public sharing, assess the
-exact proposed source/history and assets, choose the intended revision, and
-obtain separate owner approval for visibility and any release or social post.
+The default branch uses the owner-selected MIT license. The owner authorized
+retaining the reviewed history and publishing this repository's source.
+Tags, GitHub Releases, package publication, and social posts remain separate
+decisions; presentation edits do not change the license.
 The [resume checkpoint](PROJECT_RESUME_CHECKPOINT_2026-09-09.md) preserves the
 completed scope and sample-driven TD-053 plan.
 

@@ -1,9 +1,8 @@
 # Reviewer guide — about two minutes
 
-**Review branch:** `codex/calibration-workflow`. As of 2026-09-09, this private
-development branch contains the current product; `main` retains the older
-product runtime. [PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10)
-is Draft and unmerged. This is an installable beta, not a published release.
+**Review branch:** `main`. The default branch contains the current product
+integrated through [PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10).
+This is an installable software beta, not a tagged GitHub Release.
 
 ## The problem and personal contribution
 

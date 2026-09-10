@@ -2,11 +2,12 @@
 
 **Last reviewed:** 2026-09-10. **Hardware claim:** `NO_NEW_HARDWARE_VALIDATION`.
 
-The repository is private. Implemented software is on
-`codex/calibration-workflow`, with [PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10)
-still Draft and unmerged. Default `main` has the updated presentation but retains
-the older runtime and license; the candidate carries the owner-selected MIT
-license. No tag, Release, or package publication is implied by this checklist.
+The owner authorized public source publication with the reviewed history
+retained, including eight groups of ordinary local-machine path disclosures.
+[PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10)
+is integrated into the default `main`, which carries the owner-selected MIT
+license. The repository is still private pending the visibility change and
+anonymous verification. No tag, Release, or package publication is implied.
 
 See the dated [closeout review](../reports/publication-readiness-2026-09-10.md)
 for inspected revisions, findings, and remaining decisions. Checked preparation
@@ -16,12 +17,12 @@ items do not authorize a merge, visibility change, history rewrite, or social po
 
 | Level | Meaning | Current status |
 |---|---|---|
-| A — Private engineering beta | Validated local software with private source review | Active |
-| B — Public portfolio source | Recruiter-readable source, demo, evidence, and limitations | Pending owner decisions |
+| A — Private engineering beta | Validated local software with private source review | Preparation complete |
+| B — Public portfolio source | Recruiter-readable source, demo, evidence, and limitations | Owner-approved; visibility and anonymous verification pending |
 | C — Versioned beta release | Approved tag, release notes, and distribution artifacts | Deferred |
 | D — Hardware-backed evidence | Physical setup, raw measurements, calibration, and limitations | No new validation |
 
-Level B is the next useful target. It does not require Level C or new product
+Level B is the authorized next step. It does not require Level C or new product
 features. Physical AFE performance cannot be inferred from any software gate.
 
 ## 1. Source and verification
@@ -34,8 +35,8 @@ features. Physical AFE performance cannot be inferred from any software gate.
 - [x] [TD-052](../reports/td-052-voltage-import-2026-09-09.md) records fresh-installed
       CLI and real desktop acceptance; these are dated results, not new runs
       for later documentation changes.
-- [ ] Select the exact source revision/default-branch integration for public
-      review and verify its clean-tree identity and change scope.
+- [x] Integrate PR #10 into default `main`; merge `36450c6` has the same tree
+      as reviewed source `549e91f`, and the new main checkout was clean.
 - [ ] Complete appropriate local checks for any changes since the recorded
       gate. Rerun the full product gate when runtime/test changes warrant it.
 - [ ] Verify the selected source from a fresh authorized checkout or artifact
@@ -74,8 +75,8 @@ conceal tool use or rewrite attribution history.
 - [x] Candidate-tree scanning and approved binary identities have been checked;
       the dated report identifies the inspected scope and limits.
 - [x] Reachable remote Git history and commit identities have been inspected.
-- [ ] Resolve each historical personal-information item through an explicit
-      owner decision; a clean latest file does not remove earlier revisions.
+- [x] The owner accepted the eight reviewed groups of ordinary local-machine
+      path disclosures and chose to retain history without rewriting it.
 - [x] Review repository issues, PR text/comments, Actions logs, and downloadable
       artifacts; 23 expired artifact bodies remain unavailable, as recorded in
       the dated report rather than labeled as passed.
@@ -106,27 +107,28 @@ Do not introduce a mandatory automatic CI requirement that conflicts with the
 owner's manual-only policy. Security features depend on the actual account and
 repository settings; enabling them is a separate, reviewable action.
 
-## 5. Remaining owner decisions
+## 5. Authorized publication and remaining decisions
 
-Before changing visibility, present the exact choices and affected material:
+The owner selected the following source-publication scope:
 
-1. Resolve the historical disclosure items recorded in the closeout review.
-2. Choose the public source/default branch and authorize any PR integration.
-   The recommended product entry is the completed candidate, after integration
-   review; this checklist does not mark PR #10 Ready or merge it.
-3. Approve the visibility change for this repository only.
-4. After signed-out verification, approve adding the GitHub link to LinkedIn.
+1. Accept the eight reviewed path-disclosure groups and retain history unchanged.
+2. Integrate PR #10 so the implemented software and MIT license are on `main`;
+   this integration is complete.
+3. Publish this repository's source after verification; the visibility change
+   and subsequent signed-out checks remain pending.
+4. Adding the GitHub link to LinkedIn remains a separate owner-approved action
+   after signed-out verification.
 
 Keep tags, Releases, package publication, historical rewrites, and hardware work
-deferred unless separately requested. Updating the current private branch and
-Draft PR does not imply approval of those actions.
+deferred unless separately requested. Approval of this source publication does
+not imply approval of those actions.
 
 ## LinkedIn handoff
 
 The copy-ready title, description, skills, and accurate AI-use interview note
 are in [PORTFOLIO_COPY.md](PORTFOLIO_COPY.md). Dates should reflect the owner's
-actual work period. A private link is not accessible to ordinary recruiters;
-add the Featured/repository link after public access has been verified.
+actual work period. Add the Featured/repository link only after public access
+has been verified and the owner authorizes the social update.
 
 ## Platform reference
 

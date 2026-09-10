@@ -1,9 +1,9 @@
 # Project Status
 
-**Last updated:** 2026-09-09<br>
+**Last updated:** 2026-09-10<br>
 **Current milestone:** TD-050/TD-051/TD-052 locally complete; feature expansion paused for job-search preparation<br>
-**Synchronization stage:** Private branch and Draft PR synchronized; local testing is the default and hosted CI is manual-only; no merge or hosted PASS claimed<br>
-**Release maturity:** `0.1.0b1` local candidate; untagged and unreleased<br>
+**Synchronization stage:** PR #10 integrated into main; source publication owner-approved, visibility and anonymous verification pending; local testing remains primary and hosted CI manual-only; no new hosted PASS claimed<br>
+**Release maturity:** `0.1.0b1` installable software beta; untagged and unreleased<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
 
@@ -24,10 +24,11 @@ future work. See [the freeze policy](FEATURE_FREEZE.md),
 [the voltage import guide](voltage-data-import.md), and
 [the original consolidation report](../reports/feature-freeze-and-consolidation-2026-09-08.md).
 
-The owner has now requested a documented pause and job-search preparation,
-followed by committing and pushing the existing private development branch and
-updating its existing Draft PR. This authorization does not include marking
-the PR Ready, merging, tagging, publishing a Release, or changing visibility.
+On 2026-09-10, the owner authorized retaining the reviewed history, accepting
+eight groups of ordinary local-machine path disclosures, and making PR #10
+Ready, merging it, and publishing the source after verification. PR #10 is now
+merged into `main`; visibility and anonymous checks remain pending. Tags,
+Releases, package publication, social posts, and hardware remain separate decisions.
 The [resume checkpoint](PROJECT_RESUME_CHECKPOINT_2026-09-09.md) records the
 preserved state and follow-up route. TD-053 remains deferred until real source
 samples justify a specific next input format or protocol.
@@ -49,8 +50,8 @@ existing. TD-051 subsequently introduced manifest v4 preparation-failure records
 strict v1/v2/v3 remain readable without rewriting. Dashboard history exposes retained inputs on single-row
 selection without opening files or changing the two-row comparison flow. TD-047A display work
 is not scheduled; the runtime migration remains deferred.
-Phase 6 remains 7/8; external actions beyond the private synchronization scope
-still need explicit owner authorization.
+Phase 6 remains 7/8; source integration/publication does not complete the
+separately gated tag, Release, package, or v1.0 decisions.
 
 ## Current product baseline
 
@@ -70,7 +71,7 @@ Simulator screenshots, repository governance, and a reusable interaction
 design guide. Its final PR head `c9710fe` passed all eight hosted CI jobs in
 Actions run `33933549983` attempt 1.
 
-The local `codex/calibration-workflow` increment now connects the previously
+The merged calibration-workflow increment connects the previously
 host-tested calibration and amplitude-response cores to the shared product
 compiler and worker. Calibration evaluates before/after errors and emits a
 strict versioned coefficient artifact. Frequency response acquires explicit
@@ -232,13 +233,13 @@ port and did not repeat or broaden the Step 7 HIL.
 
 ## Current verification snapshot
 
-The first row is the latest complete local acceptance. The remaining rows
-retain evidence from earlier checkpoints; their test counts, audits, and
-hosted runs are not fresh results for the current synchronization.
+The first row records the latest complete local suite gate, dated 2026-09-09.
+Later documentation, integration, and focused installation checks do not rerun
+that suite. Other rows retain their earlier test counts, audits, and hosted results.
 
 | Gate | Result |
 |---|---|
-| Private synchronization gate, 2026-09-09 | 3,048 tests passed, 17,567/17,567 statements covered, Ruff/mypy/dependency checks and 15/15 product-quality checks passed. One cross-platform regression was added; product runtime files are unchanged from TD-052. [Preparation report](../reports/private-github-sync-2026-09-09.md); current-head hosted CI remains separately visible on PR #10. |
+| Private synchronization gate, 2026-09-09 | 3,048 tests passed, 17,567/17,567 statements covered, Ruff/mypy/dependency checks and 15/15 product-quality checks passed. One cross-platform regression was added; product runtime files are unchanged from TD-052. [Preparation report](../reports/private-github-sync-2026-09-09.md). The hosted matrix was NOT_RUN; no new hosted PASS is claimed. |
 | TD-052 latest local acceptance, including completed TD-050/TD-051 | 3,047 tests passed with no failures or skips; 17,567/17,567 package statements covered; Ruff, 252-file mypy, dependency checks, 15/15 product-quality checks, 23 installed CLI commands, installed GUI acceptance, and 100 runtime-file identity checks passed. Evidence: HOST_TEST with SYNTHETIC fixtures and CSV_REPLAY workflows; no new hardware or hosted-matrix claim. See [TD-052 report](../reports/td-052-voltage-import-2026-09-09.md). |
 | TD-040C1B Dashboard input visibility | One selected v3 history row shows Replay preset/path/bytes/full SHA-256 and same-source reference/file counts; v1/v2, empty v3 and multiple-selection states explain the boundary without changing the eight-column history or comparison semantics; 25 project-page/real-Tk tests, five Windows scaling levels, 2,709 full tests and 16,356/16,356 statements passed; `HOST_TEST` with bounded `CSV_REPLAY` fixtures, no hardware validation |
 | TD-040C1A Replay input archival | Manifest v3 archives the exact bounded input before each executed Replay preset and runs from that staging copy; same-source presets share one file, not-started presets remain unopened, and history verifies path/size/SHA-256 while v1/v2 remain exact-readable; 2,708 passed, 16,325/16,325 statements, Ruff, 218-file mypy, pip consistency and diff check passed; independent CLI JSON/stderr/source-mutation chain passed; `HOST_TEST/CSV_REPLAY`, no hardware validation |
@@ -368,10 +369,10 @@ hosted runs are not fresh results for the current synchronization.
 
 ## Software Phase 6 checkpoints
 
-Software Phase 6 remains at 7 of 8 checkpoints: Step 8 is deliberately
-owner-gated because repository visibility, final licensing, tagging, and a
-public Release require separate approval. The local calibration/frequency/live
-increment does not change that publication decision.
+Software Phase 6 remains at 7 of 8 checkpoints: Step 8's source integration and
+public exposure are now authorized, with PR #10 integrated into `main` under
+the MIT license. Tags, public Releases, package publication, and the v1.0
+decision remain deferred; source publication alone does not complete Step 8.
 
 | Step | Deliverable | Status | Evidence |
 |---:|---|---|---|
@@ -382,7 +383,7 @@ increment does not change that publication decision.
 | 5 | Installation, tester, troubleshooting, and feedback documentation | Complete | HOST_TEST / SYNTHETIC / CSV_REPLAY / hosted-wheel external install |
 | 6 | Public-API-only external adapter proof | Complete | HOST_TEST / SYNTHETIC / external fresh-wheel isolated run |
 | 7 | Privacy, license, history, claims, and candidate audit | Complete | HOST_TEST / complete-history audit / local + hosted four-file identity / owner-review items retained |
-| 8 | Owner review, history/visibility/license/tag/Release, and v1.0 decision | Owner-gated | PR #7 merge complete; remaining publication decisions not authorized |
+| 8 | Owner review, history/visibility/license/tag/Release, and v1.0 decision | Partially authorized | PR #10 integrated into main; history retention and source publication authorized; visibility pending; tag/Release/package/v1.0 remain deferred |
 
 ## Public claim boundary
 
@@ -481,22 +482,22 @@ Not safe to claim now:
 
 ## Next checkpoint
 
-Software Phase 6 Steps 1–7 are complete, and the current product-feature branch
+Software Phase 6 Steps 1–7 are complete, and the default main
 baseline includes the owner-selected MIT license at `bf8c4c6`. Themes (TD-050),
 runtime and workflow improvements (TD-051), and voltage-file import (TD-052)
 are locally complete. Feature expansion is paused while the owner prepares
-job-search materials and synchronizes the private branch and existing Draft PR.
+job-search materials and maintains the integrated source and reviewed portfolio copy.
 See [the resume checkpoint](PROJECT_RESUME_CHECKPOINT_2026-09-09.md).
 
 When development resumes, use real source samples and observed workflow
 friction to select the next bounded TD-053 input extension. READ/LIVE output
 persistence, one-click rerun, UI runtime migration, and physical validation
 remain separate work; none is required to explain or demonstrate this software
-checkpoint. Private branch/Draft PR synchronization is now authorized, while
-Phase 6 Step 8 remains
-owner-gated: licensing does not authorize a tag, GitHub Release, package
-publication, public-history exposure, social preview, beta-feedback disposition,
-or LinkedIn handoff. Simulator remains the default. Real-port reliability and
+checkpoint. History retention and source publication are authorized, while
+the remaining Phase 6 Step 8 decisions stay gated: no tag, GitHub Release,
+package publication, social preview, beta-feedback disposition, or LinkedIn
+post is authorized by this source-publication decision. Simulator remains the default.
+Real-port reliability and
 future physical AFE work stay separately gated and are not inherited by the
 software release path.
 
@@ -506,4 +507,4 @@ software release path.
 - Keep implemented, planned, and hardware-verified features visibly separate.
 - Link every numerical claim to a report or reproducible test command.
 - Present this as an independent personal product project; do not merge it with the OSU Lab Bench Monitor Capstone or the separate MSP430 equipment-health project.
-- Prepare final LinkedIn wording only after the repository has a stable public demo and the owner has reviewed what will be public.
+- Publish a LinkedIn entry with the GitHub link only after public access is verified and the owner approves the social update; preparing a draft does not publish it.

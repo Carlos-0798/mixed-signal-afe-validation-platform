@@ -4,6 +4,9 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Software checkpoint reports (each report states its own evidence level):
 
+- [public-source-integration-2026-09-10.md](public-source-integration-2026-09-10.md) —
+  approved history disclosure, preserved merge, default source entry, and
+  evidence boundaries for public portfolio access.
 - [publication-readiness-2026-09-10.md](publication-readiness-2026-09-10.md) —
   current portfolio wording, historical disclosure classification, local-first
   verification, and separate owner decisions for integration and public access.
