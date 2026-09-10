@@ -1,358 +1,205 @@
 # Analog Validation Studio
 
-> Controller-neutral software for repeatable analog front-end validation, automated test execution, and evidence-aware reporting.
+**Turn voltage CSV files into repeatable tests, plots, and traceable reports.**
 
-[Cloud CI (manual only)](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/actions/workflows/ci.yml)
+A local Python desktop app and CLI for students and engineers who repeatedly
+check analog measurement data. Map columns and units once, review the test
+criteria, then reuse the same analysis and reporting workflow for later files.
 
-Local testing is the default. Pushes and PR updates on the maintained branches
-do not start cloud tests; run the preserved compatibility matrix only when
-explicitly needed. See [local testing and manual CI](docs/LOCAL_TESTING_AND_CI.md).
+**Independent personal engineering project · Python 3.10+ · Tkinter/ttk · offline operation**
 
-Development-branch progress and validation records: [Draft PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10).
+[Two-minute project review](docs/REVIEWER_GUIDE.md) ·
+[Try the software](#try-the-software) ·
+[Verification evidence](#verification) ·
+[Architecture](#architecture)
 
-**Private beta · Python 3.10+ · offline by default · hardware work deferred**
+Current software scope is implemented and locally verified through voltage CSV
+import. This private `0.1.0b1` candidate is on `codex/calibration-workflow` in
+[Draft PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10);
+the default `main` still contains an earlier runtime. No public release is claimed.
 
-Analog Validation Studio is the software product inside the broader
-**Configurable Analog Front-End & Validation Platform** project. It turns
-Simulator, CSV Replay, and explicitly selected receive-only serial data into
-reviewed acquisition jobs, engineering analyses, and traceable reports. The
-design keeps device profiles replaceable so the product is not tied to one
-microcontroller or laboratory.
+## The problem and the result
 
-The current local increment adds **Import data** in the Dashboard and
-`import-csv` in the CLI: map ordinary UTF-8 voltage tables into strict replay
-files, reuse a saved mapping, and keep the original bytes with the generated
-project and hashes. See the [voltage import guide](docs/voltage-data-import.md).
-This expands file compatibility; it does not establish new board or instrument
-compatibility.
+Repeated gain, offset, and linearity checks often require reformatting a CSV,
+copying spreadsheet formulas, recreating plots, and manually recording which
+criteria produced a result. AVS connects those steps in one reusable workflow:
 
-TD-050 themes, TD-051 workflow improvements, and TD-052 voltage import are
-locally verified. Feature expansion is paused for job-search preparation.
-The current step is synchronization to the private development branch and
-existing Draft PR; the increment remains unreleased. The
-[resume checkpoint](docs/PROJECT_RESUME_CHECKPOINT_2026-09-09.md) records the
-completed scope and the conditions for resuming work.
+**Import data → review criteria → run analysis → inspect results → export reports → reuse the project.**
 
-This is an independent personal engineering project. Compatibility profiles
-allow peer products to exchange evidence without merging their ownership,
-runtime, or product identity.
-
-The current engineering focus is repeated DC gain/offset/linearity validation
-of existing measurement files: reuse criteria, check data quality, and hand off
-reviewable results. Five controlled software cases and an independent reference
-exercise that chain; quantitative human time savings and reduced operator-error
-rates have not been measured. The human comparison in the
-[task-value evaluation](docs/TASK_VALUE_VALIDATION_PLAN.md) is deferred and does
-not block the current feature-frozen software product.
-
-> **Evidence boundary:** the screenshots and demo below use deterministic
-> `SYNTHETIC` data. No configurable AFE has been built or bench-validated, so
-> this repository makes zero AFE hardware-performance claims. A prior
-> `BENCH_CONTROLLER` record validates only a narrow, receive-only MSP430 UART
-> compatibility path; it does not validate the future AFE, sensors, wiring, or
-> instruments.
-
-## Product at a glance
-
-| Area | Current state |
+| Repeated manual work | Implemented automation |
 |---|---|
-| Product version | `mixed-signal-afe-validation-platform 0.1.0b1` |
-| Delivery stage | Feature-frozen `0.1.0b1` local candidate; Software Phase 6 release engineering — 7/8 checkpoints |
-| Interfaces | Installed CLI, local Tk Dashboard, JSON/CSV exports, text/Markdown/HTML/SVG reports |
-| Data sources | Deterministic Simulator, strict CSV Replay, receive-only serial profiles |
-| Workflows | Bounded read/live monitoring plus DC gain/offset/linearity, directional hysteresis, linear calibration, and amplitude-frequency response |
-| Test management | Versioned local projects/presets, bounded offline batches, immutable run manifests with retained Replay inputs, verified history, and run comparison |
-| Extension model | Public `DeviceAdapter` and serial-profile contracts; explicit reusable voltage CSV mappings |
-| Latest local acceptance | [Private synchronization gate](reports/private-github-sync-2026-09-09.md): 3,048 tests, 17,567/17,567 statements covered; adds one cross-platform regression to the [TD-052 installed CLI/GUI acceptance](reports/td-052-voltage-import-2026-09-09.md), unreleased |
-| Historical 2026-09-08 freeze gate | 2,709 tests and 16,356/16,356 statements; external snapshot build, fresh wheel install, byte-identical demos, installed Replay history, and 15/15 product-quality checks passed |
-| Historical merged Dashboard delivery | Dashboard UX PR #7 merged to `main`; its post-merge CI passed all eight jobs |
-| Hardware claim | `NO_NEW_HARDWARE_VALIDATION` — physical AFE not built or measured |
+| Rename columns and convert V/mV for every file | Explicit, reusable CSV mapping with converted-value preview |
+| Reapply calculations and acceptance limits | Shared analysis core with saved projects and test presets |
+| Copy results into charts and reports | JSON/CSV plus text, Markdown, HTML, and SVG from finalized results |
+| Track interrupted runs and locate source files | Cooperative cancellation, retained partial results, archived Replay inputs, and verified history |
 
-[Detailed status](docs/PROJECT_STATUS.md) ·
-[Feature-freeze acceptance](reports/feature-freeze-and-consolidation-2026-09-08.md) ·
-[Replay input visibility](reports/td-040c1b-dashboard-input-visibility-2026-09-08.md) ·
-[Batch review summary](reports/td-046b-batch-review-summary-2026-09-08.md) ·
-[Result decision hierarchy](reports/td-045a-result-decision-hierarchy-2026-09-08.md) ·
-[Source selection and Replay flow](reports/td-044b-source-selection-replay-flow-2026-09-08.md) ·
-[Contextual novice guidance](reports/td-044a-contextual-novice-guidance-2026-09-08.md) ·
-[Accessible runtime decision](reports/td-043b2a2-runtime-decision-2026-09-07.md) ·
-[Assistive-technology readiness](reports/td-043b2a-assistive-technology-readiness-2026-09-07.md) ·
-[Combined precommit review](reports/calibration-frequency-live-precommit-review-2026-09-06.md) ·
-[Historical 2026-09-04 milestone handoff](reports/PROJECT_MILESTONE_UPDATE_2026-09-04.md) ·
-[Serial device-contract verification](reports/serial-device-contract-readiness-2026-09-06.md) ·
-[Live-monitor verification](reports/live-monitor-product-workflow-2026-09-05.md) ·
-[Installation](docs/INSTALLATION.md) ·
-[Tester guide](docs/USER_TESTING_GUIDE.md) ·
-[Changelog](CHANGELOG.md)
+These operations are automated in the software. Human time savings and reduced
+operator-error rates have not yet been measured; see the
+[task-value evaluation](docs/TASK_VALUE_VALIDATION_PLAN.md).
+
+## What I built
+
+- **A controller-neutral core:** immutable measurements, public adapter/profile
+  contracts, explicit units, and DC/hysteresis/calibration/amplitude-response analysis.
+- **One execution path for GUI and CLI:** reviewed configuration, progress,
+  cooperative cancellation, cleanup, and consistent success/error outcomes.
+- **Reusable test workflows:** voltage-table import, saved presets, batch runs,
+  input retention, history comparison, and versioned manifests readable across
+  supported older schema versions.
+- **An installable desktop product:** guided Tkinter/ttk UI, Workbench/Daylight/
+  Midnight themes, automated reports, packaging, compatibility tests, and local
+  quality gates. The base installation has no third-party runtime dependency.
+
+This project demonstrates Python software engineering, test automation, data
+processing, and hardware/software interface design. The
+[reviewer guide](docs/REVIEWER_GUIDE.md) connects each contribution to code and evidence.
 
 ## Product preview
 
-Current Import data workflow, captured on 2026-09-09 from the real desktop
-application. A synthetic six-row voltage table is explicitly mapped from V to
-mV and checked before publication; the preview is labeled `CSV_REPLAY` and
-does not represent a hardware measurement. The three themes preserve the same
-mapping and conversion results.
-
 ![Workbench theme: checked voltage import with explicit units and CSV_REPLAY evidence](media/dashboard-import-workbench-20260909.jpg)
 
-[Daylight theme](media/dashboard-import-daylight-20260909.jpg) ·
-[Midnight theme](media/dashboard-import-midnight-20260909.jpg) ·
-[Capture details and hashes](media/README.md)
+Real Windows application, captured 2026-09-09. The six-row input is synthetic;
+the imported preview is labeled `CSV_REPLAY`. This shows data preparation,
+not a hardware measurement.
 
-The following result screenshots are retained from the 2026-09-03 baseline:
+[Daylight](media/dashboard-import-daylight-20260909.jpg) ·
+[Midnight](media/dashboard-import-midnight-20260909.jpg) ·
+[Screenshot provenance and hashes](media/README.md)
 
-![Analog Validation Studio showing a completed synthetic DC analysis](media/dashboard-dc-result.png)
+<details>
+<summary>Earlier result-view screenshots (2026-09-03, before the current themes)</summary>
 
-The local Dashboard makes the six-step Source → Test → Configure → Review →
-Run → Result workflow visible. It does not open a file, port, or output merely
-because a source is selected.
+![Completed synthetic DC analysis in the earlier Dashboard](media/dashboard-dc-result.png)
 
-![Analog Validation Studio showing the synthetic evidence boundary and no-hardware-validation claim](media/dashboard-dc-evidence.png)
+![Earlier result view showing synthetic provenance and hardware limitations](media/dashboard-dc-evidence.png)
 
-The result view separates product completion from engineering outcome and
-shows provenance, excluded points, limitations, and the explicit hardware
-claim. These historical images were captured on 2026-09-03 using the Simulator;
-they predate the current themes and Import data tab. See the
-[media evidence register](media/README.md).
+These preserved screenshots demonstrate result/report presentation at that
+checkpoint. The current software demo below generates a fresh report and chart.
 
-## Why this project exists
+</details>
 
-Analog validation often becomes a collection of one-off scripts, board-specific
-commands, manually edited spreadsheets, and ambiguous screenshots. This project
-builds a reusable product boundary around that work:
+## Try the software
 
-- **Repeatability:** immutable requests, deterministic Simulator data, strict
-  replay files, fixed CRC vectors, and versioned schemas.
-- **Safety:** review-before-run, capability and range preflight, bounded jobs,
-  cooperative cancellation, cleanup-before-conclusion, and receive-only serial
-  product paths.
-- **Evidence integrity:** `SYNTHETIC`, `CSV_REPLAY`, `HOST_TEST`,
-  `BENCH_CONTROLLER`, and future bench evidence remain distinguishable.
-- **Extensibility:** adapters and profiles isolate controllers, instruments,
-  transports, and future hardware from analysis and presentation code.
-- **Auditability:** reports preserve criteria, metrics, point disposition,
-  lineage, limitations, versions, and SHA-256 identities without recalculating
-  a finalized conclusion.
-
-## What is implemented
-
-| Product layer | Implemented capability |
-|---|---|
-| Domain and protocol | Immutable measurements/capabilities/test runs; bounded ASCII framing; CRC-16/CCITT-FALSE; AFE v1 and MSP430 Equipment Health v1 receive-only parsing |
-| Sources and adapters | Deterministic Simulator, immutable CSV Replay, bounded serial lifecycle, public adapter/profile contracts |
-| Test execution | Shared finite read and streaming-read workflows; safety-gated DC and hysteresis runners; bounded single-owner worker |
-| Analysis | Unit normalization, saturation/quality exclusion, OLS gain/offset/R²/RMSE, hysteresis thresholds/width, calibration, offline frequency response |
-| Product surfaces | Installed `analog-validation` CLI, guided Dashboard with Projects & history, reviewed background batches, bounded live curves, calibration-coefficient manager, deterministic demo, structured exports, human-readable reports |
-| Release engineering | Hosted matrix CI, compatibility manifests, reproducible wheel/sdist checks, isolated base/serial installs, privacy and evidence audits |
-
-Full feature-level evidence is maintained in
-[Project Status](docs/PROJECT_STATUS.md) and
-[Requirements Traceability](docs/REQUIREMENTS_TRACEABILITY.md). The
-[feature-freeze policy](docs/FEATURE_FREEZE.md) describes the current frozen
-scope, deferred work, and local acceptance boundary. The freeze changes no
-release, visibility, license, or hardware status.
-
-Not yet complete: real-device/long-duration live acquisition, phase-response
-analysis, instrument-controlled physical sweeps, a validated configurable AFE,
-reference-controller output hardware, and v1.0 publication. The implemented
-live view is a finite Simulator/CSV Replay workflow, not a hard-real-time or
-physical-device claim.
-
-## 60-second software demo
-
-Requirements: Python 3.10 or later. The primary verified development
-environment uses Python 3.12.
+Windows PowerShell; Python 3.10+ (primary local verification: Python 3.12).
+The repository currently requires authorized GitHub access. Clone the current
+product branch into a **new** directory; a default-branch clone installs the
+older baseline. Installation may download build tools; running the demo is offline.
 
 ~~~powershell
-git clone https://github.com/Carlos-0798/mixed-signal-afe-validation-platform.git
-cd mixed-signal-afe-validation-platform
+git clone --branch codex/calibration-workflow --single-branch https://github.com/Carlos-0798/mixed-signal-afe-validation-platform.git avs-review
+cd avs-review
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e .
-.\.venv\Scripts\analog-validation.exe demo --output .\work\portfolio-demo
+.\.venv\Scripts\analog-validation.exe demo --output .\portfolio-demo
 .\.venv\Scripts\analog-validation.exe dashboard
 ~~~
 
-The demo executes the reviewed 24-point synthetic DC product chain and creates
-12 deterministic machine, replay, report, chart, and manifest artifacts in a
-new directory. It requires no serial driver, physical device, network service,
-or laboratory instrument.
+**Expected result:** the demo runs a 24-point `SYNTHETIC` DC case and creates
+12 artifacts. Open `portfolio-demo/report/report.html` to inspect the metrics,
+criteria, chart, and conclusion; `result.json` and `manifest.json` retain the
+machine-readable result and file identities. A software PASS is not hardware
+validation. Repeating the command requires a new output name; existing evidence
+is never overwritten.
 
-For development:
+In the Dashboard, use **Import data** for a supported voltage CSV, check the
+converted preview, then continue through **Setup & run → Review → Run → Results**.
+See [voltage import](docs/voltage-data-import.md),
+[the deterministic demo](docs/software-demo.md), and
+[installation help](docs/INSTALLATION.md). No board or serial driver is needed.
 
-~~~powershell
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-.\.venv\Scripts\python.exe -m pytest
-.\.venv\Scripts\ruff.exe check .
-.\.venv\Scripts\mypy.exe src tools tests examples
-~~~
-
-Optional serial support is isolated behind `.[serial]` and remains receive-only
-at the product boundary. Read [pyserial and physical-port safety](docs/pyserial-backend.md)
-before selecting a real port.
-
-## Reusable offline test projects
-
-A project turns reviewed one-off commands into a reusable six-preset test suite
-and keeps each execution in a new, verifiable run directory:
+## Reuse a test project
 
 ~~~powershell
-.\.venv\Scripts\analog-validation.exe project create `
-  --output .\work\afe-project.json `
-  --project-id afe-demo `
-  --name "AFE Demo Project"
-.\.venv\Scripts\analog-validation.exe project run `
-  --input .\work\afe-project.json `
-  --output .\work\run-001 `
-  --run-id run-001
+.\.venv\Scripts\analog-validation.exe project create --output .\demo-project.json --project-id demo --name "Demo project"
+.\.venv\Scripts\analog-validation.exe project run --input .\demo-project.json --output .\run-001 --run-id run-001
 ~~~
 
-The run records an exact project snapshot, each executed preset's configuration
-SHA-256, finalized outcomes/metrics, evidence class, and result artifact hashes.
-History and comparison commands verify those files before presenting them and
-never recalculate PASS/FAIL. The Dashboard comparison guide also distinguishes
-matched, one-sided, and not-started results and warns when evidence labels differ;
-the sign of `candidate - baseline` does not classify improvement or regression.
-Saved projects deliberately exclude Serial
-settings; selecting a real port always requires a fresh explicit review. See
-the [test-project and history guide](docs/test-projects-and-history.md).
+The default project runs six Simulator presets. Each new run records the
+configuration, outcomes, evidence class, and artifact hashes. History verifies
+stored results before displaying them; it does not silently recalculate PASS/FAIL.
+Saved projects exclude serial settings. See [projects and history](docs/test-projects-and-history.md).
 
 ## Architecture
 
 ~~~mermaid
-flowchart LR
-    Sources["Simulator · CSV Replay · receive-only Serial · future instruments"]
-    Adapters["Public adapters and versioned profiles"]
-    Core["Measurements · capabilities · reviewed requests"]
-    Execution["Worker · workflows · safety-gated runners"]
-    Analysis["DC · hysteresis · calibration · frequency response"]
-    Evidence["JSON/CSV · text/MD/HTML/SVG · Dashboard"]
-
-    Sources --> Adapters --> Core --> Execution --> Analysis --> Evidence
-    AFE["Future configurable AFE"] -. electrical/protocol contract .-> Sources
-    MSP["Independent MSP430 product"] -. public compatibility profile .-> Adapters
+flowchart TD
+    Inputs["Simulator / voltage CSV / opt-in receive-only serial"]
+    Adapters["Import mapping / public adapters and profiles"]
+    Core["Typed measurements / reviewed criteria / analysis"]
+    Worker["Shared execution / progress / cancellation / cleanup"]
+    UI["Desktop Dashboard and CLI"]
+    Results["Finalized results / reports / verifiable history"]
+    Inputs --> Adapters --> Core
+    UI --> Worker
+    Worker --> Core
+    Core --> Results
+    Results --> UI
 ~~~
 
-The analysis layer never depends on a COM name, board register, SDK call, or
-pin map. The Dashboard presents finalized data and does not own CRC, fitting,
-saturation exclusion, threshold calculation, or PASS/FAIL logic.
+Device-specific parsing stays outside the analysis layer. GUI and CLI use the
+same core; report rendering does not refit data or invent a new conclusion.
+Atomic create-new publication and SHA-256 verification help detect damaged or
+mismatched artifacts; hashes are not digital signatures or proof of hardware origin.
 
-[Architecture](docs/PRODUCT_ARCHITECTURE.md) ·
-[Architecture decisions](docs/adr/README.md) ·
-[Public adapter example](docs/PUBLIC_ADAPTER_EXAMPLE.md) ·
-[Phase 5 public contract](docs/phase5-public-api.md)
+[Architecture details](docs/PRODUCT_ARCHITECTURE.md) ·
+[Decisions](docs/adr/README.md) ·
+[Public adapter example](docs/PUBLIC_ADAPTER_EXAMPLE.md)
 
-## Source and compatibility matrix
+## Verification
 
-| Source/profile | Product operation | Evidence | Current boundary |
-|---|---|---|---|
-| Simulator / `afe/1` | Read, bounded live monitor, synthetic DC, hysteresis, calibration, frequency response | `SYNTHETIC` | Default, deterministic, no hardware |
-| CSV Replay | Read, bounded live monitor, DC, hysteresis, calibration, frequency response | `CSV_REPLAY` | Strict local file; historical source is not promoted |
-| AFE v1 serial | Bounded receive-only read/live observation | Depends on declared capture | Default input projection plus optional exact-ID/full-ADC input-output mapping; memory-tested only; future physical AFE not validated |
-| MSP430 Equipment Health v1 | Bounded receive-only read/live observation | `HOST_TEST` or narrow `BENCH_CONTROLLER` capture | Independent peer product; no command encoder or write surface |
-| Third-party adapter | Shared public read workflow | Adapter-declared and checked | Demonstrated from an installed wheel using only public API |
-| Future instruments/controllers | Planned adapter/profile | Future explicit bench class | Requires safety review and separate evidence |
-
-The MSP430 Equipment Health Controller and this project are independent
-products. They are not intended to merge, and neither is part of the
-OSU Lab Bench Monitor Senior Capstone.
-
-## Verification and claim discipline
-
-| Gate | Verified result |
+| Evidence checkpoint | Recorded result |
 |---|---|
-| Latest local synchronization gate, 2026-09-09 | 3,048 tests, 17,567/17,567 package statements, Ruff, mypy, dependency checks and 15/15 product-quality checks passed; exact-head hosted results are recorded on PR #10, separately from this local gate |
-| TD-052 feature acceptance, 2026-09-09 | 3,047 tests and fresh installed CLI/GUI acceptance passed before the additional cross-platform regression; see the preserved TD-052 report |
-| Historical TD-046B gate, 2026-09-08 | 2,696 tests and 16,210/16,210 package statements; Ruff, mypy, dependency, public-API golden, diff, and real Windows Tk scaling checks passed at that checkpoint |
-| Historical merged `main` software baseline | 2,277 tests passed; 11,911/11,911 package statements covered; Ruff and mypy passed |
-| Historical hosted Dashboard gate | PR head `c9710fe` passed eight jobs in run `33933549983`; merged `main` commit `b4f0fef` passed eight post-merge jobs in run `33934417152` attempt 2 |
-| Historical reproducible candidate baseline | Local/hosted four-file `0.1.0b1` candidate matched byte-for-byte at audited commit `f6721b5` |
-| Historical Step 7 release audit | `PASS_WITH_REVIEW`; at that audited commit, zero current-tree privacy findings, eight legacy-history review items, and zero high-confidence credentials |
-| Dashboard validation | Simulator/CSV interaction, data entry, adaptive scrolling, fresh save paths, navigation, single-job and project-batch cooperative cancellation, cleanup-before-close, history refresh, first-paint, and keyboard/scaling checks |
-| Physical controller evidence | One prior five-frame receive-only MSP430 UART capture with zero application writes; exact firmware and peripherals unverified |
+| [Local product synchronization, 2026-09-09](reports/private-github-sync-2026-09-09.md) | **3,048 tests passed; 17,567/17,567 package statements covered (100%)**; Ruff, mypy, pip check, and 15 product-quality checks passed |
+| [Installed voltage-import acceptance, 2026-09-09](reports/td-052-voltage-import-2026-09-09.md) | 23 installed CLI commands across seven scenarios; real Tk import/review/report workflow; three synthetic table layouts produce identical Replay bytes |
+| Cloud tests | Manual-only; no current hosted matrix PASS is claimed. Local tests are the primary gate |
 | AFE hardware bench tests | Not run |
 
-These rows do not imply 100% branch coverage, production readiness, electrical
-safety certification, or validated AFE performance. Historical checkpoint
-reports retain the exact counts and evidence available when they were written.
+The full-suite counts belong to the linked product checkpoint, not to a new
+run for each documentation edit. Coverage measures statements, not all branches
+or real-world correctness. `HOST_TEST`, `SYNTHETIC`, `CSV_REPLAY`, `SPICE_IDEAL`,
+`BENCH_CONTROLLER`, and `BENCH` remain distinct. Current demonstrations add no
+hardware evidence: **`NO_NEW_HARDWARE_VALIDATION`**.
 
+[Local testing and manual CI](docs/LOCAL_TESTING_AND_CI.md) ·
 [Executed reports](reports/README.md) ·
-[Step 7 release audit](reports/software-phase6-step7.md) ·
-[Windows Dashboard QA](reports/dashboard-ux-windows-qa-2026-09-02.md) ·
 [Known limitations](docs/KNOWN_LIMITATIONS.md)
 
-## Roadmap
+## Scope and next step
 
-| Stage | Status | Exit condition |
-|---|---|---|
-| Software Phases 0–5 | Complete | Core, adapters, analyses, CLI/Dashboard/reports/demo, compatibility freeze |
-| Post-beta product workflows through TD-052 | Locally verified; feature expansion paused | Themes, reusable setups, reports, cancellation/recovery, and voltage import share the reviewed product path; private branch/Draft PR synchronization is the current step |
-| Further input compatibility (TD-053) | Deferred | Select the next format or protocol only when real, interpretable source samples establish a concrete need |
-| Software Phase 6 | 7/8 | Dashboard UX delivered; owner-controlled history, license, visibility, tag, and release decisions remain |
-| Hardware design preparation | Deferred | Confirmed requirements, tools, instruments, components, safety review |
-| Breadboard AFE | Not started | Power/protection/buffer/gain/filter/Schmitt tests with raw bench evidence |
-| Automated hardware validation | Not started | Replaceable reference controller/instrument adapters and repeatable datasets |
-| PCB/productization | Not started | Bench-stable design, schematic/PCB reviews, bring-up and reliability evidence |
+The current focus is repeated voltage-data validation. Import supports explicit
+UTF-8 delimited tables with voltage units and time mapping; it is not a universal
+board driver, arbitrary-unit importer, or Excel workbook engine. New devices
+need an interpretable format or a tested adapter/profile. Receive-only serial
+support is opt-in; default demos do not enumerate or open ports.
 
-No hardware purchasing or construction is required to evaluate the current
-software product.
+Feature expansion is paused after local delivery. The next candidate is one
+sample-driven input extension, selected from a real user dataset or protocol.
+Screen-reader limitations and real-device/long-duration acquisition remain
+documented gaps. Physical AFE validation and instrument-controlled sweeps are
+future, separate work. See [current status](docs/PROJECT_STATUS.md) and
+[the resume checkpoint](docs/PROJECT_RESUME_CHECKPOINT_2026-09-09.md).
 
-## Repository map
+AVS is independent of the MSP430 Equipment Health Controller and the
+OSU Lab Bench Monitor Senior Capstone. A prior narrow `BENCH_CONTROLLER` UART
+capture does not validate an AFE, sensors, wiring, or laboratory instruments.
 
-~~~text
-src/analog_validation/      controller-neutral domain, protocol, adapters, analysis
-src/analog_validation_app/  product services, CLI, Dashboard, reports, worker
-tests/                      unit, golden, integration, architecture, product gates
-test-data/golden/           frozen compatibility vectors and exact results
-examples/public_adapter/    external public-API-only extension example
-docs/                       product, protocol, safety, user, and architecture guides
-reports/                    executed checkpoints with evidence limitations
-simulation/                 LTspice tasks and ideal-model evidence
-hardware/                   deferred design and procurement planning
-media/                      classified software visuals; future bench media is separate
-~~~
+<details>
+<summary>Historical release-engineering evidence</summary>
 
-## Documentation
+The earlier Software Phase 6 baseline reached **7/8 checkpoints**. Its merged
+software gate recorded **2,277 tests passed** and
+**11,911/11,911 package statements covered**. The Step 7 release audit was
+`PASS_WITH_REVIEW`; those records do not clear the present Git history for
+publication. Historical reports remain unchanged:
+[Step 7 audit](reports/software-phase6-step7.md) and
+[2026-09-04 handoff](reports/PROJECT_MILESTONE_UPDATE_2026-09-04.md).
 
-- Start here: [Installation](docs/INSTALLATION.md),
-  [CLI](docs/product-cli.md), [Dashboard](docs/dashboard.md),
-  [test projects and history](docs/test-projects-and-history.md),
-  [interaction design guide](docs/SOFTWARE_INTERACTION_DESIGN_GUIDE.md),
-  [software demo](docs/software-demo.md), and
-  [beginner testing](docs/USER_TESTING_GUIDE.md).
-- Engineering: [Theory](docs/theory.md),
-  [protocol](docs/protocol.md), [CRC/framing](docs/framing-and-crc.md),
-  [DC analysis](docs/dc-sweep-analysis.md),
-  [hysteresis](docs/hysteresis-analysis-and-runner.md),
-  [bounded live monitoring](docs/live-monitoring.md), and
-  [result exports](docs/result-exports.md).
-- Product governance: [Project status](docs/PROJECT_STATUS.md),
-  [product plan](docs/PRODUCT_PLAN.md),
-  [requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md),
-  [security policy](SECURITY.md), [contributing](CONTRIBUTING.md), and
-  [publication checklist](docs/PUBLICATION_CHECKLIST.md).
-- Portfolio handoff: [GitHub and LinkedIn copy preview](docs/PORTFOLIO_COPY.md)
-  with an explicit claims gate and owner-approval sequence.
+</details>
 
-## Safety, privacy, and publication
+## License and development
 
-- The default product path is offline and Simulator-first.
-- Serial is opt-in, explicitly configured, and receive-only at the application
-  boundary; operating-system drivers may still affect control lines.
-- Existing result files are never overwritten by default.
-- Reports, screenshots, and release manifests must retain provenance and
-  limitation labels.
-- Publication requires a separate owner decision for repository visibility,
-  Git-history review, release/tag, social preview, and LinkedIn copy.
-  The owner-selected MIT license is implemented; future license changes remain
-  owner-controlled.
-
-See [Security](SECURITY.md), [publication checklist](docs/PUBLICATION_CHECKLIST.md),
-[assumptions](ASSUMPTIONS.md), [test/evidence policy](docs/test-plan.md), and
-[risk register](docs/risk-register.md).
-
-## License
-
-Licensed under the [MIT License](LICENSE), selected by the project owner.
-See [Third-Party Notices](THIRD_PARTY_NOTICES.md) for separately licensed
-dependencies. Repository visibility and publishing a Release remain separate
-owner-controlled actions.
+This branch uses the owner-selected [MIT License](LICENSE).
+[Third-party notices](THIRD_PARTY_NOTICES.md), [contributing](CONTRIBUTING.md),
+[security](SECURITY.md), and [publication checklist](docs/PUBLICATION_CHECKLIST.md)
+describe the development and distribution boundaries. Repository visibility,
+merging the Draft PR, and publishing a release remain separate owner decisions.

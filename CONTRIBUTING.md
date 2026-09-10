@@ -1,14 +1,17 @@
 # Contributing
 
 Analog Validation Studio is currently an owner-led private-beta project.
-Contributions are welcome for review, but acceptance, redistribution, and
-publication remain subject to the repository's current all-rights-reserved
-license status.
+Contributions are reviewed by the maintainer. This branch uses the
+[MIT License](LICENSE); dependency licenses are listed in
+[Third-Party Notices](THIRD_PARTY_NOTICES.md). Repository visibility and
+maintainer release decisions are separate from the rights granted by the license.
 
 ## Development setup
 
-Use Python 3.12 for the primary local baseline. The hosted matrix also exercises
-Python 3.10 and 3.14 on Windows and Ubuntu.
+Use Python 3.12 for the primary local baseline. The optional manual hosted
+matrix is configured for Python 3.10, 3.12, and 3.14 on Windows and Ubuntu;
+configuration alone is not evidence of a passed run. Follow
+[local testing and manual CI](docs/LOCAL_TESTING_AND_CI.md).
 
 ~~~powershell
 python -m venv .venv
@@ -75,7 +78,9 @@ tested and must not broaden a claim beyond the supplied evidence.
    results.
 4. Complete the pull-request template, including safety, privacy, evidence, and
    compatibility sections.
-5. Run the relevant focused tests, then the full quality gate.
+5. Run checks appropriate to the change. Runtime changes require the full
+   quality gate; documentation-only changes need the relevant static checks.
+   Cloud CI is manual-only and requires an explicit owner instruction for that run.
 6. Do not include generated `work/` content, real port names, raw private
    captures, credentials, personal paths, or unrelated project material.
 7. Do not mark a pull request Ready, merge, tag, publish, or change visibility

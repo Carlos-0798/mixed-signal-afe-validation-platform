@@ -1,115 +1,103 @@
 # Portfolio copy and publication preview
 
-Status: local draft for owner review; nothing in this file authorizes a remote
-change. Last reviewed: 2026-09-03.
+Reviewed 2026-09-09. Current implemented software is on
+`codex/calibration-workflow`; [Draft PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10)
+is not merged. The repository remains private. This file supplies copy for owner
+review; it does not authorize LinkedIn posting or public exposure.
 
-This page keeps GitHub and LinkedIn wording synchronized while preserving the
-project's evidence boundary. The project is an independent software product.
-The MSP430 profile is one peer integration; the separate MSP430 project and the
-OSU Lab Bench Monitor Capstone are not part of this repository.
+## Project title and role
 
-## GitHub repository preview
+**Analog Validation Studio — Python Test Automation & Data Analysis**
 
-### Description
+**Independent Project Developer**
 
-> Controller-neutral Python platform for analog-validation workflows:
-> deterministic simulation, CSV replay, receive-only serial profiles,
-> DC/hysteresis analysis, evidence-aware reports, and a local Dashboard.
+AVS is an independent personal software project. The MSP430 Equipment Health
+Controller is a separate peer product. The OSU Lab Bench Monitor Senior Capstone
+is a separate team project and contributes no team deliverables to this repository.
 
-### Recommended topics
+## Short description
+
+> Local Python desktop app and CLI that turn voltage CSV files into reusable
+> validation workflows, plots, reports, and verifiable test history. Includes
+> explicit unit mapping, saved test presets, batch progress/cancellation, and
+> traceable input/result artifacts.
+
+## Resume or interview summary
+
+- Designed a controller-neutral Python core and shared CLI/Tkinter execution
+  path for voltage-data import, DC gain/offset/linearity, hysteresis, calibration,
+  and amplitude-frequency analysis.
+- Automated reusable CSV mapping, reviewed batch execution, report generation,
+  and project history; preserved partial results after cancellation and retained
+  source inputs with versioned manifests and SHA-256 verification.
+- Verified the software with **3,048 passing local tests and 100% package
+  statement coverage (17,567 statements)**, plus fresh-installed CLI and real
+  desktop workflow acceptance at the linked checkpoints.
+
+The test count belongs to the [2026-09-09 product synchronization gate](../reports/private-github-sync-2026-09-09.md).
+The installed CLI/GUI evidence belongs to the earlier
+[TD-052 acceptance](../reports/td-052-voltage-import-2026-09-09.md), which had
+3,047 tests before one added portability regression. Neither is a new test run
+for a later documentation change. Do not claim 100% branch coverage.
+
+## Suggested repository metadata
+
+Description:
+
+> Python desktop app and CLI for repeatable voltage-data validation: CSV import,
+> automated analysis, plots, reports, and verifiable test history.
+
+Topics:
 
 ~~~text
-analog-validation
-test-automation
 python
-mixed-signal
-data-acquisition
-uart
-crc16
+test-automation
+data-analysis
+csv
 desktop-application
+tkinter
+analog-validation
 embedded-systems
 ~~~
 
-Do not use `hardware-validated`, `production-ready`, or similar topics until a
-separate bench-evidence gate supports them. Consider replacing the current
-`hardware-validation` topic with `analog-validation` before public exposure so
-the short metadata cannot be mistaken for a hardware-performance claim.
+Avoid a `hardware-validation` topic that could imply completed AFE bench work.
+Device integration is an extension boundary, not universal board compatibility.
 
-### Social-preview candidate brief
+## Reviewer route and visual assets
 
-- Title: **Analog Validation Studio**
-- Subtitle: **Offline · Simulator-first · Evidence-aware**
-- Visual: the real DC-sweep Dashboard screenshot in
-  [`media/dashboard-dc-evidence.png`](../media/dashboard-dc-evidence.png)
-- Required label: **SYNTHETIC EVIDENCE · NO NEW HARDWARE VALIDATION**
-- Target: 1280×640 PNG or JPG, with readable text at thumbnail size
+Start with the [two-minute reviewer guide](REVIEWER_GUIDE.md), then the
+[README demo](../README.md#try-the-software),
+[architecture](PRODUCT_ARCHITECTURE.md), and recorded verification above.
 
-Creating or uploading the final social-preview asset remains a separate,
-owner-approved action. A README screenshot is not automatically the repository
-social preview.
+Current screenshots show the real three-theme voltage importer:
+[Workbench](../media/dashboard-import-workbench-20260909.jpg),
+[Daylight](../media/dashboard-import-daylight-20260909.jpg), and
+[Midnight](../media/dashboard-import-midnight-20260909.jpg).
+The table is synthetic and its preview is `CSV_REPLAY`, not a hardware capture.
+The [media register](../media/README.md) retains capture dates and hashes.
 
-## LinkedIn project preview
+A social-preview upload or LinkedIn post is a separate action. Reuse only
+reviewed assets and label their evidence. Private repository links are usable
+only by authorized reviewers, not by ordinary external recruiters.
 
-### Title
+## Claims and next step
 
-**Analog Validation Studio — Analog Validation & Test Automation Platform**
+Describe implemented automation and the manual steps it replaces. Quantitative
+human time savings and operator-error reduction remain unmeasured. Do not claim
+physical AFE accuracy, production deployment, certification, universal devices,
+or OSU endorsement. `HOST_TEST`, `SYNTHETIC`, `CSV_REPLAY`, `SPICE_IDEAL`,
+`BENCH_CONTROLLER`, and `BENCH` remain separate evidence classes.
 
-### Role
+Testing is [local-first, with cloud CI only on explicit manual request](LOCAL_TESTING_AND_CI.md).
+Hosted CI is not required for routine synchronization or portfolio preparation.
+An unexecuted hosted matrix remains NOT_RUN; a historical badge is not evidence
+that the current software passed it. A future cloud run needs the owner's
+explicit instruction for that run.
 
-**Independent Product Designer and Developer**
-
-### Description
-
-> Designed and implemented a controller-neutral Python platform for repeatable
-> analog-validation workflows. Built deterministic simulation and CSV replay,
-> receive-only serial adapters, CRC-16/CCITT-FALSE parsing, DC-sweep and
-> hysteresis analysis, evidence-aware reports, a desktop Dashboard, CI,
-> packaging, and release-governance checks. The current beta is validated with
-> synthetic and host-test evidence; physical AFE hardware remains a separate
-> future phase. An MSP430 profile is supported as a peer integration, not a
-> dependency.
-
-### Suggested skills
-
-- Python
-- Test Automation
-- Software Architecture
-- Embedded Systems
-- Data Analysis
-- Continuous Integration and Continuous Delivery (CI/CD)
-
-### Featured link
-
-Use the final public repository URL only after the public-view checklist passes.
-Use the repository's social preview or DC-evidence screenshot as media only
-after confirming that the exact image is public and contains no local paths or
-private data.
-
-## Claims gate
-
-Safe after the exact public commit and its hosted CI pass:
-
-- controller-neutral, offline-first analog-validation software;
-- deterministic Simulator and CSV-replay workflows;
-- opt-in, receive-only serial integration boundary;
-- versioned UART CSV plus CRC-16/CCITT-FALSE support;
-- tested DC-sweep and hysteresis analysis;
-- packaged CLI, local Dashboard, reports, demo, and extension contracts;
-- the exact test and coverage counts shown by that public commit's CI.
-
-Not safe without additional evidence:
-
-- a physical AFE was built, calibrated, measured, or validated;
-- electrical protection, wiring, accuracy, reliability, or safety was proven;
-- the MSP430 board or school instruments were used for the displayed results;
-- OSU sponsored, endorsed, or owns this independent project;
-- production readiness, certification, or field deployment.
-
-## Approval sequence
-
-1. Review the exact commit diff and rerun the release candidate gate.
-2. Push only the approved commit and wait for hosted CI.
-3. Review the rendered GitHub page while signed out.
-4. Approve repository description, topics, visibility, and license separately.
-5. Approve the social-preview image separately.
-6. Copy the frozen LinkedIn wording only after the public URL is stable.
+The current branch already uses the owner-selected MIT license; main retains
+its older license file until separately authorized integration. Do not change
+either license as part of presentation work. Before public sharing, assess the
+exact proposed source/history and assets, choose the intended revision, and
+obtain separate owner approval for visibility and any release or social post.
+The [resume checkpoint](PROJECT_RESUME_CHECKPOINT_2026-09-09.md) preserves the
+completed scope and sample-driven TD-053 plan.
