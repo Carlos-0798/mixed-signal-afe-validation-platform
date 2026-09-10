@@ -2,7 +2,9 @@
 
 > Controller-neutral software for repeatable analog front-end validation, automated test execution, and evidence-aware reporting.
 
-[![CI](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/actions/workflows/ci.yml)
+[![main CI](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/actions/workflows/ci.yml)
+
+Development-branch progress and its own CI: [Draft PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10).
 
 **Private beta · Python 3.10+ · offline by default · hardware work deferred**
 
@@ -12,6 +14,20 @@ Simulator, CSV Replay, and explicitly selected receive-only serial data into
 reviewed acquisition jobs, engineering analyses, and traceable reports. The
 design keeps device profiles replaceable so the product is not tied to one
 microcontroller or laboratory.
+
+The current local increment adds **Import data** in the Dashboard and
+`import-csv` in the CLI: map ordinary UTF-8 voltage tables into strict replay
+files, reuse a saved mapping, and keep the original bytes with the generated
+project and hashes. See the [voltage import guide](docs/voltage-data-import.md).
+This expands file compatibility; it does not establish new board or instrument
+compatibility.
+
+TD-050 themes, TD-051 workflow improvements, and TD-052 voltage import are
+locally verified. Feature expansion is paused for job-search preparation.
+The current step is synchronization to the private development branch and
+existing Draft PR; the increment remains unreleased. The
+[resume checkpoint](docs/PROJECT_RESUME_CHECKPOINT_2026-09-09.md) records the
+completed scope and the conditions for resuming work.
 
 This is an independent personal engineering project. Compatibility profiles
 allow peer products to exchange evidence without merging their ownership,
@@ -42,9 +58,10 @@ not block the current feature-frozen software product.
 | Data sources | Deterministic Simulator, strict CSV Replay, receive-only serial profiles |
 | Workflows | Bounded read/live monitoring plus DC gain/offset/linearity, directional hysteresis, linear calibration, and amplitude-frequency response |
 | Test management | Versioned local projects/presets, bounded offline batches, immutable run manifests with retained Replay inputs, verified history, and run comparison |
-| Extension model | Public `DeviceAdapter` and serial-profile contracts |
-| Latest local freeze gate | 2,709 tests and 16,356/16,356 statements; external snapshot build, fresh wheel install, byte-identical demos, installed Replay history, and 15/15 product-quality checks passed |
-| Latest merged delivery | Dashboard UX PR #7 merged to `main`; post-merge CI passed all eight jobs |
+| Extension model | Public `DeviceAdapter` and serial-profile contracts; explicit reusable voltage CSV mappings |
+| Latest local acceptance | [Private synchronization gate](reports/private-github-sync-2026-09-09.md): 3,048 tests, 17,567/17,567 statements covered; adds one cross-platform regression to the [TD-052 installed CLI/GUI acceptance](reports/td-052-voltage-import-2026-09-09.md), unreleased |
+| Historical 2026-09-08 freeze gate | 2,709 tests and 16,356/16,356 statements; external snapshot build, fresh wheel install, byte-identical demos, installed Replay history, and 15/15 product-quality checks passed |
+| Historical merged Dashboard delivery | Dashboard UX PR #7 merged to `main`; its post-merge CI passed all eight jobs |
 | Hardware claim | `NO_NEW_HARDWARE_VALIDATION` — physical AFE not built or measured |
 
 [Detailed status](docs/PROJECT_STATUS.md) ·
@@ -57,7 +74,7 @@ not block the current feature-frozen software product.
 [Accessible runtime decision](reports/td-043b2a2-runtime-decision-2026-09-07.md) ·
 [Assistive-technology readiness](reports/td-043b2a-assistive-technology-readiness-2026-09-07.md) ·
 [Combined precommit review](reports/calibration-frequency-live-precommit-review-2026-09-06.md) ·
-[Current milestone handoff](reports/PROJECT_MILESTONE_UPDATE_2026-09-04.md) ·
+[Historical 2026-09-04 milestone handoff](reports/PROJECT_MILESTONE_UPDATE_2026-09-04.md) ·
 [Serial device-contract verification](reports/serial-device-contract-readiness-2026-09-06.md) ·
 [Live-monitor verification](reports/live-monitor-product-workflow-2026-09-05.md) ·
 [Installation](docs/INSTALLATION.md) ·
@@ -65,6 +82,20 @@ not block the current feature-frozen software product.
 [Changelog](CHANGELOG.md)
 
 ## Product preview
+
+Current Import data workflow, captured on 2026-09-09 from the real desktop
+application. A synthetic six-row voltage table is explicitly mapped from V to
+mV and checked before publication; the preview is labeled `CSV_REPLAY` and
+does not represent a hardware measurement. The three themes preserve the same
+mapping and conversion results.
+
+![Workbench theme: checked voltage import with explicit units and CSV_REPLAY evidence](media/dashboard-import-workbench-20260909.jpg)
+
+[Daylight theme](media/dashboard-import-daylight-20260909.jpg) ·
+[Midnight theme](media/dashboard-import-midnight-20260909.jpg) ·
+[Capture details and hashes](media/README.md)
+
+The following result screenshots are retained from the 2026-09-03 baseline:
 
 ![Analog Validation Studio showing a completed synthetic DC analysis](media/dashboard-dc-result.png)
 
@@ -76,8 +107,9 @@ because a source is selected.
 
 The result view separates product completion from engineering outcome and
 shows provenance, excluded points, limitations, and the explicit hardware
-claim. Both images were captured from the current Windows application using
-the Simulator; see the [media evidence register](media/README.md).
+claim. These historical images were captured on 2026-09-03 using the Simulator;
+they predate the current themes and Import data tab. See the
+[media evidence register](media/README.md).
 
 ## Why this project exists
 
@@ -224,11 +256,13 @@ OSU Lab Bench Monitor Senior Capstone.
 
 | Gate | Verified result |
 |---|---|
-| Local calibration + frequency-response + bounded live/device-contract + project/history Dashboard increment | TD-046B passes 2,696 tests and 100% statement coverage across 16,210 package statements; full Ruff, mypy, dependency, public-API golden, diff, and real Windows Tk 1040×760 standard/high-contrast five-scaling checks pass; formal commit-bound candidate/audit and hosted CI have not run for this uncommitted extension |
-| Merged `main` software baseline | 2,277 tests passed; 11,911/11,911 package statements covered; Ruff and mypy passed |
-| Hosted Dashboard gate | PR head `c9710fe` passed eight jobs in run `33933549983`; merged `main` commit `b4f0fef` passed eight post-merge jobs in run `33934417152` attempt 2 |
-| Reproducible candidate baseline | Local/hosted four-file `0.1.0b1` candidate matched byte-for-byte at audited commit `f6721b5` |
-| Release audit | `PASS_WITH_REVIEW`; zero current-tree privacy findings, eight legacy-history review items, zero high-confidence credentials |
+| Latest local synchronization gate, 2026-09-09 | 3,048 tests, 17,567/17,567 package statements, Ruff, mypy, dependency checks and 15/15 product-quality checks passed; exact-head hosted results are recorded on PR #10, separately from this local gate |
+| TD-052 feature acceptance, 2026-09-09 | 3,047 tests and fresh installed CLI/GUI acceptance passed before the additional cross-platform regression; see the preserved TD-052 report |
+| Historical TD-046B gate, 2026-09-08 | 2,696 tests and 16,210/16,210 package statements; Ruff, mypy, dependency, public-API golden, diff, and real Windows Tk scaling checks passed at that checkpoint |
+| Historical merged `main` software baseline | 2,277 tests passed; 11,911/11,911 package statements covered; Ruff and mypy passed |
+| Historical hosted Dashboard gate | PR head `c9710fe` passed eight jobs in run `33933549983`; merged `main` commit `b4f0fef` passed eight post-merge jobs in run `33934417152` attempt 2 |
+| Historical reproducible candidate baseline | Local/hosted four-file `0.1.0b1` candidate matched byte-for-byte at audited commit `f6721b5` |
+| Historical Step 7 release audit | `PASS_WITH_REVIEW`; at that audited commit, zero current-tree privacy findings, eight legacy-history review items, and zero high-confidence credentials |
 | Dashboard validation | Simulator/CSV interaction, data entry, adaptive scrolling, fresh save paths, navigation, single-job and project-batch cooperative cancellation, cleanup-before-close, history refresh, first-paint, and keyboard/scaling checks |
 | Physical controller evidence | One prior five-frame receive-only MSP430 UART capture with zero application writes; exact firmware and peripherals unverified |
 | AFE hardware bench tests | Not run |
@@ -247,7 +281,8 @@ reports retain the exact counts and evidence available when they were written.
 | Stage | Status | Exit condition |
 |---|---|---|
 | Software Phases 0–5 | Complete | Core, adapters, analyses, CLI/Dashboard/reports/demo, compatibility freeze |
-| Post-beta product workflows | In local validation | Calibration, amplitude response, bounded live monitoring, and local project/history automation share the reviewed product path |
+| Post-beta product workflows through TD-052 | Locally verified; feature expansion paused | Themes, reusable setups, reports, cancellation/recovery, and voltage import share the reviewed product path; private branch/Draft PR synchronization is the current step |
+| Further input compatibility (TD-053) | Deferred | Select the next format or protocol only when real, interpretable source samples establish a concrete need |
 | Software Phase 6 | 7/8 | Dashboard UX delivered; owner-controlled history, license, visibility, tag, and release decisions remain |
 | Hardware design preparation | Deferred | Confirmed requirements, tools, instruments, components, safety review |
 | Breadboard AFE | Not started | Power/protection/buffer/gain/filter/Schmitt tests with raw bench evidence |

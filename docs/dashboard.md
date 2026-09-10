@@ -39,6 +39,16 @@ long pages remain scrollable so run status, observations, limitations, and
 artifact information are reachable. Each new step returns its active page to
 the top instead of preserving a stale scroll position from the previous step.
 
+**Import data** provides a separate entry for ordinary voltage CSV/TSV files.
+Choose a file, explicitly map time/input/optional output and units, check the
+mapping, and publish a new package. **Load imported setup** then opens the
+existing Setup workflow with CSV Replay and requires a fresh Review. It never
+starts a run. Mapping changes invalidate the checked preview; close warns about
+a reviewed but unpublished import. Saving a mapping alone does not save its data.
+The source snapshot, mapping, converted replay, project, and hashes are preserved
+together. See [Voltage data import](voltage-data-import.md) for examples, limits,
+and the distinction between a reusable mapping and analysis acceptance criteria.
+
 Projects & history starts with a state-derived next action. It previews the
 current Setup source and test before preset capture, states that capture stores
 configuration without running, and preserves the exact `SYNTHETIC` or
@@ -62,17 +72,48 @@ exact `SYNTHETIC` or `CSV_REPLAY` evidence label. Run consumes and clears this
 review; the live progress and terminal history then become the authoritative
 status. The preview does not read a Replay file or contact hardware.
 
+## Reuse a setup and save a complete report
+
+Select exactly one project preset and choose **Load selected into Setup**. The
+Dashboard copies it into Configure, including all six supported test types and
+the resolved Replay path. Loading does not read the CSV, start a job or modify
+the saved preset. Existing setup edits and unsaved results are protected by a
+confirmation. Run requires a fresh Review. To retain a variation, use the
+existing **Add current Setup as preset** action with a new preset ID, then save
+the project as a new file.
+
+After a finalized DC, hysteresis, calibration or frequency-response analysis,
+**Save report package…** creates a new folder containing HTML, SVG, Markdown,
+text, the complete `result.json`, and a hash manifest. **Open saved report**
+opens the local HTML in the user's browser after checking its publication hash.
+Publishing an existing folder is refused without changing the result. The
+report package saves the machine result too; calibration coefficients still
+have their own separate save action. READ/LIVE observations do not claim to have
+an analysis report or a persistent raw-data archive.
+
 ## Visual and interaction system
 
-The Dashboard uses one restrained **Precision Lab Console** theme rather than
-page-specific decoration:
+The **Appearance (this window)** selector in the header provides three palettes:
 
-- deep graphite separates the application background from raised cards and
-  editable fields;
-- cyan identifies the current workflow step, primary actions, focus, and real
-  progress;
-- green identifies declared evidence or a safe boundary, amber is reserved for
-  warnings, and rose identifies cancellation or failure actions;
+| Choice | Appearance | Intended use |
+| --- | --- | --- |
+| Workbench (default) | Neutral slate surfaces, soft blue accents | General laboratory and engineering work |
+| Daylight | White cards, light gray background, dark blue text and actions | Bright rooms and users who prefer dark text |
+| Midnight | Charcoal surfaces, subdued accents, readable pale text | Dim rooms and users who prefer lower background brightness |
+
+The choice applies immediately to Setup, Results, Projects, tables, input fields,
+dropdown lists, scroll backgrounds, and live-chart labels/traces. It lasts for the
+current window; a new window starts with Workbench. Theme selection does not write
+preferences into project files or manifests, change reviewed requests, discard
+unsaved fields, clear results, change the selected tab, or restart acquisition.
+
+All three themes share the same presentation rules:
+
+- neutral surfaces separate the application background, cards and editable fields;
+- a restrained blue accent identifies the current step, primary action, focus,
+  and real progress;
+- green identifies declared evidence or a safe boundary, amber marks warning
+  information, and muted red identifies cancellation or failure actions;
 - header labels state `LOCAL / OFFLINE`, `READ-ONLY DEFAULT`, and
   `EVIDENCE LABELED` in text, so meaning never depends on color alone;
 - tables use a taller 30-pixel row, stronger headings, and a visible selected
@@ -80,6 +121,12 @@ page-specific decoration:
 - primary, secondary, disabled, and dangerous buttons have distinct native ttk
   active/pressed/focus states. All controls remain real widgets with their
   existing commands and keyboard focus behavior.
+
+Body, supporting text and table text use at least 10-point Segoe UI. Palette
+regression tests enforce a 4.5:1 contrast floor for their text/surface pairs,
+including disabled text, selected rows, action states and chart legends. This
+checks declared colors, not full accessibility certification or readability on
+every display. Disabled states take priority over hover and readonly states.
 
 The supported minimum window is 1040×760. Dense configuration groups reflow to
 three columns and use vertical scrolling, while result tables and save controls
@@ -92,7 +139,8 @@ At startup, the Dashboard reads the Windows high-contrast flag without changing
 the operating-system setting. An enabled flag switches ttk surfaces, text,
 focus, selection, disabled states, error borders, scroll canvases, and live
 charts to Windows system colors. Text labels continue to carry source, state,
-error, and evidence meaning. If the user changes the Windows contrast theme
+error, and evidence meaning. The appearance selector displays **System contrast**
+and is disabled while this mode is active. If the user changes the Windows contrast theme
 while the Dashboard is already open, the application must be restarted to
 reload it.
 

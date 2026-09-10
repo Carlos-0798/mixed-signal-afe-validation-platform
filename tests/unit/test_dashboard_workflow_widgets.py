@@ -134,6 +134,31 @@ class FakeTtk:
     Checkbutton = FakeWidget
 
 
+@pytest.mark.parametrize("high_contrast", [False, True])
+def test_theme_choice_only_repaints_and_respects_system_contrast(
+    monkeypatch: pytest.MonkeyPatch, high_contrast: bool
+) -> None:
+    from analog_validation_app.dashboard import widgets as module
+    from analog_validation_app.dashboard.themes import PALETTES
+
+    monkeypatch.setattr(module, "_windows_high_contrast_enabled", lambda: high_contrast)
+    root: Any = FakeRoot()
+    calls: list[object] = []
+    widgets = create_dashboard_workflow_widgets(
+        root, FakeTk(), FakeTtk(), **callbacks(calls)
+    )
+    widgets.form.replay_path.set("unsaved-input.csv")
+    for choice in PALETTES:
+        root._avs_theme_value.set(choice)
+        root._avs_theme_select.bindings["<<ComboboxSelected>>"](None)
+        if high_contrast:
+            assert root._avs_theme_value.get() == "System contrast"
+        else:
+            assert root._avs_palette is PALETTES[choice]
+        assert widgets.form.replay_path.get() == "unsaved-input.csv"
+    assert not calls
+
+
 def callbacks(log: list[object]) -> dict[str, Any]:
     def choose_export_path(format_name: str) -> str:
         log.append(("choose-export", format_name))

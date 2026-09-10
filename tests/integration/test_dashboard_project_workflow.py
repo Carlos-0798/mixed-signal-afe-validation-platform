@@ -58,8 +58,8 @@ def _exercise_project_workflow(tmp_path: Path, scaling: float) -> None:
                 assert monotonic() < deadline, "Dashboard did not forward cancellation"
         return publish(*args, **kwargs)
 
-    def construct(*args: Any) -> Any:
-        page = factory(*args)
+    def construct(*args: Any, **kwargs: Any) -> Any:
+        page = factory(*args, **kwargs)
         root = args[0]
         root.tk.call("tk", "scaling", scaling)
         root.geometry("1040x760")

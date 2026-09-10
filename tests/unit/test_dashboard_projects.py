@@ -33,6 +33,7 @@ from analog_validation_app.dashboard.project_workspace import (
 from analog_validation_app.dashboard.wizard import DashboardWizardDraft
 from analog_validation_app.projects import (
     VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION,
+    VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
     ValidationBatchCancellationToken,
     ValidationBatchPhase,
     ValidationBatchProgress,
@@ -96,9 +97,7 @@ def test_project_first_use_guidance_follows_existing_workspace_permissions(
     model = ProjectWorkspace(lambda: False)
     simulator = DashboardWizardDraft()
 
-    assert "Create starter" in _project_next_action_text(
-        model, (), "", "run-001"
-    )
+    assert "Create starter" in _project_next_action_text(model, (), "", "run-001")
     assert "SYNTHETIC" in _setup_capture_text(simulator)
     assert "does not run a test" in _setup_capture_text(simulator)
     assert "No run history" in _history_empty_text(0)
@@ -116,13 +115,9 @@ def test_project_first_use_guidance_follows_existing_workspace_permissions(
     assert "Choose a new output directory" in _project_next_action_text(
         model, selected, "", "run-001"
     )
-    assert not model.reviewed_batch_matches(
-        selected, str(tmp_path / "run"), "run-001"
-    )
+    assert not model.reviewed_batch_matches(selected, str(tmp_path / "run"), "run-001")
     model.review(selected, str(tmp_path / "run"), "run-001")
-    assert model.reviewed_batch_matches(
-        selected, str(tmp_path / "run"), "run-001"
-    )
+    assert model.reviewed_batch_matches(selected, str(tmp_path / "run"), "run-001")
     assert not model.reviewed_batch_matches(selected, "\0", "run-001")
     assert "Ready to run" in _project_next_action_text(
         model, selected, str(tmp_path / "run"), "run-001"
@@ -191,6 +186,15 @@ def test_history_input_archive_guidance_distinguishes_schema_and_content(
     assert "1 stored file" in guidance
     assert "CSV_REPLAY" in guidance
     assert "not BENCH validation" in guidance
+    v3 = replace(replay, schema_version=VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION)
+    assert "1 preset reference" in _history_input_archive_text(v3, 1)
+    assert "predates" not in _history_input_archive_text(v3, 1)
+    v3_simulator = replace(
+        simulator, schema_version=VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION
+    )
+    assert "no executed CSV Replay input" in _history_input_archive_text(
+        v3_simulator, 1
+    )
 
 
 def test_review_summary_freezes_order_sources_evidence_and_destination(
@@ -236,6 +240,86 @@ def test_review_summary_freezes_order_sources_evidence_and_destination(
     replay_summary = model.reviewed_batch_summary
     assert replay_summary is not None
     assert replay_summary.items[0].evidence_label == "CSV_REPLAY"
+
+
+@pytest.mark.parametrize("replay_first", (False, True))
+def test_batch_preparation_failure_is_visible_without_fabricating_results(
+    tmp_path: Path, replay_first: bool
+) -> None:
+    model = workspace(tmp_path)
+    draft = replace(DashboardWizardDraft(), sample_count="1")
+    if replay_first:
+        path = tmp_path / "valid.csv"
+        shutil.copyfile(
+            Path(__file__).resolve().parents[2]
+            / "test-data/golden/csv_replay_v1_valid.csv",
+            path,
+        )
+        draft = replace(
+            draft, source_mode=ProductSourceMode.CSV_REPLAY, replay_path=str(path)
+        )
+    model.add_preset("first", "First read", draft.to_product_configuration())
+    missing = replace(
+        draft,
+        source_mode=ProductSourceMode.CSV_REPLAY,
+        replay_path=str(tmp_path / "missing.csv"),
+    )
+    model.add_preset("missing", "Missing replay", missing.to_product_configuration())
+    model.save_copy(str(tmp_path / "with-missing.json"))
+    run(
+        model,
+        tmp_path / "partial-evidence",
+        "partial-evidence",
+        ("first", "missing", "frequency-default"),
+    )
+    manifest = next(iter(model.history.values()))
+    assert manifest.schema_version == "validation-run-manifest.v4"
+    assert manifest.batch_status is ValidationBatchStatus.ERROR
+    assert tuple(record.preset_id for record in manifest.records) == ("first",)
+    assert manifest.not_started_preset_ids == ("missing", "frequency-default")
+    assert manifest.preparation_failure is not None
+    assert manifest.preparation_failure.preset_id == "missing"
+    assert "Preparation failed for preset missing" in model.status
+    assert manifest.preparation_failure.message in model.status
+    assert "No worker or result was created" in model.status
+    assert "earlier results are retained" in model.status
+    assert "operational failures: 1" in model.status
+
+    ttk = SimpleNamespace(
+        **{
+            name: Widget
+            for name in (
+                "Frame",
+                "LabelFrame",
+                "Label",
+                "Entry",
+                "Button",
+                "Treeview",
+                "Scrollbar",
+                "Progressbar",
+            )
+        }
+    )
+    page = ProjectPage(
+        Widget(),
+        SimpleNamespace(StringVar=FakeVariable),
+        ttk,
+        Widget(),
+        model,
+        lambda _: "",
+        DashboardWizardDraft,
+    )
+    page.history.selection_set(page.history.get_children())
+    page.render()
+    explanation = page.input_archive_guide.get()
+    assert "Preparation failed for preset missing" in explanation
+    assert manifest.preparation_failure.message in explanation
+    assert "No worker or result was created" in explanation
+    assert len(page.input_artifacts.rows) == int(replay_first)
+    assert "predates" not in explanation
+    page.history.selection_set(())
+    page.render()
+    assert "Preparation failed" not in page.input_archive_guide.get()
 
 
 def test_comparison_guidance_explains_evidence_coverage_and_delta_direction(
@@ -291,9 +375,7 @@ def test_comparison_guidance_explains_evidence_coverage_and_delta_direction(
         ),
     )
     comparison = compare_validation_runs(baseline, incomplete_candidate)
-    guidance = _build_comparison_guidance(
-        baseline, incomplete_candidate, comparison
-    )
+    guidance = _build_comparison_guidance(baseline, incomplete_candidate, comparison)
     text = _comparison_guidance_text(guidance)
 
     assert guidance.project_id == "test-project"
@@ -327,9 +409,7 @@ def test_comparison_guidance_explains_evidence_coverage_and_delta_direction(
         run_id="candidate-no-evidence",
         records=(unavailable_record, baseline.records[1]),
     )
-    unavailable_comparison = compare_validation_runs(
-        baseline, unavailable_candidate
-    )
+    unavailable_comparison = compare_validation_runs(baseline, unavailable_candidate)
     unavailable = _build_comparison_guidance(
         baseline, unavailable_candidate, unavailable_comparison
     )
@@ -653,6 +733,7 @@ class Widget(FakeWidget):
     xview = yview
     set = yview
 
+
 def test_table_keyboard_ranges_shrink_reset_and_clamp() -> None:
     tree = Widget()
     _bind_table_selection(tree)
@@ -952,12 +1033,14 @@ def test_project_page_is_connected_to_launch_and_close_waits(
         return SimpleNamespace(
             notebook=object(),
             form=SimpleNamespace(snapshot=DashboardWizardDraft),
+            section_frames={"export": FakeWidget()},
             render=lambda *args: None,
         )
 
     cleanup_entered, cleanup_release = Event(), Event()
 
-    def page(*args: Any) -> Any:
+    def page(*args: Any, **kwargs: Any) -> Any:
+        assert callable(kwargs["on_load_setup"])
         model: ProjectWorkspace = args[4]
         created.append(model)
         assert args[5]("project-open") == "chosen"
@@ -993,6 +1076,10 @@ def test_project_page_is_connected_to_launch_and_close_waits(
 
     monkeypatch.setattr(app_module, "create_dashboard_workflow_widgets", widgets)
     monkeypatch.setattr(app_module, "ProjectPage", page)
+    monkeypatch.setattr(
+        app_module, "ImportPage",
+        lambda *args, **kwargs: SimpleNamespace(render=lambda: None, has_unsaved_work=False),
+    )
     monkeypatch.setattr(app_module, "_choose_project_path", lambda *args: "chosen")
     monkeypatch.setattr(root, "mainloop", mainloop)
     assert app_module.launch_dashboard(tk_loader=lambda: (tk, ttk)).closed_safely
@@ -1008,10 +1095,12 @@ def test_unsaved_project_can_cancel_close(monkeypatch: pytest.MonkeyPatch) -> No
         return SimpleNamespace(
             notebook=object(),
             form=SimpleNamespace(snapshot=DashboardWizardDraft),
+            section_frames={"export": FakeWidget()},
             render=lambda *args: None,
         )
 
-    def page(*args: Any) -> Any:
+    def page(*args: Any, **kwargs: Any) -> Any:
+        assert callable(kwargs["on_load_setup"])
         args[4].dirty = True
         return SimpleNamespace(render=lambda: None)
 
@@ -1023,6 +1112,10 @@ def test_unsaved_project_can_cancel_close(monkeypatch: pytest.MonkeyPatch) -> No
 
     monkeypatch.setattr(app_module, "create_dashboard_workflow_widgets", widgets)
     monkeypatch.setattr(app_module, "ProjectPage", page)
+    monkeypatch.setattr(
+        app_module, "ImportPage",
+        lambda *args, **kwargs: SimpleNamespace(render=lambda: None, has_unsaved_work=False),
+    )
     monkeypatch.setattr(app_module, "_choose_project_path", lambda *args: next(answers))
     monkeypatch.setattr(root, "mainloop", mainloop)
     assert app_module.launch_dashboard(tk_loader=lambda: (tk, ttk)).closed_safely
@@ -1033,7 +1126,8 @@ def test_abnormal_event_loop_exit_does_not_claim_batch_closed(
 ) -> None:
     root, tk, ttk = fake_toolkit()
 
-    def page(*args: Any) -> Any:
+    def page(*args: Any, **kwargs: Any) -> Any:
+        assert callable(kwargs["on_load_setup"])
         args[4]._thread = SimpleNamespace(is_alive=lambda: True)
         return SimpleNamespace(render=lambda: None)
 
@@ -1043,10 +1137,15 @@ def test_abnormal_event_loop_exit_does_not_claim_batch_closed(
         lambda *args, **kwargs: SimpleNamespace(
             notebook=object(),
             form=SimpleNamespace(snapshot=DashboardWizardDraft),
+            section_frames={"export": FakeWidget()},
             render=lambda *args: None,
         ),
     )
     monkeypatch.setattr(app_module, "ProjectPage", page)
+    monkeypatch.setattr(
+        app_module, "ImportPage",
+        lambda *args, **kwargs: SimpleNamespace(render=lambda: None, has_unsaved_work=False),
+    )
     monkeypatch.setattr(root, "mainloop", lambda: None)
     with pytest.raises(app_module.ProductWorkerTimeoutError, match="project batch"):
         app_module.launch_dashboard(tk_loader=lambda: (tk, ttk))

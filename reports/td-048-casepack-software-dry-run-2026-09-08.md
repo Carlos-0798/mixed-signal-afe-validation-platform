@@ -10,8 +10,8 @@
 独立有理数参考、两条操作路径说明和空白人工记录表。
 独立参考不调用 AVS 分析/evaluator/报告代码。
 
-本地案例目录：
-`C:/Users/24046/Documents/Codex/2026-09-07/files-mentioned-by-the-user-agent/outputs/td048-dc-casepack-20260908-01`。
+本地案例目录标识：`td048-dc-casepack-20260908-01`。
+本机绝对路径保存在工作树外的同步接续档案中；同步前原始报告副本保持不变。
 README.md 是操作入口；reference.json 与输入哈希在 cases 内。
 正式产品代码仍位于 calibration-workflow 工作树。
 这些外部案例产物没有被自动复制进产品运行时或历史产物目录。

@@ -18,8 +18,8 @@ For a beginner, the separation is important:
 3. `reporting.py` renders the copied values as text, Markdown, HTML, and SVG;
 4. the publisher writes all files into one new directory and records hashes.
 
-This is similar to printing a lab result that has already been signed: changing
-the layout must not change the signed result.
+This is similar to presenting a completed lab worksheet: changing its layout
+must not change the recorded result. Hashes do not provide signatures or author authentication.
 
 ## Run it
 
@@ -49,7 +49,7 @@ its exit code:
 
 ## Output directory
 
-Every successful publication contains exactly five UTF-8 artifacts:
+The existing CLI/default API publication contains five UTF-8 artifacts:
 
 | File | Purpose |
 |---|---|
@@ -61,6 +61,15 @@ Every successful publication contains exactly five UTF-8 artifacts:
 
 The CLI also reports the hash of `manifest.json`. The manifest does not hash
 itself, avoiding an impossible circular self-reference.
+
+The Dashboard **Save report package…** action passes the optional `result_bundle`
+argument to `publish_human_report`. This adds a sixth file, `result.json`, using
+the canonical existing result serializer; its size and SHA-256 appear in the
+same manifest. The publisher checks that the supplied bundle produces exactly
+the given report view before writing any files. Report images and conclusions
+cannot be silently paired with a different result. All six files share the same
+atomic create-new publication. Omitting the new argument preserves every old
+default artifact byte. No measurement or engineering analysis is repeated.
 
 The files show the source run's start/end UTC times. They deliberately omit the
 current wall-clock report-generation time so the same finalized input produces

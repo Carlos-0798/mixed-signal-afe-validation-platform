@@ -889,6 +889,7 @@ def test_run_manifest_v1_remains_exactly_readable_and_reserializable() -> None:
             "planned_preset_ids",
             "not_started_preset_ids",
             "input_artifacts",
+            "preparation_failure",
         }
     }
     legacy["schema_version"] = VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION
@@ -1400,6 +1401,7 @@ def test_v1_snapshot_lineage_still_rejects_unknown_record_preset(
         "planned_preset_ids",
         "not_started_preset_ids",
         "input_artifacts",
+        "preparation_failure",
     ):
         del document[key]
     document["summary"] = {

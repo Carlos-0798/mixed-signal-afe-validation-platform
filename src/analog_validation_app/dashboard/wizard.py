@@ -58,9 +58,7 @@ def _text(name: str, value: object, *, allow_empty: bool = False) -> str:
             f"{name} exceeds {MAX_DASHBOARD_WIZARD_TEXT_CHARS} characters", name
         )
     if value and not value.isprintable():
-        raise ProductFieldError(
-            f"{name} must contain only printable characters", name
-        )
+        raise ProductFieldError(f"{name} must contain only printable characters", name)
     return value
 
 
@@ -328,7 +326,22 @@ class DashboardWizardDraft:
     def to_product_configuration(self) -> ProductWorkflowConfiguration:
         """Parse the form once, before any worker or serial resource starts."""
 
+        replay_bounds: dict[str, float] = {}
+        try:
+            minimum = _number("replay_minimum", self.replay_minimum)
+            maximum = _number("replay_maximum", self.replay_maximum)
+            if minimum >= maximum:
+                raise ProductFieldError(
+                    "replay_minimum must be below replay_maximum", "replay_maximum"
+                )
+            replay_bounds = {"replay_minimum": minimum, "replay_maximum": maximum}
+        except ProductFieldError:
+            if self.source_mode is ProductSourceMode.CSV_REPLAY:
+                raise
+            # Hidden invalid Replay scratch must not block another source. Omit
+            # both fields to use the typed configuration's own default bounds.
         values: dict[str, Any] = {
+            **replay_bounds,
             "primary_channel": self.primary_channel,
             "secondary_channel": self.secondary_channel,
             "state_channel": self.state_channel,
@@ -419,8 +432,6 @@ class DashboardWizardDraft:
             values.update(
                 {
                     "replay_path": Path(_text("replay_path", self.replay_path)),
-                    "replay_minimum": _number("replay_minimum", self.replay_minimum),
-                    "replay_maximum": _number("replay_maximum", self.replay_maximum),
                 }
             )
         elif self.source_mode is ProductSourceMode.SERIAL_READ_ONLY:
@@ -428,9 +439,7 @@ class DashboardWizardDraft:
             try:
                 serial_config = SerialSourceConfig(
                     port_id=_text("serial_port", self.serial_port),
-                    baud_rate=_integer(
-                        "serial_baud_rate", self.serial_baud_rate
-                    ),
+                    baud_rate=_integer("serial_baud_rate", self.serial_baud_rate),
                     read_timeout_seconds=_number(
                         "serial_read_timeout", self.serial_read_timeout
                     ),
@@ -750,6 +759,29 @@ class DashboardWizardPresenter:
                 "configuration cannot silently change source, test, or profile"
             )
         return self._replace(draft=draft, issue=None)
+
+    def load_preset_draft(self, draft: DashboardWizardDraft) -> DashboardWizardState:
+        """Replace an idle setup with an offline preset, requiring a fresh review."""
+        if self._state.step is DashboardWizardStep.RUN:
+            raise ProductRequestError(
+                "Wait for the current run before loading a preset"
+            )
+        if not isinstance(draft, DashboardWizardDraft) or draft.source_mode not in {
+            ProductSourceMode.SIMULATOR,
+            ProductSourceMode.CSV_REPLAY,
+        }:
+            raise ProductRequestError("Preset loading requires an offline wizard draft")
+        return self._replace(
+            step=DashboardWizardStep.CONFIGURATION,
+            draft=draft,
+            review_lines=(),
+            discovered_ports=(),
+            issue=None,
+            export_available=False,
+            coefficient_available=False,
+            export_message="Preset loaded. Validate this setup before running.",
+            coefficient_message="No calibration coefficient artifact is available.",
+        )
 
     def next(self) -> DashboardWizardState:
         target = {

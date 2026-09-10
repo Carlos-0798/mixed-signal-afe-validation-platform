@@ -9,10 +9,10 @@ import inspect
 import io
 import json
 from collections.abc import Callable, Iterable
-from dataclasses import MISSING, fields, is_dataclass
+from dataclasses import MISSING, fields, is_dataclass, replace
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -76,6 +76,7 @@ from analog_validation_app import (
     VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
     VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION,
     VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION,
+    VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
     VALIDATION_RUN_RECORD_SCHEMA_VERSION,
     issue_from_exception,
 )
@@ -123,6 +124,7 @@ SCHEMAS = {
     "VALIDATION_RUN_MANIFEST_SCHEMA_VERSION": VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
     "VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION": VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION,
     "VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION": VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION,
+    "VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION": VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
     "VALIDATION_RUN_RECORD_SCHEMA_VERSION": VALIDATION_RUN_RECORD_SCHEMA_VERSION,
 }
 
@@ -188,6 +190,7 @@ DATACLASS_NAMES = (
     "SerialChannelAlias",
     "SerialSourceConfig",
     "UserIssue",
+    "ValidationBatchPreparationFailure",
     "ValidationBatchProgress",
     "ValidationPreset",
     "ValidationProject",
@@ -230,6 +233,7 @@ SIGNATURE_NAMES = (
     "SerialSourceConfig",
     "UserIssue",
     "ValidationBatchCancellationToken",
+    "ValidationBatchPreparationFailure",
     "ValidationBatchProgress",
     "ValidationPreset",
     "ValidationProject",
@@ -267,6 +271,15 @@ SIGNATURES.update(
     {
         "CliDependencies": product_cli.CliDependencies,
         "DashboardSessionResult": DashboardSessionResult,
+        "DashboardApplication.load_preset_configuration": analog_validation_app.DashboardApplication.load_preset_configuration,
+        "DashboardApplication.save_report_bundle": analog_validation_app.DashboardApplication.save_report_bundle,
+        "DashboardApplication.report_publication": cast(
+            Callable[..., Any],
+            inspect.getattr_static(
+                analog_validation_app.DashboardApplication, "report_publication"
+            ).fget,
+        ),
+        "DashboardWizardPresenter.load_preset_draft": analog_validation_app.DashboardWizardPresenter.load_preset_draft,
         "build_parser": product_cli.build_parser,
         "launch_dashboard": launch_dashboard,
         "main": product_cli.main,
@@ -450,6 +463,20 @@ def _serialized_fields(output_parent: Path) -> dict[str, list[str]]:
             encoding="utf-8"
         )
     )
+    failure_manifest = analog_validation_app.validation_run_manifest_to_dict(
+        replace(
+            analog_validation_app.validation_run_manifest_from_dict(project_manifest),
+            batch_status=analog_validation_app.ValidationBatchStatus.ERROR,
+            planned_preset_ids=("dc-default", "read-default"),
+            not_started_preset_ids=("read-default",),
+            preparation_failure=analog_validation_app.ValidationBatchPreparationFailure(
+                "read-default", analog_validation_app.UserIssueCode.INVALID_REQUEST,
+                "ProductRequestError", "Preset preparation rejected.",
+            ),
+        )
+    )
+    preparation_failure = failure_manifest["preparation_failure"]
+    assert isinstance(preparation_failure, dict)
     return {
         "cli_demo": sorted(demo_cli),
         "cli_demo_artifact": sorted(demo_cli["artifacts"][0]),
@@ -468,6 +495,7 @@ def _serialized_fields(output_parent: Path) -> dict[str, list[str]]:
         "project_cli_run": sorted(project_run),
         "project_file": sorted(project_file),
         "project_preset": sorted(project_file["presets"][0]),
+        "project_preparation_failure": sorted(preparation_failure),
         "project_run_manifest": sorted(project_manifest),
         "project_run_metric": sorted(project_manifest["records"][0]["metrics"][0]),
         "project_run_record": sorted(project_manifest["records"][0]),

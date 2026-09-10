@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, cast
@@ -12,10 +13,14 @@ from ..errors import (
     ProductWorkerTimeoutError,
 )
 from ..models import ProductSourceMode, ProductWorkerState
+from ..product_workflows import ProductWorkflowConfiguration
+from ..reporting import REPORT_HTML_FILENAME, HumanReportPublication
 from .application import DashboardApplication
 from .controller import DashboardWorkerPort
+from .import_page import ImportPage
 from .project_widgets import ProjectPage
 from .project_workspace import ProjectWorkspace
+from .report_actions import ReportActions
 from .state import DASHBOARD_HARDWARE_CLAIM
 from .widgets import create_dashboard_workflow_widgets
 
@@ -225,29 +230,169 @@ def _choose_project_path(parent: object, mode: str) -> object:
     options: dict[str, Any] = {"parent": parent}
     if mode == "discard-project":
         return messagebox.askyesno(
-            **options, title="Unsaved project changes",
+            **options,
+            title="Unsaved project changes",
             message="Discard unsaved project changes and close?",
-            detail="Choose No to save the project as a new file first.", default="no",
+            detail="Choose No to save the project as a new file first.",
+            default="no",
         )
     if mode == "history":
         return filedialog.askopenfilenames(
-            **options, title="Choose run-manifest.json files", filetypes=(("Run manifests", "*.json"),)
+            **options,
+            title="Choose run-manifest.json files",
+            filetypes=(("Run manifests", "*.json"),),
         )
     if mode == "project-open":
         return filedialog.askopenfilename(
-            **options, title="Open test project", filetypes=(("Test projects", "*.json"),)
+            **options,
+            title="Open test project",
+            filetypes=(("Test projects", "*.json"),),
         )
     if mode not in {"project-save", "run-directory"}:
         raise ProductRequestError("Unknown project path selection.")
     return filedialog.asksaveasfilename(
         **options,
-        title="Save a new test project" if mode == "project-save" else "Choose a NEW run directory name",
+        title="Save a new test project"
+        if mode == "project-save"
+        else "Choose a NEW run directory name",
         initialfile=(
             "validation-project.json" if mode == "project-save" else "run-001"
         ),
         defaultextension=".json" if mode == "project-save" else "",
         confirmoverwrite=False,
     )
+
+
+def _choose_report_directory(
+    parent: object, *, dialog: SavePathDialog | None = None
+) -> str:
+    if dialog is None:  # pragma: no cover - native chooser
+        from tkinter import filedialog
+
+        dialog = cast(SavePathDialog, filedialog.asksaveasfilename)
+    selected = dialog(
+        parent=parent,
+        title="Name a NEW report folder",
+        initialfile="validation-report",
+        defaultextension="",
+        confirmoverwrite=False,
+    )
+    if not isinstance(selected, str):
+        raise ProductRequestError("Report folder selection must be a path string")
+    return selected
+
+
+def _choose_import_path(
+    parent: object,
+    mode: str,
+    *,
+    dialog: SavePathDialog | None = None,
+) -> str:
+    """Choose an import input or new output without reading or writing it."""
+    if mode not in {"source", "load_mapping", "save_mapping", "output"}:
+        raise ProductRequestError("Unknown import file selection mode")
+    saving = mode in {"save_mapping", "output"}
+    if dialog is None:  # pragma: no cover - native platform file picker
+        from tkinter import filedialog
+
+        dialog = cast(
+            SavePathDialog,
+            filedialog.asksaveasfilename if saving else filedialog.askopenfilename,
+        )
+    options: dict[str, object] = {
+        "parent": parent,
+        "title": {
+            "source": "Choose a UTF-8 voltage table",
+            "load_mapping": "Choose a saved import mapping",
+            "save_mapping": "Save mapping to a NEW JSON file",
+            "output": "Name a NEW import package folder",
+        }[mode],
+    }
+    if mode == "source":
+        options["filetypes"] = (("Delimited text", "*.csv *.tsv *.txt"), ("All files", "*.*"))
+    elif mode != "output":
+        options["filetypes"] = (("Import mapping JSON", "*.json"),)
+    if saving:
+        options["confirmoverwrite"] = False
+        options["initialfile"] = "voltage-import" if mode == "output" else "voltage-mapping.json"
+        options["defaultextension"] = "" if mode == "output" else ".json"
+    selected = dialog(**options)
+    if not isinstance(selected, str):
+        raise ProductRequestError("Import file selection must return a path string")
+    return selected
+
+
+def _confirm_discard_import(
+    parent: object, *, dialog: DiscardConfirmationDialog | None = None
+) -> bool:
+    if dialog is None:  # pragma: no cover - native confirmation
+        from tkinter import messagebox
+
+        dialog = cast(DiscardConfirmationDialog, messagebox.askyesno)
+    selected = dialog(
+        parent=parent,
+        title="Close with an unpublished import?",
+        message="The reviewed import has not been saved as a package. Close anyway?",
+        detail="The original input file stays unchanged. Choose No to return and save the import package.",
+        icon="warning",
+        default="no",
+    )
+    if not isinstance(selected, bool):
+        raise ProductRequestError("Import close confirmation must return a bool")
+    return selected
+
+
+def _confirm_replace_setup(
+    parent: object,
+    *,
+    has_unsaved_result: bool,
+    dialog: DiscardConfirmationDialog | None = None,
+) -> bool:
+    if dialog is None:  # pragma: no cover - native confirmation
+        from tkinter import messagebox
+
+        dialog = cast(DiscardConfirmationDialog, messagebox.askyesno)
+    confirmed = dialog(
+        parent=parent,
+        title="Load configuration into Setup",
+        message="Replace the current setup with the selected configuration?",
+        detail=(
+            "The current result or coefficients have not been saved and will be discarded. "
+            if has_unsaved_result
+            else "Current setup edits and its previous review will be replaced. "
+        )
+        + "The saved source configuration stays unchanged. Choose No to keep the current work.",
+        icon="warning",
+        default="no",
+    )
+    if not isinstance(confirmed, bool):
+        raise ProductRequestError("Setup confirmation must return a bool")
+    return confirmed
+
+
+def _open_published_report(
+    publication: HumanReportPublication, *, opener: Callable[[str], bool] | None = None
+) -> None:
+    artifact = next(
+        item for item in publication.artifacts if item.name == REPORT_HTML_FILENAME
+    )
+    path = publication.output_directory / artifact.name
+    payload = path.read_bytes()
+    if (
+        len(payload) != artifact.size_bytes
+        or hashlib.sha256(payload).hexdigest() != artifact.sha256
+    ):
+        raise ProductRequestError(
+            "Saved report changed after publication; save a new report package"
+        )
+    if opener is None:  # pragma: no cover - explicit user action opens local HTML
+        import webbrowser
+
+        opener = webbrowser.open
+    if not opener(path.resolve().as_uri()):
+        raise ProductRequestError(
+            "No browser opened the report; open report.html in the saved folder"
+        )
 
 
 def launch_dashboard(
@@ -306,6 +451,8 @@ def launch_dashboard(
     closed = False
     widgets: Any = None
     project_page: ProjectPage | None = None
+    import_page: ImportPage | None = None
+    report_actions: ReportActions | None = None
     projects = ProjectWorkspace(
         lambda: application.dashboard_state.progress.worker_state.is_active
     )
@@ -316,6 +463,12 @@ def launch_dashboard(
         widgets.render(application.dashboard_state, application.wizard_state)
         if project_page is not None:
             project_page.render()
+        if import_page is not None:
+            import_page.render()
+        if report_actions is not None:
+            report_actions.render(
+                application.wizard_state.can_export, application.report_publication
+            )
 
     def cancel_job() -> None:
         application.request_cancel()
@@ -358,7 +511,9 @@ def launch_dashboard(
 
     def run_job() -> None:
         if projects.busy:
-            projects._changed("Wait for the project batch to finish before starting a single test.")
+            projects._changed(
+                "Wait for the project batch to finish before starting a single test."
+            )
             render()
             return
         application.run()
@@ -376,6 +531,48 @@ def launch_dashboard(
 
     def choose_export_path(format_name: str) -> str:
         return _choose_export_destination(root, format_name)
+
+    def save_report() -> None:
+        try:
+            selected = _choose_report_directory(root)
+            if selected:
+                application.save_report_bundle(selected)
+        except BaseException as error:  # noqa: BLE001 - native callback boundary
+            application.present_input_error(error)
+        render()
+
+    def open_report() -> None:
+        try:
+            if application.report_publication is None:
+                raise ProductRequestError("Save a report package before opening it")
+            _open_published_report(application.report_publication)
+        except BaseException as error:  # noqa: BLE001 - native callback boundary
+            application.present_input_error(error)
+        render()
+
+    def load_preset_setup(configuration: ProductWorkflowConfiguration) -> bool:
+        from .wizard import DashboardWizardDraft
+
+        if projects.busy or application.dashboard_state.progress.worker_state.is_active:
+            return False
+        try:
+            has_edits = widgets.form.snapshot() != DashboardWizardDraft()
+        except ProductRequestError:
+            has_edits = True
+        if (has_edits or application.has_unsaved_result) and not _confirm_replace_setup(
+            root, has_unsaved_result=application.has_unsaved_result
+        ):
+            return False
+        accepted = application.load_preset_configuration(
+            configuration, discard_unsaved=True
+        )
+        if accepted:
+            # Explicitly replace scratch fields even when the stored draft is identical.
+            widgets.form.load(application.wizard_state.draft)
+        render()
+        if accepted and widgets.notebook is not None:
+            widgets.notebook.select(widgets.workflow_page)
+        return accepted
 
     def choose_replay_path() -> str:
         return _choose_replay_path(root)
@@ -437,10 +634,21 @@ def launch_dashboard(
             render()
             return
         close_pending = False
-        if projects.dirty and not bypass_unsaved_confirmation and not _choose_project_path(root, "discard-project"):
+        if (
+            projects.dirty
+            and not bypass_unsaved_confirmation
+            and not _choose_project_path(root, "discard-project")
+        ):
             return
         if not bypass_unsaved_confirmation and not discard_is_confirmed(
             "close the application"
+        ):
+            return
+        if (
+            import_page is not None
+            and import_page.has_unsaved_work
+            and not bypass_unsaved_confirmation
+            and not _confirm_discard_import(root)
         ):
             return
         if application.request_close():
@@ -492,10 +700,32 @@ def launch_dashboard(
         )
         if getattr(widgets, "notebook", None) is not None:
             project_page = ProjectPage(
-                root, tk, ttk, widgets.notebook, projects,
+                root,
+                tk,
+                ttk,
+                widgets.notebook,
+                projects,
                 lambda mode: _choose_project_path(root, mode),
                 widgets.form.snapshot,
+                on_load_setup=load_preset_setup,
             )
+            import_page = ImportPage(
+                root,
+                tk,
+                ttk,
+                widgets.notebook,
+                on_load_setup=load_preset_setup,
+                is_busy=lambda: projects.busy
+                or application.dashboard_state.progress.worker_state.is_active,
+                choose_path=lambda mode: _choose_import_path(root, mode),
+            )
+        report_actions = ReportActions(
+            widgets.section_frames["export"],
+            tk,
+            ttk,
+            on_save=save_report,
+            on_open=open_report,
+        )
         root.protocol("WM_DELETE_WINDOW", close_window)
         render()
         finish_layout = getattr(root, "update_idletasks", None)

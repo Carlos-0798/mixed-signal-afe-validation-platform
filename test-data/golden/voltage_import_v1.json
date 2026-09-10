@@ -1,0 +1,858 @@
+{
+  "default_mapping": {
+    "delimiter": ",",
+    "input_column": "Input",
+    "input_unit": "V",
+    "maximum_mv": 3300.0,
+    "minimum_mv": 0.0,
+    "name": "SYNTHETIC default mapping",
+    "output_column": null,
+    "output_unit": null,
+    "schema_version": "voltage-import-mapping.v1",
+    "start_time_utc": null,
+    "time_column": "Timestamp",
+    "time_mode": "timestamp"
+  },
+  "examples": {
+    "synthetic-comma-utc-v": {
+      "artifacts": {
+        "import-manifest.json": {
+          "sha256": "ab6c96b45a9fa4f8d3753544af5d0d1b68fb99c6e3af972649ca6a9f992a9ae8",
+          "size_bytes": 1031
+        },
+        "mapping.json": {
+          "sha256": "8fed23cf5dffacba2c580f363c3edc8e3f0326d5c9a2d887f76ab61987983b99",
+          "size_bytes": 348
+        },
+        "project.json": {
+          "sha256": "d3ad4f978960084c737b0ebce25556c296fe77236f82017d71627684e2d4d403",
+          "size_bytes": 2479
+        },
+        "replay.csv": {
+          "sha256": "86e431cd86a607ac0b95b75bd474ddfdaa137116944a6b956a1442f789295b6f",
+          "size_bytes": 1676
+        },
+        "source.csv": {
+          "sha256": "2fa18e3b4b8b1799e5bcc0963031c8cde210a2aa915424e38423d27ab338a11e",
+          "size_bytes": 243
+        }
+      },
+      "columns": [
+        "Timestamp",
+        "Stimulus_V",
+        "Response_V",
+        "FixtureEvidence"
+      ],
+      "manifest": {
+        "artifacts": [
+          {
+            "path": "source.csv",
+            "sha256": "2fa18e3b4b8b1799e5bcc0963031c8cde210a2aa915424e38423d27ab338a11e",
+            "size_bytes": 243
+          },
+          {
+            "path": "mapping.json",
+            "sha256": "8fed23cf5dffacba2c580f363c3edc8e3f0326d5c9a2d887f76ab61987983b99",
+            "size_bytes": 348
+          },
+          {
+            "path": "replay.csv",
+            "sha256": "86e431cd86a607ac0b95b75bd474ddfdaa137116944a6b956a1442f789295b6f",
+            "size_bytes": 1676
+          },
+          {
+            "path": "project.json",
+            "sha256": "d3ad4f978960084c737b0ebce25556c296fe77236f82017d71627684e2d4d403",
+            "size_bytes": 2479
+          }
+        ],
+        "dataset_id": "synthetic-voltage-import-v1",
+        "evidence_source": "CSV_REPLAY",
+        "hardware_claim": "No physical hardware validation is established by importing or replaying this file.",
+        "record_count": 10,
+        "row_count": 5,
+        "schema_version": "voltage-import-manifest.v1",
+        "source_name": "synthetic-comma-utc-v.csv",
+        "time_conversion": {
+          "mode": "timestamp",
+          "start_time_utc": null
+        }
+      },
+      "mapping": {
+        "delimiter": ",",
+        "input_column": "Stimulus_V",
+        "input_unit": "V",
+        "maximum_mv": 3300.0,
+        "minimum_mv": 0.0,
+        "name": "SYNTHETIC comma UTC volts",
+        "output_column": "Response_V",
+        "output_unit": "V",
+        "schema_version": "voltage-import-mapping.v1",
+        "start_time_utc": null,
+        "time_column": "Timestamp",
+        "time_mode": "timestamp"
+      },
+      "mapping_file": "synthetic-comma-utc-v.mapping.json",
+      "row_numbers": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "source_file": "synthetic-comma-utc-v.csv",
+      "source_sha256": "2fa18e3b4b8b1799e5bcc0963031c8cde210a2aa915424e38423d27ab338a11e"
+    },
+    "synthetic-semicolon-elapsed-mv": {
+      "artifacts": {
+        "import-manifest.json": {
+          "sha256": "3f70a5c29d57c5b32382fbad25edcfa982de075de453f9109abf77a77212f197",
+          "size_bytes": 1064
+        },
+        "mapping.json": {
+          "sha256": "80178b6bb782a4b310e3666137e677b5b4fc88b1067f755207b66c11a7d050f5",
+          "size_bytes": 389
+        },
+        "project.json": {
+          "sha256": "79fcdb550a2c228a673d1368b93fb58c075d2c652b403caadb044a23dea46b27",
+          "size_bytes": 2505
+        },
+        "replay.csv": {
+          "sha256": "86e431cd86a607ac0b95b75bd474ddfdaa137116944a6b956a1442f789295b6f",
+          "size_bytes": 1676
+        },
+        "source.csv": {
+          "sha256": "db12809c4e27b369a5c257cc1ca149a8974e8c95ead5b3e8bb2274fe2a67f10e",
+          "size_bytes": 153
+        }
+      },
+      "columns": [
+        "Elapsed_s",
+        "Stimulus_mV",
+        "Response_mV",
+        "FixtureEvidence"
+      ],
+      "manifest": {
+        "artifacts": [
+          {
+            "path": "source.csv",
+            "sha256": "db12809c4e27b369a5c257cc1ca149a8974e8c95ead5b3e8bb2274fe2a67f10e",
+            "size_bytes": 153
+          },
+          {
+            "path": "mapping.json",
+            "sha256": "80178b6bb782a4b310e3666137e677b5b4fc88b1067f755207b66c11a7d050f5",
+            "size_bytes": 389
+          },
+          {
+            "path": "replay.csv",
+            "sha256": "86e431cd86a607ac0b95b75bd474ddfdaa137116944a6b956a1442f789295b6f",
+            "size_bytes": 1676
+          },
+          {
+            "path": "project.json",
+            "sha256": "79fcdb550a2c228a673d1368b93fb58c075d2c652b403caadb044a23dea46b27",
+            "size_bytes": 2505
+          }
+        ],
+        "dataset_id": "synthetic-voltage-import-v1",
+        "evidence_source": "CSV_REPLAY",
+        "hardware_claim": "No physical hardware validation is established by importing or replaying this file.",
+        "record_count": 10,
+        "row_count": 5,
+        "schema_version": "voltage-import-manifest.v1",
+        "source_name": "synthetic-semicolon-elapsed-mv.csv",
+        "time_conversion": {
+          "mode": "elapsed_seconds",
+          "start_time_utc": "2026-09-09T12:00:00Z"
+        }
+      },
+      "mapping": {
+        "delimiter": ";",
+        "input_column": "Stimulus_mV",
+        "input_unit": "mV",
+        "maximum_mv": 3300.0,
+        "minimum_mv": 0.0,
+        "name": "SYNTHETIC semicolon elapsed millivolts",
+        "output_column": "Response_mV",
+        "output_unit": "mV",
+        "schema_version": "voltage-import-mapping.v1",
+        "start_time_utc": "2026-09-09T12:00:00Z",
+        "time_column": "Elapsed_s",
+        "time_mode": "elapsed_seconds"
+      },
+      "mapping_file": "synthetic-semicolon-elapsed-mv.mapping.json",
+      "row_numbers": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "source_file": "synthetic-semicolon-elapsed-mv.csv",
+      "source_sha256": "db12809c4e27b369a5c257cc1ca149a8974e8c95ead5b3e8bb2274fe2a67f10e"
+    },
+    "synthetic-tab-reordered-mixed": {
+      "artifacts": {
+        "import-manifest.json": {
+          "sha256": "4f9aa4424bf65fdd8aec1a474fa9949cf2d7a798c92c974bdbe3b5e69d9154b2",
+          "size_bytes": 1039
+        },
+        "mapping.json": {
+          "sha256": "765e6089464faaa0cd24e158e248611870ad436c3f1eecc89c4b7cdba9094b63",
+          "size_bytes": 361
+        },
+        "project.json": {
+          "sha256": "41eb1a6aa979d3093e5a583dbd67966d640726bf960a11ec462347d45a5e999f",
+          "size_bytes": 2499
+        },
+        "replay.csv": {
+          "sha256": "86e431cd86a607ac0b95b75bd474ddfdaa137116944a6b956a1442f789295b6f",
+          "size_bytes": 1676
+        },
+        "source.csv": {
+          "sha256": "645514fa49f656334fcf41dd76bd4d1459df5f60682c7e1daa550d02df656b3d",
+          "size_bytes": 272
+        }
+      },
+      "columns": [
+        "FixtureEvidence",
+        "Response_mV",
+        "Timestamp",
+        "Stimulus_V"
+      ],
+      "manifest": {
+        "artifacts": [
+          {
+            "path": "source.csv",
+            "sha256": "645514fa49f656334fcf41dd76bd4d1459df5f60682c7e1daa550d02df656b3d",
+            "size_bytes": 272
+          },
+          {
+            "path": "mapping.json",
+            "sha256": "765e6089464faaa0cd24e158e248611870ad436c3f1eecc89c4b7cdba9094b63",
+            "size_bytes": 361
+          },
+          {
+            "path": "replay.csv",
+            "sha256": "86e431cd86a607ac0b95b75bd474ddfdaa137116944a6b956a1442f789295b6f",
+            "size_bytes": 1676
+          },
+          {
+            "path": "project.json",
+            "sha256": "41eb1a6aa979d3093e5a583dbd67966d640726bf960a11ec462347d45a5e999f",
+            "size_bytes": 2499
+          }
+        ],
+        "dataset_id": "synthetic-voltage-import-v1",
+        "evidence_source": "CSV_REPLAY",
+        "hardware_claim": "No physical hardware validation is established by importing or replaying this file.",
+        "record_count": 10,
+        "row_count": 5,
+        "schema_version": "voltage-import-manifest.v1",
+        "source_name": "synthetic-tab-reordered-mixed.csv",
+        "time_conversion": {
+          "mode": "timestamp",
+          "start_time_utc": null
+        }
+      },
+      "mapping": {
+        "delimiter": "\t",
+        "input_column": "Stimulus_V",
+        "input_unit": "V",
+        "maximum_mv": 3300.0,
+        "minimum_mv": 0.0,
+        "name": "SYNTHETIC tab reordered mixed units",
+        "output_column": "Response_mV",
+        "output_unit": "mV",
+        "schema_version": "voltage-import-mapping.v1",
+        "start_time_utc": null,
+        "time_column": "Timestamp",
+        "time_mode": "timestamp"
+      },
+      "mapping_file": "synthetic-tab-reordered-mixed.mapping.json",
+      "row_numbers": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "source_file": "synthetic-tab-reordered-mixed.csv",
+      "source_sha256": "645514fa49f656334fcf41dd76bd4d1459df5f60682c7e1daa550d02df656b3d"
+    }
+  },
+  "minimal_mapping": {
+    "input_column": "Input",
+    "input_unit": "V",
+    "name": "SYNTHETIC default mapping",
+    "schema_version": "voltage-import-mapping.v1",
+    "time_column": "Timestamp"
+  },
+  "public_api": {
+    "analog_validation_app.import_cli": {
+      "constants": {},
+      "dataclasses": {},
+      "exports": [
+        "add_import_csv_parser",
+        "execute_import_csv",
+        "write_import_csv_document"
+      ],
+      "signatures": {
+        "add_import_csv_parser": [
+          [
+            "commands",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ]
+        ],
+        "execute_import_csv": [
+          [
+            "arguments",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "schema_version",
+            "KEYWORD_ONLY",
+            true,
+            null
+          ]
+        ],
+        "write_import_csv_document": [
+          [
+            "document",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "output",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ]
+        ]
+      }
+    },
+    "analog_validation_app.import_packages": {
+      "constants": {
+        "MAX_VOLTAGE_IMPORT_MANIFEST_BYTES": 65536,
+        "MAX_VOLTAGE_MAPPING_BYTES": 65536,
+        "VOLTAGE_IMPORT_HARDWARE_CLAIM": "No physical hardware validation is established by importing or replaying this file.",
+        "VOLTAGE_IMPORT_MANIFEST_FILENAME": "import-manifest.json",
+        "VOLTAGE_IMPORT_MANIFEST_SCHEMA_VERSION": "voltage-import-manifest.v1"
+      },
+      "dataclasses": {
+        "VoltageImportPublication": {
+          "fields": [
+            [
+              "output_directory",
+              "Path",
+              true,
+              null
+            ],
+            [
+              "replay_path",
+              "Path",
+              true,
+              null
+            ],
+            [
+              "project_path",
+              "Path",
+              true,
+              null
+            ],
+            [
+              "manifest_path",
+              "Path",
+              true,
+              null
+            ],
+            [
+              "configuration",
+              "ProductWorkflowConfiguration",
+              true,
+              null
+            ]
+          ],
+          "frozen": true
+        }
+      },
+      "exports": [
+        "MAX_VOLTAGE_IMPORT_MANIFEST_BYTES",
+        "MAX_VOLTAGE_MAPPING_BYTES",
+        "VOLTAGE_IMPORT_HARDWARE_CLAIM",
+        "VOLTAGE_IMPORT_MANIFEST_FILENAME",
+        "VOLTAGE_IMPORT_MANIFEST_SCHEMA_VERSION",
+        "VoltageImportPublication",
+        "load_voltage_mapping",
+        "load_voltage_table",
+        "publish_voltage_import",
+        "verify_voltage_import",
+        "write_voltage_mapping"
+      ],
+      "signatures": {
+        "VoltageImportPublication": [
+          [
+            "output_directory",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "replay_path",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "project_path",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "manifest_path",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "configuration",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ]
+        ],
+        "load_voltage_mapping": [
+          [
+            "path",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ]
+        ],
+        "load_voltage_table": [
+          [
+            "path",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "delimiter",
+            "KEYWORD_ONLY",
+            false,
+            ","
+          ]
+        ],
+        "publish_voltage_import": [
+          [
+            "output_directory",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "preview",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "source_name",
+            "KEYWORD_ONLY",
+            false,
+            "source.csv"
+          ]
+        ],
+        "verify_voltage_import": [
+          [
+            "output_directory",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ]
+        ],
+        "write_voltage_mapping": [
+          [
+            "path",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "mapping",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ]
+        ]
+      }
+    },
+    "analog_validation_app.tabular_import": {
+      "constants": {
+        "MAX_VOLTAGE_IMPORT_BYTES": 2097152,
+        "MAX_VOLTAGE_IMPORT_CELL_CHARS": 1024,
+        "MAX_VOLTAGE_IMPORT_COLUMNS": 64,
+        "MAX_VOLTAGE_IMPORT_ROWS": 10000,
+        "VOLTAGE_IMPORT_MAPPING_SCHEMA_VERSION": "voltage-import-mapping.v1"
+      },
+      "dataclasses": {
+        "TabularImportSource": {
+          "fields": [
+            [
+              "raw_bytes",
+              "bytes",
+              true,
+              null
+            ],
+            [
+              "delimiter",
+              "str",
+              true,
+              null
+            ],
+            [
+              "columns",
+              "tuple[str, ...]",
+              true,
+              null
+            ],
+            [
+              "rows",
+              "tuple[tuple[str, ...], ...]",
+              true,
+              null
+            ],
+            [
+              "row_numbers",
+              "tuple[int, ...]",
+              true,
+              null
+            ]
+          ],
+          "frozen": true
+        },
+        "VoltageImportMapping": {
+          "fields": [
+            [
+              "name",
+              "str",
+              true,
+              null
+            ],
+            [
+              "time_column",
+              "str",
+              true,
+              null
+            ],
+            [
+              "input_column",
+              "str",
+              true,
+              null
+            ],
+            [
+              "input_unit",
+              "MeasurementUnit",
+              true,
+              null
+            ],
+            [
+              "output_column",
+              "str | None",
+              false,
+              null
+            ],
+            [
+              "output_unit",
+              "MeasurementUnit | None",
+              false,
+              null
+            ],
+            [
+              "time_mode",
+              "str",
+              false,
+              "timestamp"
+            ],
+            [
+              "start_time_utc",
+              "str | None",
+              false,
+              null
+            ],
+            [
+              "delimiter",
+              "str",
+              false,
+              ","
+            ],
+            [
+              "minimum_mv",
+              "float",
+              false,
+              0.0
+            ],
+            [
+              "maximum_mv",
+              "float",
+              false,
+              3300.0
+            ],
+            [
+              "schema_version",
+              "str",
+              false,
+              "voltage-import-mapping.v1"
+            ]
+          ],
+          "frozen": true
+        },
+        "VoltageImportPreview": {
+          "fields": [
+            [
+              "source",
+              "TabularImportSource",
+              true,
+              null
+            ],
+            [
+              "mapping",
+              "VoltageImportMapping",
+              true,
+              null
+            ],
+            [
+              "dataset",
+              "CsvReplayDataset",
+              true,
+              null
+            ]
+          ],
+          "frozen": true
+        }
+      },
+      "exports": [
+        "MAX_VOLTAGE_IMPORT_BYTES",
+        "MAX_VOLTAGE_IMPORT_CELL_CHARS",
+        "MAX_VOLTAGE_IMPORT_COLUMNS",
+        "MAX_VOLTAGE_IMPORT_ROWS",
+        "VOLTAGE_IMPORT_MAPPING_SCHEMA_VERSION",
+        "TabularImportSource",
+        "VoltageImportError",
+        "VoltageImportMapping",
+        "VoltageImportPreview",
+        "mapping_from_dict",
+        "mapping_to_dict",
+        "parse_voltage_table",
+        "preview_voltage_import"
+      ],
+      "signatures": {
+        "TabularImportSource": [
+          [
+            "raw_bytes",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "delimiter",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "columns",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "rows",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "row_numbers",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ]
+        ],
+        "VoltageImportError": [
+          [
+            "message",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "row_number",
+            "KEYWORD_ONLY",
+            false,
+            null
+          ],
+          [
+            "column",
+            "KEYWORD_ONLY",
+            false,
+            null
+          ]
+        ],
+        "VoltageImportMapping": [
+          [
+            "name",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "time_column",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "input_column",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "input_unit",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "output_column",
+            "POSITIONAL_OR_KEYWORD",
+            false,
+            null
+          ],
+          [
+            "output_unit",
+            "POSITIONAL_OR_KEYWORD",
+            false,
+            null
+          ],
+          [
+            "time_mode",
+            "POSITIONAL_OR_KEYWORD",
+            false,
+            "timestamp"
+          ],
+          [
+            "start_time_utc",
+            "POSITIONAL_OR_KEYWORD",
+            false,
+            null
+          ],
+          [
+            "delimiter",
+            "POSITIONAL_OR_KEYWORD",
+            false,
+            ","
+          ],
+          [
+            "minimum_mv",
+            "POSITIONAL_OR_KEYWORD",
+            false,
+            0.0
+          ],
+          [
+            "maximum_mv",
+            "POSITIONAL_OR_KEYWORD",
+            false,
+            3300.0
+          ],
+          [
+            "schema_version",
+            "POSITIONAL_OR_KEYWORD",
+            false,
+            "voltage-import-mapping.v1"
+          ]
+        ],
+        "VoltageImportPreview": [
+          [
+            "source",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "mapping",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "dataset",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ]
+        ],
+        "mapping_from_dict": [
+          [
+            "document",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ]
+        ],
+        "mapping_to_dict": [
+          [
+            "mapping",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ]
+        ],
+        "parse_voltage_table": [
+          [
+            "payload",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "delimiter",
+            "KEYWORD_ONLY",
+            false,
+            ","
+          ]
+        ],
+        "preview_voltage_import": [
+          [
+            "source",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "mapping",
+            "POSITIONAL_OR_KEYWORD",
+            true,
+            null
+          ],
+          [
+            "dataset_id",
+            "KEYWORD_ONLY",
+            false,
+            "imported-voltage"
+          ]
+        ]
+      }
+    }
+  },
+  "schema_version": "voltage-import-golden.v1"
+}

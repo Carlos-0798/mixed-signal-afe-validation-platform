@@ -13,27 +13,13 @@ from ..errors import ProductFieldError, ProductRequestError
 from ..models import ProductJobType, ProductResultStatus, ProductSourceMode
 from .accessibility import TkAccessibilityBridge
 from .state import DashboardLivePanel, DashboardState
+from .themes import PALETTES, WORKBENCH, DashboardPalette
 from .wizard import (
     DashboardExportFormat,
     DashboardWizardDraft,
     DashboardWizardState,
     DashboardWizardStep,
 )
-
-_BACKGROUND = "#0b1220"
-_SURFACE = "#111c2e"
-_SURFACE_RAISED = "#17243a"
-_HEADER = "#08111f"
-_TEXT = "#e6edf7"
-_MUTED = "#9aa9bd"
-_ACCENT = "#38bdf8"
-_ACCENT_ACTIVE = "#67d7f5"
-_BORDER = "#2a3b55"
-_DANGER = "#fb7185"
-_SUCCESS = "#34d399"
-_WARNING = "#fbbf24"
-_DISABLED_BACKGROUND = "#243146"
-_DISABLED_TEXT = "#64748b"
 
 _SOURCE_DISPLAY_NAMES = {
     ProductSourceMode.SIMULATOR: "Simulator — synthetic data",
@@ -184,7 +170,16 @@ def _configure_high_contrast_style(style: Any, root: Any) -> None:
     highlight = "SystemHighlight"
     highlight_text = "SystemHighlightText"
     disabled = "SystemGrayText"
-    style.configure(".", background=window, foreground=text, font=("Segoe UI", 10))
+    style.configure(
+        ".",
+        background=window,
+        foreground=text,
+        font=("Segoe UI", 10),
+        lightcolor=text,
+        darkcolor=text,
+        bordercolor=text,
+        focuscolor=highlight,
+    )
     for name in ("App.TFrame", "Header.TFrame", "Card.TFrame"):
         style.configure(name, background=window)
     style.configure("Accent.TFrame", background=highlight)
@@ -233,14 +228,14 @@ def _configure_high_contrast_style(style: Any, root: Any) -> None:
         style.map(
             name,
             background=[
-                ("active", highlight),
-                ("pressed", highlight),
                 ("disabled", window),
+                ("pressed", highlight),
+                ("active", highlight),
             ],
             foreground=[
-                ("active", highlight_text),
-                ("pressed", highlight_text),
                 ("disabled", disabled),
+                ("pressed", highlight_text),
+                ("active", highlight_text),
             ],
         )
     style.configure(
@@ -262,6 +257,11 @@ def _configure_high_contrast_style(style: Any, root: Any) -> None:
         background=[("selected", highlight)],
         foreground=[("selected", highlight_text)],
     )
+    style.map(
+        "Modern.Treeview.Heading",
+        background=[("active", highlight)],
+        foreground=[("active", highlight_text)],
+    )
     style.configure("Modern.TNotebook", background=window)
     style.map(
         "Modern.TNotebook.Tab",
@@ -273,6 +273,8 @@ def _configure_high_contrast_style(style: Any, root: Any) -> None:
         fieldbackground=window,
         foreground=text,
         insertcolor=text,
+        selectbackground=highlight,
+        selectforeground=highlight_text,
         bordercolor=text,
         borderwidth=2,
     )
@@ -288,14 +290,16 @@ def _configure_high_contrast_style(style: Any, root: Any) -> None:
         background=window,
         foreground=text,
         arrowcolor=text,
+        selectbackground=highlight,
+        selectforeground=highlight_text,
         bordercolor=text,
         borderwidth=2,
     )
     style.map(
         "TCombobox",
         bordercolor=[("focus", highlight), ("!focus", text)],
-        fieldbackground=[("readonly", window)],
-        foreground=[("readonly", text), ("disabled", disabled)],
+        fieldbackground=[("disabled", window), ("readonly", window)],
+        foreground=[("disabled", disabled), ("readonly", text)],
     )
     style.configure(
         "TCheckbutton",
@@ -305,8 +309,8 @@ def _configure_high_contrast_style(style: Any, root: Any) -> None:
     )
     style.map(
         "TCheckbutton",
-        background=[("active", highlight)],
-        foreground=[("active", highlight_text), ("disabled", disabled)],
+        background=[("disabled", window), ("active", highlight)],
+        foreground=[("disabled", disabled), ("active", highlight_text)],
     )
     for name in ("TEntry", "TCombobox", "TCheckbutton"):
         style.configure(
@@ -349,6 +353,7 @@ def configure_dashboard_style(
 ) -> None:
     """Apply the restrained laboratory-console theme when ttk supports styling."""
 
+    palette = getattr(root, "_avs_palette", WORKBENCH)
     use_high_contrast = (
         _windows_high_contrast_enabled() if high_contrast is None else high_contrast
     )
@@ -369,100 +374,107 @@ def configure_dashboard_style(
         if callable(theme_names) and callable(theme_use) and "clam" in theme_names():
             theme_use("clam")
         style.configure(
-            ".", background=_BACKGROUND, foreground=_TEXT, font=("Segoe UI", 10)
+            ".",
+            background=palette.background,
+            foreground=palette.text,
+            font=("Segoe UI", 10),
+            lightcolor=palette.border,
+            darkcolor=palette.border,
+            bordercolor=palette.border,
+            focuscolor=palette.accent,
         )
-        style.configure("App.TFrame", background=_BACKGROUND)
-        style.configure("Header.TFrame", background=_HEADER)
-        style.configure("Accent.TFrame", background=_ACCENT)
+        style.configure("App.TFrame", background=palette.background)
+        style.configure("Header.TFrame", background=palette.header)
+        style.configure("Accent.TFrame", background=palette.accent)
         style.configure(
             "HeaderEyebrow.TLabel",
-            background=_HEADER,
-            foreground=_ACCENT,
-            font=("Segoe UI Semibold", 9),
+            background=palette.header,
+            foreground=palette.accent,
+            font=("Segoe UI Semibold", 10),
         )
         style.configure(
             "HeaderTitle.TLabel",
-            background=_HEADER,
-            foreground="#f4f8ff",
+            background=palette.header,
+            foreground=palette.text,
             font=("Segoe UI Semibold", 20),
         )
         style.configure(
             "HeaderSubtitle.TLabel",
-            background=_HEADER,
-            foreground=_MUTED,
+            background=palette.header,
+            foreground=palette.muted,
             font=("Segoe UI", 10),
         )
         style.configure(
             "Badge.TLabel",
-            background=_SURFACE_RAISED,
-            foreground=_ACCENT,
-            font=("Segoe UI Semibold", 9),
+            background=palette.raised,
+            foreground=palette.accent,
+            font=("Segoe UI Semibold", 10),
             padding=(9, 5),
         )
         style.configure(
             "SafeBadge.TLabel",
-            background=_SURFACE_RAISED,
-            foreground=_SUCCESS,
-            font=("Segoe UI Semibold", 9),
+            background=palette.raised,
+            foreground=palette.success,
+            font=("Segoe UI Semibold", 10),
             padding=(9, 5),
         )
         style.configure(
             "Card.TLabelframe",
-            background=_SURFACE,
-            bordercolor=_BORDER,
+            background=palette.surface,
+            bordercolor=palette.border,
             relief="solid",
             borderwidth=1,
         )
         style.configure(
             "Card.TLabelframe.Label",
-            background=_SURFACE,
-            foreground=_TEXT,
+            background=palette.surface,
+            foreground=palette.text,
             font=("Segoe UI Semibold", 10),
         )
         style.configure(
             "Card.TFrame",
-            background=_SURFACE,
+            background=palette.surface,
         )
         style.configure(
             "Title.TLabel",
-            background=_SURFACE,
-            foreground=_TEXT,
+            background=palette.surface,
+            foreground=palette.text,
             font=("Segoe UI Semibold", 13),
         )
         style.configure(
             "Step.TLabel",
-            background=_SURFACE,
-            foreground=_ACCENT,
+            background=palette.surface,
+            foreground=palette.accent,
             font=("Segoe UI Semibold", 12),
         )
         style.configure(
             "Body.TLabel",
-            background=_SURFACE,
-            foreground=_TEXT,
+            background=palette.surface,
+            foreground=palette.text,
             font=("Segoe UI", 10),
         )
         style.configure(
             "Muted.TLabel",
-            background=_SURFACE,
-            foreground=_MUTED,
-            font=("Segoe UI", 9),
+            background=palette.surface,
+            foreground=palette.muted,
+            font=("Segoe UI", 10),
         )
         style.configure(
             "Status.TLabel",
-            background=_SURFACE,
-            foreground=_ACCENT,
+            background=palette.surface,
+            foreground=palette.accent,
             font=("Segoe UI Semibold", 10),
         )
         style.configure(
             "Evidence.TLabel",
-            background=_SURFACE,
-            foreground=_SUCCESS,
-            font=("Segoe UI Semibold", 9),
+            background=palette.surface,
+            foreground=palette.success,
+            font=("Segoe UI Semibold", 10),
         )
         style.configure(
             "Primary.TButton",
-            background=_ACCENT,
-            foreground=_HEADER,
+            background=palette.accent,
+            foreground=palette.primary_text,
             font=("Segoe UI Semibold", 10),
             padding=(14, 8),
             borderwidth=1,
@@ -470,74 +482,78 @@ def configure_dashboard_style(
         style.map(
             "Primary.TButton",
             background=[
-                ("active", _ACCENT_ACTIVE),
-                ("pressed", "#0ea5e9"),
-                ("disabled", _DISABLED_BACKGROUND),
+                ("disabled", palette.background),
+                ("pressed", palette.pressed),
+                ("active", palette.active),
             ],
-            foreground=[("disabled", _DISABLED_TEXT)],
+            foreground=[("disabled", palette.disabled_text)],
         )
         style.configure(
             "Secondary.TButton",
-            background=_SURFACE_RAISED,
-            foreground=_TEXT,
+            background=palette.raised,
+            foreground=palette.text,
             font=("Segoe UI", 10),
             padding=(12, 8),
-            bordercolor=_BORDER,
+            bordercolor=palette.border,
             borderwidth=1,
         )
         style.map(
             "Secondary.TButton",
             background=[
-                ("active", "#223653"),
-                ("pressed", "#29415f"),
-                ("disabled", _BACKGROUND),
+                ("disabled", palette.background),
+                ("pressed", palette.pressed_surface),
+                ("active", palette.hover_surface),
             ],
-            foreground=[("disabled", _DISABLED_TEXT)],
+            foreground=[("disabled", palette.disabled_text)],
         )
         style.configure(
             "Danger.TButton",
-            foreground=_DANGER,
-            background=_SURFACE_RAISED,
-            font=("Segoe UI Semibold", 9),
+            foreground=palette.danger,
+            background=palette.raised,
+            font=("Segoe UI Semibold", 10),
             padding=(10, 6),
-            bordercolor="#713447",
+            bordercolor=palette.danger,
             borderwidth=1,
         )
         style.map(
             "Danger.TButton",
             background=[
-                ("active", "#4a2434"),
-                ("pressed", "#5b293c"),
-                ("disabled", _BACKGROUND),
+                ("disabled", palette.background),
+                ("pressed", palette.pressed_surface),
+                ("active", palette.hover_surface),
             ],
-            foreground=[("disabled", _DISABLED_TEXT)],
+            foreground=[("disabled", palette.disabled_text)],
         )
         style.configure(
             "Modern.Treeview",
-            background=_SURFACE,
-            fieldbackground=_SURFACE,
-            foreground=_TEXT,
+            background=palette.surface,
+            fieldbackground=palette.surface,
+            foreground=palette.text,
             rowheight=30,
-            font=("Segoe UI", 9),
-            bordercolor=_BORDER,
+            font=("Segoe UI", 10),
+            bordercolor=palette.border,
             borderwidth=1,
         )
         style.configure(
             "Modern.Treeview.Heading",
-            background=_SURFACE_RAISED,
-            foreground=_TEXT,
-            font=("Segoe UI Semibold", 9),
+            background=palette.raised,
+            foreground=palette.text,
+            font=("Segoe UI Semibold", 10),
             padding=(8, 7),
-            bordercolor=_BORDER,
+            bordercolor=palette.border,
         )
         style.map(
             "Modern.Treeview",
-            background=[("selected", "#164e63")],
-            foreground=[("selected", "#f0f9ff")],
+            background=[("selected", palette.selection)],
+            foreground=[("selected", palette.selection_text)],
+        )
+        style.map(
+            "Modern.Treeview.Heading",
+            background=[("active", palette.hover_surface)],
         )
         style.configure(
             "Modern.TNotebook",
-            background=_BACKGROUND,
+            background=palette.background,
             borderwidth=0,
             tabmargins=(18, 10, 18, 0),
         )
@@ -549,84 +565,175 @@ def configure_dashboard_style(
         )
         style.map(
             "Modern.TNotebook.Tab",
-            background=[("selected", _SURFACE), ("!selected", _BACKGROUND)],
-            foreground=[("selected", _ACCENT), ("!selected", _MUTED)],
+            background=[
+                ("selected", palette.surface),
+                ("!selected", palette.background),
+            ],
+            foreground=[("selected", palette.accent), ("!selected", palette.muted)],
         )
         style.configure(
             "TEntry",
-            fieldbackground=_SURFACE_RAISED,
-            foreground=_TEXT,
-            insertcolor=_TEXT,
-            bordercolor=_BORDER,
+            fieldbackground=palette.raised,
+            foreground=palette.text,
+            insertcolor=palette.text,
+            selectbackground=palette.selection,
+            selectforeground=palette.selection_text,
+            bordercolor=palette.border,
             padding=(8, 6),
         )
         style.map(
             "TEntry",
-            bordercolor=[("focus", _ACCENT), ("!focus", _BORDER)],
-            fieldbackground=[("disabled", _BACKGROUND)],
-            foreground=[("disabled", _DISABLED_TEXT)],
+            bordercolor=[("focus", palette.accent), ("!focus", palette.border)],
+            fieldbackground=[("disabled", palette.background)],
+            foreground=[("disabled", palette.disabled_text)],
         )
         style.configure(
             "TCombobox",
-            fieldbackground=_SURFACE_RAISED,
-            background=_SURFACE_RAISED,
-            foreground=_TEXT,
-            arrowcolor=_ACCENT,
-            bordercolor=_BORDER,
+            fieldbackground=palette.raised,
+            background=palette.raised,
+            foreground=palette.text,
+            arrowcolor=palette.accent,
+            selectbackground=palette.selection,
+            selectforeground=palette.selection_text,
+            bordercolor=palette.border,
             padding=(7, 5),
         )
         style.map(
             "TCombobox",
-            bordercolor=[("focus", _ACCENT), ("!focus", _BORDER)],
-            fieldbackground=[("readonly", _SURFACE_RAISED)],
-            foreground=[("readonly", _TEXT), ("disabled", _DISABLED_TEXT)],
+            bordercolor=[("focus", palette.accent), ("!focus", palette.border)],
+            fieldbackground=[
+                ("disabled", palette.background),
+                ("readonly", palette.raised),
+            ],
+            foreground=[
+                ("disabled", palette.disabled_text),
+                ("readonly", palette.text),
+            ],
         )
         style.configure(
             "TCheckbutton",
-            background=_SURFACE,
-            foreground=_TEXT,
-            focuscolor=_ACCENT,
+            background=palette.surface,
+            foreground=palette.text,
+            focuscolor=palette.accent,
         )
         style.map(
             "TCheckbutton",
-            background=[("active", _SURFACE)],
-            foreground=[("disabled", _DISABLED_TEXT)],
+            background=[("active", palette.surface)],
+            foreground=[("disabled", palette.disabled_text)],
         )
         for name in ("TEntry", "TCombobox", "TCheckbutton"):
             style.configure(
                 f"Invalid.{name}",
-                bordercolor=_DANGER,
-                lightcolor=_DANGER,
-                darkcolor=_DANGER,
-                focuscolor=_DANGER,
+                bordercolor=palette.danger,
+                lightcolor=palette.danger,
+                darkcolor=palette.danger,
+                focuscolor=palette.danger,
             )
             style.map(
                 f"Invalid.{name}",
-                bordercolor=[("focus", _DANGER), ("!focus", _DANGER)],
+                bordercolor=[("focus", palette.danger), ("!focus", palette.danger)],
             )
         style.configure(
             "TScrollbar",
-            background=_SURFACE_RAISED,
-            troughcolor=_BACKGROUND,
-            bordercolor=_BACKGROUND,
-            arrowcolor=_MUTED,
+            background=palette.raised,
+            troughcolor=palette.background,
+            bordercolor=palette.background,
+            arrowcolor=palette.muted,
         )
         style.configure(
             "Accent.Horizontal.TProgressbar",
-            background=_ACCENT,
-            troughcolor=_SURFACE_RAISED,
-            bordercolor=_BORDER,
-            lightcolor=_ACCENT,
-            darkcolor=_ACCENT,
+            background=palette.accent,
+            troughcolor=palette.raised,
+            bordercolor=palette.border,
+            lightcolor=palette.accent,
+            darkcolor=palette.accent,
             thickness=10,
         )
         root_configure = getattr(root, "configure", None)
         if callable(root_configure):
-            root_configure(background=_BACKGROUND)
+            root_configure(background=palette.background)
         if use_high_contrast:
             _configure_high_contrast_style(style, root)
+        option_add = getattr(root, "option_add", None)
+        if callable(option_add):
+            for option, color in _popdown_colors(palette, use_high_contrast).items():
+                option_add(f"*TCombobox*Listbox.{option}", color)
     except Exception:  # noqa: BLE001 - styling is optional; workflow remains usable
         return
+
+
+def _popdown_colors(palette: DashboardPalette, high_contrast: bool) -> dict[str, str]:
+    return {
+        "background": "SystemWindow" if high_contrast else palette.raised,
+        "foreground": "SystemWindowText" if high_contrast else palette.text,
+        "selectBackground": "SystemHighlight" if high_contrast else palette.selection,
+        "selectForeground": (
+            "SystemHighlightText" if high_contrast else palette.selection_text
+        ),
+    }
+
+
+def _refresh_theme_widgets(
+    widget: Any, palette: DashboardPalette, high_contrast: bool
+) -> None:
+    """Repaint existing non-ttk surfaces, preserving their contents and scroll state."""
+    surface = getattr(widget, "_avs_canvas_surface", None)
+    if surface is not None:
+        widget._avs_palette = palette
+        widget.configure(
+            background="SystemWindow" if high_contrast else getattr(palette, surface)
+        )
+        if surface == "surface":
+            widget.configure(
+                highlightbackground=(
+                    "SystemWindowText" if high_contrast else palette.border
+                )
+            )
+            widget._avs_redraw()
+    children = getattr(widget, "winfo_children", None)
+    if not callable(children):
+        return
+    if widget.winfo_class() == "TCombobox":
+        # option_add handles new popdowns; previously opened lists need repainting.
+        popdown = widget.tk.call("ttk::combobox::PopdownWindow", str(widget))
+        for option, color in _popdown_colors(palette, high_contrast).items():
+            widget.tk.call(f"{popdown}.f.l", "configure", f"-{option.lower()}", color)
+    for child in children():
+        _refresh_theme_widgets(child, palette, high_contrast)
+
+
+def _create_theme_selector(root: Any, parent: Any, tk: Any, ttk: Any) -> None:
+    high_contrast = bool(getattr(root, "_avs_high_contrast", False))
+    value = tk.StringVar(
+        master=root, value="System contrast" if high_contrast else "Workbench"
+    )
+    bar = ttk.Frame(parent, style="Header.TFrame")
+    bar.grid(row=3, column=1, columnspan=2, sticky="w", pady=(10, 0))
+    ttk.Label(bar, text="Appearance (this window)", style="HeaderSubtitle.TLabel").grid(
+        row=0, column=0, sticky="w", padx=(0, 10)
+    )
+    selector = ttk.Combobox(
+        bar,
+        textvariable=value,
+        values=tuple(PALETTES),
+        width=18,
+        state="disabled" if high_contrast else "readonly",
+        takefocus=True,
+    )
+    selector.grid(row=0, column=1, sticky="w")
+
+    def select_palette() -> None:
+        if high_contrast:
+            value.set("System contrast")
+            return
+        palette = PALETTES[value.get()]
+        root._avs_palette = palette
+        configure_dashboard_style(root, ttk, high_contrast=False)
+        _refresh_theme_widgets(root, palette, False)
+
+    _bind_selection(selector, select_palette)
+    root._avs_theme_select = selector
+    root._avs_theme_value = value
 
 
 def _callback(name: str, value: object) -> Callable[[], object]:
@@ -688,9 +795,7 @@ def _result_decision_text(state: DashboardState) -> str:
             TestRunOutcome.PASS: (
                 "PASS — reviewed criteria passed for this evidence only."
             ),
-            TestRunOutcome.FAIL: (
-                "FAIL — reviewed criteria failed for this evidence."
-            ),
+            TestRunOutcome.FAIL: ("FAIL — reviewed criteria failed for this evidence."),
             TestRunOutcome.INCOMPLETE: (
                 "INCOMPLETE — criteria could not produce a complete conclusion."
             ),
@@ -772,15 +877,6 @@ def _artifact_text(state: DashboardState) -> str:
     return "\n".join(lines)
 
 
-_LIVE_TRACE_COLORS = (
-    _ACCENT,
-    _SUCCESS,
-    _WARNING,
-    "#a78bfa",
-    _DANGER,
-)
-
-
 def _canvas_dimension(canvas: Any, name: str, fallback: int) -> int:
     getter = getattr(canvas, name, None)
     if not callable(getter):
@@ -806,10 +902,11 @@ def _render_live_chart(
     width = _canvas_dimension(canvas, "winfo_width", 920)
     height = _canvas_dimension(canvas, "winfo_height", 220)
     left, right, top, bottom = 58.0, float(width - 18), 26.0, float(height - 34)
-    axis_color = "SystemWindowText" if high_contrast else _BORDER
-    text_color = "SystemWindowText" if high_contrast else _MUTED
+    palette = getattr(canvas, "_avs_palette", WORKBENCH)
+    axis_color = "SystemWindowText" if high_contrast else palette.border
+    text_color = "SystemWindowText" if high_contrast else palette.muted
     trace_colors = (
-        ("SystemHighlight", "SystemWindowText") if high_contrast else _LIVE_TRACE_COLORS
+        ("SystemHighlight", "SystemWindowText") if high_contrast else palette.traces
     )
     create_line(left, top, left, bottom, right, bottom, fill=axis_color, width=1)
     create_text(left, 12, text="value", anchor="w", fill=text_color)
@@ -1246,10 +1343,13 @@ def create_dashboard_widgets(
         live_canvas = canvas_factory(
             live_frame,
             height=220,
-            background="SystemWindow" if high_contrast else _SURFACE,
+            background="SystemWindow" if high_contrast else WORKBENCH.surface,
             highlightthickness=1,
-            highlightbackground="SystemWindowText" if high_contrast else _BORDER,
+            highlightbackground="SystemWindowText"
+            if high_contrast
+            else WORKBENCH.border,
         )
+        live_canvas._avs_canvas_surface = "surface"
     else:
         live_canvas = ttk.Frame(live_frame, height=220, style="Card.TFrame")
     live_canvas.grid(row=1, column=0, columnspan=5, sticky="nsew", pady=(8, 0))
@@ -1454,6 +1554,7 @@ def create_dashboard_widgets(
     bind_canvas = getattr(live_canvas, "bind", None)
     if callable(bind_canvas):
         bind_canvas("<Configure>", lambda _event: widgets.redraw_live_chart())
+    live_canvas._avs_redraw = widgets.redraw_live_chart
     return widgets
 
 
@@ -2159,11 +2260,12 @@ def _create_scrollable_page(
     host.rowconfigure(0, weight=1)
     canvas = canvas_factory(
         host,
-        background="SystemWindow" if high_contrast else _BACKGROUND,
+        background="SystemWindow" if high_contrast else WORKBENCH.background,
         borderwidth=0,
         highlightthickness=0,
         yscrollincrement=32,
     )
+    canvas._avs_canvas_surface = "background"
     scrollbar = scrollbar_factory(host, orient="vertical", command=canvas.yview)
     canvas.configure(yscrollcommand=scrollbar.set)
     canvas.grid(row=0, column=0, sticky="nsew")
@@ -2373,6 +2475,7 @@ def create_dashboard_workflow_widgets(
             sticky="e",
             pady=(4 if row else 0, 0),
         )
+    _create_theme_selector(root, header, tk, ttk)
 
     notebook_factory = getattr(ttk, "Notebook", None)
     if callable(notebook_factory):

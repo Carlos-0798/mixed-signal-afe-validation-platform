@@ -68,6 +68,10 @@ These limits are part of the product contract, not hidden footnotes.
   Dashboard Projects & history tab. The UI supports adding the current setup
   as a preset, saving a new project copy, real per-preset progress, cooperative
   batch cancellation, cleanup-before-close, and terminal history refresh.
+  A stored preset can be copied into Setup, with a fresh Review required;
+  finalized analyses can be saved as complete readable report packages with
+  their canonical result JSON. These actions do not modify the stored preset
+  or an existing output folder.
   In-place preset editing and graphical trace overlays remain deferred.
 - Project history is local files, not a database. Users choose every project,
   run destination, and manifest input; there is no automatic discovery,
@@ -83,6 +87,24 @@ These limits are part of the product contract, not hidden footnotes.
   retry policy, dependency graph, unattended real-device queue, or remote agent.
 
 ## Serial and controller compatibility
+
+- The [voltage import increment](voltage-data-import.md) accepts explicitly
+  mapped UTF-8 tables containing V/mV and a timestamp (timezone required), or
+  elapsed seconds with a supplied acquisition origin. It does not infer units,
+  timestamps, sample cadence, calibration, or column meaning. The initial limit
+  is 2 MiB, 10,000 data rows, 64 columns, and 1,024 characters per cell.
+- Excel workbooks, JSON streams, arbitrary binary protocols, generic serial
+  text, additional physical quantities, and files without time information are
+  not supported by this importer. No new physical device was verified.
+- Import packages retain exact source bytes and deterministic conversions.
+  Hashes and regeneration checks detect inconsistency; they do not authenticate
+  a laboratory, operator, instrument, or measurement accuracy. Generated setup
+  defaults are starting points and require the user's review of criteria.
+- New import-package publication uses native no-replace directory publication
+  on Windows and Linux (`renameat2` with `RENAME_NOREPLACE`). Unsupported systems
+  or filesystems fail instead of falling back to a potentially replacing rename.
+  The present acceptance is Windows HOST_TEST; Linux's path has unit coverage,
+  not a fresh native Linux run in this increment.
 
 - pyserial is optional and absent from the base wheel.
 - The product serial boundary is receive-only, but OS port open can still

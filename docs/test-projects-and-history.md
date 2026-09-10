@@ -115,14 +115,14 @@ run-001/
 ```
 
 `project.snapshot.json` preserves the exact portable project document used for
-the run. New runs use `validation-run-manifest.v3`. The manifest stores its
+the run. New runs use `validation-run-manifest.v4`. The manifest stores its
 SHA-256 plus a canonical configuration SHA-256
 for each executed preset. It also copies terminal worker/product status,
 finalized engineering outcome, evidence source, measurement count, bounded
 numeric metrics, limitations, issue code, software version, and artifact
 hashes. It never recalculates a finalized PASS or FAIL.
 
-The v2/v3 manifest records the ordered `planned_preset_ids`, every terminal record,
+The v2/v3/v4 manifest records the ordered `planned_preset_ids`, every terminal record,
 and the ordered `not_started_preset_ids`. Its batch status means:
 
 - `COMPLETE`: every preset in the project was planned and reached a terminal
@@ -131,19 +131,31 @@ and the ordered `not_started_preset_ids`. Its batch status means:
   reached a terminal state;
 - `CANCELLED`: a cancellation request was accepted, cleanup finished, and any
   later presets are explicitly not started;
-- `ERROR`: worker execution or cleanup failed; that failure record is retained
-  and later presets are explicitly not started.
+- `ERROR`: worker execution or cleanup failed, or a later preset could not be
+  prepared after earlier results completed. Existing terminal records are
+  retained and later presets are explicitly not started.
 
 These are execution states. `COMPLETE` does not mean engineering PASS, and no
 state upgrades `SYNTHETIC`, `CSV_REPLAY`, or `HOST_TEST` evidence to BENCH.
-The v3 manifest also maps every executed CSV Replay preset to a safe run-relative
+The v3/v4 manifest also maps every executed CSV Replay preset to a safe run-relative
 input artifact, exact byte count, and SHA-256. The runner copies that input into
 staging before preparation and executes the staged copy. If several executed
 presets reference the same resolved source file, one copy is stored and each
 preset retains its own reference. A preset cancelled before it starts is not
 opened and has no input-artifact record.
 
-The loader still accepts strict `validation-run-manifest.v1` and v2 documents with
+V4 adds nullable `preparation_failure` with the failed preset ID, issue code,
+technical error type, and readable message. If preparation fails after an earlier
+preset completed, the batch publishes those earlier results with `ERROR` and
+leaves the failed preset first in `not_started_preset_ids`. There is no invented
+worker status, engineering outcome, or measurement record for that preset. If its
+Replay input had already been archived before preparation failed, that exact input
+may be retained for inspection. The failure counts as one operational failure.
+Failure before the first worker starts still rejects the operation without
+publishing a run directory; failure of final atomic publication cannot guarantee
+a saved history.
+
+The loader still accepts strict `validation-run-manifest.v1`, v2, and v3 documents with
 their exact original fields. Loading or presenting a v1 file never rewrites it;
 v1 simply has no encoded batch status or not-started list.
 The Dashboard therefore renders its batch status as `LEGACY_V1`; it does not
@@ -151,7 +163,7 @@ infer `COMPLETE` from the presence of old records.
 
 Read and live-monitor presets do not currently publish raw output-observation files;
 their history records contain the terminal status, source, counts, limitations,
-and bounded summary metrics. A CSV Replay source file is now retained as a v3
+and bounded summary metrics. A CSV Replay source file is now retained as a v3/v4
 input artifact; this does not create a new result dataset or change its
 `CSV_REPLAY` evidence class. Analysis presets publish their existing strict
 `result-export.v1` artifact, and calibration also publishes its separate
@@ -263,6 +275,11 @@ unavailable until those existing backend conditions are met.
    `SYNTHETIC`/`CSV_REPLAY` boundary; Serial cannot be persisted and no port is
    discovered. **Save project as…** writes the modified project to a
    new JSON file; the original is retained. Serial configurations are rejected.
+   To reuse an existing configuration, select exactly one row and choose
+   **Load selected into Setup**. This opens editable configuration without
+   running a test or opening its Replay input. Relative CSV paths resolve from
+   the saved project directory. Change the desired settings, then Review before
+   Run; capture the modified Setup with a new preset ID to keep both versions.
 3. Enter a unique run ID and choose a **new output directory name**. Its parent
    must already exist. The directory picker selects a name; Run creates it.
 4. Choose **Review selected batch**. The frozen summary names the exact project,
@@ -275,18 +292,22 @@ unavailable until those existing backend conditions are met.
    and text show the actual phase, current preset, sequence/total, and completed
    terminal-record count. **Cancel batch safely** requests cooperative
    cancellation once; the active worker cleans up, later presets stop, and the
-    v3 manifest preserves terminal records plus explicit not-started IDs and
-    inputs for the Replay presets that actually started. A
+   v4 manifest preserves terminal records plus explicit not-started IDs and
+   retained Replay inputs. A later preparation failure is shown with its preset
+   ID and reason while earlier results remain available. A
    single test and a project batch cannot run at the same time.
 6. Completed batches enter the history table. **Load run manifests…** selects
    existing histories explicitly and validates them before updating the table.
    Zero history explains how to create or load the first run; one run asks for a
    second same-project manifest; two or more enable selection for comparison.
-   Select one history row to inspect its v3 Replay input references in a separate
+   Select one history row to inspect its v3/v4 Replay input references in a separate
    read-only table with archived path, byte count, and full SHA-256. A v1/v2 row
-   explains that it predates this feature, while an empty v3 row identifies a
+   explains that it predates this feature, while an empty v3/v4 row identifies a
    Simulator-only run or Replay presets that never started. Select two rows to
    return to comparison; no CSV is opened and no result is recalculated.
+   A v4 preparation failure is explained above the input table, including which
+   preset never started and why. This is an execution failure, not a fabricated
+   failed engineering result.
    **Clear view** clears only the table, not saved files.
 7. Select exactly two history rows and choose **Compare selected runs**. With the
    table focused, Shift+Up/Down extends or shrinks the selection and Ctrl+A

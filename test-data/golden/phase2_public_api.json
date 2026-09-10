@@ -455,6 +455,11 @@
         "request",
         "POSITIONAL_OR_KEYWORD",
         true
+      ],
+      [
+        "checkpoint",
+        "KEYWORD_ONLY",
+        false
       ]
     ],
     "run_streaming_read_workflow": [

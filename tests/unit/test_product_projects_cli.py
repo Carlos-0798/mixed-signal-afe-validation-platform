@@ -108,6 +108,62 @@ def test_project_parser_exposes_five_bounded_actions() -> None:
     assert tuple(project_choices) == ("create", "inspect", "run", "history", "compare")
 
 
+@pytest.mark.parametrize("machine", (False, True))
+def test_later_preparation_failure_cli_retains_history_and_separates_json(
+    tmp_path: Path, machine: bool,
+) -> None:
+    project = ValidationProject(
+        "recoverable", "Recoverable batch", "", (
+            ValidationPreset(
+                "complete", "Complete DC", ProductWorkflowConfiguration(
+                    ProductSourceMode.SIMULATOR, ProductJobType.DC_ANALYSIS,
+                ),
+            ),
+            ValidationPreset(
+                "missing", "Missing Replay", ProductWorkflowConfiguration(
+                    ProductSourceMode.CSV_REPLAY, ProductJobType.READ,
+                    replay_path=tmp_path / "missing.csv",
+                ),
+            ),
+        ),
+    )
+    project_path = write_validation_project(tmp_path / "project.json", project)
+    calls: list[str] = []
+    exit_code, output, progress = run_cli(
+        [
+            "project", "run", "--input", str(project_path),
+            "--output", str(tmp_path / "run"), "--run-id", "run",
+            *(["--json"] if machine else []),
+        ],
+        calls=calls,
+    )
+    assert exit_code == cli.CLI_OPERATION_ERROR_EXIT_CODE
+    assert "FINISHED" in progress and "ERROR" in progress
+    assert "No measurements were acquired" not in progress
+    if machine:
+        manifest = json.loads(output)["run_manifest"]
+        assert manifest["schema_version"] == "validation-run-manifest.v4"
+        assert manifest["preparation_failure"]["preset_id"] == "missing"
+        assert manifest["not_started_preset_ids"] == ["missing"]
+        assert len(manifest["records"]) == 1
+        assert manifest["records"][0]["evidence_source"] == "SYNTHETIC"
+        assert "Preparation failed before worker start:" not in output
+    else:
+        assert "Preparation failed before worker start: missing [INPUT_DATA]" in output
+        assert "earlier completed results were retained" in output
+        assert "Not started: missing" in output
+    exit_code, history, errors = run_cli(
+        ["project", "history", "--run", str(tmp_path / "run" / "run-manifest.json")],
+        calls=calls,
+    )
+    assert exit_code == 0 and errors == ""
+    assert "status=ERROR" in history
+    assert "operational failures=1" in history
+    assert "Preparation failed before worker start: missing [INPUT_DATA]" in history
+    assert "No measurements were acquired for this preset" in history
+    assert calls == []
+
+
 def test_project_create_and_inspect_are_offline_and_beginner_readable(tmp_path: Path) -> None:
     calls: list[str] = []
     path = tmp_path / "project.json"
@@ -648,6 +704,7 @@ def test_project_presentation_rejects_internal_shape_drift() -> None:
         ({"command": "x", "run_manifest": {"run_id": "x", "records": [], "input_artifacts": {}}}, "input-artifact presentation"),
         ({"command": "x", "run_manifest": {"run_id": "x", "records": [], "input_artifacts": [None]}}, "input-artifact presentation"),
         ({"command": "x", "run_manifest": {"run_id": "x", "records": [], "not_started_preset_ids": None}}, "not-started presentation"),
+        ({"command": "x", "run_manifest": {"run_id": "x", "records": [], "preparation_failure": []}}, "preparation failure presentation"),
         ({"command": "x", "run_manifest": {"run_id": "x", "records": [None]}}, "run record presentation"),
         ({"command": "x", "runs": [None]}, "history presentation"),
         ({"command": "x", "runs": [{"manifest": {}}]}, "history summary"),

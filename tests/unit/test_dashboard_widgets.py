@@ -121,6 +121,10 @@ class FakeRoot(FakeWidget):
         self.window_title = ""
         self.minimum = (0, 0)
         self._avs_high_contrast = False
+        self.options: dict[str, str] = {}
+
+    def option_add(self, pattern: str, value: str) -> None:
+        self.options[pattern] = value
 
     def title(self, value: str) -> None:
         self.window_title = value
@@ -191,14 +195,15 @@ def test_optional_style_supports_legacy_factories_and_fails_open() -> None:
     assert ttk.calls[1] == ()
     assert style.selected_theme == "clam"
     assert "Primary.TButton" in style.configured
-    assert style.configured["App.TFrame"]["background"] == "#0b1220"
+    assert style.configured["App.TFrame"]["background"] == "#22262d"
     assert style.configured["Modern.Treeview"]["rowheight"] == 30
-    assert style.configured["TEntry"]["fieldbackground"] == "#17243a"
+    assert style.configured["TEntry"]["fieldbackground"] == "#353c46"
     assert style.configured["Accent.Horizontal.TProgressbar"]["background"] == (
-        "#38bdf8"
+        "#a9cafa"
     )
     assert "Modern.Treeview" in style.mapped
-    assert root.config["background"] == "#0b1220"
+    assert root.config["background"] == "#22262d"
+    assert root.options["*TCombobox*Listbox.foreground"] == "#f2f4f7"
 
     class BrokenTtk:
         @staticmethod
@@ -249,6 +254,7 @@ def test_high_contrast_style_uses_windows_system_colors() -> None:
     ]
     assert root.config["background"] == "SystemWindow"
     assert root._avs_high_contrast is True
+    assert root.options["*TCombobox*Listbox.foreground"] == "SystemWindowText"
 
     class RigidRoot:
         __slots__ = ("config",)
@@ -261,7 +267,7 @@ def test_high_contrast_style_uses_windows_system_colors() -> None:
 
     rigid_root = RigidRoot()
     configure_dashboard_style(rigid_root, RecordingTtk(), high_contrast=False)
-    assert rigid_root.config["background"] == "#0b1220"
+    assert rigid_root.config["background"] == "#22262d"
 
 
 def test_high_contrast_detection_reads_enabled_bit_and_fails_closed(

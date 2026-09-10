@@ -1,0 +1,14 @@
+{
+  "delimiter": ",",
+  "input_column": "Stimulus_V",
+  "input_unit": "V",
+  "maximum_mv": 3300.0,
+  "minimum_mv": 0.0,
+  "name": "SYNTHETIC comma UTC volts",
+  "output_column": "Response_V",
+  "output_unit": "V",
+  "schema_version": "voltage-import-mapping.v1",
+  "start_time_utc": null,
+  "time_column": "Timestamp",
+  "time_mode": "timestamp"
+}

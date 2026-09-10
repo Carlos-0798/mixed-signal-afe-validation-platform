@@ -15,6 +15,8 @@ from os import PathLike
 from pathlib import Path
 from typing import cast
 
+from analog_validation.exports import ResultExportBundle, dump_result_export_json
+
 from .errors import (
     ProductReportExistsError,
     ProductReportFormatError,
@@ -28,6 +30,7 @@ from .presentation import (
     ReportCriterionView,
     ReportPointView,
     ReportValueView,
+    build_human_report_view,
 )
 
 HUMAN_REPORT_MANIFEST_SCHEMA_VERSION = "human-report-manifest.v1"
@@ -36,6 +39,7 @@ REPORT_MARKDOWN_FILENAME = "report.md"
 REPORT_HTML_FILENAME = "report.html"
 REPORT_SVG_FILENAME = "chart.svg"
 REPORT_MANIFEST_FILENAME = "manifest.json"
+_REPORT_RESULT_FILENAME = "result.json"
 
 _WIDTH = 960.0
 _HEIGHT = 540.0
@@ -1226,11 +1230,26 @@ def _cleanup_staging(path: Path) -> None:
 def publish_human_report(
     output_directory: str | PathLike[str],
     view: HumanReportView,
+    *,
+    result_bundle: ResultExportBundle | None = None,
 ) -> HumanReportPublication:
-    """Render in memory and atomically publish one create-new report directory."""
+    """Publish a new report, optionally including its matching canonical result.
+
+    The optional result is copied using the existing result-export.v1 serializer;
+    it is never recalculated. Omitting it preserves the original report artifacts.
+    """
 
     if not isinstance(view, HumanReportView):
         raise ProductReportFormatError("view must be a HumanReportView")
+    canonical_result: str | None = None
+    if result_bundle is not None:
+        if not isinstance(result_bundle, ResultExportBundle):
+            raise ProductReportFormatError("result_bundle must be a ResultExportBundle")
+        if build_human_report_view(result_bundle) != view:
+            raise ProductReportFormatError(
+                "result_bundle does not match the report view"
+            )
+        canonical_result = dump_result_export_json(result_bundle)
     destination = _output_path(output_directory)
     parent = destination.parent
     try:
@@ -1268,6 +1287,14 @@ def publish_human_report(
         (name, media_type, content.encode("utf-8"))
         for name, media_type, content in rendered
     )
+    if canonical_result is not None:
+        payloads += (
+            (
+                _REPORT_RESULT_FILENAME,
+                "application/json; charset=utf-8",
+                canonical_result.encode("utf-8"),
+            ),
+        )
     artifacts = tuple(
         _artifact(name, media_type, payload) for name, media_type, payload in payloads
     )

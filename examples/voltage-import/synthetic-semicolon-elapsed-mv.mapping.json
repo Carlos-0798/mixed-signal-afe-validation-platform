@@ -1,0 +1,14 @@
+{
+  "delimiter": ";",
+  "input_column": "Stimulus_mV",
+  "input_unit": "mV",
+  "maximum_mv": 3300.0,
+  "minimum_mv": 0.0,
+  "name": "SYNTHETIC semicolon elapsed millivolts",
+  "output_column": "Response_mV",
+  "output_unit": "mV",
+  "schema_version": "voltage-import-mapping.v1",
+  "start_time_utc": "2026-09-09T12:00:00Z",
+  "time_column": "Elapsed_s",
+  "time_mode": "elapsed_seconds"
+}

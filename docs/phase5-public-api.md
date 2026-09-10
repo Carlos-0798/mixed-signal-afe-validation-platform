@@ -32,29 +32,45 @@ pins. Private functions and implementation details remain free to evolve.
 The public manifest hashes six earlier/current golden manifests but does not
 hash itself, which avoids a circular dependency.
 
+API golden JSON uses UTF-8 with LF line endings, as required by
+`.gitattributes`. The 2026-09-09 update normalized local API golden line endings
+and refreshed the dependent Phase 5 hashes so local files and clean Git
+checkouts use the same bytes. Phase 3 API JSON then matched its existing HEAD
+blob exactly; its schema and values did not change. Historical result, run, and
+CSV artifacts were not rewritten.
+
+The voltage import increment adds `import-csv` to the existing CLI contract.
+Its new public namespaces `analog_validation_app.tabular_import` and
+`analog_validation_app.import_packages` have a separate
+`test-data/golden/voltage_import_v1.json` contract and tests. The existing
+`csv-replay.v1`, project, result, and run-manifest formats are unchanged by
+importing. `voltage-import-mapping.v1` and `voltage-import-manifest.v1` are new
+formats, not migrations of previous artifacts. See
+[Voltage data import](voltage-data-import.md).
+
 ## Public surface frozen
 
 The manifest freezes exports from five explicit namespaces:
 
-- `analog_validation_app`: 228 exports;
+- `analog_validation_app`: 239 exports;
 - `analog_validation_app.cli`: 13 exports;
 - `analog_validation_app.dashboard`: 37 exports;
-- `analog_validation_app.dashboard.app`: 8 exports.
-- `analog_validation_app.projects`: 33 exports.
+- `analog_validation_app.dashboard.app`: 8 exports;
+- `analog_validation_app.projects`: 44 exports.
 
 It also freezes:
 
-- 22 schema-version constants;
-- 10 enum member sets;
-- 49 dataclass field contracts, including required/default and keyword-only
+- 26 schema-version constants;
+- 12 enum member sets;
+- 52 dataclass field contracts, including required/default and keyword-only
   behavior;
-- 60 public constructor/function parameter shapes;
+- 67 public constructor/function/accessor parameter shapes;
 - 29 product-error inheritance relationships;
 - 30 exception-to-user-issue mappings, including the internal-error fallback;
 - product identity, evidence statements, source/profile catalogs, worker
   defaults, report filenames, deterministic-demo identity, and documented
   limitations;
-- 22 serialized CLI/report/demo/project field groups;
+- 23 serialized CLI/report/demo/project field groups;
 - six earlier/current golden-manifest SHA-256 values;
 - the absence of a product-level hardware-control/write surface.
 
@@ -162,13 +178,82 @@ started counts. `execute_product_job` accepts optional cancellation polling and
 event reporting callbacks; `project run` writes progress only to `stderr` so
 its JSON `stdout` contract remains parseable.
 
-TD-040C1A adds `validation-run-manifest.v3` and
-`validation-run-input-artifact.v1`. New runs bind every executed CSV Replay
+TD-040C1A introduced `validation-run-manifest.v3` and
+`validation-run-input-artifact.v1`. The v3 contract binds every executed CSV Replay
 preset to a create-new, run-relative input copy with exact bytes and SHA-256;
 the worker consumes that staged copy. Same-source presets may reference one
-physical copy, while presets cancelled before start have no input record.
-`ValidationRunInputArtifact`, both earlier manifest constants, strict v1/v2
+physical copy, while presets skipped before preparation have no input record.
+`ValidationRunInputArtifact`, the earlier manifest constants, strict v1/v2
 parsing and their original serialization shapes remain public and frozen.
+
+New runs now use `validation-run-manifest.v4`. The additive public type
+`ValidationBatchPreparationFailure` and optional final
+`ValidationRunManifest.preparation_failure` constructor argument describe a
+preset rejected during preparation, before its worker starts. The v4 JSON
+always contains `preparation_failure`: either `null` or an object with exactly
+`preset_id`, `issue_code`, `technical_type`, and `message`.
+
+If a later preset cannot be prepared after earlier workers have finished, the
+batch publishes `ERROR` and retains those earlier result artifacts. The failed
+preset is the first `not_started_preset_ids` entry; it does not receive an
+invented worker result, measurement count, engineering outcome, or evidence
+label. The operational-failure count includes the preparation failure, while
+completed counts still count actual worker records. If its Replay copy was
+successfully archived before a subsequent preparation rejection, v4 may retain
+that verified input as the final input-artifact entry. An archived input alone
+does not mean the preset ran.
+
+First-preset preparation rejection still fails without publishing a run.
+Cancellation observed before preparation skips the preset; an actual
+preparation error is not hidden by a concurrent cancellation request. Worker
+execution/cleanup and final publication errors retain their own failure
+boundaries. The added metadata does not claim successful cleanup following a
+worker timeout or recover results after a publication failure.
+
+`VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION`,
+`VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION`, and
+`VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION` identify the unchanged legacy
+formats. Their parsers and serializers retain the exact original field shapes;
+they reject the new v4 field. Existing v1/v2/v3 files remain readable and are
+not migrated in place. A consumer reading newly produced v4 files must add
+explicit v4 support. CLI command options and exit codes are unchanged; human
+run/history output explains preparation failure, and JSON remains on `stdout`
+with progress on `stderr`.
+
+## Dashboard reuse and report publication additions
+
+The public freeze includes these additive entry points:
+
+- `DashboardApplication.load_preset_configuration(configuration, *,
+  discard_unsaved=False)` loads an offline preset copy into Setup. It requires
+  an idle, open Dashboard, protects an unsaved result unless explicitly
+  discarded, and invalidates the previous review. Loading does not start a job
+  or change the saved project preset.
+- `DashboardWizardPresenter.load_preset_draft(draft)` accepts an offline draft,
+  returns the Configure state, and clears stale review and export permissions.
+- `DashboardApplication.save_report_bundle(path_text)` publishes a readable
+  report and its exact finalized analysis JSON into a new directory. It requires
+  an exportable analysis result; READ/LIVE observations do not acquire an
+  engineering report through this method.
+- `DashboardApplication.report_publication` exposes the latest complete report
+  publication for presentation. It does not recalculate analysis results.
+- `publish_human_report(output_directory, view, *, result_bundle=None)` can now
+  include the matching canonical `result-export.v1` as `result.json`. The
+  supplied bundle must reproduce the same report view. Its bytes, size, and
+  SHA-256 join the report manifest; the directory is published atomically
+  without replacing an existing destination. Omitting `result_bundle` retains
+  the existing report artifacts and behavior.
+
+The separate Phase 2 public API also adds the optional keyword-only
+`checkpoint=None` to `run_read_workflow(adapter, request, *, checkpoint=None)`.
+Existing calls remain valid. Product services supply their cooperative
+cancellation checkpoint before connection and before each read, so a cancelled
+job stops before acquiring the next sample and follows the existing cleanup
+path. This cannot interrupt an adapter call already in progress. The read
+result schema, evidence rules, and cancelled-job output restrictions remain
+unchanged; Phase 5 records the updated Phase 2 API golden hash.
+
+## Exit codes
 
 | Exit code | Meaning |
 |---:|---|

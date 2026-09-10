@@ -574,6 +574,7 @@ def test_review_callback_presents_a_form_exception_and_keeps_running(
 
         def __init__(self, selected_callbacks: dict[str, Any]) -> None:
             self.callbacks = selected_callbacks
+            self.section_frames = {"export": FakeWidget()}
 
         def render(self, dashboard: object, wizard: object) -> None:
             if self.invoked:
@@ -609,6 +610,7 @@ def test_result_action_callbacks_are_wired_through_the_application(
 
         def __init__(self, selected_callbacks: dict[str, Any]) -> None:
             self.callbacks = selected_callbacks
+            self.section_frames = {"export": FakeWidget()}
 
         def render(self, dashboard: object, wizard: object) -> None:
             if self.invoked:
@@ -645,6 +647,7 @@ def test_calibration_file_callbacks_are_wired_through_the_application(
 
         def __init__(self, selected_callbacks: dict[str, Any]) -> None:
             self.callbacks = selected_callbacks
+            self.section_frames = {"export": FakeWidget()}
 
         def render(self, dashboard: object, wizard: object) -> None:
             if self.invoked:
@@ -689,6 +692,7 @@ def test_replay_file_callback_is_wired_through_the_application(
 
         def __init__(self, selected_callbacks: dict[str, Any]) -> None:
             self.callbacks = selected_callbacks
+            self.section_frames = {"export": FakeWidget()}
 
         def render(self, dashboard: object, wizard: object) -> None:
             if self.invoked:
@@ -725,6 +729,7 @@ def test_live_monitor_callbacks_are_wired_through_the_application(
 
         def __init__(self, selected_callbacks: dict[str, Any]) -> None:
             self.callbacks = selected_callbacks
+            self.section_frames = {"export": FakeWidget()}
 
         def render(self, dashboard: object, wizard: object) -> None:
             if self.invoked:
@@ -758,6 +763,7 @@ def test_unsaved_result_can_cancel_every_destructive_result_action(
 
         def __init__(self, selected_callbacks: dict[str, Any]) -> None:
             self.callbacks = selected_callbacks
+            self.section_frames = {"export": FakeWidget()}
 
         def render(self, dashboard: object, wizard: object) -> None:
             if self.invoked:

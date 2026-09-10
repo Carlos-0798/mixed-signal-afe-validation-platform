@@ -53,6 +53,11 @@ from .factories import (
     default_serial_backend_factory,
     discover_serial_ports,
 )
+from .import_cli import (
+    add_import_csv_parser,
+    execute_import_csv,
+    write_import_csv_document,
+)
 from .issues import UserIssue, UserIssueCode, issue_from_exception, user_issue_to_dict
 from .models import (
     ProductJobType,
@@ -887,6 +892,7 @@ def build_parser() -> argparse.ArgumentParser:
         "dashboard", help="launch the local six-step validation dashboard"
     )
     _add_machine_view(dashboard_parser)
+    add_import_csv_parser(commands)
     return parser
 
 
@@ -1153,6 +1159,22 @@ def _write_project_progress(
     )
 
 
+def _write_preparation_failure(manifest: dict[str, object], stream: TextIO) -> None:
+    failure = manifest.get("preparation_failure")
+    if failure is None:
+        return
+    if not isinstance(failure, dict):
+        raise ProductServiceError("preparation failure presentation is malformed")
+    stream.write(
+        f"Preparation failed before worker start: {failure['preset_id']} "
+        f"[{failure['issue_code']}]\n"
+    )
+    stream.write(f"Reason: {failure['message']}\n")
+    stream.write(
+        "No measurements were acquired for this preset; earlier completed results were retained.\n"
+    )
+
+
 def _write_project_document(document: dict[str, object], stream: TextIO) -> None:
     command = document["command"]
     stream.write(f"Command: {command}\n")
@@ -1205,6 +1227,7 @@ def _write_project_document(document: dict[str, object], stream: TextIO) -> None
             raise ProductServiceError("run not-started presentation is malformed")
         if not_started:
             stream.write("Not started: " + ", ".join(map(str, not_started)) + "\n")
+        _write_preparation_failure(run, stream)
         for record in records:
             if not isinstance(record, dict):
                 raise ProductServiceError("run record presentation is malformed")
@@ -1242,6 +1265,7 @@ def _write_project_document(document: dict[str, object], stream: TextIO) -> None
                     f"; archived Replay inputs={summary['input_artifact_count']}"
                 )
             stream.write("\n")
+            _write_preparation_failure(manifest, stream)
     comparison = document.get("comparison")
     if isinstance(comparison, dict):
         stream.write(
@@ -2038,6 +2062,13 @@ def main(
                 _write_json(_version_document(), output)
             else:
                 output.write(f"{PRODUCT_DISPLAY_NAME} {__version__}\n")
+            return 0
+        if arguments.command == "import-csv":
+            document = execute_import_csv(arguments, schema_version=CLI_OUTPUT_SCHEMA_VERSION)
+            if arguments.as_json:
+                _write_json(document, output)
+            else:
+                write_import_csv_document(document, output)
             return 0
         if arguments.command == "profiles":
             if arguments.as_json:

@@ -44,6 +44,15 @@ REVIEWED_BINARY_SHA256: dict[str, str] = {
     "media/dashboard-dc-result.png": (
         "0bc310ae673226a47c47a71eefdd8af50a3a0bf73a81c79e04af0c20b67a9c05"
     ),
+    "media/dashboard-import-daylight-20260909.jpg": (
+        "fc49557829f30b2f5631b5442b3a69d409277e44112177915289219fd02019d2"
+    ),
+    "media/dashboard-import-midnight-20260909.jpg": (
+        "9c0fcff04a527fa9ce7c1840450a42c3e059461906940e8733009369e8b4bc3d"
+    ),
+    "media/dashboard-import-workbench-20260909.jpg": (
+        "47201f8d2056b26f10d2ed1dcb4f0bd711541d87349a9e381bf9a1a184b834e4"
+    ),
 }
 APPROVED_PRIVACY_FIXTURE = "tests/unit/test_release_candidate_check.py"
 # Exact owner-selected MIT text, normalized to LF before hashing.

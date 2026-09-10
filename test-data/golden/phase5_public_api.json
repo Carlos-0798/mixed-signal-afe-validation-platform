@@ -124,6 +124,139 @@
           "required": false
         }
       ],
+      "import-csv": [
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "import-csv convert": [
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "mapping",
+          "flags": [
+            "--mapping"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "output",
+          "flags": [
+            "--output"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "import-csv inspect": [
+        {
+          "choices": [
+            "comma",
+            "semicolon",
+            "tab"
+          ],
+          "dest": "delimiter",
+          "flags": [
+            "--delimiter"
+          ],
+          "nargs": null,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
+      "import-csv verify": [
+        {
+          "choices": null,
+          "dest": "input",
+          "flags": [
+            "--input"
+          ],
+          "nargs": null,
+          "required": true
+        },
+        {
+          "choices": null,
+          "dest": "as_json",
+          "flags": [
+            "--json"
+          ],
+          "nargs": 0,
+          "required": false
+        },
+        {
+          "choices": null,
+          "dest": "help",
+          "flags": [
+            "-h",
+            "--help"
+          ],
+          "nargs": 0,
+          "required": false
+        }
+      ],
       "observe": [
         {
           "choices": null,
@@ -4952,6 +5085,28 @@
         false
       ]
     ],
+    "ValidationBatchPreparationFailure": [
+      [
+        "preset_id",
+        true,
+        false
+      ],
+      [
+        "issue_code",
+        true,
+        false
+      ],
+      [
+        "technical_type",
+        true,
+        false
+      ],
+      [
+        "message",
+        true,
+        false
+      ]
+    ],
     "ValidationBatchProgress": [
       [
         "run_id",
@@ -5175,6 +5330,11 @@
       ],
       [
         "input_artifacts",
+        false,
+        false
+      ],
+      [
+        "preparation_failure",
         false,
         false
       ]
@@ -5497,8 +5657,8 @@
     "usage": 2
   },
   "golden_sha256": {
-    "phase2_public_api.json": "c06e0b7c1bdde709797015f8e3cf64d395111bd2797ea2cfb58c88f0ed64af97",
-    "phase3_public_api.json": "94aa7c8f98d9012a91855d9c33c494f55b2aefb8da1072f06e282f05a2bb015e",
+    "phase2_public_api.json": "b5321854ee73f907bbdd9e4022280326688b7e44144f3a5b1df68d4e56b66a59",
+    "phase3_public_api.json": "cbb3bbb5707a722ae17f23c425ec9a649ce397fb72886ea419baffc2d54c8413",
     "phase4_composite_v1.json": "9059a4fd1abff086c0f633dab2d17a07467966c1617aa830868245ed16cad1e5",
     "phase4_public_api.json": "8815de4379d4d236f05ffce39f9f492497c2e8f50052ff41ebf1c8cd36713346",
     "phase5_demo_v1.json": "7e85b988113c9681d9571f3f2af73a0722931dee221afec94ae9fecd82688773",
@@ -5841,9 +6001,11 @@
       "VALIDATION_RUN_MANIFEST_SCHEMA_VERSION",
       "VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION",
       "VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION",
       "VALIDATION_RUN_RECORD_SCHEMA_VERSION",
       "ValidationBatchCancellationToken",
       "ValidationBatchPhase",
+      "ValidationBatchPreparationFailure",
       "ValidationBatchProgress",
       "ValidationBatchProgressReporter",
       "ValidationBatchStatus",
@@ -5979,9 +6141,11 @@
       "VALIDATION_RUN_MANIFEST_SCHEMA_VERSION",
       "VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION",
       "VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION",
+      "VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION",
       "VALIDATION_RUN_RECORD_SCHEMA_VERSION",
       "ValidationBatchCancellationToken",
       "ValidationBatchPhase",
+      "ValidationBatchPreparationFailure",
       "ValidationBatchProgress",
       "ValidationBatchProgressReporter",
       "ValidationBatchStatus",
@@ -6030,9 +6194,10 @@
     "VALIDATION_PROJECT_SCHEMA_VERSION": "validation-project.v1",
     "VALIDATION_RUN_COMPARISON_SCHEMA_VERSION": "validation-run-comparison.v1",
     "VALIDATION_RUN_INPUT_ARTIFACT_SCHEMA_VERSION": "validation-run-input-artifact.v1",
-    "VALIDATION_RUN_MANIFEST_SCHEMA_VERSION": "validation-run-manifest.v3",
+    "VALIDATION_RUN_MANIFEST_SCHEMA_VERSION": "validation-run-manifest.v4",
     "VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION": "validation-run-manifest.v1",
     "VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION": "validation-run-manifest.v2",
+    "VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION": "validation-run-manifest.v3",
     "VALIDATION_RUN_RECORD_SCHEMA_VERSION": "validation-run-record.v1"
   },
   "serialized_fields": {
@@ -6168,6 +6333,12 @@
       "project_id",
       "schema_version"
     ],
+    "project_preparation_failure": [
+      "issue_code",
+      "message",
+      "preset_id",
+      "technical_type"
+    ],
     "project_preset": [
       "configuration",
       "name",
@@ -6180,6 +6351,7 @@
       "input_artifacts",
       "not_started_preset_ids",
       "planned_preset_ids",
+      "preparation_failure",
       "project_artifact",
       "project_id",
       "project_sha256",
@@ -6320,6 +6492,42 @@
         false
       ]
     ],
+    "DashboardApplication.load_preset_configuration": [
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "configuration",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "discard_unsaved",
+        "KEYWORD_ONLY",
+        false
+      ]
+    ],
+    "DashboardApplication.report_publication": [
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
+    "DashboardApplication.save_report_bundle": [
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "path_text",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
     "DashboardController": [
       [
         "presenter",
@@ -6376,6 +6584,18 @@
         "state",
         "POSITIONAL_OR_KEYWORD",
         false
+      ]
+    ],
+    "DashboardWizardPresenter.load_preset_draft": [
+      [
+        "self",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "draft",
+        "POSITIONAL_OR_KEYWORD",
+        true
       ]
     ],
     "DemoArtifact": [
@@ -7414,6 +7634,28 @@
       ]
     ],
     "ValidationBatchCancellationToken": [],
+    "ValidationBatchPreparationFailure": [
+      [
+        "preset_id",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "issue_code",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "technical_type",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ],
+      [
+        "message",
+        "POSITIONAL_OR_KEYWORD",
+        true
+      ]
+    ],
     "ValidationBatchProgress": [
       [
         "run_id",
@@ -7605,6 +7847,11 @@
       ],
       [
         "input_artifacts",
+        "POSITIONAL_OR_KEYWORD",
+        false
+      ],
+      [
+        "preparation_failure",
         "POSITIONAL_OR_KEYWORD",
         false
       ]
@@ -8003,6 +8250,11 @@
         "view",
         "POSITIONAL_OR_KEYWORD",
         true
+      ],
+      [
+        "result_bundle",
+        "KEYWORD_ONLY",
+        false
       ]
     ],
     "publish_portfolio_demo": [

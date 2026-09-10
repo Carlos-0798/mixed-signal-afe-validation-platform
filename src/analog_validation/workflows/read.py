@@ -344,12 +344,16 @@ def _streaming_uncollected_requirements(
 def run_read_workflow(
     adapter: DeviceAdapter,
     request: ReadWorkflowRequest,
+    *,
+    checkpoint: ReadWorkflowCheckpoint | None = None,
 ) -> ReadWorkflowResult:
     """Acquire requested channels through one adapter-neutral workflow.
 
     Capability preflight is atomic: if any requirement is unavailable, no read
     is attempted. The workflow owns a disconnected adapter for this call and
     always disconnects it before returning or re-raising an execution error.
+    An optional cooperative checkpoint runs before connecting and before each
+    sample; it cannot interrupt an adapter call that is already in progress.
     """
 
     if not isinstance(adapter, DeviceAdapter):
@@ -360,7 +364,11 @@ def run_read_workflow(
         raise AdapterStateError(
             "read workflow requires a disconnected adapter it can own"
         )
+    if checkpoint is not None and not callable(checkpoint):
+        raise ValidationError("checkpoint must be callable or None")
 
+    if checkpoint is not None:
+        checkpoint()
     adapter.connect()
     try:
         capabilities = adapter.get_capabilities()
@@ -377,6 +385,8 @@ def run_read_workflow(
         measurements: list[Measurement] = []
         for requirement_index, requirement in enumerate(request.requirements):
             for sample_index in range(requirement.sample_count):
+                if checkpoint is not None:
+                    checkpoint()
                 try:
                     if requirement.operation is ReadOperation.ANALOG:
                         measurement = adapter.read_measurement(requirement.channel)

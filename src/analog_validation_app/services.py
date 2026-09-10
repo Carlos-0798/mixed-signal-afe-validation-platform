@@ -296,7 +296,11 @@ class ReadJobService(_OwnedAdapterService):
             raise ProductRequestError("read service requires a READ job")
         cancellation.raise_if_cancelled()
         report_progress("Starting bounded read-only acquisition.", 0, 1)
-        read_result = run_read_workflow(self._adapter, self._workflow_request)
+        read_result = run_read_workflow(
+            self._adapter,
+            self._workflow_request,
+            checkpoint=cancellation.raise_if_cancelled,
+        )
         cancellation.raise_if_cancelled()
         self._output_slot.publish(ProductServiceOutput(read_result))
         report_progress("Read-only acquisition finished.", 1, 1)
@@ -481,7 +485,11 @@ class DCSweepJobService(_OwnedAdapterService):
         started_at = _utc_now(self._clock)
         cancellation.raise_if_cancelled()
         report_progress("Acquiring paired DC observations.", 0, 3)
-        read_result = run_read_workflow(self._adapter, self._workflow_request)
+        read_result = run_read_workflow(
+            self._adapter,
+            self._workflow_request,
+            checkpoint=cancellation.raise_if_cancelled,
+        )
         cancellation.raise_if_cancelled()
         if read_result.status is not ReadWorkflowStatus.COMPLETED:
             self._output_slot.publish(ProductServiceOutput(read_result))
@@ -629,7 +637,11 @@ class FrequencyResponseJobService(_OwnedAdapterService):
         started_at = _utc_now(self._clock)
         cancellation.raise_if_cancelled()
         report_progress("Acquiring explicit frequency-response observations.", 0, 3)
-        read_result = run_read_workflow(self._adapter, self._workflow_request)
+        read_result = run_read_workflow(
+            self._adapter,
+            self._workflow_request,
+            checkpoint=cancellation.raise_if_cancelled,
+        )
         cancellation.raise_if_cancelled()
         if read_result.status is not ReadWorkflowStatus.COMPLETED:
             self._output_slot.publish(ProductServiceOutput(read_result))
@@ -797,7 +809,11 @@ class CalibrationJobService(_OwnedAdapterService):
         started_at = _utc_now(self._clock)
         cancellation.raise_if_cancelled()
         report_progress("Acquiring observed/reference calibration pairs.", 0, 3)
-        read_result = run_read_workflow(self._adapter, self._workflow_request)
+        read_result = run_read_workflow(
+            self._adapter,
+            self._workflow_request,
+            checkpoint=cancellation.raise_if_cancelled,
+        )
         cancellation.raise_if_cancelled()
         if read_result.status is not ReadWorkflowStatus.COMPLETED:
             self._output_slot.publish(ProductServiceOutput(read_result))
@@ -966,7 +982,11 @@ class HysteresisJobService(_OwnedAdapterService):
         started_at = _utc_now(self._clock)
         cancellation.raise_if_cancelled()
         report_progress("Acquiring ordered hysteresis observations.", 0, 3)
-        read_result = run_read_workflow(self._adapter, self._workflow_request)
+        read_result = run_read_workflow(
+            self._adapter,
+            self._workflow_request,
+            checkpoint=cancellation.raise_if_cancelled,
+        )
         cancellation.raise_if_cancelled()
         if read_result.status is not ReadWorkflowStatus.COMPLETED:
             self._output_slot.publish(ProductServiceOutput(read_result))

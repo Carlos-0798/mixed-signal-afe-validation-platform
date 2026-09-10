@@ -1,18 +1,31 @@
 # Project Status
 
-**Last updated:** 2026-09-08<br>
-**Current milestone:** Feature freeze and result consolidation locally complete<br>
-**Release maturity:** Feature-frozen `0.1.0b1` local candidate; the current combined increment is uncommitted, untagged, and unreleased<br>
+**Last updated:** 2026-09-09<br>
+**Current milestone:** TD-050/TD-051/TD-052 locally complete; feature expansion paused for job-search preparation<br>
+**Synchronization stage:** Owner-authorized private development-branch and existing Draft PR update; no new hosted CI or merge result claimed<br>
+**Release maturity:** `0.1.0b1` local candidate; untagged and unreleased<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
 
 ## Current execution priority
 
-The project is now in feature freeze. Product work is limited to release-blocking
-correctness, safety, compatibility, privacy, installability, or observed main-path
-usability defects. New capabilities are deferred until real task evidence or an
-explicit new phase justifies them. See [the freeze policy](FEATURE_FREEZE.md) and
-[the consolidation report](../reports/feature-freeze-and-consolidation-2026-09-08.md).
+The 2026-09-08 feature freeze remains a historical baseline. The owner then
+authorized themes/readability (TD-050), the runtime/UI review (TD-051), and a
+focused expansion of file input compatibility (TD-052); all three are locally
+complete. The current increment maps ordinary voltage tables into
+the existing offline replay/analysis/report chain, with reusable templates and
+preserved source bytes. Generic serial text and additional device protocols are
+future work. See [the freeze policy](FEATURE_FREEZE.md),
+[the voltage import guide](voltage-data-import.md), and
+[the original consolidation report](../reports/feature-freeze-and-consolidation-2026-09-08.md).
+
+The owner has now requested a documented pause and job-search preparation,
+followed by committing and pushing the existing private development branch and
+updating its existing Draft PR. This authorization does not include marking
+the PR Ready, merging, tagging, publishing a Release, or changing visibility.
+The [resume checkpoint](PROJECT_RESUME_CHECKPOINT_2026-09-09.md) records the
+preserved state and follow-up route. TD-053 remains deferred until real source
+samples justify a specific next input format or protocol.
 
 The primary product task remains repeated DC gain/offset/linearity validation of
 existing analog signal-chain datasets, from input preparation to reviewable reports.
@@ -27,17 +40,18 @@ The human baseline pilot remains NOT_RUN and is now DEFERRED; existing throughpu
 coverage and machine timings are not measurements of manual time saved. TD-040C1A
 now makes each executed offline CSV Replay project preset retain a verifiable
 input copy, so later history review no longer depends on the original path still
-existing. New runs use manifest v3 while strict v1/v2 remain readable without
-rewriting. Dashboard history now exposes those retained inputs on single-row
+existing. TD-051 subsequently introduced manifest v4 preparation-failure records;
+strict v1/v2/v3 remain readable without rewriting. Dashboard history exposes retained inputs on single-row
 selection without opening files or changing the two-row comparison flow. TD-047A display work
 is not scheduled; the runtime migration remains deferred.
-Phase 6 remains 7/8 and external actions still need explicit owner authorization.
+Phase 6 remains 7/8; external actions beyond the private synchronization scope
+still need explicit owner authorization.
 
 ## Current product baseline
 
 The repository currently provides an installable, controller-neutral Python core for Analog Validation Studio. It includes explicit measurement provenance, device capabilities and safe ranges, test-run conclusion semantics, one CRC implementation, a profile-neutral CRC envelope with a backward-compatible AFE wrapper, the versioned AFE v1 protocol, explicit AFE channel-name mapping, strict non-executable JSON configuration, frozen protocol and replay compatibility data, an executable dependency boundary, the public `DeviceAdapter` lifecycle/safety contract, a configurable deterministic read-only SimulatorAdapter, a strict immutable CSV Replay v1 parser, a read-only CsvReplayAdapter, a shared adapter-neutral read workflow, a profile-neutral bounded byte-stream/sequence foundation, a replaceable serial backend port, deterministic host-tested serial lifecycle, bounded memory-only raw-record provenance, a public serial-profile extension point, independent AFE and read-only MSP430 Equipment Health v1 profiles, a receive-only `SerialAdapter`, an optional packaged pyserial backend that leaves the formal core driver-free, and a Phase 4 machine-readable compatibility freeze.
 
-The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow now has both frozen finite-read and compatible finite streaming-read entry points. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, versioned structured result exports, both serial business profiles, their receive-only adapter composition, and a narrow MSP430 UART HIL are implemented. Phase 5 adds immutable product request/result/event contracts, a reviewed source/profile catalog, stable user issues, a bounded single-owner cancellable worker, explicit adapter factories, shared services/workflow compilation, stable installed Simulator/Replay/receive-only CLI workflows, deterministic human reports that only present finalized results, a runnable six-step local Dashboard, a one-command reproducible synthetic demo with bounded performance/accessibility/privacy acceptance, and an executable product public-contract freeze. The current combined increment extends that same product path with calibration and frequency-response services, explicit criteria/TestRun mappings, strict coefficient persistence, presentation-only calibration/frequency charts, and a finite `live-monitor.v1` Simulator/Replay workflow with bounded curves, pause/resume, quality totals, and explicit eviction accounting. The current uncommitted extension adds the same finite observation path to receive-only Serial with a primary-only safe default, explicit confirmation, a conservative 55-second combined runtime bound, and memory-backend failure/cleanup tests. It also adds optional exact capability-ID pinning and a versioned AFE native-ADC observation map that can expose a reviewed input/output pair only after full capability coverage. No physical serial port was opened, and a validated physical AFE is not yet implemented.
+The SimulatorAdapter models gain, offset, deterministic noise, saturation, Schmitt hysteresis, missing samples, communication faults, and CRC faults while retaining `SYNTHETIC` provenance. CsvReplayAdapter validates an explicit channel map, replays immutable records with independent channel cursors, supports immediate/scaled timing plus pause/resume/speed controls, exposes typed EOF, and forces current `CSV_REPLAY` provenance. The shared workflow now has both frozen finite-read and compatible finite streaming-read entry points. Separate DC and hysteresis runners own output-capable adapter preflight, ordered acquisition, safe cleanup, analysis, and TestRun mapping. Formal calibration, offline frequency-response analysis, versioned structured result exports, both serial business profiles, their receive-only adapter composition, and a narrow MSP430 UART HIL are implemented. Phase 5 adds immutable product request/result/event contracts, a reviewed source/profile catalog, stable user issues, a bounded single-owner cancellable worker, explicit adapter factories, shared services/workflow compilation, stable installed Simulator/Replay/receive-only CLI workflows, deterministic human reports that only present finalized results, a runnable six-step local Dashboard, a one-command reproducible synthetic demo with bounded performance/accessibility/privacy acceptance, and an executable product public-contract freeze. The current combined increment extends that same product path with calibration and frequency-response services, explicit criteria/TestRun mappings, strict coefficient persistence, presentation-only calibration/frequency charts, and a finite `live-monitor.v1` Simulator/Replay workflow with bounded curves, pause/resume, quality totals, and explicit eviction accounting. The previously validated Serial extension adds the same finite observation path to receive-only Serial with a primary-only safe default, explicit confirmation, a conservative 55-second combined runtime bound, and memory-backend failure/cleanup tests. It also adds optional exact capability-ID pinning and a versioned AFE native-ADC observation map that can expose a reviewed input/output pair only after full capability coverage. No physical serial port was opened, and a validated physical AFE is not yet implemented.
 
 The reviewed Software Phase 5 plan defines a separate `analog_validation_app` product layer, one `analog-validation` command, a bounded single-owner cancellable worker, deterministic HTML/SVG reporting, a local offline Tkinter/ttk Dashboard, a six-step beginner workflow, and an installed-package deterministic demo. All 8 checkpoints are implemented. The final checkpoint freezes product imports, schemas, CLI commands/options and exits, dataclass/function shapes, report/demo fields, worker states, errors/issues, and prior manifest hashes. The workflow defaults to Simulator/AFE, expresses status and criteria in text, prevalidates Replay, and gates Serial behind exact receive-only settings. Architecture tests enforce consumption of the frozen core without copying device/profile or engineering-analysis logic. Software Phase 6 Steps 1–7 now add the release contract, hosted compatibility CI, `0.1.0b1` metadata, a deterministic create-new candidate verifier, an executable beginner tester path, a public-API-only third-party-style read adapter proved from the installed wheel outside the repository, and a complete-history/privacy/license/workbook/claims audit with a four-file private-beta handoff contract.
 
@@ -97,7 +111,7 @@ external-adapter chain then passed without serial discovery or hardware access.
 This does not retroactively change the license findings in the preserved
 `5dcc2d0` audit.
 
-The current uncommitted Serial live-monitor/device-contract extension exposes finite
+The previously validated Serial live-monitor/device-contract extension exposes finite
 receive-only monitoring through the same compiler, worker, CLI, and Dashboard.
 It requires an exact profile, port, and primary channel; defaults to one trace;
 requires explicit receive-only confirmation; and rejects a cadence plus worst-
@@ -106,12 +120,12 @@ reported capability ID and fully map AFE native ADCs to unique canonical
 input/output observations. In-memory AFE and MSP430 chains cover success, bad
 CRC, timeout/disconnect, cancellation, cleanup, unsupported capabilities,
 identity/mapping failures, input/output dual trace, and zero application write
-calls. The latest full gate passed 2,508 tests with 14,006/14,006 package
+calls. That checkpoint's full gate passed 2,508 tests with 14,006/14,006 package
 statements, Ruff, mypy, pip dependency consistency, 15/15 product-quality
 checks, wheel/sdist build, and an isolated installed-CLI device-contract smoke.
 No real port or hardware was accessed.
 
-The next local increment adds a reusable test-management layer without copying
+The subsequent project/history increment added a reusable test-management layer without copying
 any analysis. Strict `validation-project.v1` files hold up to 32 immutable
 Simulator/CSV Replay presets and refuse persisted Serial settings. An explicit
 run executes all or selected presets sequentially through the existing reviewed
@@ -213,8 +227,14 @@ port and did not repeat or broaden the Step 7 HIL.
 
 ## Current verification snapshot
 
+The first row is the latest complete local acceptance. The remaining rows
+retain evidence from earlier checkpoints; their test counts, audits, and
+hosted runs are not fresh results for the current synchronization.
+
 | Gate | Result |
 |---|---|
+| Private synchronization gate, 2026-09-09 | 3,048 tests passed, 17,567/17,567 statements covered, Ruff/mypy/dependency checks and 15/15 product-quality checks passed. One cross-platform regression was added; product runtime files are unchanged from TD-052. [Preparation report](../reports/private-github-sync-2026-09-09.md); current-head hosted CI remains separately visible on PR #10. |
+| TD-052 latest local acceptance, including completed TD-050/TD-051 | 3,047 tests passed with no failures or skips; 17,567/17,567 package statements covered; Ruff, 252-file mypy, dependency checks, 15/15 product-quality checks, 23 installed CLI commands, installed GUI acceptance, and 100 runtime-file identity checks passed. Evidence: HOST_TEST with SYNTHETIC fixtures and CSV_REPLAY workflows; no new hardware or hosted-matrix claim. See [TD-052 report](../reports/td-052-voltage-import-2026-09-09.md). |
 | TD-040C1B Dashboard input visibility | One selected v3 history row shows Replay preset/path/bytes/full SHA-256 and same-source reference/file counts; v1/v2, empty v3 and multiple-selection states explain the boundary without changing the eight-column history or comparison semantics; 25 project-page/real-Tk tests, five Windows scaling levels, 2,709 full tests and 16,356/16,356 statements passed; `HOST_TEST` with bounded `CSV_REPLAY` fixtures, no hardware validation |
 | TD-040C1A Replay input archival | Manifest v3 archives the exact bounded input before each executed Replay preset and runs from that staging copy; same-source presets share one file, not-started presets remain unopened, and history verifies path/size/SHA-256 while v1/v2 remain exact-readable; 2,708 passed, 16,325/16,325 statements, Ruff, 218-file mypy, pip consistency and diff check passed; independent CLI JSON/stderr/source-mutation chain passed; `HOST_TEST/CSV_REPLAY`, no hardware validation |
 | TD-046B batch Review decision summary | Before Run, Projects & history shows the exact frozen project/run identities, create-new destination, project-order presets, readable Source/Test labels, and per-preset `SYNTHETIC`/`CSV_REPLAY` evidence; the view clears when Run consumes Review and changes no execution/schema/API contract; 2,696 passed, 16,210/16,210 statements, API/quality 17/17, real Tk project five-scaling and standard/high-contrast matrices retained; `HOST_TEST`/`SYNTHETIC` with bounded `CSV_REPLAY` configuration fixtures |
@@ -457,15 +477,18 @@ Not safe to claim now:
 ## Next checkpoint
 
 Software Phase 6 Steps 1–7 are complete, and the current product-feature branch
-baseline includes the owner-selected MIT license at `bf8c4c6`. The
-project/preset/batch/history/comparison slice and its Dashboard integration are
-locally complete through TD-040C1B. TD-040C1A adds create-new, hash-verified
-offline Replay input archival without rewriting manifest v1/v2 or existing run
-artifacts; TD-040C1B exposes those records through a single-selection read-only
-Dashboard table without changing comparison. The next product checkpoint should
-be selected from real workflow friction after this local gate; READ/LIVE output
-persistence and one-click rerun remain separate.
-GitHub governance is intentionally not part of this checkpoint. Phase 6 Step 8 remains
+baseline includes the owner-selected MIT license at `bf8c4c6`. Themes (TD-050),
+runtime and workflow improvements (TD-051), and voltage-file import (TD-052)
+are locally complete. Feature expansion is paused while the owner prepares
+job-search materials and synchronizes the private branch and existing Draft PR.
+See [the resume checkpoint](PROJECT_RESUME_CHECKPOINT_2026-09-09.md).
+
+When development resumes, use real source samples and observed workflow
+friction to select the next bounded TD-053 input extension. READ/LIVE output
+persistence, one-click rerun, UI runtime migration, and physical validation
+remain separate work; none is required to explain or demonstrate this software
+checkpoint. Private branch/Draft PR synchronization is now authorized, while
+Phase 6 Step 8 remains
 owner-gated: licensing does not authorize a tag, GitHub Release, package
 publication, public-history exposure, social preview, beta-feedback disposition,
 or LinkedIn handoff. Simulator remains the default. Real-port reliability and

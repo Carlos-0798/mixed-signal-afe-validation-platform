@@ -17,6 +17,7 @@ from analog_validation.exports import (
     write_result_export_json,
 )
 
+from ..catalog import get_product_profile, get_product_source
 from ..errors import ProductRequestError, ProductServiceError
 from ..factories import (
     SerialBackendFactory,
@@ -27,11 +28,16 @@ from ..issues import UserIssue, issue_from_exception
 from ..live import LiveMonitorSession
 from ..models import ProductJobRequest, ProductJobType, ProductSourceMode
 from ..presentation import HumanReportView, build_human_report_view
-from ..product_workflows import PreparedProductJob, prepare_product_job
-from ..reporting import HumanReportPublication, ReportArtifact
+from ..product_workflows import (
+    PreparedProductJob,
+    ProductWorkflowConfiguration,
+    prepare_product_job,
+)
+from ..reporting import HumanReportPublication, ReportArtifact, publish_human_report
 from ..worker import ProductJobService, ProductJobWorker
 from .controller import DashboardController, DashboardWorkerPort
 from .presenter import DashboardPresenter
+from .presets import draft_from_configuration
 from .state import (
     DashboardAction,
     DashboardActionType,
@@ -117,6 +123,7 @@ class DashboardApplication:
             None
         )
         self._report_view: HumanReportView | None = None
+        self._report_publication: HumanReportPublication | None = None
         self._terminal_presented = False
         self._result_exported = False
         self._coefficient_exported = False
@@ -133,6 +140,60 @@ class DashboardApplication:
     @property
     def is_closed(self) -> bool:
         return self._controller.is_closed
+
+    @property
+    def report_publication(self) -> HumanReportPublication | None:
+        return self._report_publication
+
+    def load_preset_configuration(
+        self,
+        configuration: ProductWorkflowConfiguration,
+        *,
+        discard_unsaved: bool = False,
+    ) -> bool:
+        """Load a copy into Configure without opening input files or starting work."""
+        try:
+            if self.is_closed or self.dashboard_state.progress.worker_state.is_active:
+                raise ProductRequestError(
+                    "Preset loading requires an idle, open Dashboard"
+                )
+            if not isinstance(discard_unsaved, bool):
+                raise ProductRequestError("discard_unsaved must be boolean")
+            if self.has_unsaved_result and not discard_unsaved:
+                raise ProductRequestError(
+                    "Save the current result before loading a preset"
+                )
+            draft = draft_from_configuration(configuration)
+            profile = get_product_profile(draft.profile_name, draft.profile_version)
+            source = get_product_source(draft.source_mode)
+            if (
+                draft.source_mode not in profile.source_modes
+                or draft.job_type not in source.supported_jobs
+            ):
+                raise ProductRequestError(
+                    "Preset source, profile and test are incompatible"
+                )
+            self._wizard.load_preset_draft(draft)
+            self._reset_prepared()
+            self._issue_field_id = None
+            for action in (
+                DashboardAction(
+                    DashboardActionType.SELECT_SOURCE, source_mode=draft.source_mode
+                ),
+                DashboardAction(
+                    DashboardActionType.SELECT_PROFILE,
+                    profile_name=draft.profile_name,
+                    profile_version=draft.profile_version,
+                ),
+                DashboardAction(
+                    DashboardActionType.SELECT_JOB, job_type=draft.job_type
+                ),
+            ):
+                self._dashboard.dispatch(action)
+            return True
+        except BaseException as error:  # noqa: BLE001 - UI boundary
+            self._present_exception(error)
+            return False
 
     @property
     def has_unsaved_result(self) -> bool:
@@ -160,11 +221,7 @@ class DashboardApplication:
     def issue_field_id(self) -> str | None:
         """Return the optional Dashboard-only field hint for the visible issue."""
 
-        return (
-            self._issue_field_id
-            if self._wizard.state.issue is not None
-            else None
-        )
+        return self._issue_field_id if self._wizard.state.issue is not None else None
 
     def _present_exception(
         self,
@@ -532,6 +589,34 @@ class DashboardApplication:
             self._present_exception(error)
             return False
 
+    def save_report_bundle(self, path_text: str) -> bool:
+        """Save a readable report and its exact analysis JSON in one new directory."""
+        try:
+            if (
+                not self._wizard.state.can_export
+                or self._bundle is None
+                or self._report_view is None
+            ):
+                raise ProductRequestError(
+                    "A finalized analysis is required to save a report"
+                )
+            publication = publish_human_report(
+                path_text, self._report_view, result_bundle=self._bundle
+            )
+            previous = self._dashboard.state.artifacts.artifacts
+            self._dashboard.present_report(self._report_view, publication)
+            names = {artifact.name for artifact in publication.artifacts}
+            for artifact in previous:
+                if artifact.name not in names:
+                    self._dashboard.present_artifact(artifact)
+            self._report_publication = publication
+            self._wizard.present_export("report package (includes result.json)")
+            self._result_exported = True
+            return True
+        except BaseException as error:  # noqa: BLE001 - UI boundary
+            self._present_exception(error)
+            return False
+
     def save_calibration_coefficients(self, path_text: str) -> bool:
         """Save fitted coefficients to a new JSON file without overwriting."""
 
@@ -615,6 +700,7 @@ class DashboardApplication:
         self._calibration_coefficients = None
         self._loaded_calibration_coefficients = None
         self._report_view = None
+        self._report_publication = None
         self._terminal_presented = False
         self._result_exported = False
         self._coefficient_exported = False

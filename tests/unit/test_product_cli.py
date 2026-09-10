@@ -138,6 +138,7 @@ def test_cli_parser_has_one_product_name_and_stable_step3_commands() -> None:
         "report",
         "demo",
         "dashboard",
+        "import-csv",
     )
 
 

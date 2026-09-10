@@ -62,6 +62,13 @@ resource in an unknown state. Instead:
 A non-cooperative service can cause a join timeout, which is reported explicitly.
 The worker does not claim that a timed-out thread or resource was cleaned.
 
+Bounded READ/DC/hysteresis/calibration/frequency acquisition now checks the token
+before connecting and before each individual read through the optional
+`run_read_workflow(..., checkpoint=...)` callback. After the current adapter call
+returns, cancellation prevents the next read and follows the existing cleanup
+path. This does not forcibly interrupt an already-blocked adapter call or make
+an unbounded third-party adapter safe. LIVE keeps its streaming checkpoints.
+
 ## Bounded event queue
 
 Each event has a UTC time, job ID, increasing index, state, bounded printable

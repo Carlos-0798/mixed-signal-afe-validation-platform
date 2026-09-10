@@ -5,6 +5,14 @@ versioning for stable releases and PEP 440 for Python package versions.
 
 ## [Unreleased]
 
+- Added ordinary voltage-table import through the Dashboard **Import data** tab
+  and `import-csv inspect/convert/verify`. Explicit V/mV columns and timezone or
+  elapsed-time mappings produce immutable replay/project packages retaining the
+  original source, mapping and hashes. Mapping templates are reusable; loading
+  an imported setup requires fresh analysis Review. New mapping/manifest v1
+  formats preserve the existing replay and project/run formats. This expands
+  offline file compatibility and establishes no new device or bench validation.
+
 - Entered local feature freeze after repository-external build, clean wheel
   install, byte-identical normal/Unicode demos, installed CSV Replay history,
   product-quality, privacy, and full regression gates. This checkpoint adds no

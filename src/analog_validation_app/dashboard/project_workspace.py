@@ -79,6 +79,17 @@ _PROJECT_EVIDENCE_LABELS = {
 }
 
 
+def _preparation_failure_summary(manifest: ValidationRunManifest) -> str:
+    failure = manifest.preparation_failure
+    if failure is None:
+        return ""
+    return (
+        f"Preparation failed for preset {failure.preset_id} "
+        f"({failure.issue_code.value}): {failure.message} "
+        "No worker or result was created for this preset; earlier results are retained."
+    )
+
+
 def _batch_status(manifest: ValidationRunManifest) -> str:
     return (
         manifest.batch_status.value
@@ -304,6 +315,26 @@ class ProjectWorkspace:
             "Preset added. Save project as a new file before running or switching projects."
         )
 
+    def configuration_for_setup(self, preset_id: str) -> ProductWorkflowConfiguration:
+        """Copy a preset for editing; resolve Replay relative to the project file."""
+
+        self._idle()
+        if self.project is None or self.path is None:
+            raise ProductRequestError("Open or create a project first.")
+        preset = next(
+            (item for item in self.project.presets if item.preset_id == preset_id),
+            None,
+        )
+        if preset is None:
+            raise ProductRequestError("Select an existing preset to load into Setup.")
+        configuration = preset.configuration
+        if configuration.replay_path is not None:
+            path = configuration.replay_path
+            if not path.is_absolute():
+                path = self.path.parent / path
+            configuration = replace(configuration, replay_path=path.resolve())
+        return configuration
+
     def review(self, selected: tuple[str, ...], output: str, run_id: str) -> None:
         self._idle()
         self._review = None
@@ -447,11 +478,14 @@ class ProjectWorkspace:
         batch_status = (
             value.batch_status.value if value.batch_status is not None else "LEGACY_V1"
         )
+        failure_summary = _preparation_failure_summary(value)
+        failure_line = f"{failure_summary}\n" if failure_summary else ""
         self._changed(
             f"Batch {batch_status}: completed {len(value.records)}/{len(value.planned_preset_ids)}; "
             f"not started: {len(value.not_started_preset_ids)}; "
             f"engineering failures: {value.engineering_failures}; "
-            f"operational failures: {value.operational_failures}.\nSaved: {path}"
+            f"operational failures: {value.operational_failures}.\n"
+            f"{failure_line}Saved: {path}"
         )
 
     def load_history(self, paths: tuple[str, ...]) -> None:

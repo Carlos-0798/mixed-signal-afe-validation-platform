@@ -17,18 +17,20 @@ def _callback(*_args: object, **_kwargs: object) -> None:
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows Tk product target")
-@pytest.mark.parametrize("high_contrast", [False, True])
+@pytest.mark.parametrize(
+    "appearance", ["Workbench", "Daylight", "Midnight", "System contrast"]
+)
 @pytest.mark.parametrize("scaling", [1.0, 1.25, 1.5, 1.75, 2.0])
 def test_real_tk_workflow_has_text_and_keyboard_targets_at_common_scaling(
     scaling: float,
-    high_contrast: bool,
+    appearance: str,
 ) -> None:
     completed = subprocess.run(
         [
             sys.executable,
             str(Path(__file__).resolve()),
             str(scaling),
-            "high-contrast" if high_contrast else "standard",
+            appearance,
         ],
         capture_output=True,
         text=True,
@@ -40,21 +42,23 @@ def test_real_tk_workflow_has_text_and_keyboard_targets_at_common_scaling(
     assert not completed.stderr
 
 
-def _exercise_dashboard_accessibility(scaling: float, high_contrast: bool) -> None:
+def _exercise_dashboard_accessibility(scaling: float, appearance: str) -> None:
     import tkinter as tk
     from tkinter import ttk
 
     import analog_validation_app.dashboard.widgets as widget_module
     from analog_validation_app import ProductSourceMode
     from analog_validation_app.dashboard.application import DashboardApplication
+    from analog_validation_app.dashboard.themes import PALETTES, WORKBENCH
     from analog_validation_app.dashboard.wizard import (
         DashboardWizardState,
         DashboardWizardStep,
     )
 
+    high_contrast = appearance == "System contrast"
     widget_module._windows_high_contrast_enabled = lambda: high_contrast
 
-    root = tk.Tk()
+    root: Any = tk.Tk()
     application: DashboardApplication | None = None
     try:
         root.withdraw()
@@ -85,10 +89,18 @@ def _exercise_dashboard_accessibility(scaling: float, high_contrast: bool) -> No
         root.deiconify()
         root.update_idletasks()
         root.update()
+        selector = root._avs_theme_select
+        if not high_contrast:
+            root._avs_theme_value.set(appearance)
+            selector.event_generate("<<ComboboxSelected>>")
+            root.update()
+        assert root._avs_theme_value.get() == appearance
+        assert selector.instate(("disabled",)) == high_contrast
+        palette = PALETTES.get(appearance, WORKBENCH)
         style = ttk.Style(root)
-        expected_background = "SystemWindow" if high_contrast else "#0b1220"
-        expected_surface = "SystemWindow" if high_contrast else "#111c2e"
-        expected_accent = "SystemHighlight" if high_contrast else "#38bdf8"
+        expected_background = "SystemWindow" if high_contrast else palette.background
+        expected_surface = "SystemWindow" if high_contrast else palette.surface
+        expected_accent = "SystemHighlight" if high_contrast else palette.accent
         assert style.lookup("App.TFrame", "background") == expected_background
         assert style.lookup("Card.TLabelframe", "background") == expected_surface
         assert style.lookup("Modern.Treeview", "rowheight") == 30
@@ -132,6 +144,7 @@ def _exercise_dashboard_accessibility(scaling: float, high_contrast: bool) -> No
         clipped_controls = {
             name
             for name, widget in (
+                ("appearance", selector),
                 ("source", widgets.source_select),
                 ("profile", widgets.profile_select),
                 ("job", widgets.job_select),
@@ -160,6 +173,7 @@ def _exercise_dashboard_accessibility(scaling: float, high_contrast: bool) -> No
         }
         assert not readable_widths, readable_widths
         focus_targets: tuple[Any, ...] = (
+            selector,
             widgets.source_select,
             widgets.profile_select,
             widgets.job_select,
@@ -220,6 +234,37 @@ def _exercise_dashboard_accessibility(scaling: float, high_contrast: bool) -> No
             replay_control.winfo_rooty() + replay_control.winfo_height()
             <= workflow_canvas.winfo_rooty() + workflow_canvas.winfo_height()
         )
+        # A theme change must not clear a validation error, draft, focus or scroll.
+        for choice in PALETTES:
+            if high_contrast:
+                continue
+            before = (application.dashboard_state, application.wizard_state)
+            position = workflow_canvas.yview()
+            replay_control.delete(0, "end")
+            replay_control.insert(0, "unsaved-input.csv")
+            root._avs_theme_value.set(choice)
+            selector.event_generate("<<ComboboxSelected>>")
+            root.update()
+            assert before == (application.dashboard_state, application.wizard_state)
+            assert replay_control.get() == "unsaved-input.csv"
+            assert replay_control.cget("style") == "Invalid.TEntry"
+            assert root.focus_get() == replay_control
+            assert workflow_canvas.yview() == position
+            assert workflow_canvas.cget("background") == PALETTES[choice].background
+            assert (
+                style.lookup("Invalid.TEntry", "bordercolor", ("focus",))
+                == PALETTES[choice].danger
+            )
+            for name in ("Primary.TButton", "TCombobox"):
+                assert (
+                    style.lookup(name, "foreground", ("disabled", "active", "readonly"))
+                    == PALETTES[choice].disabled_text
+                )
+            popdown = root.tk.call("ttk::combobox::PopdownWindow", str(selector))
+            assert (
+                root.tk.call(f"{popdown}.f.l", "cget", "-background")
+                == PALETTES[choice].raised
+            )
 
         assert application.back()
         widgets.issue_field_id = application.issue_field_id
@@ -271,7 +316,5 @@ def _exercise_dashboard_accessibility(scaling: float, high_contrast: bool) -> No
 
 
 if __name__ == "__main__":
-    _exercise_dashboard_accessibility(
-        float(sys.argv[1]), sys.argv[2] == "high-contrast"
-    )
+    _exercise_dashboard_accessibility(float(sys.argv[1]), sys.argv[2])
     print("DASHBOARD_ACCESSIBILITY_PASS")

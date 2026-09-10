@@ -7,8 +7,10 @@ from typing import Any
 
 from ..errors import ProductRequestError
 from ..models import ProductSourceMode
+from ..product_workflows import ProductWorkflowConfiguration
 from ..projects import (
     VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
+    VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
     ProjectRunRecord,
     ValidationRunManifest,
 )
@@ -16,6 +18,7 @@ from .project_workspace import (
     ProjectBatchReviewSummary,
     ProjectComparisonGuidance,
     ProjectWorkspace,
+    _preparation_failure_summary,
 )
 from .widgets import (
     _bind_mouse_wheel,
@@ -171,21 +174,26 @@ def _history_input_archive_text(
         )
     if manifest is None:  # pragma: no cover - tree/workspace consistency guard
         return "The selected history row is no longer available. Refresh the view."
-    if manifest.schema_version != VALIDATION_RUN_MANIFEST_SCHEMA_VERSION:
+    failure_summary = _preparation_failure_summary(manifest)
+    prefix = f"{failure_summary}\n" if failure_summary else ""
+    if manifest.schema_version not in {
+        VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
+        VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
+    }:
         return (
             f"Run {manifest.run_id} uses {manifest.schema_version}, which predates "
             "retained Replay inputs. Its original CSV may still be required."
         )
     if not manifest.input_artifacts:
         return (
-            f"Run {manifest.run_id} has no executed CSV Replay input to display. "
+            f"{prefix}Run {manifest.run_id} has no executed CSV Replay input to display. "
             "This is expected for Simulator-only runs or Replay presets that never "
             "started."
         )
     references = len(manifest.input_artifacts)
     stored_files = len({artifact.artifact for artifact in manifest.input_artifacts})
     return (
-        f"Run {manifest.run_id}: {references} preset reference"
+        f"{prefix}Run {manifest.run_id}: {references} preset reference"
         f"{'s' if references != 1 else ''}, {stored_files} stored file"
         f"{'s' if stored_files != 1 else ''}. The manifest records path, bytes, and "
         "SHA-256; loading or comparing the saved manifest rechecks them. Evidence "
@@ -281,10 +289,12 @@ class ProjectPage:
         workspace: ProjectWorkspace,
         choose: Callable[[str], Any],
         current_draft: Callable[[], DashboardWizardDraft],
+        on_load_setup: Callable[[ProductWorkflowConfiguration], bool] | None = None,
     ) -> None:
         self.workspace = workspace
         self.choose = choose
         self.current_draft = current_draft
+        self.on_load_setup = on_load_setup
         self._revision = -1
         self._control_state: tuple[bool, bool, bool] | None = None
         self._project: object = None
@@ -295,7 +305,12 @@ class ProjectPage:
         tab = ttk.Frame(notebook, style="App.TFrame")
         notebook.add(tab, text="Projects & history")
         self.tab = tab
-        page, canvas = _create_scrollable_page(tab, tk, ttk)
+        page, canvas = _create_scrollable_page(
+            tab,
+            tk,
+            ttk,
+            high_contrast=bool(getattr(root, "_avs_high_contrast", False)),
+        )
         _bind_mouse_wheel(root, (canvas,))
         page.columnconfigure(0, weight=1)
         self.controls: list[Any] = []
@@ -426,6 +441,9 @@ class ProjectPage:
             lambda: self.presets.selection_set(self.presets.get_children()),
             1,
             0,
+        )
+        self.load_setup_button = button(
+            presets, "Load selected into Setup", self.load_setup, 1, 1
         )
         entry(presets, "New preset ID", self.preset_id, 2)
         entry(presets, "New preset name", self.preset_name, 3)
@@ -581,6 +599,19 @@ class ProjectPage:
             self.current_draft().to_product_configuration(),
         )
 
+    def load_setup(self) -> None:
+        selected = self.selection(self.presets)
+        if len(selected) != 1:
+            raise ProductRequestError("Select exactly one preset to load into Setup.")
+        if self.on_load_setup is None:
+            raise ProductRequestError("Loading presets into Setup is unavailable.")
+        configuration = self.workspace.configuration_for_setup(selected[0])
+        if self.on_load_setup(configuration):
+            self.workspace._changed(
+                f"Loaded {selected[0]} into Setup for editing. The saved preset is "
+                "unchanged; Review is required before running."
+            )
+
     def choose_output(self) -> None:
         path = self.choose("run-directory")
         if path:
@@ -681,6 +712,13 @@ class ProjectPage:
             return "normal" if allowed and not blocked else "disabled"
 
         project_ready = workspace.project is not None
+        self.load_setup_button.configure(
+            state=state(
+                project_ready
+                and len(selected_presets) == 1
+                and self.on_load_setup is not None
+            )
+        )
         self.save_button.configure(state=state(project_ready))
         self.add_preset_button.configure(
             state=state(

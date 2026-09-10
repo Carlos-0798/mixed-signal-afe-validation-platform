@@ -23,6 +23,7 @@ from analog_validation import (
     MeasurementUnit,
     ReadOperation,
     TestRunOutcome,
+    ValidationError,
     __version__,
 )
 from analog_validation.exports import (
@@ -38,7 +39,7 @@ from .errors import (
     ProductProjectPathError,
     ProductRequestError,
 )
-from .issues import UserIssueCode
+from .issues import UserIssueCode, issue_from_exception
 from .models import (
     ProductJobEvent,
     ProductJobType,
@@ -54,7 +55,8 @@ VALIDATION_PRESET_SCHEMA_VERSION = "validation-preset.v1"
 VALIDATION_RUN_RECORD_SCHEMA_VERSION = "validation-run-record.v1"
 VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION = "validation-run-manifest.v1"
 VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION = "validation-run-manifest.v2"
-VALIDATION_RUN_MANIFEST_SCHEMA_VERSION = "validation-run-manifest.v3"
+VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION = "validation-run-manifest.v3"
+VALIDATION_RUN_MANIFEST_SCHEMA_VERSION = "validation-run-manifest.v4"
 VALIDATION_RUN_INPUT_ARTIFACT_SCHEMA_VERSION = "validation-run-input-artifact.v1"
 VALIDATION_RUN_COMPARISON_SCHEMA_VERSION = "validation-run-comparison.v1"
 VALIDATION_RUN_MANIFEST_FILENAME = "run-manifest.json"
@@ -649,6 +651,25 @@ class ValidationRunInputArtifact:
 
 
 @dataclass(frozen=True, slots=True)
+class ValidationBatchPreparationFailure:
+    """A preset rejected before a worker started, without acquired evidence."""
+
+    preset_id: str
+    issue_code: UserIssueCode
+    technical_type: str
+    message: str
+
+    def __post_init__(self) -> None:
+        _identifier("preparation failure preset_id", self.preset_id)
+        if not isinstance(self.issue_code, UserIssueCode):
+            raise ProductProjectFormatError(
+                "preparation failure issue_code must be UserIssueCode"
+            )
+        _text("preparation failure technical_type", self.technical_type)
+        _text("preparation failure message", self.message, maximum=1_024)
+
+
+@dataclass(frozen=True, slots=True)
 class ValidationRunManifest:
     """Immutable run history published beside create-new result artifacts."""
 
@@ -665,6 +686,7 @@ class ValidationRunManifest:
     planned_preset_ids: tuple[str, ...] = ()
     not_started_preset_ids: tuple[str, ...] = ()
     input_artifacts: tuple[ValidationRunInputArtifact, ...] = ()
+    preparation_failure: ValidationBatchPreparationFailure | None = None
 
     def __post_init__(self) -> None:
         _identifier("project_id", self.project_id)
@@ -702,6 +724,7 @@ class ValidationRunManifest:
         if self.schema_version not in {
             VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION,
             VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION,
+            VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
             VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
         }:
             raise ProductProjectFormatError(
@@ -747,6 +770,28 @@ class ValidationRunManifest:
             raise ProductProjectFormatError(
                 "input artifact preset IDs must be unique"
             )
+        failure = self.preparation_failure
+        if failure is not None:
+            if not isinstance(failure, ValidationBatchPreparationFailure):
+                raise ProductProjectFormatError(
+                    "preparation_failure must be ValidationBatchPreparationFailure or None"
+                )
+            if self.schema_version != VALIDATION_RUN_MANIFEST_SCHEMA_VERSION:
+                raise ProductProjectFormatError(
+                    "only v4 run manifests can carry preparation_failure"
+                )
+            if not self.records or not self.not_started_preset_ids:
+                raise ProductProjectFormatError(
+                    "preparation failure requires earlier records and not-started work"
+                )
+            if failure.preset_id != self.not_started_preset_ids[0]:
+                raise ProductProjectFormatError(
+                    "preparation failure must identify the first not-started preset"
+                )
+            if self.batch_status is not ValidationBatchStatus.ERROR:
+                raise ProductProjectFormatError(
+                    "preparation failure requires ERROR batch status"
+                )
 
         if self.schema_version == VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION:
             if not self.records:
@@ -771,7 +816,12 @@ class ValidationRunManifest:
                 for record in self.records
                 if record.source_mode is ProductSourceMode.CSV_REPLAY
             )
-            if input_preset_ids != expected_input_preset_ids:
+            allowed_input_orders = {expected_input_preset_ids}
+            if failure is not None:
+                allowed_input_orders.add(
+                    expected_input_preset_ids + (failure.preset_id,)
+                )
+            if input_preset_ids not in allowed_input_orders:
                 raise ProductProjectFormatError(
                     "v3 input artifacts must match executed CSV Replay presets in order"
                 )
@@ -812,7 +862,9 @@ class ValidationRunManifest:
             raise ProductProjectFormatError(
                 "cancelled records require CANCELLED or ERROR batch status"
             )
-        if status is ValidationBatchStatus.ERROR and not has_error:
+        if status is ValidationBatchStatus.ERROR and not (
+            has_error or failure is not None
+        ):
             raise ProductProjectFormatError("ERROR batch status requires a failed record")
         if status is ValidationBatchStatus.CANCELLED and not (
             has_cancelled or self.not_started_preset_ids
@@ -837,7 +889,7 @@ class ValidationRunManifest:
 
     @property
     def operational_failures(self) -> int:
-        return sum(
+        return int(self.preparation_failure is not None) + sum(
             record.worker_state is not ProductWorkerState.SUCCEEDED
             or record.product_status
             in {
@@ -1412,6 +1464,7 @@ def validation_run_manifest_to_dict(
     }
     if manifest.schema_version in {
         VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION,
+        VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
         VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
     }:
         if manifest.batch_status is None:  # pragma: no cover - dataclass invariant
@@ -1432,7 +1485,10 @@ def validation_run_manifest_to_dict(
                 ),
             }
         )
-    if manifest.schema_version == VALIDATION_RUN_MANIFEST_SCHEMA_VERSION:
+    if manifest.schema_version in {
+        VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
+        VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
+    }:
         document["input_artifacts"] = [
             {
                 "schema_version": artifact.schema_version,
@@ -1445,6 +1501,16 @@ def validation_run_manifest_to_dict(
             for artifact in manifest.input_artifacts
         ]
         summary["input_artifact_count"] = len(manifest.input_artifacts)
+    if manifest.schema_version == VALIDATION_RUN_MANIFEST_SCHEMA_VERSION:
+        failure = manifest.preparation_failure
+        document["preparation_failure"] = (
+            None if failure is None else {
+                "preset_id": failure.preset_id,
+                "issue_code": failure.issue_code.value,
+                "technical_type": failure.technical_type,
+                "message": failure.message,
+            }
+        )
     return document
 
 
@@ -1526,6 +1592,7 @@ def validation_run_manifest_from_dict(value: object) -> ValidationRunManifest:
         )
     elif schema_version in {
         VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION,
+        VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
         VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
     }:
         root_keys = (
@@ -1552,9 +1619,14 @@ def validation_run_manifest_from_dict(value: object) -> ValidationRunManifest:
             "completed_preset_count",
             "not_started_preset_count",
         )
-        if schema_version == VALIDATION_RUN_MANIFEST_SCHEMA_VERSION:
+        if schema_version in {
+            VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
+            VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
+        }:
             root_keys += ("input_artifacts",)
             summary_keys += ("input_artifact_count",)
+        if schema_version == VALIDATION_RUN_MANIFEST_SCHEMA_VERSION:
+            root_keys += ("preparation_failure",)
     else:
         raise ProductProjectFormatError(
             f"unsupported validation run manifest schema: {schema_version}"
@@ -1649,10 +1721,14 @@ def validation_run_manifest_from_dict(value: object) -> ValidationRunManifest:
         )
     has_batch_state = schema_version in {
         VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION,
+        VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
         VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
     }
     input_artifacts: tuple[ValidationRunInputArtifact, ...] = ()
-    if schema_version == VALIDATION_RUN_MANIFEST_SCHEMA_VERSION:
+    if schema_version in {
+        VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
+        VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
+    }:
         input_artifacts = tuple(
             _input_artifact_from_dict(raw)
             for raw in _array(
@@ -1660,6 +1736,24 @@ def validation_run_manifest_from_dict(value: object) -> ValidationRunManifest:
                 root["input_artifacts"],
                 MAX_VALIDATION_RUN_RECORDS,
             )
+        )
+    preparation_failure = None
+    if (
+        schema_version == VALIDATION_RUN_MANIFEST_SCHEMA_VERSION
+        and root["preparation_failure"] is not None
+    ):
+        failure = _object(
+            "preparation_failure",
+            root["preparation_failure"],
+            ("preset_id", "issue_code", "technical_type", "message"),
+        )
+        preparation_failure = ValidationBatchPreparationFailure(
+            _identifier("preparation failure preset_id", failure["preset_id"]),
+            _enum(
+                "preparation failure issue_code", UserIssueCode, failure["issue_code"]
+            ),
+            _text("preparation failure technical_type", failure["technical_type"]),
+            _text("preparation failure message", failure["message"], maximum=1_024),
         )
     manifest = ValidationRunManifest(
         _identifier("project_id", root["project_id"]),
@@ -1689,6 +1783,7 @@ def validation_run_manifest_from_dict(value: object) -> ValidationRunManifest:
         if has_batch_state
         else (),
         input_artifacts,
+        preparation_failure,
     )
     if summary["record_count"] != len(manifest.records):
         raise ProductProjectFormatError("run summary record_count is inconsistent")
@@ -1712,7 +1807,10 @@ def validation_run_manifest_from_dict(value: object) -> ValidationRunManifest:
                     f"run summary {key} is inconsistent"
                 )
     if (
-        schema_version == VALIDATION_RUN_MANIFEST_SCHEMA_VERSION
+        schema_version in {
+            VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
+            VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
+        }
         and summary["input_artifact_count"] != len(manifest.input_artifacts)
     ):
         raise ProductProjectFormatError(
@@ -1782,6 +1880,7 @@ def _verify_project_snapshot_lineage(
         if manifest.schema_version
         in {
             VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION,
+            VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION,
             VALIDATION_RUN_MANIFEST_SCHEMA_VERSION,
         }
         else ()
@@ -1791,6 +1890,19 @@ def _verify_project_snapshot_lineage(
             "planned preset is absent from the project snapshot: "
             + ", ".join(missing_planned)
         )
+    if manifest.schema_version == VALIDATION_RUN_MANIFEST_SCHEMA_VERSION:
+        snapshot_sources = {
+            preset.preset_id: preset.configuration.source_mode
+            for preset in snapshot.presets
+        }
+        if any(
+            snapshot_sources.get(artifact.preset_id)
+            is not ProductSourceMode.CSV_REPLAY
+            for artifact in manifest.input_artifacts
+        ):
+            raise ProductProjectFormatError(
+                "archived input must belong to a CSV Replay preset in the snapshot"
+            )
     all_snapshot_presets_planned = set(snapshot_preset_ids) == set(
         manifest.planned_preset_ids
     )
@@ -2106,6 +2218,7 @@ def publish_validation_project_run(
         input_artifacts: list[ValidationRunInputArtifact] = []
         archived_sources: dict[Path, tuple[str, int, str]] = {}
         batch_status: ValidationBatchStatus | None = None
+        preparation_failure: ValidationBatchPreparationFailure | None = None
         for index, preset in enumerate(presets, start=1):
             emit_progress(
                 ValidationBatchPhase.PREPARING,
@@ -2124,22 +2237,45 @@ def publish_validation_project_run(
                 break
             job_id = f"{run_id}-{index:02d}-{preset.preset_id}"
             run_configuration = preset.configuration
-            if run_configuration.source_mode is ProductSourceMode.CSV_REPLAY:
-                run_configuration, input_artifact = _archive_replay_input(
+            try:
+                if run_configuration.source_mode is ProductSourceMode.CSV_REPLAY:
+                    run_configuration, input_artifact = _archive_replay_input(
+                        run_configuration,
+                        project_directory=project_base,
+                        staging_directory=staging,
+                        preset_id=preset.preset_id,
+                        preset_number=index,
+                        archived_sources=archived_sources,
+                    )
+                    input_artifacts.append(input_artifact)
+                prepared = prepare_product_job(
                     run_configuration,
-                    project_directory=project_base,
-                    staging_directory=staging,
-                    preset_id=preset.preset_id,
-                    preset_number=index,
-                    archived_sources=archived_sources,
+                    job_id,
+                    prevalidate_replay=False,
+                    service_clock=clock,
                 )
-                input_artifacts.append(input_artifact)
-            prepared = prepare_product_job(
-                run_configuration,
-                job_id,
-                prevalidate_replay=False,
-                service_clock=clock,
-            )
+            except (
+                ProductProjectFormatError,
+                ProductProjectLimitError,
+                ProductProjectPathError,
+                ProductRequestError,
+                ValidationError,
+            ) as error:
+                if not records:
+                    raise
+                issue = issue_from_exception(error)
+                preparation_failure = ValidationBatchPreparationFailure(
+                    preset.preset_id,
+                    UserIssueCode.INPUT_DATA
+                    if isinstance(
+                        error, (ProductProjectPathError, ProductProjectLimitError)
+                    )
+                    else issue.code,
+                    issue.technical_type,
+                    issue.what_happened,
+                )
+                batch_status = ValidationBatchStatus.ERROR
+                break
             join_timeout = 5.0
             if preset.configuration.job_type is ProductJobType.LIVE_MONITOR:
                 join_timeout = min(
@@ -2268,6 +2404,7 @@ def publish_validation_project_run(
             planned_preset_ids=planned_preset_ids,
             not_started_preset_ids=not_started_preset_ids,
             input_artifacts=tuple(input_artifacts),
+            preparation_failure=preparation_failure,
         )
         manifest_text = dump_validation_run_manifest(manifest)
         if len(manifest_text.encode("utf-8")) > MAX_VALIDATION_RUN_MANIFEST_BYTES:
@@ -2439,6 +2576,7 @@ __all__ = [
     "VALIDATION_RUN_MANIFEST_SCHEMA_VERSION",
     "VALIDATION_RUN_MANIFEST_V1_SCHEMA_VERSION",
     "VALIDATION_RUN_MANIFEST_V2_SCHEMA_VERSION",
+    "VALIDATION_RUN_MANIFEST_V3_SCHEMA_VERSION",
     "VALIDATION_RUN_RECORD_SCHEMA_VERSION",
     "ProjectMetricDelta",
     "ProjectRunComparisonEntry",
@@ -2446,6 +2584,7 @@ __all__ = [
     "ProjectRunRecord",
     "ValidationBatchCancellationToken",
     "ValidationBatchPhase",
+    "ValidationBatchPreparationFailure",
     "ValidationBatchProgress",
     "ValidationBatchProgressReporter",
     "ValidationBatchStatus",

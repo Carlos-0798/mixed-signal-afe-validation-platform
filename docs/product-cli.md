@@ -27,6 +27,12 @@ CLI or reviewed Dashboard configuration
 This separation is important: changing the UI must not change the engineering
 answer.
 
+The additive `import-csv inspect`, `import-csv convert`, and `import-csv verify`
+commands prepare external voltage tables for this same replay workflow. They
+do not run a measurement or discover a device. `--json` retains the existing
+machine-readable stdout envelope and exit-code rules. Mapping examples and the
+complete offline chain are in [Voltage data import](voltage-data-import.md).
+
 ## First commands to run
 
 From an activated development environment:
@@ -129,11 +135,16 @@ artifacts where applicable, and `run-manifest.json`. History and comparison
 verify referenced SHA-256 values by default. The hashes detect changes relative
 to a manifest; they are not signatures or proof of author identity.
 
-New runs publish `validation-run-manifest.v3` with `COMPLETE`, `PARTIAL`,
+New runs publish `validation-run-manifest.v4` with `COMPLETE`, `PARTIAL`,
 `CANCELLED`, or `ERROR`, the ordered planned preset IDs, retained terminal
 records, explicit not-started preset IDs, and an exact size/SHA-256 record for
 each executed CSV Replay input copied under the run's `inputs/` directory.
-Strict v1 and v2 manifests remain fully readable and are never rewritten.
+Strict v1, v2 and v3 manifests remain fully readable and are never rewritten.
+If a later preset cannot be prepared after previous work completed, v4 preserves
+those results and records `preparation_failure`. The failed preparation remains
+not-started, with no invented worker result or evidence. The CLI prints its
+preset ID, issue code and reason; machine JSON carries the same metadata.
+Initial preparation and final publication failures still reject atomically.
 Progress lines show the current preset,
 one-based position, total, terminal-record count, and lifecycle phase on
 `stderr`. With `--json`, `stdout` therefore remains one parseable JSON document.
