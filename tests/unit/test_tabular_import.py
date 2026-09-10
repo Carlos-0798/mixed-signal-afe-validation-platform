@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from dataclasses import FrozenInstanceError, replace
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import pytest
@@ -34,6 +34,91 @@ def mapping(**changes: Any) -> VoltageImportMapping:
     }
     values.update(changes)
     return VoltageImportMapping(**values)
+
+
+@pytest.mark.parametrize(
+    ("suffix", "utc_minutes"), [("Z", 0), ("+05:30", -330), ("-04:00", 240)]
+)
+@pytest.mark.parametrize(
+    ("fraction", "microseconds"),
+    [
+        ("", 0),
+        (".1", 100_000),
+        (".12", 120_000),
+        (".123", 123_000),
+        (".1234", 123_400),
+        (".12345", 123_450),
+        (".123456", 123_456),
+        (".000000", 0),
+        (".000001", 1),
+        (".999999", 999_999),
+    ],
+)
+def test_timestamp_precision_in_table_and_elapsed_origin(
+    suffix: str, utc_minutes: int, fraction: str, microseconds: int
+) -> None:
+    timestamp = f"2026-09-09T12:00:00{fraction}{suffix}"
+    expected = datetime(2026, 9, 9, 12, microsecond=microseconds, tzinfo=timezone.utc)
+    expected += timedelta(minutes=utc_minutes)
+    source = parse_voltage_table(f"Time,Input\n{timestamp},1".encode())
+
+    preview = preview_voltage_import(source, mapping())
+
+    assert preview.dataset.records[0].timestamp == expected
+    assert preview.dataset.records[0].timestamp.tzinfo is timezone.utc
+    assert preview.dataset.records[0].declared_source is EvidenceSource.CSV_REPLAY
+    selected = mapping(time_mode="elapsed_seconds", start_time_utc=timestamp)
+    assert mapping_from_dict(mapping_to_dict(selected)) == selected
+    assert selected.start_time_utc == timestamp
+    elapsed = parse_voltage_table(b"Time,Input\n0,1\n0.000001,2")
+
+    elapsed_preview = preview_voltage_import(elapsed, selected)
+
+    assert [record.timestamp for record in elapsed_preview.dataset.records] == [
+        expected,
+        expected + timedelta(microseconds=1),
+    ]
+    assert all(
+        record.timestamp.tzinfo is timezone.utc
+        and record.declared_source is EvidenceSource.CSV_REPLAY
+        for record in elapsed_preview.dataset.records
+    )
+
+
+@pytest.mark.parametrize(
+    ("timestamp", "message"),
+    [
+        ("2026-09-09T12:00:00.Z", "ISO 8601"),
+        ("2026-09-09T12:00:00.1234567Z", "ISO 8601"),
+        ("2026-09-09T12:00:00.1234567+05:30", "ISO 8601"),
+        ("2026-09-09T12:00:00.1234567-04:00", "ISO 8601"),
+        ("2026-09-09T12:00:00.1+24:00", "ISO 8601"),
+        ("2026-09-09T12:00:00.1-04:60", "ISO 8601"),
+        ("2026-09-09T12:00:00.1", "ISO 8601"),
+        ("2026-09-09T12:00:00.1z", "ISO 8601"),
+        ("2026-09-09T12:00:00.1+0530", "ISO 8601"),
+        ("2026-09-09T12:00:00.1+05:30:00", "ISO 8601"),
+        ("2026-09-09T12:00:00.1e1Z", "ISO 8601"),
+        ("2026-09-09T12:00:00.-1Z", "ISO 8601"),
+        ("2026-02-30T12:00:00.1Z", "calendar"),
+        ("2026-09-09T24:00:00.1+05:30", "calendar"),
+        ("2026-09-09T12:00:60.1-04:00", "calendar"),
+        ("0001-01-01T00:00:00.1+01:00", "calendar"),
+        ("9999-12-31T23:59:59.1-01:00", "calendar"),
+    ],
+)
+def test_invalid_timestamp_precision_in_table_and_elapsed_origin(
+    timestamp: str, message: str
+) -> None:
+    source = parse_voltage_table(f"Time,Input\n{timestamp},1".encode())
+    with pytest.raises(VoltageImportError, match=message) as table_error:
+        preview_voltage_import(source, mapping())
+    assert table_error.value.row_number == 2
+    assert table_error.value.column == "Time"
+    with pytest.raises(VoltageImportError, match=message) as origin_error:
+        mapping(time_mode="elapsed_seconds", start_time_utc=timestamp)
+    assert origin_error.value.row_number is None
+    assert origin_error.value.column == "start_time_utc"
 
 
 def test_timestamp_pair_conversion_provenance_and_immutability() -> None:

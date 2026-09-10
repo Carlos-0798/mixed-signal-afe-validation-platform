@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-09-10<br>
 **Current milestone:** TD-050/TD-051/TD-052 locally complete; feature expansion paused for job-search preparation<br>
-**Synchronization stage:** PR #10 integrated into main; source is public and anonymous clone/install/demo verified; local testing remains primary and hosted CI manual-only; no new hosted PASS claimed<br>
+**Synchronization stage:** Source is public; the 2026-09-10 manual hosted recheck passed 6/8 jobs and exposed a Python 3.10 timestamp defect; local correction is awaiting integration and a separately authorized hosted recheck<br>
 **Release maturity:** `0.1.0b1` installable software beta; untagged and unreleased<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
@@ -13,6 +13,14 @@ The owner selected [local testing with manual-only cloud CI](LOCAL_TESTING_AND_C
 on 2026-09-09. Routine synchronization does not require a hosted run. The earlier
 account-blocked run remains historical NOT_RUN evidence; restoring account access
 does not authorize a rerun. Product feature expansion remains paused.
+
+The owner authorized one new hosted attempt on 2026-09-10. Run `34531879037`
+executed at `4a73e32`: Python 3.12/3.14 host tests, quality, and package jobs
+passed; both Python 3.10 jobs failed on the same valid fractional-second Replay
+input. TD-054 now tracks a minimal local correction for Replay and voltage-table
+timestamp parsing. The published source has not yet received that correction;
+the full hosted matrix is not a PASS. See the
+[recheck and correction report](../reports/cloud-ci-recheck-2026-09-10.md).
 
 The 2026-09-08 feature freeze remains a historical baseline. The owner then
 authorized themes/readability (TD-050), the runtime/UI review (TD-051), and a

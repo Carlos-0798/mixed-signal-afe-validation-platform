@@ -14,11 +14,13 @@ These limits are part of the product contract, not hidden footnotes.
 
 ## Supported environments
 
-- Current local evidence is from Windows/Python 3.12. The optional hosted matrix
-  is configured for Python 3.10, 3.12, and 3.14 on Windows/Ubuntu; no current
-  hosted PASS is claimed. Earlier hosted results retain their dated scope.
-- The full deterministic candidate job has historical Windows/Python 3.12
-  evidence; it was not rerun as part of the current source-publication work.
+- The [2026-09-10 hosted recheck](../reports/cloud-ci-recheck-2026-09-10.md) at
+  `4a73e32` passed Windows/Ubuntu host tests on Python 3.12 and 3.14, the quality
+  gate, and the deterministic candidate job. Both Python 3.10 jobs failed on
+  valid fractional-second Replay timestamps. The same issue affects explicit
+  timestamps in ordinary voltage CSV import. Prefer Python 3.12 or 3.14 for that
+  published revision; a local correction is awaiting integration and separately
+  authorized cloud verification. The complete hosted matrix is not a PASS.
 - The current Windows/Python 3.12 candidate uses Tk 8.6.15. That runtime has no
   `tk accessible` API, and a Windows UI Automation audit exposed the 37
   application descendants only as unnamed panes. The Dashboard is therefore

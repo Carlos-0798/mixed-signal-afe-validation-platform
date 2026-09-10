@@ -76,10 +76,13 @@ def _timestamp(
             row_number=row,
             column=column,
         )
+    timestamp = value.strip().replace("Z", "+00:00")
+    if "." in timestamp:
+        # The validated offset stays intact while Python 3.10 gets six digits.
+        seconds, fraction = timestamp[:-6].split(".", 1)
+        timestamp = f"{seconds}.{fraction.ljust(6, '0')}{timestamp[-6:]}"
     try:
-        return datetime.fromisoformat(value.strip().replace("Z", "+00:00")).astimezone(
-            timezone.utc
-        )
+        return datetime.fromisoformat(timestamp).astimezone(timezone.utc)
     except (ValueError, OverflowError) as error:
         raise VoltageImportError(
             "invalid calendar time", row_number=row, column=column

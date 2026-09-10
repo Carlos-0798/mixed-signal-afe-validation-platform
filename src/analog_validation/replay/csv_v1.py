@@ -247,8 +247,12 @@ def _require_empty(row: list[str], indices: range, context: str) -> None:
 def _parse_timestamp(value: str) -> datetime:
     if _TIMESTAMP_PATTERN.fullmatch(value) is None:
         raise ReplayFormatError("timestamp_utc must use ISO 8601 UTC with a Z suffix")
+    timestamp, separator, fraction = value[:-1].partition(".")
+    if separator:
+        # Python 3.10's ISO parser needs a supported fractional-second precision.
+        timestamp += "." + fraction.ljust(6, "0")
     try:
-        return datetime.fromisoformat(value[:-1] + "+00:00").astimezone(timezone.utc)
+        return datetime.fromisoformat(timestamp + "+00:00").astimezone(timezone.utc)
     except ValueError as error:
         raise ReplayFormatError("timestamp_utc is not a valid calendar time") from error
 
