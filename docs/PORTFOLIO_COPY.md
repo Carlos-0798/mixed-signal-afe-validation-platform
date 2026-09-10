@@ -1,6 +1,6 @@
 # Portfolio copy and publication preview
 
-Reviewed 2026-09-09. Current implemented software is on
+Reviewed 2026-09-10. Current implemented software is on
 `codex/calibration-workflow`; [Draft PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10)
 is not merged. The repository remains private. This file supplies copy for owner
 review; it does not authorize LinkedIn posting or public exposure.
@@ -41,6 +41,9 @@ The installed CLI/GUI evidence belongs to the earlier
 for a later documentation change. Do not claim 100% branch coverage.
 
 ## Suggested repository metadata
+
+The description and topics below are already synchronized on GitHub. They are
+retained here as the reviewed wording, not a request for another settings change.
 
 Description:
 
@@ -101,3 +104,65 @@ exact proposed source/history and assets, choose the intended revision, and
 obtain separate owner approval for visibility and any release or social post.
 The [resume checkpoint](PROJECT_RESUME_CHECKPOINT_2026-09-09.md) preserves the
 completed scope and sample-driven TD-053 plan.
+
+## Copy-ready LinkedIn project entry
+
+**Title:** Analog Validation Studio — Python Test Automation & Data Analysis
+
+**Role:** Independent Project Developer
+
+**Dates:** Keep the actual August 2026 start date shown on the existing profile.
+Use “Present” if maintenance continues; an August–September 2026 range may
+describe the completed software phase if that is the owner's intended scope.
+The implemented software does not need an “In Development” title qualifier.
+
+**Description:**
+
+> Developed an independent Python desktop application and CLI for repeatable
+> voltage-data validation, turning CSV preparation, gain/offset/linearity
+> analysis, and reporting into a reusable workflow.
+>
+> • Defined the product scope and a controller-neutral architecture, with a
+> shared analysis core for desktop and CLI workflows.
+>
+> • Implemented reusable CSV mappings, saved test presets, cancellable batch
+> runs, and automated plots and reports; preserved completed results when later
+> steps failed.
+>
+> • Added strict input validation, versioned manifests, archived source data,
+> and SHA-256 verification to make results reproducible and traceable.
+>
+> • Verified the software with 3,048 passing local tests and 100% package
+> statement coverage, supported by documented fresh-install CLI and desktop
+> workflow checks.
+>
+> Current evidence covers software, simulator, and CSV-replay workflows;
+> physical analog front-end performance remains unvalidated.
+
+**Skills:** Python; Test Automation; Software Architecture; Data Analysis; Debugging.
+
+**Project URL after public verification:**
+[GitHub repository](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform).
+The old profile's breadboard/PCB wording describes a separate hardware plan;
+do not carry it into this software entry as completed work.
+
+## AI-assisted development: accurate interview wording
+
+This optional note is for questions about the development process. The main
+project description should demonstrate engineering decisions and delivered
+behavior; it need not list every development tool.
+
+> I used AI-assisted development tools during implementation and documentation.
+> My responsibilities centered on problem definition, architecture and scope
+> decisions, and verification criteria. Changes were checked through regression
+> tests and reproducible evidence.
+
+Do not describe AI-assisted implementation as entirely hand-written, or automated
+review as human team review. Preserve historical tool references and evidence.
+“Manual-only cloud CI” describes when a workflow is requested, and manual task
+baselines describe the problem being automated; neither is a claim about code
+authorship. Human efficiency measurements remain unperformed.
+
+Publication decisions and the remaining review items are tracked in the
+[publication checklist](PUBLICATION_CHECKLIST.md) and
+[dated closeout review](../reports/publication-readiness-2026-09-10.md).

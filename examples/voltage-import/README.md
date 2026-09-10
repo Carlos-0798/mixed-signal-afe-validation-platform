@@ -1,6 +1,6 @@
 # SYNTHETIC voltage import examples
 
-All three tables are hand-authored software fixtures. They are not exports from
+All three tables are deterministic synthetic test fixtures. They are not exports from
 any instrument or vendor and establish no physical hardware accuracy.
 
 Each table represents the same five DC points: input 100, 300, 500, 700, and

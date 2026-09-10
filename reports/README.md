@@ -4,6 +4,9 @@ No hardware validation report exists. Reports must preserve the evidence labels 
 
 Software checkpoint reports (each report states its own evidence level):
 
+- [publication-readiness-2026-09-10.md](publication-readiness-2026-09-10.md) —
+  current portfolio wording, historical disclosure classification, local-first
+  verification, and separate owner decisions for integration and public access.
 - `feature-freeze-and-consolidation-2026-09-08.md` — repository-external
   snapshot build, fresh wheel install, byte-identical normal/Unicode demos,
   installed Replay manifest-v3/history chain, product-quality/privacy gates,
@@ -122,11 +125,11 @@ Software checkpoint reports (each report states its own evidence level):
   full regression/build/install evidence, and explicit no-hardware boundary.
 - `PROJECT_MILESTONE_UPDATE_2026-09-04.md` — current post-PR #7 delivery
   identity, verification record, product capability summary, evidence limits,
-  remaining owner decisions, and next-agent handoff.
+  remaining owner decisions, and maintenance handoff.
 - `PROJECT_MILESTONE_RESUME_HANDOFF_2026-09-03.md` — dated pre-merge phase map,
   implemented capability inventory, merged/Draft/local snapshot separation,
   reproducible verification, resume-ready fact bank, prohibited hardware
-  claims, and next-agent handoff rules.
+  claims, and continuation notes.
 - `PORTFOLIO_PUBLICATION_PREP_2026-09-03.md` — recruiter-facing presentation,
   classified screenshots, synchronized copy, governance files, local quality
   gates, remote read-only snapshot, and owner-controlled publication sequence.

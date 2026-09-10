@@ -1,161 +1,135 @@
 # Publication and Portfolio Governance Checklist
 
-**Last reviewed:** 2026-09-06
+**Last reviewed:** 2026-09-10. **Hardware claim:** `NO_NEW_HARDWARE_VALIDATION`.
 
-**Current state:** Private repository, Dashboard UX PR #7 merged at `b4f0fef`,
-package `0.1.0b1`, no tag, no GitHub Release. The owner-selected MIT License
-has been implemented locally on 2026-09-06; remote status has not been refreshed.
+The repository is private. Implemented software is on
+`codex/calibration-workflow`, with [PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10)
+still Draft and unmerged. Default `main` has the updated presentation but retains
+the older runtime and license; the candidate carries the owner-selected MIT
+license. No tag, Release, or package publication is implied by this checklist.
 
-**Hardware claim:** `NO_NEW_HARDWARE_VALIDATION`
-
-This checklist governs the transition from a locally validated private-beta
-project to a recruiter-visible GitHub portfolio and, later, a controlled
-release. Checking a preparation item does not authorize the corresponding
-remote action.
+See the dated [closeout review](../reports/publication-readiness-2026-09-10.md)
+for inspected revisions, findings, and remaining decisions. Checked preparation
+items do not authorize a merge, visibility change, history rewrite, or social post.
 
 ## Publication levels
 
 | Level | Meaning | Current status |
 |---|---|---|
-| A — Private engineering beta | Local/hosted software evidence, private review, no public claim | Active |
-| B — Public portfolio source | Recruiter-readable repository, screenshots, demo, governance, no Release required | Not authorized |
-| C — Versioned beta release | Signed-off tag/Release, immutable release notes and artifacts | Not authorized |
-| D — Hardware-backed product evidence | Physical AFE setup, raw bench data, instruments, calibration and limitations | Not started |
+| A — Private engineering beta | Validated local software with private source review | Active |
+| B — Public portfolio source | Recruiter-readable source, demo, evidence, and limitations | Pending owner decisions |
+| C — Versioned beta release | Approved tag, release notes, and distribution artifacts | Deferred |
+| D — Hardware-backed evidence | Physical setup, raw measurements, calibration, and limitations | No new validation |
 
-The next sensible target is Level B. Level C should follow only after the
-public presentation has been reviewed in an anonymous browser session. Level D
-is a separate hardware program and cannot be inferred from Levels A–C.
+Level B is the next useful target. It does not require Level C or new product
+features. Physical AFE performance cannot be inferred from any software gate.
 
-## 1. Technical release gate
+## 1. Source and verification
 
-- [ ] Working tree contains only the approved change set.
-- [ ] Focused tests pass.
-- [ ] Full pytest and package statement coverage pass at the documented count.
-- [ ] Ruff, mypy, dependency checks, build, and fresh base/serial installs pass.
-- [ ] Deterministic demo reproduces in normal and Unicode paths.
-- [ ] Release-candidate verification runs from the exact clean commit proposed
-      for publication.
-- [ ] Hosted CI passes on the exact head commit.
-- [ ] Draft PR description matches the exact head, counts, and limitations.
+- [x] Current software scope and the sample-driven continuation plan are saved
+      in the [resume checkpoint](PROJECT_RESUME_CHECKPOINT_2026-09-09.md).
+- [x] The [product synchronization gate](../reports/private-github-sync-2026-09-09.md)
+      records 3,048 passing local tests, 100% package **statement** coverage,
+      Ruff, mypy, dependency checks, and 15 product-quality checks.
+- [x] [TD-052](../reports/td-052-voltage-import-2026-09-09.md) records fresh-installed
+      CLI and real desktop acceptance; these are dated results, not new runs
+      for later documentation changes.
+- [ ] Select the exact source revision/default-branch integration for public
+      review and verify its clean-tree identity and change scope.
+- [ ] Complete appropriate local checks for any changes since the recorded
+      gate. Rerun the full product gate when runtime/test changes warrant it.
+- [ ] Verify the selected source from a fresh authorized checkout or artifact
+      and check the documented demo and links before publication.
+- [ ] Ensure the PR description, license, screenshots, and test claims match
+      the selected candidate and clearly identify historical evidence.
 
-## 2. Evidence and claim gate
+Cloud CI is **optional**, governed by [local-first testing](LOCAL_TESTING_AND_CI.md).
+It is not a prerequisite for routine synchronization or a portfolio page.
+Each dispatch/rerun needs an explicit owner instruction for that run. A blocked
+or unexecuted hosted matrix stays `NOT_RUN`; local tests do not establish native
+Linux/macOS compatibility. No cloud run was requested by this checklist.
 
-- [ ] README separates `SYNTHETIC`, `CSV_REPLAY`, `HOST_TEST`,
-      `BENCH_CONTROLLER`, `SPICE_*`, and future AFE bench evidence.
-- [ ] Screenshots state their source and do not imply physical measurement.
-- [ ] Current-state documents agree on phase, version, test count, coverage,
-      release status, and hardware status.
-- [ ] Historical reports keep their original dates and counts.
-- [ ] No statement implies production readiness, electrical certification,
-      long-duration reliability, or a validated AFE.
-- [ ] MSP430 compatibility is described as a peer integration through public
-      interfaces, not an ownership or merge relationship.
-- [ ] OSU Lab Bench Monitor Senior Capstone work is not present or claimed.
+## 2. Evidence and attribution
 
-## 3. Privacy and repository-history gate
+- [x] Current presentation identifies AVS as an independent software project,
+      MSP430 Equipment Health Controller as a peer integration, and OSU Lab
+      Bench Monitor Senior Capstone as a separate team project.
+- [x] Current importer screenshots are actual application captures using
+      synthetic input; the import preview is labeled `CSV_REPLAY`.
+- [x] Portfolio wording emphasizes problem definition, architecture, reusable
+      workflows, failure handling, and verifiable results.
+- [x] Current synthetic fixtures and documentation review are described without
+      implying hand-authored data or human peer review.
+- [ ] Recheck any new claim or asset against its underlying evidence.
 
-- [ ] Current tree contains no credentials, personal email, local absolute
-      paths, private captures, receipts, unpublished team material, or raw
-      physical logs.
-- [ ] Generated `work/`, build, cache, virtual-environment, and local evidence
-      files are ignored.
-- [ ] The latest release audit reports zero current-tree privacy findings and
-      zero high-confidence credentials.
-- [ ] Every legacy history-review item is inspected and either accepted,
-      remediated with an explicit history plan, or documented as non-sensitive.
-- [ ] An anonymous clone/search check is complete before visibility changes.
+Keep `HOST_TEST`, `SYNTHETIC`, `CSV_REPLAY`, `SPICE_IDEAL`, `BENCH_CONTROLLER`,
+and `BENCH` distinct. Do not claim human time savings, operator-error reduction,
+universal device support, production deployment, or AFE accuracy without evidence.
+Historical reports retain their original counts and context. AI-assisted work
+may be discussed accurately; editing current presentation is not a reason to
+conceal tool use or rewrite attribution history.
 
-Changing visibility before this section is complete may permanently expose Git
-history through clones, forks, caches, or search indexing.
+## 3. Privacy and public surfaces
 
-## 4. GitHub presentation gate
+- [x] Candidate-tree scanning and approved binary identities have been checked;
+      the dated report identifies the inspected scope and limits.
+- [x] Reachable remote Git history and commit identities have been inspected.
+- [ ] Resolve each historical personal-information item through an explicit
+      owner decision; a clean latest file does not remove earlier revisions.
+- [x] Review repository issues, PR text/comments, Actions logs, and downloadable
+      artifacts; 23 expired artifact bodies remain unavailable, as recorded in
+      the dated report rather than labeled as passed.
+- [ ] Confirm there are no unresolved credential findings or private/team
+      material in the intended public surface.
 
-- [x] Recruiter-first README structure: value, preview, architecture, demo,
-      verification, boundaries, roadmap.
-- [x] Real application screenshots use deterministic Simulator data.
-- [x] Repository map and documentation routes are concise.
-- [x] CONTRIBUTING, SECURITY, PR template, CODEOWNERS, and Dependabot
-      configuration are prepared locally.
-- [x] All README and documentation links pass the 2026-09-03 local automated
-      scan.
-- [ ] GitHub description and topics have an approved exact preview.
-- [ ] A 1280×640 PNG/JPG social-preview candidate is approved and uploaded in
-      repository settings.
-- [ ] The repository is reviewed while signed out or in a private browser after
-      any visibility change.
+Pattern scanning is not a guarantee that every secret or personal detail has
+been detected. Do not delete runs, rewrite history, or expose reviewed personal
+information without the corresponding owner decision. A fresh authorized clone
+can be reviewed while private; an **anonymous** clone is a post-publication
+check, not an achievable prerequisite for a private repository.
 
-The current screenshots are product evidence for the README. They are not
-automatically uploaded as GitHub's social-preview image; that setting is a
-separate owner-approved remote action.
+## 4. Presentation and repository settings
 
-The unapproved exact wording and topic proposal are staged in
-[`PORTFOLIO_COPY.md`](PORTFOLIO_COPY.md). Preparing that preview does not change
-the GitHub repository or LinkedIn profile.
+- [x] README has a problem statement, real preview, architecture, runnable demo,
+      verification routes, limitations, and a reviewer guide.
+- [x] Repository description and topics have been synchronized to the software
+      and data-workflow scope.
+- [x] CONTRIBUTING, SECURITY, PR template, CODEOWNERS, and Dependabot files exist.
+- [ ] Recheck available security settings and branch protections at the selected
+      publication point; do not equate configuration files with enabled rules.
+- [ ] After approved public exposure, verify signed-out README/images/links and
+      an anonymous clone/demo from the selected default revision.
 
-## 5. Repository protection gate
+A social-preview image is optional polish, not a source-publication blocker.
+Where supported, use reviewed changes and protection against force pushes.
+Do not introduce a mandatory automatic CI requirement that conflicts with the
+owner's manual-only policy. Security features depend on the actual account and
+repository settings; enabling them is a separate, reviewable action.
 
-- [ ] Private vulnerability reporting is enabled before public exposure.
-- [ ] Secret scanning and dependency alerts are enabled where the account and
-      repository plan permit.
-- [x] Dependabot configuration is merged and its first update checks completed.
-- [ ] Branch/ruleset protection is enabled for `main` with required CI checks,
-      pull-request review, and no force pushes, where the GitHub plan permits.
-- [ ] Tag and Release permissions are restricted to the owner.
+## 5. Remaining owner decisions
 
-At the 2026-09-03 audit, branch-protection/ruleset configuration was unavailable
-for this private repository under the current GitHub plan. Recheck after a
-visibility or account-plan decision; do not claim protection before GitHub
-accepts and displays the rule.
+Before changing visibility, present the exact choices and affected material:
 
-## 6. Owner decisions required before any remote publication
+1. Resolve the historical disclosure items recorded in the closeout review.
+2. Choose the public source/default branch and authorize any PR integration.
+   The recommended product entry is the completed candidate, after integration
+   review; this checklist does not mark PR #10 Ready or merge it.
+3. Approve the visibility change for this repository only.
+4. After signed-out verification, approve adding the GitHub link to LinkedIn.
 
-Each item needs an exact preview and explicit approval:
+Keep tags, Releases, package publication, historical rewrites, and hardware work
+deferred unless separately requested. Updating the current private branch and
+Draft PR does not imply approval of those actions.
 
-- [x] Mark PR #7 Ready.
-- [x] Merge PR #7 and retain its remote feature branch.
-- [ ] Choose repository visibility.
-- [x] Owner selected MIT; LICENSE, package metadata, and audit policy updated locally.
-- [ ] Approve GitHub description and topics.
-- [ ] Approve and upload the social-preview image.
-- [ ] Approve `v0.1.0b1` tag and GitHub Release, or defer both.
-- [ ] Approve package-registry publication, or keep distribution on GitHub only.
-- [ ] Approve LinkedIn Featured link and project wording.
+## LinkedIn handoff
 
-These decisions are independent. For example, a repository may become visible
-without publishing a Release, and a Release must not be inferred from a merged
-pull request.
+The copy-ready title, description, skills, and accurate AI-use interview note
+are in [PORTFOLIO_COPY.md](PORTFOLIO_COPY.md). Dates should reflect the owner's
+actual work period. A private link is not accessible to ordinary recruiters;
+add the Featured/repository link after public access has been verified.
 
-## 7. LinkedIn handoff
+## Platform reference
 
-Use only claims that a recruiter can verify from the public repository:
-
-- role: independent product designer/developer;
-- product: controller-neutral analog validation and test-automation software;
-- evidence: tested CLI/Dashboard, deterministic demo, reports, adapters,
-  protocol/CRC, analysis, CI, packaging, and governance;
-- compatibility: public receive-only MSP430 profile as one peer integration;
-- limitation: configurable AFE hardware remains unbuilt and unvalidated.
-
-Before adding the link:
-
-- [ ] Open the final GitHub page while signed out.
-- [ ] Run the documented demo from a fresh clone or release artifact.
-- [ ] Confirm every screenshot and badge renders.
-- [ ] Confirm no private issue, branch, artifact, or local path is linked.
-- [ ] Freeze the exact LinkedIn title, description, skills, and repository URL
-      for owner approval.
-
-The current wording candidate is in
-[`PORTFOLIO_COPY.md`](PORTFOLIO_COPY.md); keep the item above unchecked until
-the owner approves the final public commit and wording.
-
-## Authoritative platform references
-
-- [GitHub: About READMEs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes)
-- [GitHub: Social preview](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/customizing-your-repositorys-social-media-preview)
-- [GitHub: Repository visibility](https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories)
-- [GitHub: Licensing](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository)
-- [GitHub: Protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches)
-- [GitHub: Repository security quickstart](https://docs.github.com/en/code-security/getting-started/quickstart-for-securing-your-repository)
-- [GitHub: Dependabot version updates](https://docs.github.com/en/code-security/how-tos/secure-your-supply-chain/secure-your-dependencies/configure-version-updates)
-- [LinkedIn: Feature samples of your work](https://www.linkedin.com/help/linkedin/answer/a550399/feature-samples-of-your-work-on-your-linkedin-profile)
+[GitHub's visibility documentation](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/managing-repository-settings/setting-repository-visibility)
+explains that changing a repository to public also exposes its Actions history
+and logs. This is why the review covers more than the current README and files.

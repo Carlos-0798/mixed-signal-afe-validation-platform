@@ -33,7 +33,7 @@ git diff --check
 这仍可能使用 Actions 额度；“手动”不等于无限免费。手动触发的使用说明见
 [GitHub 官方文档](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow)。
 
-后续 agent 不得因 push、PR 更新、账户限制解除或旧失败记录而自动 dispatch/re-run；
+后续维护者及自动化工具不得因 push、PR 更新、账户限制解除或旧失败记录而自动 dispatch/re-run；
 需要所有者针对该次云端运行的明确指示。本地命令与只读查询 Actions 状态不受此限制。
 不擅自添加定时、push、PR 或其他自动触发入口，不更改账单、付费计划或消费额度。
 
