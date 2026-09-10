@@ -2,45 +2,89 @@
 
 **Turn voltage CSV files into repeatable tests, plots, and traceable reports.**
 
-An independent Python desktop app and CLI for students and engineers who
-repeatedly check voltage measurements. Map columns and units, review criteria,
-run reusable tests, and export plots and reports with their original inputs.
+A local Python desktop app and CLI for students and engineers who repeatedly
+check analog measurement data. Map columns and units once, review the test
+criteria, then reuse the same analysis and reporting workflow for later files.
 
-**Start here: [Current product and demo](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/tree/codex/calibration-workflow#analog-validation-studio) · [Two-minute reviewer guide](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/REVIEWER_GUIDE.md) · [Recorded local verification](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/reports/private-github-sync-2026-09-09.md)**
+**Independent personal engineering project · Python 3.10+ · Tkinter/ttk · offline operation**
 
-## Current product — September 2026
+[Two-minute project review](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/REVIEWER_GUIDE.md) ·
+[Try the software](#try-the-software) ·
+[Verification evidence](#verification) ·
+[Architecture](#architecture)
 
-The implemented, locally verified `0.1.0b1` candidate is on
-`codex/calibration-workflow`. This default `main` branch retains the earlier
-runtime; [PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10)
-is still Draft and unmerged. Use the current-product link above to review or
-install the version described below. The repository remains private and no
-public release is claimed.
+Current software scope is implemented and locally verified through voltage CSV
+import. This private `0.1.0b1` candidate is on `codex/calibration-workflow` in
+[Draft PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10);
+the default `main` still contains an earlier runtime. The links below target the
+current candidate so either branch can use this overview. No public release is claimed.
 
-| What I built | Why it matters |
+## The problem and the result
+
+Repeated gain, offset, and linearity checks often require reformatting a CSV,
+copying spreadsheet formulas, recreating plots, and manually recording which
+criteria produced a result. AVS connects those steps in one reusable workflow:
+
+**Import data → review criteria → run analysis → inspect results → export reports → reuse the project.**
+
+| Repeated manual work | Implemented automation |
 |---|---|
-| Reusable voltage CSV mapping, unit conversion, and preview | Avoid repeating manual file reformatting |
-| Shared Python analysis core behind CLI and Tkinter/ttk GUI | Keep test criteria and numerical conclusions consistent |
-| Saved projects, batch progress, cancellation, and partial-result retention | Repeat tests and recover useful completed work |
-| Automated charts/reports, archived inputs, and verifiable history | Keep each conclusion connected to its data and settings |
+| Rename columns and convert V/mV for every file | Explicit, reusable CSV mapping with converted-value preview |
+| Reapply calculations and acceptance limits | Shared analysis core with saved projects and test presets |
+| Copy results into charts and reports | JSON/CSV plus text, Markdown, HTML, and SVG from finalized results |
+| Track interrupted runs and locate source files | Cooperative cancellation, retained partial results, archived Replay inputs, and verified history |
 
-The product automates these operations; human time savings and operator-error
-reduction have not been quantified. The linked 2026-09-09 local gate recorded
-**3,048 tests passed and 100% package statement coverage (17,567 statements)**,
-plus Ruff, mypy, dependency checks, and 15 product-quality checks. These are
-software checks, not hardware validation or 100% branch coverage.
+These operations are automated in the software. Human time savings and reduced
+operator-error rates have not yet been measured; see the
+[task-value evaluation](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/TASK_VALUE_VALIDATION_PLAN.md).
 
-## See the current application
+## What I built
 
-![Current Workbench voltage-import preview using synthetic data labeled CSV_REPLAY](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/0f639b707828c2fb2f5484120a34762c9e4dcb2f/media/dashboard-import-workbench-20260909.jpg?raw=true)
+- **A controller-neutral core:** immutable measurements, public adapter/profile
+  contracts, explicit units, and DC/hysteresis/calibration/amplitude-response analysis.
+- **One execution path for GUI and CLI:** reviewed configuration, progress,
+  cooperative cancellation, cleanup, and consistent success/error outcomes.
+- **Reusable test workflows:** voltage-table import, saved presets, batch runs,
+  input retention, history comparison, and versioned manifests readable across
+  supported older schema versions.
+- **An installable desktop product:** guided Tkinter/ttk UI, Workbench/Daylight/
+  Midnight themes, automated reports, packaging, compatibility tests, and local
+  quality gates. The base installation has no third-party runtime dependency.
 
-Actual Windows desktop capture, 2026-09-09: a synthetic voltage table is mapped
-and checked before import. The `CSV_REPLAY` label is visible.
-[Daylight, Midnight, and capture provenance](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/media/README.md).
+This project demonstrates Python software engineering, test automation, data
+processing, and hardware/software interface design. The
+[reviewer guide](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/REVIEWER_GUIDE.md) connects each contribution to code and evidence.
 
-## Try the current version
+## Product preview
 
-For an authorized reviewer with Python 3.10+ on Windows, use a new clone directory:
+![Workbench theme: checked voltage import with explicit units and CSV_REPLAY evidence](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/0f639b707828c2fb2f5484120a34762c9e4dcb2f/media/dashboard-import-workbench-20260909.jpg?raw=true)
+
+Real Windows application, captured 2026-09-09. The six-row input is synthetic;
+the imported preview is labeled `CSV_REPLAY`. This shows data preparation,
+not a hardware measurement.
+
+[Daylight](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/0f639b707828c2fb2f5484120a34762c9e4dcb2f/media/dashboard-import-daylight-20260909.jpg?raw=true) ·
+[Midnight](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/0f639b707828c2fb2f5484120a34762c9e4dcb2f/media/dashboard-import-midnight-20260909.jpg?raw=true) ·
+[Screenshot provenance and hashes](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/media/README.md)
+
+<details>
+<summary>Earlier result-view screenshots (2026-09-03, before the current themes)</summary>
+
+![Completed synthetic DC analysis in the earlier Dashboard](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/0f639b707828c2fb2f5484120a34762c9e4dcb2f/media/dashboard-dc-result.png?raw=true)
+
+![Earlier result view showing synthetic provenance and hardware limitations](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/0f639b707828c2fb2f5484120a34762c9e4dcb2f/media/dashboard-dc-evidence.png?raw=true)
+
+These preserved screenshots demonstrate result/report presentation at that
+checkpoint. The current software demo below generates a fresh report and chart.
+
+</details>
+
+## Try the software
+
+Windows PowerShell; Python 3.10+ (primary local verification: Python 3.12).
+The repository currently requires authorized GitHub access. Clone the current
+product branch into a **new** directory; a default-branch clone installs the
+older baseline. Installation may download build tools; running the demo is offline.
 
 ~~~powershell
 git clone --branch codex/calibration-workflow --single-branch https://github.com/Carlos-0798/mixed-signal-afe-validation-platform.git avs-review
@@ -51,303 +95,117 @@ python -m venv .venv
 .\.venv\Scripts\analog-validation.exe dashboard
 ~~~
 
-Open `portfolio-demo/report/report.html` for the generated metrics, chart, and
-conclusion. The demo creates 12 artifacts from a 24-point `SYNTHETIC` case.
-Use a new output name when rerunning; existing results are not overwritten.
-Installation may download build tools; the demo runs offline without a board.
-[Full instructions and expected results](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/README.md#try-the-software).
+**Expected result:** the demo runs a 24-point `SYNTHETIC` DC case and creates
+12 artifacts. Open `portfolio-demo/report/report.html` to inspect the metrics,
+criteria, chart, and conclusion; `result.json` and `manifest.json` retain the
+machine-readable result and file identities. A software PASS is not hardware
+validation. Repeating the command requires a new output name; existing evidence
+is never overwritten.
 
-## Evidence, status, and scope
+In the Dashboard, use **Import data** for a supported voltage CSV, check the
+converted preview, then continue through **Setup & run → Review → Run → Results**.
+See [voltage import](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/voltage-data-import.md),
+[the deterministic demo](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/software-demo.md), and
+[installation help](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/INSTALLATION.md). No board or serial driver is needed.
 
-Testing is local-first. Maintained branches use
-[manual-only cloud CI](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/LOCAL_TESTING_AND_CI.md);
-ordinary pushes and PR updates do not trigger cloud tests. Historical hosted
-passes do not establish that the latest candidate passed a hosted matrix.
-
-This is an independent personal engineering project. MSP430 Equipment Health
-Controller and OSU Lab Bench Monitor Senior Capstone are separate projects.
-`HOST_TEST`, `SYNTHETIC`, `CSV_REPLAY`, `SPICE_IDEAL`,
-`BENCH_CONTROLLER`, and `BENCH` remain distinct. No AFE hardware-performance
-claim or universal board support is made: **`NO_NEW_HARDWARE_VALIDATION`**.
-
-The current product branch has the owner-selected
-[MIT license](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/LICENSE).
-This earlier main revision retains its [existing license file](LICENSE).
-This page update does not change either license or merge the candidate.
-
-[Current architecture](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/PRODUCT_ARCHITECTURE.md) ·
-[Limitations](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/KNOWN_LIMITATIONS.md) ·
-[Completed scope and next step](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/PROJECT_RESUME_CHECKPOINT_2026-09-09.md)
-
-<details>
-<summary>Earlier main implementation and historical evidence (2026-09-04)</summary>
-
-The following documents the earlier runtime still present on main. Counts,
-screenshots, deferred features, and licensing refer to that checkpoint.
-For the current candidate use the links above. CI is now manual-only even for
-this main branch; the historical hosted results below are not current-run evidence.
-
-# Earlier main baseline
-
-> Controller-neutral software for repeatable analog front-end validation, automated test execution, and evidence-aware reporting.
-
-
-**Private beta · Python 3.10+ · offline by default · hardware work deferred**
-
-Analog Validation Studio is the software product inside the broader
-**Configurable Analog Front-End & Validation Platform** project. It turns
-Simulator, CSV Replay, and explicitly selected receive-only serial data into
-reviewed acquisition jobs, engineering analyses, and traceable reports. The
-design keeps device profiles replaceable so the product is not tied to one
-microcontroller or laboratory.
-
-This is an independent personal engineering project. Compatibility profiles
-allow peer products to exchange evidence without merging their ownership,
-runtime, or product identity.
-
-> **Evidence boundary:** the screenshots and demo below use deterministic
-> `SYNTHETIC` data. No configurable AFE has been built or bench-validated, so
-> this repository makes zero AFE hardware-performance claims. A prior
-> `BENCH_CONTROLLER` record validates only a narrow, receive-only MSP430 UART
-> compatibility path; it does not validate the future AFE, sensors, wiring, or
-> instruments.
-
-## Product at a glance
-
-| Area | Current state |
-|---|---|
-| Product version | `mixed-signal-afe-validation-platform 0.1.0b1` |
-| Delivery stage | Software Phase 6 release engineering — 7/8 checkpoints |
-| Interfaces | Installed CLI, local Tk Dashboard, JSON/CSV exports, text/Markdown/HTML/SVG reports |
-| Data sources | Deterministic Simulator, strict CSV Replay, receive-only serial profiles |
-| Analyses | DC gain/offset/linearity with saturation exclusion; directional hysteresis; calibration and offline frequency response |
-| Extension model | Public `DeviceAdapter` and serial-profile contracts |
-| Latest local quality run | 2,277 tests passed; 11,911/11,911 package statements covered |
-| Latest merged delivery | Dashboard UX PR #7 merged to `main`; post-merge CI passed all eight jobs |
-| Hardware claim | `NO_NEW_HARDWARE_VALIDATION` — physical AFE not built or measured |
-
-[Detailed status](docs/PROJECT_STATUS.md) ·
-[Current milestone handoff](reports/PROJECT_MILESTONE_UPDATE_2026-09-04.md) ·
-[Installation](docs/INSTALLATION.md) ·
-[Tester guide](docs/USER_TESTING_GUIDE.md) ·
-[Changelog](CHANGELOG.md)
-
-## Product preview
-
-![Analog Validation Studio showing a completed synthetic DC analysis](media/dashboard-dc-result.png)
-
-The local Dashboard makes the six-step Source → Test → Configure → Review →
-Run → Result workflow visible. It does not open a file, port, or output merely
-because a source is selected.
-
-![Analog Validation Studio showing the synthetic evidence boundary and no-hardware-validation claim](media/dashboard-dc-evidence.png)
-
-The result view separates product completion from engineering outcome and
-shows provenance, excluded points, limitations, and the explicit hardware
-claim. Both images were captured from the earlier Windows application using
-the Simulator; see the [media evidence register](media/README.md).
-
-## Why this project exists
-
-Analog validation often becomes a collection of one-off scripts, board-specific
-commands, manually edited spreadsheets, and ambiguous screenshots. This project
-builds a reusable product boundary around that work:
-
-- **Repeatability:** immutable requests, deterministic Simulator data, strict
-  replay files, fixed CRC vectors, and versioned schemas.
-- **Safety:** review-before-run, capability and range preflight, bounded jobs,
-  cooperative cancellation, cleanup-before-conclusion, and receive-only serial
-  product paths.
-- **Evidence integrity:** `SYNTHETIC`, `CSV_REPLAY`, `HOST_TEST`,
-  `BENCH_CONTROLLER`, and future bench evidence remain distinguishable.
-- **Extensibility:** adapters and profiles isolate controllers, instruments,
-  transports, and future hardware from analysis and presentation code.
-- **Auditability:** reports preserve criteria, metrics, point disposition,
-  lineage, limitations, versions, and SHA-256 identities without recalculating
-  a finalized conclusion.
-
-## What is implemented
-
-| Product layer | Implemented capability |
-|---|---|
-| Domain and protocol | Immutable measurements/capabilities/test runs; bounded ASCII framing; CRC-16/CCITT-FALSE; AFE v1 and MSP430 Equipment Health v1 receive-only parsing |
-| Sources and adapters | Deterministic Simulator, immutable CSV Replay, bounded serial lifecycle, public adapter/profile contracts |
-| Test execution | Shared read workflow; safety-gated DC and hysteresis runners; bounded single-owner worker |
-| Analysis | Unit normalization, saturation/quality exclusion, OLS gain/offset/R²/RMSE, hysteresis thresholds/width, calibration, offline frequency response |
-| Product surfaces | Installed `analog-validation` CLI, guided Dashboard, deterministic demo, structured exports, human-readable reports |
-| Release engineering | Hosted matrix CI, compatibility manifests, reproducible wheel/sdist checks, isolated base/serial installs, privacy and evidence audits |
-
-Full feature-level evidence is maintained in
-[Project Status](docs/PROJECT_STATUS.md) and
-[Requirements Traceability](docs/REQUIREMENTS_TRACEABILITY.md).
-
-Not yet complete: calibration/frequency-response `TestRun` export mappings,
-real-time runner deadlines, long-duration physical transport testing, a
-validated configurable AFE, reference-controller output hardware, and v1.0
-publication.
-
-## Earlier-baseline demo
-
-Requirements: Python 3.10 or later. The primary verified development
-environment uses Python 3.12.
+## Reuse a test project
 
 ~~~powershell
-git clone https://github.com/Carlos-0798/mixed-signal-afe-validation-platform.git
-cd mixed-signal-afe-validation-platform
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e .
-.\.venv\Scripts\analog-validation.exe demo --output .\work\portfolio-demo
-.\.venv\Scripts\analog-validation.exe dashboard
+.\.venv\Scripts\analog-validation.exe project create --output .\demo-project.json --project-id demo --name "Demo project"
+.\.venv\Scripts\analog-validation.exe project run --input .\demo-project.json --output .\run-001 --run-id run-001
 ~~~
 
-The demo executes the reviewed 24-point synthetic DC product chain and creates
-12 deterministic machine, replay, report, chart, and manifest artifacts in a
-new directory. It requires no serial driver, physical device, network service,
-or laboratory instrument.
-
-For development:
-
-~~~powershell
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-.\.venv\Scripts\python.exe -m pytest
-.\.venv\Scripts\ruff.exe check .
-.\.venv\Scripts\mypy.exe src tools tests examples
-~~~
-
-Optional serial support is isolated behind `.[serial]` and remains receive-only
-at the product boundary. Read [pyserial and physical-port safety](docs/pyserial-backend.md)
-before selecting a real port.
+The default project runs six Simulator presets. Each new run records the
+configuration, outcomes, evidence class, and artifact hashes. History verifies
+stored results before displaying them; it does not silently recalculate PASS/FAIL.
+Saved projects exclude serial settings. See [projects and history](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/test-projects-and-history.md).
 
 ## Architecture
 
 ~~~mermaid
-flowchart LR
-    Sources["Simulator · CSV Replay · receive-only Serial · future instruments"]
-    Adapters["Public adapters and versioned profiles"]
-    Core["Measurements · capabilities · reviewed requests"]
-    Execution["Worker · workflows · safety-gated runners"]
-    Analysis["DC · hysteresis · calibration · frequency response"]
-    Evidence["JSON/CSV · text/MD/HTML/SVG · Dashboard"]
-
-    Sources --> Adapters --> Core --> Execution --> Analysis --> Evidence
-    AFE["Future configurable AFE"] -. electrical/protocol contract .-> Sources
-    MSP["Independent MSP430 product"] -. public compatibility profile .-> Adapters
+flowchart TD
+    Inputs["Simulator / voltage CSV / opt-in receive-only serial"]
+    Adapters["Import mapping / public adapters and profiles"]
+    Core["Typed measurements / reviewed criteria / analysis"]
+    Worker["Shared execution / progress / cancellation / cleanup"]
+    UI["Desktop Dashboard and CLI"]
+    Results["Finalized results / reports / verifiable history"]
+    Inputs --> Adapters --> Core
+    UI --> Worker
+    Worker --> Core
+    Core --> Results
+    Results --> UI
 ~~~
 
-The analysis layer never depends on a COM name, board register, SDK call, or
-pin map. The Dashboard presents finalized data and does not own CRC, fitting,
-saturation exclusion, threshold calculation, or PASS/FAIL logic.
+Device-specific parsing stays outside the analysis layer. GUI and CLI use the
+same core; report rendering does not refit data or invent a new conclusion.
+Atomic create-new publication and SHA-256 verification help detect damaged or
+mismatched artifacts; hashes are not digital signatures or proof of hardware origin.
 
-[Architecture](docs/PRODUCT_ARCHITECTURE.md) ·
-[Architecture decisions](docs/adr/README.md) ·
-[Public adapter example](docs/PUBLIC_ADAPTER_EXAMPLE.md) ·
-[Phase 5 public contract](docs/phase5-public-api.md)
+[Architecture details](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/PRODUCT_ARCHITECTURE.md) ·
+[Decisions](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/adr/README.md) ·
+[Public adapter example](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/PUBLIC_ADAPTER_EXAMPLE.md)
 
-## Source and compatibility matrix
+## Verification
 
-| Source/profile | Product operation | Evidence | Current boundary |
-|---|---|---|---|
-| Simulator / `afe/1` | Read, synthetic DC, synthetic hysteresis | `SYNTHETIC` | Default, deterministic, no hardware |
-| CSV Replay | Read, DC, hysteresis | `CSV_REPLAY` | Strict local file; historical source is not promoted |
-| AFE v1 serial | Receive-only observations | Depends on declared capture | Protocol/profile host-tested; future physical AFE not validated |
-| MSP430 Equipment Health v1 | Receive-only observations | `HOST_TEST` or narrow `BENCH_CONTROLLER` capture | Independent peer product; no command encoder or write surface |
-| Third-party adapter | Shared public read workflow | Adapter-declared and checked | Demonstrated from an installed wheel using only public API |
-| Future instruments/controllers | Planned adapter/profile | Future explicit bench class | Requires safety review and separate evidence |
-
-The MSP430 Equipment Health Controller and this project are independent
-products. They are not intended to merge, and neither is part of the
-OSU Lab Bench Monitor Senior Capstone.
-
-## Verification and claim discipline
-
-| Gate | Verified result |
+| Evidence checkpoint | Recorded result |
 |---|---|
-| Local software gate | 2,277 passed; 100% statement coverage across 11,911 package statements; Ruff and mypy passed |
-| Hosted Dashboard gate | PR head `c9710fe` passed eight jobs in run `33933549983`; merged `main` commit `b4f0fef` passed eight post-merge jobs in run `33934417152` attempt 2 |
-| Reproducible candidate baseline | Local/hosted four-file `0.1.0b1` candidate matched byte-for-byte at audited commit `f6721b5` |
-| Release audit | `PASS_WITH_REVIEW`; zero current-tree privacy findings, eight legacy-history review items, zero high-confidence credentials |
-| Dashboard validation | Simulator/CSV interaction, data entry, adaptive scrolling, fresh save paths, navigation, cancellation, first-paint, and keyboard/scaling checks |
-| Physical controller evidence | One prior five-frame receive-only MSP430 UART capture with zero application writes; exact firmware and peripherals unverified |
+| [Local product synchronization, 2026-09-09](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/reports/private-github-sync-2026-09-09.md) | **3,048 tests passed; 17,567/17,567 package statements covered (100%)**; Ruff, mypy, pip check, and 15 product-quality checks passed |
+| [Installed voltage-import acceptance, 2026-09-09](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/reports/td-052-voltage-import-2026-09-09.md) | 23 installed CLI commands across seven scenarios; real Tk import/review/report workflow; three synthetic table layouts produce identical Replay bytes |
+| Cloud tests | Manual-only; no current hosted matrix PASS is claimed. Local tests are the primary gate |
 | AFE hardware bench tests | Not run |
 
-These rows do not imply 100% branch coverage, production readiness, electrical
-safety certification, or validated AFE performance. Historical checkpoint
-reports retain the exact counts and evidence available when they were written.
+The full-suite counts belong to the linked product checkpoint, not to a new
+run for each documentation edit. Coverage measures statements, not all branches
+or real-world correctness. `HOST_TEST`, `SYNTHETIC`, `CSV_REPLAY`, `SPICE_IDEAL`,
+`BENCH_CONTROLLER`, and `BENCH` remain distinct. Current demonstrations add no
+hardware evidence: **`NO_NEW_HARDWARE_VALIDATION`**.
 
-[Executed reports](reports/README.md) ·
-[Step 7 release audit](reports/software-phase6-step7.md) ·
-[Windows Dashboard QA](reports/dashboard-ux-windows-qa-2026-09-02.md) ·
-[Known limitations](docs/KNOWN_LIMITATIONS.md)
+[Local testing and manual CI](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/LOCAL_TESTING_AND_CI.md) ·
+[Executed reports](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/reports/README.md) ·
+[Known limitations](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/KNOWN_LIMITATIONS.md)
 
-## Roadmap
+## Scope and next step
 
-| Stage | Status | Exit condition |
-|---|---|---|
-| Software Phases 0–5 | Complete | Core, adapters, analyses, CLI/Dashboard/reports/demo, compatibility freeze |
-| Software Phase 6 | 7/8 | Dashboard UX delivered; owner-controlled history, license, visibility, tag, and release decisions remain |
-| Hardware design preparation | Deferred | Confirmed requirements, tools, instruments, components, safety review |
-| Breadboard AFE | Not started | Power/protection/buffer/gain/filter/Schmitt tests with raw bench evidence |
-| Automated hardware validation | Not started | Replaceable reference controller/instrument adapters and repeatable datasets |
-| PCB/productization | Not started | Bench-stable design, schematic/PCB reviews, bring-up and reliability evidence |
+The current focus is repeated voltage-data validation. Import supports explicit
+UTF-8 delimited tables with voltage units and time mapping; it is not a universal
+board driver, arbitrary-unit importer, or Excel workbook engine. New devices
+need an interpretable format or a tested adapter/profile. Receive-only serial
+support is opt-in; default demos do not enumerate or open ports.
 
-No hardware purchasing or construction is required to evaluate the current
-software product.
+Feature expansion is paused after local delivery. The next candidate is one
+sample-driven input extension, selected from a real user dataset or protocol.
+Screen-reader limitations and real-device/long-duration acquisition remain
+documented gaps. Physical AFE validation and instrument-controlled sweeps are
+future, separate work. See [current status](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/PROJECT_STATUS.md) and
+[the resume checkpoint](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/PROJECT_RESUME_CHECKPOINT_2026-09-09.md).
 
-## Repository map
+AVS is independent of the MSP430 Equipment Health Controller and the
+OSU Lab Bench Monitor Senior Capstone. A prior narrow `BENCH_CONTROLLER` UART
+capture does not validate an AFE, sensors, wiring, or laboratory instruments.
 
-~~~text
-src/analog_validation/      controller-neutral domain, protocol, adapters, analysis
-src/analog_validation_app/  product services, CLI, Dashboard, reports, worker
-tests/                      unit, golden, integration, architecture, product gates
-test-data/golden/           frozen compatibility vectors and exact results
-examples/public_adapter/    external public-API-only extension example
-docs/                       product, protocol, safety, user, and architecture guides
-reports/                    executed checkpoints with evidence limitations
-simulation/                 LTspice tasks and ideal-model evidence
-hardware/                   deferred design and procurement planning
-media/                      classified software visuals; future bench media is separate
-~~~
+<details>
+<summary>Historical release-engineering evidence</summary>
 
-## Documentation
-
-- Start here: [Installation](docs/INSTALLATION.md),
-  [CLI](docs/product-cli.md), [Dashboard](docs/dashboard.md),
-  [interaction design guide](docs/SOFTWARE_INTERACTION_DESIGN_GUIDE.md),
-  [software demo](docs/software-demo.md), and
-  [beginner testing](docs/USER_TESTING_GUIDE.md).
-- Engineering: [Theory](docs/theory.md),
-  [protocol](docs/protocol.md), [CRC/framing](docs/framing-and-crc.md),
-  [DC analysis](docs/dc-sweep-analysis.md),
-  [hysteresis](docs/hysteresis-analysis-and-runner.md), and
-  [result exports](docs/result-exports.md).
-- Product governance: [Project status](docs/PROJECT_STATUS.md),
-  [product plan](docs/PRODUCT_PLAN.md),
-  [requirements traceability](docs/REQUIREMENTS_TRACEABILITY.md),
-  [security policy](SECURITY.md), [contributing](CONTRIBUTING.md), and
-  [publication checklist](docs/PUBLICATION_CHECKLIST.md).
-- Portfolio handoff: [GitHub and LinkedIn copy preview](docs/PORTFOLIO_COPY.md)
-  with an explicit claims gate and owner-approval sequence.
-
-## Safety, privacy, and publication
-
-- The default product path is offline and Simulator-first.
-- Serial is opt-in, explicitly configured, and receive-only at the application
-  boundary; operating-system drivers may still affect control lines.
-- Existing result files are never overwritten by default.
-- Reports, screenshots, and release manifests must retain provenance and
-  limitation labels.
-- Publication requires a separate owner decision for repository visibility,
-  Git-history review, license, release/tag, social preview, and LinkedIn copy.
-
-See [Security](SECURITY.md), [publication checklist](docs/PUBLICATION_CHECKLIST.md),
-[assumptions](ASSUMPTIONS.md), [test/evidence policy](docs/test-plan.md), and
-[risk register](docs/risk-register.md).
-
-## License
-
-No open-source license has been selected. All rights are currently reserved by
-the project owner. Public visibility, if later chosen, would make the source
-viewable but would not itself grant permission to reuse, modify, or distribute
-it.
+The earlier Software Phase 6 baseline reached **7/8 checkpoints**. Its merged
+software gate recorded **2,277 tests passed** and
+**11,911/11,911 package statements covered**. The Step 7 release audit was
+`PASS_WITH_REVIEW`; those records do not clear the present Git history for
+publication. Historical reports remain unchanged:
+[Step 7 audit](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/reports/software-phase6-step7.md) and
+[2026-09-04 handoff](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/reports/PROJECT_MILESTONE_UPDATE_2026-09-04.md).
 
 </details>
+
+## License and development
+
+The current candidate on `codex/calibration-workflow` uses the owner-selected
+[MIT License](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/LICENSE). The earlier main revision retains its
+[existing license file](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/9a66ab307a0c32afa975e7a5082b411ec991bb60/LICENSE);
+no license file is changed by this presentation update. Historical main status:
+**No open-source license has been selected**; its license file reserves all rights.
+Consult the license at the exact revision being used.
+[Third-party notices](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/THIRD_PARTY_NOTICES.md), [contributing](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/CONTRIBUTING.md),
+[security](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/SECURITY.md), and [publication checklist](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/codex/calibration-workflow/docs/PUBLICATION_CHECKLIST.md)
+describe the development and distribution boundaries. Repository visibility,
+merging the Draft PR, and publishing a release remain separate owner decisions.
