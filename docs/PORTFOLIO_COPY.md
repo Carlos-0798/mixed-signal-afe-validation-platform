@@ -2,8 +2,8 @@
 
 Reviewed 2026-09-10. Current implemented software is on the default `main`
 after [PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10)
-integration. Source publication is owner-approved; visibility and anonymous
-verification are pending. This copy does not authorize LinkedIn posting,
+integration. The repository is public; anonymous default-source cloning,
+installation, and the synthetic demo passed on 2026-09-10. This copy does not authorize LinkedIn posting,
 a tagged release, or package publication.
 
 ## Project title and role

@@ -2,7 +2,7 @@
 
 **Last updated:** 2026-09-10<br>
 **Current milestone:** TD-050/TD-051/TD-052 locally complete; feature expansion paused for job-search preparation<br>
-**Synchronization stage:** PR #10 integrated into main; source publication owner-approved, visibility and anonymous verification pending; local testing remains primary and hosted CI manual-only; no new hosted PASS claimed<br>
+**Synchronization stage:** PR #10 integrated into main; source is public and anonymous clone/install/demo verified; local testing remains primary and hosted CI manual-only; no new hosted PASS claimed<br>
 **Release maturity:** `0.1.0b1` installable software beta; untagged and unreleased<br>
 **Highest evidence level:** BENCH_CONTROLLER — MSP430 UART compatibility only<br>
 **Verified AFE hardware performance claims:** 0
@@ -27,7 +27,9 @@ future work. See [the freeze policy](FEATURE_FREEZE.md),
 On 2026-09-10, the owner authorized retaining the reviewed history, accepting
 eight groups of ordinary local-machine path disclosures, and making PR #10
 Ready, merging it, and publishing the source after verification. PR #10 is now
-merged into `main`; visibility and anonymous checks remain pending. Tags,
+merged into `main`; the repository is public and anonymous default-source
+clone/install/demo checks passed on Windows/Python 3.12. See the dated
+[integration record](../reports/public-source-integration-2026-09-10.md). Tags,
 Releases, package publication, social posts, and hardware remain separate decisions.
 The [resume checkpoint](PROJECT_RESUME_CHECKPOINT_2026-09-09.md) records the
 preserved state and follow-up route. TD-053 remains deferred until real source

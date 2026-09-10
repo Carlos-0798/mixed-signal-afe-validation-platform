@@ -44,10 +44,36 @@ produced 24 `SYNTHETIC` points and 12 artifacts with verified sizes and hashes.
 The full product gate remains the dated 3,048-test / 100% statement-coverage
 result in the [synchronization report](private-github-sync-2026-09-09.md).
 
-Final documentation checks, exact publication commit, visibility readback and
-anonymous default-clone/install/demo results are recorded in the external
-`avs-publication-20260910-01` receipt and summarized in PR #10 after execution.
-This report does not pre-label a future anonymous check as passed.
+Main integration passed 36 architecture checks and 87 documentation-link targets.
+The current-tree audit inspected 515 tracked files, including six approved binary
+identities, with zero unapproved findings under the reviewed privacy rules.
+Commit `7111122c94594b8d568e5b174bfa33f22319f27c` was published as the default
+`main`; GitHub reported public visibility and the MIT license.
+
+A fresh clone with Git credentials, inherited authentication configuration,
+and interactive authentication disabled selected `main` automatically.
+Seven anonymous HTTP requests retrieved README, three linked documents, and
+three images; each matched the checkout bytes. The owner-session browser
+separately showed the Public label, rendered README/architecture, and product
+preview. That browser session was not described as signed out.
+
+The anonymous checkout built offline using cached build tools and installed
+into a new isolated Windows/Python 3.12 runtime. All 100 runtime Python files
+matched their installed bytes. Its installed CLI produced valid JSON, empty
+stderr, and a 24-point `SYNTHETIC` PASS. All 12 actual artifacts matched the
+stdout inventory; the manifest's 11 payload entries matched their sizes and
+SHA-256 identities. This acceptance passed on its first execution. It did not
+run the full suite, desktop UI, native Linux/macOS tests, or physical hardware.
+
+Final publication-status edits are documentation only. The final revision and
+its anonymous fast-forward/runtime-equivalence check are retained in the external
+`avs-publication-20260910-01` receipt and PR #10. The built wheel and executed
+demo remain evidence for `7111122`, not a claim that later metadata bytes match.
+
+Post-publication settings inspection found no main protection/rulesets and
+disabled private vulnerability reporting, secret scanning/push protection, and
+Dependabot security updates. These settings were inspected, not changed.
+The Actions count remained 41; no new hosted run was triggered.
 
 Cloud CI remains manual-only. No cloud dispatch or rerun is part of this
 publication. No tag, Release, package-registry upload, LinkedIn post, branch

@@ -6,11 +6,13 @@ The owner authorized public source publication with the reviewed history
 retained, including eight groups of ordinary local-machine path disclosures.
 [PR #10](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/pull/10)
 is integrated into the default `main`, which carries the owner-selected MIT
-license. The repository is still private pending the visibility change and
-anonymous verification. No tag, Release, or package publication is implied.
+license. The repository is public; anonymous default-source cloning,
+installation, and the synthetic demo passed on 2026-09-10. No tag, Release,
+or package publication is implied.
 
 See the dated [closeout review](../reports/publication-readiness-2026-09-10.md)
-for inspected revisions, findings, and remaining decisions. Checked preparation
+for inspected revisions and findings, and the [integration record](../reports/public-source-integration-2026-09-10.md)
+for completed publication checks. Checked preparation
 items do not authorize a merge, visibility change, history rewrite, or social post.
 
 ## Publication levels
@@ -18,11 +20,11 @@ items do not authorize a merge, visibility change, history rewrite, or social po
 | Level | Meaning | Current status |
 |---|---|---|
 | A — Private engineering beta | Validated local software with private source review | Preparation complete |
-| B — Public portfolio source | Recruiter-readable source, demo, evidence, and limitations | Owner-approved; visibility and anonymous verification pending |
+| B — Public portfolio source | Recruiter-readable source, demo, evidence, and limitations | Public; anonymous clone/install/demo verified |
 | C — Versioned beta release | Approved tag, release notes, and distribution artifacts | Deferred |
 | D — Hardware-backed evidence | Physical setup, raw measurements, calibration, and limitations | No new validation |
 
-Level B is the authorized next step. It does not require Level C or new product
+Level B is complete. It does not require Level C or new product
 features. Physical AFE performance cannot be inferred from any software gate.
 
 ## 1. Source and verification
@@ -37,12 +39,13 @@ features. Physical AFE performance cannot be inferred from any software gate.
       for later documentation changes.
 - [x] Integrate PR #10 into default `main`; merge `36450c6` has the same tree
       as reviewed source `549e91f`, and the new main checkout was clean.
-- [ ] Complete appropriate local checks for any changes since the recorded
-      gate. Rerun the full product gate when runtime/test changes warrant it.
-- [ ] Verify the selected source from a fresh authorized checkout or artifact
-      and check the documented demo and links before publication.
-- [ ] Ensure the PR description, license, screenshots, and test claims match
-      the selected candidate and clearly identify historical evidence.
+- [x] Main integration checks passed: 36 architecture checks and 87 documentation
+      targets. Follow-up edits are Markdown only; runtime, tests, CI, media, and
+      license text are unchanged. The full product gate was not repeated.
+- [x] Verify the selected source from fresh private and anonymous checkouts;
+      the Windows/Python 3.12 installed demo and artifact checks passed.
+- [x] Align the PR description, license, screenshots, and test claims with
+      the integrated source, keeping earlier evidence explicitly dated.
 
 Cloud CI is **optional**, governed by [local-first testing](LOCAL_TESTING_AND_CI.md).
 It is not a prerequisite for routine synchronization or a portfolio page.
@@ -61,7 +64,8 @@ Linux/macOS compatibility. No cloud run was requested by this checklist.
       workflows, failure handling, and verifiable results.
 - [x] Current synthetic fixtures and documentation review are described without
       implying hand-authored data or human peer review.
-- [ ] Recheck any new claim or asset against its underlying evidence.
+- [x] Check publication claims against the merge, local audit, anonymous
+      installation, and visibility records; no new product screenshot was added.
 
 Keep `HOST_TEST`, `SYNTHETIC`, `CSV_REPLAY`, `SPICE_IDEAL`, `BENCH_CONTROLLER`,
 and `BENCH` distinct. Do not claim human time savings, operator-error reduction,
@@ -80,8 +84,9 @@ conceal tool use or rewrite attribution history.
 - [x] Review repository issues, PR text/comments, Actions logs, and downloadable
       artifacts; 23 expired artifact bodies remain unavailable, as recorded in
       the dated report rather than labeled as passed.
-- [ ] Confirm there are no unresolved credential findings or private/team
-      material in the intended public surface.
+- [x] No unresolved credential or unrelated private/team-material findings
+      remain within the inspected scope. Accepted local paths and unavailable
+      expired artifacts remain explicitly recorded limitations.
 
 Pattern scanning is not a guarantee that every secret or personal detail has
 been detected. Do not delete runs, rewrite history, or expose reviewed personal
@@ -96,10 +101,14 @@ check, not an achievable prerequisite for a private repository.
 - [x] Repository description and topics have been synchronized to the software
       and data-workflow scope.
 - [x] CONTRIBUTING, SECURITY, PR template, CODEOWNERS, and Dependabot files exist.
-- [ ] Recheck available security settings and branch protections at the selected
-      publication point; do not equate configuration files with enabled rules.
-- [ ] After approved public exposure, verify signed-out README/images/links and
-      an anonymous clone/demo from the selected default revision.
+- [x] Read back settings after publication: no main branch protection or rulesets;
+      private vulnerability reporting, secret scanning/push protection, and
+      Dependabot security updates were disabled. No such feature was enabled
+      by this publication; configuration files do not imply active rules.
+- [x] Anonymous HTTP checks retrieved README, three linked documents, and three
+      images with matching bytes; credential-disabled default clone/install/demo
+      passed. Browser visual inspection used the owner's logged-in session and
+      is separate from the anonymous checks.
 
 A social-preview image is optional polish, not a source-publication blocker.
 Where supported, use reviewed changes and protection against force pushes.
@@ -114,8 +123,8 @@ The owner selected the following source-publication scope:
 1. Accept the eight reviewed path-disclosure groups and retain history unchanged.
 2. Integrate PR #10 so the implemented software and MIT license are on `main`;
    this integration is complete.
-3. Publish this repository's source after verification; the visibility change
-   and subsequent signed-out checks remain pending.
+3. Publish this repository's source after verification; the public visibility
+   change and subsequent anonymous checks are complete.
 4. Adding the GitHub link to LinkedIn remains a separate owner-approved action
    after signed-out verification.
 

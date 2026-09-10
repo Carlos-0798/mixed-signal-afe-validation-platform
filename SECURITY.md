@@ -4,7 +4,7 @@
 
 | Version or branch | Security support |
 |---|---|
-| Current `0.1.0b1` private-beta candidate and active `main` development | Best-effort fixes while the project remains pre-1.0 |
+| Current `0.1.0b1` software beta on `main` | Best-effort fixes while the project remains pre-1.0 |
 | Earlier snapshots and unmerged branches | Not separately supported |
 
 This project is not a production safety system. Software checks, Simulator
@@ -35,7 +35,7 @@ A useful private report includes:
 - suggested remediation, if known;
 - confirmation that secrets and unrelated personal data were removed.
 
-No response-time or disclosure-time guarantee is offered during private beta.
+No response-time or disclosure-time guarantee is offered during the pre-1.0 beta.
 The owner will acknowledge, validate, scope, fix, and coordinate disclosure as
 availability permits.
 
