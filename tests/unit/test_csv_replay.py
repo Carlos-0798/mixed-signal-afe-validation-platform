@@ -292,6 +292,63 @@ def test_parser_accepts_crlf_without_changing_meaning() -> None:
 
 
 @pytest.mark.parametrize(
+    ("fraction", "microseconds"),
+    [
+        ("", 0),
+        (".1", 100_000),
+        (".12", 120_000),
+        (".123", 123_000),
+        (".1234", 123_400),
+        (".12345", 123_450),
+        (".123456", 123_456),
+        (".000000", 0),
+        (".000001", 1),
+        (".999999", 999_999),
+    ],
+)
+def test_parser_preserves_fractional_second_precision(
+    fraction: str, microseconds: int
+) -> None:
+    timestamp = f"2026-08-30T12:00:01{fraction}Z"
+    payload = valid_text().replace("2026-08-30T12:00:00.300000Z", timestamp)
+
+    dataset = parse_csv_replay(payload)
+
+    expected = datetime(2026, 8, 30, 12, 0, 1, microseconds, tzinfo=timezone.utc)
+    assert dataset.records[3].timestamp == expected
+    assert dataset.records[4].timestamp == expected
+    assert dataset.records[3].timestamp.tzinfo is timezone.utc
+    assert dataset.records[3].declared_source is EvidenceSource.SPICE_MODEL
+    assert dataset.records[4].declared_source is EvidenceSource.HOST_TEST
+
+
+@pytest.mark.parametrize(
+    ("timestamp", "message"),
+    [
+        ("2026-08-30T12:00:01.Z", "ISO 8601"),
+        ("2026-08-30T12:00:01.1234567Z", "ISO 8601"),
+        ("2026-08-30T12:00:01.0000000Z", "ISO 8601"),
+        ("2026-08-30T12:00:01.-1Z", "ISO 8601"),
+        ("2026-08-30T12:00:01.1e1Z", "ISO 8601"),
+        ("2026-08-30T12:00:01.1", "ISO 8601"),
+        ("2026-08-30T12:00:01.1z", "ISO 8601"),
+        ("2026-08-30T12:00:01.1+00:00", "ISO 8601"),
+        ("2026-08-30T12:00:01.1Z ", "ISO 8601"),
+        ("2026-02-30T12:00:01.1Z", "calendar"),
+        ("2026-08-30T24:00:00.1Z", "calendar"),
+        ("2026-08-30T12:00:60.1Z", "calendar"),
+    ],
+)
+def test_parser_rejects_invalid_fractional_timestamps(
+    timestamp: str, message: str
+) -> None:
+    payload = replace_once("2026-08-30T12:00:00Z", timestamp)
+
+    with pytest.raises(ReplayFormatError, match=message):
+        parse_csv_replay(payload)
+
+
+@pytest.mark.parametrize(
     ("payload", "message"),
     [
         ("", "empty"),
