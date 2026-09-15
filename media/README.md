@@ -4,6 +4,27 @@ This directory keeps portfolio visuals and future physical evidence
 classifiable by source. A screenshot of software output is not a photograph or
 measurement of hardware.
 
+## Current README preview (2026-09-15)
+
+`dashboard-import-workbench-20260915.png` replaces the README's older Workbench preview,
+which included a visible pointer and highlight. This is a fresh, unedited
+1280 x 1000 PNG capture of the actual Windows Tk application from public source
+commit `8ec0e3b76851f7ba707882040e91da942d99338d`. Window-only capture excludes the
+cursor and pointer-highlight overlays; no UI content was retouched or generated.
+The original screenshots below remain preserved as historical captures.
+
+The same six-row SYNTHETIC fixture and checked `CSV_REPLAY` mapping were used.
+The visible V-to-mV conversion, units and evidence label are unchanged. The
+page is scrolled to its mapping and checked-preview controls. No personal
+profile path appears in the image. No package was published, analysis run,
+serial device enumerated/opened, or hardware accessed during this capture.
+
+- Image SHA-256: `d0e253c538e1777a55ac14ba73b4820e1c2bb25dd14d08fcaff79e6467bb3b40`
+- Original fixture SHA-256: `e0872ac1024af51e55f2a0fed6f4a64463fcc593ef6fc61ff4f5d8e91b177703`
+
+This is software presentation evidence, not a new test-suite result or hardware
+measurement. No feature implementation or existing test claims changed.
+
 ## CSV import preview screenshots (2026-09-09)
 
 | File | Theme | Source | What it shows |

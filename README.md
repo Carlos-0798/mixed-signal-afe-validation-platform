@@ -56,9 +56,9 @@ processing, and hardware/software interface design. The
 
 ## Product preview
 
-![Workbench theme: checked voltage import with explicit units and CSV_REPLAY evidence](https://github.com/Carlos-0798/mixed-signal-afe-validation-platform/blob/0f639b707828c2fb2f5484120a34762c9e4dcb2f/media/dashboard-import-workbench-20260909.jpg?raw=true)
+![Workbench theme: checked voltage import with explicit units and CSV_REPLAY evidence](media/dashboard-import-workbench-20260915.png)
 
-Real Windows application, captured 2026-09-09. The six-row input is synthetic;
+Real Windows application, captured 2026-09-15. The six-row input is synthetic;
 the imported preview is labeled `CSV_REPLAY`. This shows data preparation,
 not a hardware measurement.
 
